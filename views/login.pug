@@ -2,3 +2,25 @@ extends layout
 
 block content
   h1 Login
+  .w3
+      .signin-form.profile
+          h3 Login
+          .login-form
+            form(action='/users', method='post')
+              input(type='text', name='logemail', placeholder='E-mail', required='')
+              input(type='password', name='logpassword', placeholder='Password', required='')
+              .tp
+                input(type='submit', value='LOGIN NOW')
+      .agile
+        .signin-form.profile
+          h3 Register
+          .login-form
+            form(action='/users', method='post')
+              input(type='text', name='email', placeholder='E-mail', required='')
+              input(type='text', name='username', placeholder='Username', required='')
+              input(type='password', name='password', placeholder='Password', required='')
+              input(type='password', name='passwordConf', placeholder='Confirm Password', required='')
+              input(type='submit', value='REGISTER')
+          p
+            a(href='#')  By clicking register, I agree to your terms
+      .clear

@@ -1,8 +1,7 @@
 var mongoose = require('mongoose');
 var bcrypt = require('bcrypt');
 
-// TODO: use env variables
-mongoose.connect('mongodb://heroku_0gvg0pwn:dqo4msao72pogasnsaaje91seo@ds255787.mlab.com:55787/heroku_0gvg0pwn');
+
 
 var UserSchema = new mongoose.Schema({
   email: {

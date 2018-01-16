@@ -4,7 +4,7 @@ var User = require('../models/user');
 
 /* GET users listing. */
 router.get('/', function(req, res, next) {
-  res.render('login');
+  res.render('index');
 });
 
 //POST route for updating data
@@ -34,7 +34,7 @@ router.post('/', function (req, res, next) {
         return next(error);
       } else {
         req.session.userId = user._id;
-        return res.redirect('/profile');
+        return res.redirect(req.baseUrl + '/profile');
       }
     });
 
@@ -45,8 +45,11 @@ router.post('/', function (req, res, next) {
         err.status = 401;
         return next(err);
       } else {
+      	console.log("user._id: ");
+      	console.log(user._id);
         req.session.userId = user._id;
-        return res.redirect('/profile');
+        console.log("Successfully set user ID, redirecting to profile")
+        return res.redirect(req.baseUrl + '/profile');
       }
     });
   } else {
@@ -74,7 +77,7 @@ router.get('/profile', function (req, res, next) {
     });
 });
 
-// GET for logout logout
+// GET for logout
 router.get('/logout', function (req, res, next) {
   if (req.session) {
     // delete session object
