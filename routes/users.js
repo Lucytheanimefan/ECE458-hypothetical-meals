@@ -4,7 +4,7 @@ var User = require('../models/user');
 
 /* GET users listing. */
 router.get('/', function(req, res, next) {
-  res.render('index');
+  res.render('login');
 });
 
 //POST route for updating data
