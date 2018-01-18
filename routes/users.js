@@ -85,7 +85,9 @@ router.get('/profile', function(req, res, next) {
                     err.status = 400;
                     return next(err);
                 } else {
-                    return res.send('<h1>Name: </h1>' + user.username + '<h2>Mail: </h2>' + user.email + '<br><a type="button" href="' + req.baseUrl + '/logout">Logout</a>')
+                    res.render('profile', { title: 'Profile', name: user.username, mail: user.email });
+                    
+                    //return res.send('<h1>Name: </h1>' + user.username + '<h2>Mail: </h2>' + user.email + '<br><a type="button" href="' + req.baseUrl + '/logout">Logout</a>')
                 }
             }
         });
@@ -106,7 +108,8 @@ router.get('/admin', function(req, res, next) {
                     err.status = 403;
                     return next(err);
                 } else {
-                    return res.send('<h1>ADMIN PAGE</h1><h1>Name: </h1>' + user.username + '<h2>Mail: </h2>' + user.email + '<br><a type="button" href="' + req.baseUrl + '/logout">Logout</a>')
+                  // TODO: will probably update this later and render a different view
+                  res.render('profile', { title: 'Admin', name: user.username, mail: user.email });
                 }
             }
         });
