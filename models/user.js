@@ -23,6 +23,10 @@ var UserSchema = new mongoose.Schema({
   passwordConf: {
     type: String,
     required: true,
+  },
+  role: {
+    type: String, // "Admin" or "User"
+    required: true,
   }
 });
 

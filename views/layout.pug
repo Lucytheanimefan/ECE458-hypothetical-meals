@@ -1,7 +1,148 @@
 doctype html
-html
+html(lang='en')
   head
-    title= title
-    link(rel='stylesheet', href='/stylesheets/style.css')
+    meta(charset='utf-8')
+    link(rel='apple-touch-icon', sizes='76x76', href='/img/apple-icon.png')
+    link(rel='icon', type='image/png', href='/img/favicon.png')
+    meta(http-equiv='X-UA-Compatible', content='IE=edge,chrome=1')
+    title Hypothetical Meals
+    meta(content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0', name='viewport')
+    meta(name='viewport', content='width=device-width')
+    // Bootstrap core CSS
+    link(href='/css/bootstrap.min.css', rel='stylesheet')
+    // Material Dashboard CSS
+    link(href='/css/material-dashboard.css?v=1.2.0', rel='stylesheet')
+    // CSS for Demo Purpose, don't include it in your project
+    link(href='/css/demo.css', rel='stylesheet')
+    // Fonts and icons
+    link(href='http://maxcdn.bootstrapcdn.com/font-awesome/latest/css/font-awesome.min.css', rel='stylesheet')
+    link(href='http://fonts.googleapis.com/css?family=Roboto:400,700,300|Material+Icons', rel='stylesheet', type='text/css')
   body
-    block content
+    .wrapper
+      .sidebar(data-color='purple', data-image='/img/sidebar-1.jpg')
+        //
+          Tip 1: You can change the color of the sidebar using: data-color="purple | blue | green | orange | red"
+          Tip 2: you can also add an image using data-image tag
+        .logo
+          a.simple-text(href='http://www.creative-tim.com')
+            | Creative Tim
+        .sidebar-wrapper
+          ul.nav
+            li.active
+              a(href='/')
+                i.material-icons dashboard
+                p Dashboard
+            li
+              a(href='/users')
+                i.material-icons person
+                p User Profile
+            li
+              a(href='./table.html')
+                i.material-icons content_paste
+                p Table List
+            li
+              a(href='./typography.html')
+                i.material-icons library_books
+                p Typography
+            li
+              a(href='./icons.html')
+                i.material-icons bubble_chart
+                p Icons
+            li
+              a(href='./maps.html')
+                i.material-icons location_on
+                p Maps
+            li
+              a(href='./notifications.html')
+                i.material-icons.text-gray notifications
+                p Notifications
+            li.active-pro
+              a(href='upgrade.html')
+                i.material-icons unarchive
+                p Upgrade to PRO
+      .main-panel
+        nav.navbar.navbar-transparent.navbar-absolute
+          .container-fluid
+            .navbar-header
+              button.navbar-toggle(type='button', data-toggle='collapse')
+                span.sr-only Toggle navigation
+                span.icon-bar
+                span.icon-bar
+                span.icon-bar
+              a.navbar-brand(href='#')  #{title}
+            .collapse.navbar-collapse
+              ul.nav.navbar-nav.navbar-right
+                li
+                  a.dropdown-toggle(href='#pablo', data-toggle='dropdown')
+                    i.material-icons dashboard
+                    p.hidden-lg.hidden-md Dashboard
+                li.dropdown
+                  a.dropdown-toggle(href='#', data-toggle='dropdown')
+                    i.material-icons notifications
+                    span.notification 5
+                    p.hidden-lg.hidden-md Notifications
+                  ul.dropdown-menu
+                    li
+                      a(href='#') Mike John responded to your email
+                    li
+                      a(href='#') You have 5 new tasks
+                    li
+                      a(href='#') You're now friend with Andrew
+                    li
+                      a(href='#') Another Notification
+                    li
+                      a(href='#') Another One
+                li
+                  a.dropdown-toggle(href='#pablo', data-toggle='dropdown')
+                    i.material-icons person
+                    p.hidden-lg.hidden-md Profile
+              form.navbar-form.navbar-right(role='search')
+                .form-group.is-empty
+                  input.form-control(type='text', placeholder='Search')
+                  span.material-input
+                button.btn.btn-white.btn-round.btn-just-icon(type='submit')
+                  i.material-icons search
+                  .ripple-container
+        .content
+          .container-fluid
+            block content
+            
+        footer.footer
+          .container-fluid
+            nav.pull-left
+              ul
+                li
+                  a(href='#')
+                    | Home
+                li
+                  a(href='#')
+                    | Company
+                li
+                  a(href='#')
+                    | Portfolio
+                li
+                  a(href='#')
+                    | Blog
+            p.copyright.pull-right
+              | ©
+              script.
+                document.write(new Date().getFullYear())
+              a(href='http://www.creative-tim.com') Creative Tim
+              | , made with love for a better web
+  // Core JS Files
+  script(src='/js/jquery-3.2.1.min.js', type='text/javascript')
+  script(src='/js/bootstrap.min.js', type='text/javascript')
+  script(src='/js/material.min.js', type='text/javascript')
+  // Charts Plugin
+  script(src='/js/chartist.min.js')
+  // Dynamic Elements plugin
+  script(src='/js/arrive.min.js')
+  // PerfectScrollbar Library
+  script(src='/js/perfect-scrollbar.jquery.min.js')
+  // Notifications Plugin
+  script(src='/js/bootstrap-notify.js')
+  // Google Maps Plugin
+  script(type='text/javascript', src='https://maps.googleapis.com/maps/api/js?key=YOUR_KEY_HERE')
+  // Material Dashboard javascript methods
+  script(src='/js/material-dashboard.js?v=1.2.0')
+

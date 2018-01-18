@@ -1,0 +1,71 @@
+extends layout
+
+block content
+  .row
+  .col-md-8
+    .card
+      .card-header(data-background-color='purple')
+        h4.title Edit Profile
+        p.category Complete your profile
+      .card-content
+        form
+          .row
+            .col-md-5
+              .form-group.label-floating
+                label.control-label Company (disabled)
+                input.form-control(type='text', disabled='')
+            .col-md-3
+              .form-group.label-floating
+                label.control-label Username
+                input.form-control(type='text', value=name)
+            .col-md-4
+              .form-group.label-floating
+                label.control-label Email address
+                input.form-control(type='email', value=mail)
+          .row
+            .col-md-6
+              .form-group.label-floating
+                label.control-label First Name
+                input.form-control(type='text')
+            .col-md-6
+              .form-group.label-floating
+                label.control-label Last Name
+                input.form-control(type='text')
+          .row
+            .col-md-12
+              .form-group.label-floating
+                label.control-label Address
+                input.form-control(type='text')
+          .row
+            .col-md-4
+              .form-group.label-floating
+                label.control-label City
+                input.form-control(type='text')
+            .col-md-4
+              .form-group.label-floating
+                label.control-label Country
+                input.form-control(type='text')
+            .col-md-4
+              .form-group.label-floating
+                label.control-label Postal Code
+                input.form-control(type='text')
+          .row
+            .col-md-12
+              .form-group
+                label About Me
+                .form-group.label-floating
+                  label.control-label  
+                  textarea.form-control(rows='5')
+          button.btn.btn-primary.pull-right(type='submit') Update Profile
+          .clearfix
+  .col-md-4
+    .card.card-profile
+      .card-avatar
+        a(href='#pablo')
+          img.img(src='../assets/img/faces/marc.jpg')
+      .content
+        h6.category.text-gray CEO / Co-Founder
+        h4.card-title Alec Thompson
+        p.card-content
+          | Don't be scared of the truth because we need to restart the human foundation in truth And I love you like Kanye loves Kanye I love Rick Owens’ bed design but the back is...
+        a.btn.btn-primary.btn-round(href='#pablo') Follow

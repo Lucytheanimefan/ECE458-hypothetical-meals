@@ -14,6 +14,7 @@ var MongoStore = require('connect-mongo')(session);
 
 var app = express();
 
+
 // connect to mongoDB
 // TODO: use env variables, either way this is a throwaway database URI
 mongoose.connect('mongodb://heroku_0gvg0pwn:dqo4msao72pogasnsaaje91seo@ds255787.mlab.com:55787/heroku_0gvg0pwn');
@@ -21,18 +22,18 @@ var db = mongoose.connection;
 
 //handle mongo error
 db.on('error', console.error.bind(console, 'connection error:'));
-db.once('open', function () {
-  // we're connected!
+db.once('open', function() {
+    // we're connected!
 });
 
 //use sessions for tracking logins
 app.use(session({
-  secret: 'anime',
-  resave: true,
-  saveUninitialized: false,
-  store: new MongoStore({
-    mongooseConnection: db
-  })
+    secret: 'anime',
+    resave: true,
+    saveUninitialized: false,
+    store: new MongoStore({
+        mongooseConnection: db
+    })
 }));
 
 // view engine setup
@@ -50,23 +51,24 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/', index);
 app.use('/users', users);
 
+
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
-  console.log("404 ERROR poop");
-  var err = new Error('Not Found');
-  err.status = 404;
-  next(err);
+    console.log("404 ERROR poop");
+    var err = new Error('Not Found');
+    err.status = 404;
+    next(err);
 });
 
 // error handler
 app.use(function(err, req, res, next) {
-  // set locals, only providing error in development
-  res.locals.message = err.message;
-  res.locals.error = req.app.get('env') === 'development' ? err : {};
+    // set locals, only providing error in development
+    res.locals.message = err.message;
+    res.locals.error = req.app.get('env') === 'development' ? err : {};
 
-  // render the error page
-  res.status(err.status || 500);
-  res.render('error');
+    // render the error page
+    res.status(err.status || 500);
+    res.render('error');
 });
 
 
