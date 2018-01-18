@@ -86,8 +86,6 @@ router.get('/profile', function(req, res, next) {
                     return next(err);
                 } else {
                     res.render('profile', { title: 'Profile', name: user.username, mail: user.email });
-                    
-                    //return res.send('<h1>Name: </h1>' + user.username + '<h2>Mail: </h2>' + user.email + '<br><a type="button" href="' + req.baseUrl + '/logout">Logout</a>')
                 }
             }
         });
