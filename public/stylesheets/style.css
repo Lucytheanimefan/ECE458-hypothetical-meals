@@ -6,3 +6,73 @@ body {
 a {
   color: #00B7FF;
 }
+
+.div-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: #f9f9f9;
+  /*min-width: 160px;
+box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);*/
+  padding: 12px 16px;
+  z-index: 1;
+}
+
+.div-dropdown:hover .dropdown-content {
+  display: block;
+}
+
+button.accordion {
+  /*background-color: rgba(0, 0, 0, 0.5);
+  color: white;
+  */
+  cursor: pointer;
+
+  width: 100%;
+  border: none;
+  text-align: left;
+  outline: none;
+  font-size: 15px;
+  font-weight: bold;
+  transition: 0.4s;
+  outline: none !important;
+}
+
+button.accordion.active,
+button.accordion:hover {
+  /*background-color: rgba(238, 238, 238, 0.4);
+  color: #444;*/
+}
+
+button.accordion:after {
+  content: '\02795';
+  color: white;
+  /*font-size: 13px;
+  color: #777;*/
+  float: right;
+  /*margin-left: 5px;*/
+}
+
+button.accordion.active:after {
+  content: "\2796";
+  color: white !important;
+}
+
+div.panel {
+  padding: 0 18px;
+  /*background-color: rgba(255, 255, 255, 0.4);*/
+  max-height: 0;
+  overflow-y: hidden;
+  transition: 0.6s ease-in-out;
+  opacity: 0;
+}
+
+div.panel.show {
+  opacity: 1;
+  z-index: 100;
+  min-height: 640px;
+}
