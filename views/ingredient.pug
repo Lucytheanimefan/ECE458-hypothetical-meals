@@ -5,3 +5,6 @@ block content
   h2= ingredient.package
   h2= ingredient.temperature
   h2= ingredient.amount
+
+  form(action='/ingredients/' + ingredient.name + '/delete', method='post')
+    input(type='submit', value = 'Delete ingredient')

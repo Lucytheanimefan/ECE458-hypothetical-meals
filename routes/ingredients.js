@@ -23,6 +23,20 @@ router.get('/:name', function(req, res, next) {
   })
 })
 
+//DELETE request to delete an existing ingredient
+router.post('/:name/delete', function(req, res, next) {
+  Ingredient.findOneAndRemove({name: req.params.name}, function(error, result) {
+    if (error) {
+      var err = new Error('Couldn\'t delete that ingredient.');
+      err.status = 400;
+      return next(err);
+    } else {
+      //alert user the ingredient has been deleted.
+      return res.redirect(req.baseUrl);
+    }
+  });
+});
+
 //POST request to create a new ingredient
 router.post('/new', function(req, res, next) {
   Ingredient.create({
@@ -43,17 +57,6 @@ router.post('/new', function(req, res, next) {
 //PUT request to update an existing ingredient
 router.put('/update', function(req, res) {
   Ingredient.findOneAndUpdate({name: req.body.name}, function(){});
-});
-
-//DELETE request to delete an existing ingredient
-router.delete('/delete', function(req, res, next) {
-  Ingredient.findOneAndDelete({name: req.body.name}, function(error, result) {
-    if (error) {
-      return next(error);
-    } else {
-      //alert user the ingredient has been deleted.
-    }
-  });
 });
 
 module.exports = router;
