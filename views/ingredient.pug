@@ -1,8 +1,7 @@
 extends layout
 
 block content
-  form(action='/ingredients/new', method='post')
-    input(type='text', name='name', required='')
-    input(type='text', name='package', required='')
-    input(type='text', name='temperature', required='')
-    input(type='submit', value='add ingredient')
+  h1= ingredient.name
+  h2= ingredient.package
+  h2= ingredient.temperature
+  h2= ingredient.amount
