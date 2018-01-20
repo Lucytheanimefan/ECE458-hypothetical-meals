@@ -17,6 +17,8 @@ html(lang='en')
     // Fonts and icons
     link(href='http://maxcdn.bootstrapcdn.com/font-awesome/latest/css/font-awesome.min.css', rel='stylesheet')
     link(href='http://fonts.googleapis.com/css?family=Roboto:400,700,300|Material+Icons', rel='stylesheet', type='text/css')
+  block link
+    -var selected = 'home'; // default
   body
     .wrapper
       .sidebar(data-color='purple', data-image='/img/sidebar-1.jpg')
@@ -26,36 +28,46 @@ html(lang='en')
         .logo
           a.simple-text(href='http://www.creative-tim.com')
             | Hypothetical Meals
+
+        -var menu = { 'home': '/', 'users': '/users'};
+
         .sidebar-wrapper
           ul.nav
-            li.active
-              a(href='/')
-                i.material-icons dashboard
-                p Dashboard
-            li
-              a(href='/users')
-                i.material-icons person
-                p User Profile
-            li
-              a(href='#')
-                i.material-icons content_paste
-                p Table List
-            li
-              a(href='#')
-                i.material-icons library_books
-                p Typography
-            li
-              a(href='#')
-                i.material-icons bubble_chart
-                p Icons
-            li
-              a(href='#')
-                i.material-icons location_on
-                p Maps
-            li
-              a(href='#')
-                i.material-icons.text-gray notifications
-                p Notifications
+            each val, key in menu
+              if selected === key
+                li.active
+                  a(href=val)
+                    i.material-icons dashboard
+                    p #{key}
+              else
+                li
+                  a(href=val)
+                    i.material-icons dashboard
+                    p #{key}
+            //- li
+            //-   a(href='/users')
+            //-     i.material-icons person
+            //-     p User Profile
+            //- li
+            //-   a(href='#')
+            //-     i.material-icons content_paste
+            //-     p Table List
+            //- li
+            //-   a(href='#')
+            //-     i.material-icons library_books
+            //-     p Typography
+            //- li
+            //-   a(href='#')
+            //-     i.material-icons bubble_chart
+            //-     p Icons
+            //- li
+            //-   a(href='#')
+            //-     i.material-icons location_on
+            //-     p Maps
+            //- li
+            //-   a(href='#')
+            //-     i.material-icons.text-gray notifications
+            //-     p Notifications
       .main-panel
         nav.navbar.navbar-transparent.navbar-absolute
           .container-fluid
@@ -140,4 +152,6 @@ html(lang='en')
   script(type='text/javascript', src='https://maps.googleapis.com/maps/api/js?key=YOUR_KEY_HERE')
   // Material Dashboard javascript methods
   script(src='/js/material-dashboard.js?v=1.2.0')
+  script.
+
 
