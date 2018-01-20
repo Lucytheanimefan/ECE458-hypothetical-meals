@@ -21,7 +21,8 @@ var VendorSchema = new mongoose.Schema({
     pail:{cost:Number,avail:Number},supersack:{cost:Number,avail:Number},
     truckload:{cost:Number,avail:Number},railcar:{cost:Number,avail:Number}}}]
 });
-//authenticate input against database
+
+VendorSchema.index({"catalogue.food":1});
 
 VendorSchema.methods.findByCode = function(code, callback){
   Vendor.findOne({code: code})
@@ -48,6 +49,20 @@ VendorSchema.methods.findByName = function(name, callback){
         return callback(err);
       }
       return vendor;
+    })
+}
+
+VendorSchema.methods.findByIngredient = function(ingredient, callback){
+  VendorSchema.find({food:food})
+    .exec(function(err,vendors){
+      if(err){
+        return callback(err)
+      }else if(!vendors){
+        var err = new Error('No Vendors Selling that Ingredient');
+        err.status = 401;
+        return callback(err);
+      }
+      return vendors;
     })
 }
 
