@@ -29,13 +29,19 @@ VendorSchema.methods.findByCode = function(code, callback){
     .exec(function(err, vendor){
       if(err){
         return callback(err)
-      }else if(!vendor){
-        var err = new Error('No Vendor Found with that Code.');
-        err.status = 401;
-        return callback(err);
       }
       return vendor;
     });
+}
+
+VendorSchema.methods.findVendors = function(limit, callback){
+  var querry = Vendor.find({published: true}).sort({name:1}).limit(limit);
+  vendors.exec(function(err, vendors){
+    if(err){
+      return callback(err);
+    }
+    return vendors;
+  });
 }
 
 VendorSchema.methods.findByName = function(name, callback){
@@ -43,10 +49,6 @@ VendorSchema.methods.findByName = function(name, callback){
     .exec(function(err,vendor){
       if(err){
         return callback(err)
-      }else if(!vendor){
-        var err = new Error('No Vendor Found with that Name');
-        err.status = 401;
-        return callback(err);
       }
       return vendor;
     })
