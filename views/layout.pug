@@ -29,7 +29,7 @@ html(lang='en')
           a.simple-text(href='http://www.creative-tim.com')
             | Hypothetical Meals
 
-        -var menu = { 'home': '/', 'users': '/users'};
+        -var menu = { 'home': '/', /*'users': '/users',*/ 'admin':'/users/admin'};
 
         .sidebar-wrapper
           ul.nav
@@ -101,7 +101,7 @@ html(lang='en')
                     li
                       a(href='#') Another One
                 li
-                  a.dropdown-toggle(href='#pablo', data-toggle='dropdown')
+                  a(href='/users/profile')
                     i.material-icons person
                     p.hidden-lg.hidden-md Profile
               form.navbar-form.navbar-right(role='search')

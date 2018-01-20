@@ -28,6 +28,7 @@ router.post('/', function(req, res, next) {
         return next(err);
     }
 
+    // TODO: check if admin in order to create user
     if (req.body.email &&
         req.body.username &&
         req.body.password &&
@@ -81,9 +82,10 @@ router.get('/profile', function(req, res, next) {
                 return next(error);
             } else {
                 if (user === null) {
-                    var err = new Error('Not authorized! Go back!');
-                    err.status = 400;
-                    return next(err);
+                    // var err = new Error('Not authorized! Go back!');
+                    // err.status = 400;
+                    // return next(err);
+                    return res.redirect(req.baseUrl + '/');
                 } else {
                     res.render('profile', { title: 'Profile', name: user.username, mail: user.email });
                 }
@@ -98,7 +100,7 @@ router.get('/admin', function(req, res, next) {
                 return next(error);
             } else {
                 if (user === null) {
-                    var err = new Error('Not authorized! Go back!');
+                    var err = new Error('Not authorized. Please ask your admin to gain administrator privileges.');
                     err.status = 400;
                     return next(err);
                 } else if (user.role.toUpperCase() !== "ADMIN") {
@@ -107,7 +109,7 @@ router.get('/admin', function(req, res, next) {
                     return next(err);
                 } else {
                   // TODO: will probably update this later and render a different view
-                  res.render('profile', { title: 'Admin', name: user.username, mail: user.email });
+                  res.render('admin', { title: 'Admin', name: user.username, mail: user.email });
                 }
             }
         });
