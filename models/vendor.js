@@ -17,12 +17,16 @@ var VendorSchema = new mongoose.Schema({
     type:Mixed,
     required: true
   },
+  location:{city:String,state:String,zip:Number},
   catalogue: [{food:String, units:{sack:{cost:Number,avail:Number},
     pail:{cost:Number,avail:Number},supersack:{cost:Number,avail:Number},
     truckload:{cost:Number,avail:Number},railcar:{cost:Number,avail:Number}}}]
 });
 
 VendorSchema.index({"catalogue.food":1});
+VendorSchema.index({"location.city":1});
+VendorSchema.index({"location.zip":1});
+VendorSchema.index({"location.state":1});
 
 VendorSchema.methods.findByCode = function(code, callback){
   Vendor.findOne({code: code})
