@@ -1,6 +1,21 @@
 extends layout
 
 block content
+  #ing-table
+    table
+      tr
+        th Ingredient
+        th Package
+        th Temperature
+        th Amount
+      each ing in ingredients
+        tr
+          th 
+            a(href='/ingredients/' + ing.name)= ing.name
+          th= ing.package
+          th= ing.temperature
+          th= ing.amount
+
   h1= 'Create new ingredient'
   form(action='/ingredients/new', method='post')
     input(type='text', name='name', placeholder = 'Ingredient name', required='')

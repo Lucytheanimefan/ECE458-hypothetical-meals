@@ -4,7 +4,15 @@ var Ingredient = require('../models/ingredient');
 
 //GET request to show available ingredients
 router.get('/', function(req, res) {
-  res.render('ingredients');
+  Ingredient.find({}, function(error, ings) {
+    if (error) {
+      var err = new Error('Error searching for ' + req.params.name);
+      err.status = 400;
+      return next(err);
+    } else {
+      res.render('ingredients', { ingredients: ings });
+    }
+  })
 })
 
 router.get('/:name', function(req, res, next) {
@@ -23,7 +31,7 @@ router.get('/:name', function(req, res, next) {
   })
 })
 
-//DELETE request to delete an existing ingredient
+//POST request to delete an existing ingredient
 router.post('/:name/delete', function(req, res, next) {
   Ingredient.findOneAndRemove({name: req.params.name}, function(error, result) {
     if (error) {
@@ -35,6 +43,11 @@ router.post('/:name/delete', function(req, res, next) {
       return res.redirect(req.baseUrl);
     }
   });
+});
+
+
+router.post('/:name/update', function(req, res) {
+  Ingredient.findOneAndUpdate({name: req.body.name}, function(){});
 });
 
 //POST request to create a new ingredient
@@ -55,8 +68,8 @@ router.post('/new', function(req, res, next) {
 });
 
 //PUT request to update an existing ingredient
-router.put('/update', function(req, res) {
-  Ingredient.findOneAndUpdate({name: req.body.name}, function(){});
-});
+// router.post('/update/', function(req, res) {
+//   Ingredient.findOneAndUpdate({name: req.body.name}, function(){});
+// });
 
 module.exports = router;
