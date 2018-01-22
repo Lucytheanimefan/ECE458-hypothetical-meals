@@ -62,14 +62,35 @@ VendorSchema.methods.findByIngredient = function(ingredient, callback){
   VendorSchema.find({food:food})
     .exec(function(err,vendors){
       if(err){
-        return callback(err)
-      }else if(!vendors){
-        var err = new Error('No Vendors Selling that Ingredient');
-        err.status = 401;
         return callback(err);
       }
       return vendors;
     })
+}
+
+VendorSchema.methods.findByLocation = function(location,callback){
+  VendorSchema.find({location:location})
+    .exec(functino(err,vendors){
+      if(err){
+        return callback(err);
+      }
+      return vendors;
+    })
+}
+
+VendorSchema.methods.findByLocationIngredient = function(location,ingredient,callback){
+  VendorSchema.find({location:location, ingredient:ingredient})
+    .exec(function(err,vendors){
+      if(err){
+        return callback(err);
+      }
+      return vendors;
+    })
+}
+
+VendorSchema.methods.removeIngredient = function(code, callback){
+  VendorSchema.findOneAndRemove({code:code})
+    .exec(callback)
 }
 
 
