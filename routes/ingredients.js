@@ -26,7 +26,7 @@ router.get('/:name', function(req, res, next) {
       err.status = 400;
       return next(err);
     } else {
-      res.render('ingredient', { ingredient: ing })
+      res.render('ingredient', { ingredient: ing });
     }
   })
 })
@@ -46,8 +46,21 @@ router.post('/:name/delete', function(req, res, next) {
 });
 
 
-router.post('/:name/update', function(req, res) {
-  Ingredient.findOneAndUpdate({name: req.body.name}, function(){});
+router.post('/:name/update', function(req, res, next) {
+  Ingredient.findOneAndUpdate({name: req.params.name}, {$set: {
+    name: req.body.name,
+    package: req.body.package,
+    temperature: req.body.temperature,
+    amount: req.body.amount
+  }}, function(error, result) {
+    if (error) {
+      var err = new Error('Couldn\'t update that ingredient.');
+      err.status = 400;
+      return next(err);
+    } else {
+      return res.redirect(req.baseUrl + '/' + req.body.name);
+    }
+  });
 });
 
 //POST request to create a new ingredient
@@ -61,7 +74,7 @@ router.post('/new', function(req, res, next) {
     if (error) {
       return next(error);
     } else {
-      return res.redirect(req.baseUrl + '/' + req.body.name)
+      return res.redirect(req.baseUrl + '/' + req.body.name);
       //alert user the ingredient has been successfully added.
     }
   });
