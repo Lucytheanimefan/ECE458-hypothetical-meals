@@ -1,0 +1,18 @@
+extends layout
+block link
+  -var selected = 'cart';
+
+block content
+  .row
+  .col-md-8
+    .card
+      .card-header(data-background-color='purple')
+        h4.title Ingredient
+      .card-content
+        p ingredients
+  .col-md-4
+    .card
+      .card-header(data-background-color='purple')
+        h4.title Quantity
+      .card-content
+        p quantities

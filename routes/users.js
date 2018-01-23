@@ -1,6 +1,7 @@
 var express = require('express');
 var router = express.Router();
 var User = require('../models/user');
+var Cart = require('../models/cart');
 
 /* GET users listing. */
 router.get('/', function(req, res, next) {
@@ -129,5 +130,45 @@ router.get('/logout', function(req, res, next) {
   }
 });
 
+// GET route after registering
+router.get('/cart', function(req, res, next) {
+  User.findById(req.session.userId)
+    .exec(function(error, user) {
+      if (error) {
+        return next(error);
+      } else {
+        if (user === null) {
+          return res.redirect(req.baseUrl + '/');
+        } else {
+          res.render('cart', { title: 'Cart', name: user.username, mail: user.email });
+        }
+      }
+    });
+});
+
+router.post('/cart', function(req, res, next) {
+  User.findById(req.session.userId)
+    .exec(function(error, user) {
+      if (error) {
+        return next(error);
+      } else {
+        if (user === null) {
+          return res.redirect(req.baseUrl + '/');
+        } else {
+          Cart.findByIdAndUpdate('5a660f8df36d287087a28dc2', {
+            $set: {
+              cart: 'new ingredient'
+            }
+          }, (err, result) => {
+            if (err) return res.send(err)
+            res.send(result)
+          })
+          console.log('Added to cart')
+        }
+      }
+    });
+});
+
+//document.getElementById("cartbtn").addEventListener("click", function(){});
 
 module.exports = router;
