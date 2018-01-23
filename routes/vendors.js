@@ -4,20 +4,12 @@ var Vendor = require('../models/vendor');
 let displayLimit = 10;
 
 //Get call for vendor population
-router.get('/vendors',function(req,res,next){
-  Vendor.findVendors(displayLimit,function(error,vendors){
-    if(error){
-      var err = new Error("Failed to pull Vendors");
-      err.code = 400;
-      return next(error);
-    }else{
-      //render page with vendors
-    }
-  });
+router.get('/',function(req,res,next){
+  console.log("meme")
 });
 
 //Post call for vendor creation
-router.post('/vendors/create_vendor',function(req,res,next){
+router.post('/create_vendor',function(req,res,next){
   Vendor.create({
     name:req.body.name,
     code:req.body.code,
@@ -32,71 +24,69 @@ router.post('/vendors/create_vendor',function(req,res,next){
   });
 });
 
+
 //Get call for vendor population
-router.get('/vendors/:code',function(req,res,next){
-  Vendor.findByCode(req.params.code,function(error,vendor){
-    if(error){
-      var err = new Error("Failed to Find Vendor");
+router.get('/:code',function(req,res,next){
+  Vendor.findOne({code: req.params.code}, function(error, vendor) {
+    if (vendor == null) {
+      var err = new Error('Invalid vendor code!');
+      err.status = 404;
+      return next(err);
+    } else if (error) {
+      var err = new Error('Error searching for ' + req.params.code);
       err.status = 400;
-      return next(error);
+      return next(err);
+    } else {
+      //res.render('ingredient', { ingredient: ing })
     }
-    else{
-      //render page
-    }
-  });
+  })
 });
 
 //Post call for vendor deletion
-router.post('/vendors/:code/delete',function(req,res,next){
-  Vendor.findByCode(req.params.code,function(error,result){
-    if(error){
-      var err = new Error('Deletion of Vendor Failed');
+router.post('/:code/delete',function(req,res,next){
+  console.log("memistan");
+  Vendor.findOneAndRemove({code: req.params.code}, function(error, result) {
+
+    if (error) {
+      var err = new Error('Couldn\'t delete that vendor.');
       err.status = 400;
-      return next(error);
-    }
-    else{
-      return res.redirect('/vendors');
+      return next(err);
+    } else {
+      //alert user the ingredient has been deleted.
+      console.log(req.baseUrl);
+      return res.redirect(req.baseUrl);
     }
   });
 });
 
 //Get call for generic vendor search
-router.get('vendors/:ingredient?/:location?',function(req,res,next){
-  if(!req.params.ingredient && !req.params.location){
-    var err = new Error('Need to enter search parameters');
-    err.status = 400;
-    return next(err);
-  }else if(!req.params.ingredient && req.params.location != null){
-    Vendor.findByLocation(req.params.location, function(error,vendors){
-      if(error){
-        var err = new Error("Failed to Find Vendor");
-        err.status = 400;
-        return next(error);
-      }else{
-        //render vendors
-      }
-    });
-  }else if(req.params.ingredient != null && !req.params.location){
-    Vendor.findByIngredient(req.params.ingredient, function(error,vendors){
-      if(error){
-        var err = new Error("Failed to Find Vendor");
-        err.status = 400;
-        return next(error);
-      }else{
-        //render vendors
-      }
-    });
-  }else{
-    Vendor.findByLocationIngredient(req.params.location,req.params.ingredient, function(error,vendors){
-      if(error){
-        var err = new Error("Failed to Find Vendor");
-        err.status = 400;
-        return next(error);
-      }else{
-        //render vendors
-      }
-    });
-  }
+router.get('/search/:ingredient?/:location?',function(req,res,next){
+  Vendor.findOne({ingredient: req.params.ingredient}, function(error, vendor) {
+    if (vendor == null) {
+      var err = new Error('Invalid vendor code!');
+      err.status = 404;
+      return next(err);
+    } else if (error) {
+      var err = new Error('Error searching for ' + req.params.code);
+      err.status = 400;
+      return next(err);
+    } else {
+      //res.render('ingredient', { ingredient: ing })
+    }
+  })
+  Vendor.findOne({location: req.params.location}, function(error, vendor) {
+    if (vendor == null) {
+      var err = new Error('Invalid vendor code!');
+      err.status = 404;
+      return next(err);
+    } else if (error) {
+      var err = new Error('Error searching for ' + req.params.code);
+      err.status = 400;
+      return next(err);
+    } else {
+      //res.render('ingredient', { ingredient: ing })
+    }
+  })
 });
 
 
