@@ -1,13 +1,17 @@
 extends layout
 
+block link
+  -var selected = 'Ingredients';
+
 block content
   #ing-table
-    table
-      tr
+    table.table
+      thead.text-primary
         th Ingredient
         th Package
         th Temperature
         th Amount
+      tbody
       each ing in ingredients
         tr
           th 
@@ -16,10 +20,15 @@ block content
           th= ing.temperature
           th= ing.amount
 
-  h1= 'Create new ingredient'
-  form(action='/ingredients/new', method='post')
-    input(type='text', name='name', placeholder = 'Ingredient name', required='')
-    input(type='text', name='package', placeholder = 'Package type', required='')
-    input(type='text', name='temperature', placeholder = 'Storage temperature', required='')
-    input(type='number', name='amount', placeholder = 'Amount in storage', required='')
-    input(type='submit', value='add ingredient')
+  .card-content
+    h1= 'Create new ingredient'
+    form(action='/ingredients/new', method='post')
+      label.control-label Ingredient Name
+      input.form-control(type='text', name='name', placeholder = 'Ingredient name', required='')
+      label.control-label Package Type (Sack, Pail, Drum, Supersack, Truckload, Railcar)
+      input.form-control(type='text', name='package', placeholder = 'Package Type', required='')
+      label.control-label Storage Temperature
+      input.form-control(type='text', name='temperature', placeholder = 'Storage temperature', required='')
+      label.control-label Amount in Storage
+      input.form-control(type='number', name='amount', placeholder = 'Amount in storage', required='')
+      button.btn.btn-primary.pull-right(type='submit', value='add ingredient') Update ingredient
