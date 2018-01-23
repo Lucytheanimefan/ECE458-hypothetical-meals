@@ -21,6 +21,7 @@ html(lang='en')
     link(href='http://fonts.googleapis.com/css?family=Roboto:400,700,300|Material+Icons', rel='stylesheet', type='text/css')
   block link
     -var selected = 'home'; // default
+    -var userStatus = 'logout';
   body
     .wrapper
       .sidebar(data-color='purple', data-image='/img/sidebar-1.jpg')
@@ -31,7 +32,7 @@ html(lang='en')
           a.simple-text(href='http://www.creative-tim.com')
             | Hypothetical Meals
 
-        -var menu = { 'home': '/', /*'users': '/users',*/ 'admin':'/users/admin'};
+        -var menu = { 'Home': '/', 'Users':'/users/admin', 'Ingredients': '/ingredients', 'Vendors':'/vendors'};
 
         .sidebar-wrapper
           ul.nav
@@ -46,30 +47,7 @@ html(lang='en')
                   a(href=val)
                     i.material-icons dashboard
                     p #{key}
-            //- li
-            //-   a(href='/users')
-            //-     i.material-icons person
-            //-     p User Profile
-            //- li
-            //-   a(href='#')
-            //-     i.material-icons content_paste
-            //-     p Table List
-            //- li
-            //-   a(href='#')
-            //-     i.material-icons library_books
-            //-     p Typography
-            //- li
-            //-   a(href='#')
-            //-     i.material-icons bubble_chart
-            //-     p Icons
-            //- li
-            //-   a(href='#')
-            //-     i.material-icons location_on
-            //-     p Maps
-            //- li
-            //-   a(href='#')
-            //-     i.material-icons.text-gray notifications
-            //-     p Notifications
+
       .main-panel
         nav.navbar.navbar-transparent.navbar-absolute
           .container-fluid
@@ -106,6 +84,8 @@ html(lang='en')
                   a(href='/users/profile')
                     i.material-icons person
                     p.hidden-lg.hidden-md Profile
+                li
+                  a(href='/users/#{userStatus}') #{userStatus}
               form.navbar-form.navbar-right(role='search')
                 .form-group.is-empty
                   input.form-control(type='text', placeholder='Search')
