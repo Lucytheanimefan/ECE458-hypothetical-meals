@@ -87,7 +87,7 @@ router.get('/profile', function(req, res, next) {
           // return next(err);
           return res.redirect(req.baseUrl + '/');
         } else {
-          res.render('profile', { title: 'Profile', name: user.username, mail: user.email });
+          res.render('profile', { title: 'Profile', name: user.username, mail: user.email});
         }
       }
     });
@@ -109,7 +109,7 @@ router.get('/admin', function(req, res, next) {
           return next(err);
         } else {
           // TODO: will probably update this later and render a different view
-          res.render('admin', { title: 'Admin', name: user.username, mail: user.email });
+          res.render('users', { title: 'Users', name: user.username, mail: user.email });
         }
       }
     });
