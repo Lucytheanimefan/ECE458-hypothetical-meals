@@ -1,0 +1,25 @@
+extends layout
+
+block content
+  #ing-table
+    table
+      tr
+        th Ingredient
+        th Package
+        th Temperature
+        th Amount
+      each ing in ingredients
+        tr
+          th 
+            a(href='/ingredients/' + ing.name)= ing.name
+          th= ing.package
+          th= ing.temperature
+          th= ing.amount
+
+  h1= 'Create new ingredient'
+  form(action='/ingredients/new', method='post')
+    input(type='text', name='name', placeholder = 'Ingredient name', required='')
+    input(type='text', name='package', placeholder = 'Package type', required='')
+    input(type='text', name='temperature', placeholder = 'Storage temperature', required='')
+    input(type='number', name='amount', placeholder = 'Amount in storage', required='')
+    input(type='submit', value='add ingredient')

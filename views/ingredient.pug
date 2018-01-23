@@ -1,0 +1,18 @@
+extends layout
+
+block content
+  h1= ingredient.name
+  h2= ingredient.package
+  h2= ingredient.temperature
+  h2= ingredient.amount
+
+  h1= 'Update ingredient'
+  form(action='/ingredients/' + ingredient.name + '/update', method='post')
+    input(type='text', name='name', placeholder = 'Ingredient name', required='')
+    input(type='text', name='package', placeholder = 'Package type', required='')
+    input(type='text', name='temperature', placeholder = 'Storage temperature', required='')
+    input(type='number', name='amount', placeholder = 'Amount in storage', required='')
+    input(type='submit', value='update ingredient')
+
+  form(action='/ingredients/' + ingredient.name + '/delete', method='post')
+    input(type='submit', value = 'Delete ingredient')
