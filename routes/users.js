@@ -88,7 +88,7 @@ router.get('/profile', function(req, res, next) {
           // return next(err);
           return res.redirect(req.baseUrl + '/');
         } else {
-          res.render('profile', { title: 'Profile', name: user.username, mail: user.email});
+          res.render('profile', { title: 'Profile', name: user.username, mail: user.email });
         }
       }
     });
@@ -169,6 +169,19 @@ router.post('/cart', function(req, res, next) {
     });
 });
 
-//document.getElementById("cartbtn").addEventListener("click", function(){});
+
 
 module.exports = router;
+module.exports.requireRole = function(role) {
+  console.log("----Call user requireRole");
+  return function(req, res, next) {
+    User.findById(req.session.userId).exec(function(error, user) {
+        if (user.role.toUpperCase() === role.toUpperCase()) {
+          console.log("YES YOU ARE AN " + role +", go forth and access");
+          next();
+        } else if (error) {
+          res.send(403);
+        }
+      });
+  }
+}
