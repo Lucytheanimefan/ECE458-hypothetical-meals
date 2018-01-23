@@ -15,10 +15,11 @@ var MongoStore = require('connect-mongo')(session);
 
 var app = express();
 
+var config = require('./env.json')[process.env.NODE_ENV || 'development'];
 
 // connect to mongoDB
 // TODO: use env variables, either way this is a throwaway database URI
-mongoose.connect('mongodb://heroku_0gvg0pwn:dqo4msao72pogasnsaaje91seo@ds255787.mlab.com:55787/heroku_0gvg0pwn');
+mongoose.connect(/*'mongodb://heroku_0gvg0pwn:dqo4msao72pogasnsaaje91seo@ds255787.mlab.com:55787/heroku_0gvg0pwn'*/config["MONGO_URI"]);
 var db = mongoose.connection;
 
 //handle mongo error
