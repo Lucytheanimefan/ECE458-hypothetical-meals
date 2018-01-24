@@ -65,11 +65,11 @@ router.post('/:name/update', function(req, res, next) {
 
 //POST request to create a new ingredient
 router.post('/new', function(req, res, next) {
-  Ingredient.create({
+  Vendor.create({
     name: req.body.name,
-    package: req.body.package,
-    temperature: req.body.temperature,
-    amount: req.body.amount
+    code: req.body.package,
+    contact: req.body.temperature,
+    location: req.body.amount
   }, function (error, newInstance) {
     if (error) {
       return next(error);

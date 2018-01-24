@@ -11,7 +11,7 @@ var session = require('express-session');
 var index = require('./routes/index');
 var users = require('./routes/users');
 var ingredients = require('./routes/ingredients');
-var vendors = require('./routes/ingredients');
+var vendors = require('./routes/vendors');
 var MongoStore = require('connect-mongo')(session);
 
 var app = express();
