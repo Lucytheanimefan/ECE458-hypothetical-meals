@@ -1,6 +1,7 @@
 var express = require('express');
 var router = express.Router();
 var User = require('../models/user');
+var Cart = require('../models/cart');
 
 /* GET users listing. */
 router.get('/', function(req, res, next) {
@@ -109,7 +110,7 @@ router.get('/admin', function(req, res, next) {
           return next(err);
         } else {
           // TODO: will probably update this later and render a different view
-          res.render('admin', { title: 'Admin', name: user.username, mail: user.email });
+          res.render('users', { title: 'Users', name: user.username, mail: user.email });
         }
       }
     });
@@ -129,5 +130,58 @@ router.get('/logout', function(req, res, next) {
   }
 });
 
+// GET route after registering
+router.get('/cart', function(req, res, next) {
+  User.findById(req.session.userId)
+    .exec(function(error, user) {
+      if (error) {
+        return next(error);
+      } else {
+        if (user === null) {
+          return res.redirect(req.baseUrl + '/');
+        } else {
+          res.render('cart', { title: 'Cart', name: user.username, mail: user.email });
+        }
+      }
+    });
+});
+
+router.post('/cart', function(req, res, next) {
+  User.findById(req.session.userId)
+    .exec(function(error, user) {
+      if (error) {
+        return next(error);
+      } else {
+        if (user === null) {
+          return res.redirect(req.baseUrl + '/');
+        } else {
+          Cart.findByIdAndUpdate('5a660f8df36d287087a28dc2', {
+            $set: {
+              cart: 'new ingredient'
+            }
+          }, (err, result) => {
+            if (err) return res.send(err)
+            res.send(result)
+          })
+          console.log('Added to cart')
+        }
+      }
+    });
+});
+
+
 
 module.exports = router;
+module.exports.requireRole = function(role) {
+  console.log("----Call user requireRole");
+  return function(req, res, next) {
+    User.findById(req.session.userId).exec(function(error, user) {
+        if (user.role.toUpperCase() === role.toUpperCase()) {
+          console.log("YES YOU ARE AN " + role +", go forth and access");
+          next();
+        } else if (error) {
+          res.send(403);
+        }
+      });
+  }
+}

@@ -1,0 +1,25 @@
+extends layout
+
+block link
+  -var selected = 'Users';
+
+block content
+  h1= ingredient.name
+  h2= ingredient.package
+  h2= ingredient.temperature
+  h2= ingredient.amount
+
+  h1= 'Update ingredient'
+  form(action='/ingredients/' + ingredient.name + '/update', method='post')
+    label.control-label Ingredient Name
+    input.form-control(type='text', name='name', placeholder = 'Ingredient name', required='')
+    label.control-label Package Type (Sack, Pail, Drum, Supersack, Truckload, Railcar)
+    input.form-control(type='text', name='package', placeholder = 'Package Type', required='')
+    label.control-label Storage temperature
+    input.form-control(type='text', name='temperature', placeholder = 'Storage temperature', required='')
+    label.control-label Amount in storage
+    input.form-control(type='number', name='amount', placeholder = 'Amount in storage', required='')
+    button.btn.btn-primary.pull-right(type='submit', value='update ingredient') Update ingredient
+
+  form(action='/ingredients/' + ingredient.name + '/delete', method='post')
+    input(type='submit', value = 'Delete ingredient')
