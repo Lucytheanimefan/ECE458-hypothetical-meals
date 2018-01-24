@@ -1,0 +1,12 @@
+extends layout
+block content
+h1= 'Results'
+div
+  table
+    thead
+      tr: th Posts
+    tbody
+      each post, i in userPosts
+        tr
+          td
+            a(href='/admin/post/' + post.id) #{post.author} - #{post.title}
