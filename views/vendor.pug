@@ -1,0 +1,17 @@
+extends layout
+
+block content
+  h1= 'Create Vendor'
+  form(action='/vendors/create_vendor', method='post')
+    input(type='text', name='name', placeholder = 'Vendor name', required='')
+    input(type='text', name='contact', placeholder = 'Contact Info', required='')
+    input(type='text', name='location', placeholder = 'Location', required='')
+    input(type='submit', value='add vendor')
+
+  h1= 'Search for Vendor'
+  form(action='/vendors/search', method='get')
+    input(type='text', name='name', placeholder = 'Name')
+    input(type='text', name='ingredient', placeholder = 'Ingredient')
+    input(type='text', name='location', placeholder = 'Location')
+    input(type='text', name='code', placeholder = 'Vendor Code')
+    input(type='submit', value='search')

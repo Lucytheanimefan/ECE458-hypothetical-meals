@@ -11,6 +11,7 @@ var session = require('express-session');
 var index = require('./routes/index');
 var users = require('./routes/users');
 var ingredients = require('./routes/ingredients');
+var vendors = require('./routes/ingredients');
 var MongoStore = require('connect-mongo')(session);
 
 var app = express();
@@ -65,6 +66,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/', index);
 app.use('/users', users);
 app.use('/ingredients', users.requireRole("admin"), ingredients);
+app.use('/vendors', vendors);
 
 
 // catch 404 and forward to error handler
