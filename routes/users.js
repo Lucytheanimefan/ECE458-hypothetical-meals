@@ -175,13 +175,19 @@ module.exports = router;
 module.exports.requireRole = function(role) {
   console.log("----Call user requireRole");
   return function(req, res, next) {
+
     User.findById(req.session.userId).exec(function(error, user) {
-        if (user.role.toUpperCase() === role.toUpperCase()) {
-          console.log("YES YOU ARE AN " + role +", go forth and access");
-          next();
-        } else if (error) {
-          res.send(403);
-        }
-      });
+      if (user === null) {
+        var err = new Error('Not authorized. Please ask your admin to gain administrator privileges.');
+        err.status = 403;
+        return next(err);
+      }
+      if (user.role.toUpperCase() === role.toUpperCase()) {
+        console.log("YES YOU ARE AN " + role + ", go forth and access");
+        next();
+      } else if (error) {
+        res.send(403);
+      }
+    });
   }
 }

@@ -1,7 +1,7 @@
 var express = require('express');
 var router = express.Router();
 var Ingredient = require('../models/ingredient');
-var Vendor = require('../models/vendor')
+var Vendor = require('../models/vendor');
 
 //GET request to show available ingredients
 router.get('/', function(req, res) {
