@@ -1,0 +1,20 @@
+extends layout
+
+block content
+  h1= vendor.name
+  h2= vendor.code
+  h2= vendor.contact
+  h2= vendor.location
+
+  h1= 'Update vendor'
+  form(action='/vendors/' + vendor.code + '/update', method='post')
+    label.control-label Vendor Name
+    input.form-control(type='text', name='name', placeholder = 'Vendor name', required='')
+    label.control-label Contact Info
+    input.form-control(type='text', name='contact', placeholder = 'Contact Info', required='')
+    label.control-label Location
+    input.form-control(type='text', name='location', placeholder = 'Location', required='')
+    button.btn.btn-primary.pull-right(type='submit', value='update vendor') Update
+
+  form(action='/vendors/' + vendor.code + '/delete', method='post')
+    input(type='submit', value = 'Delete vendor')
