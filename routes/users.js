@@ -147,26 +147,21 @@ router.get('/cart', function(req, res, next) {
 });
 
 router.post('/cart', function(req, res, next) {
-  User.findById(req.session.userId)
-    .exec(function(error, user) {
-      if (error) {
-        return next(error);
-      } else {
-        if (user === null) {
-          return res.redirect(req.baseUrl + '/');
-        } else {
-          Cart.findByIdAndUpdate('5a660f8df36d287087a28dc2', {
-            $set: {
-              cart: 'new ingredient'
-            }
-          }, (err, result) => {
-            if (err) return res.send(err)
-            res.send(result)
-          })
-          console.log('Added to cart')
-        }
-      }
-    });
+  User.update({
+    email: req.body.email
+  }, {
+    $set: {
+      cart: 'cart'
+    }
+  }, function (error, newInstance) {
+    if (error) {
+      return next(error);
+    } else {
+      return res.redirect(req.baseUrl + '/');
+      //alert user the ingredient has been successfully added.
+    }
+  });
+  console.log('Added to cart')
 });
 
 //document.getElementById("cartbtn").addEventListener("click", function(){});
