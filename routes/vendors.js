@@ -78,4 +78,25 @@ router.get('/search',function(req,res,next){
   })
 });
 
+router.get('/search', function(req, res, next){
+  let name = req.body.name;
+
+  Vendor.findOne({name:name},
+    function(error, vendors) {
+    if (error) {
+      var err = new Error('Error loading vendors ');
+      err.status = 400;
+      return next(err);
+    } else {
+      //res.render('ingredients', { ingredients: ings });
+      res.render('vendor',{vendor:vendors});
+    }
+  })
+})
+
+//PUT request to update an existing ingredient
+// router.post('/update/', function(req, res) {
+//   Ingredient.findOneAndUpdate({name: req.body.name}, function(){});
+// });
+
 module.exports = router;
