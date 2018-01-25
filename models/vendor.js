@@ -1,4 +1,5 @@
 var mongoose = require('mongoose');
+<<<<<<< HEAD
 var bcrypt = require('bcrypt');
 
 var VendorSchema = new mongoose.Schema({
@@ -18,6 +19,28 @@ var VendorSchema = new mongoose.Schema({
   location:{
     type:String,
     required: true
+=======
+
+
+var VendorSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    unique: true,
+    required: true
+  },
+  code: {
+    type: String,
+    unique: true,
+    required: true,
+  },
+  contact: {
+    type: String,
+    required: true,
+  },
+  location:{
+    type: String,
+    require: true
+>>>>>>> master
   }
 })
 
