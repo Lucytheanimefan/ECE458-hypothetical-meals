@@ -29,21 +29,6 @@ db.once('open', function() {
   // we're connected!
 });
 
-function requireRole(role) {
-  console.log("Call requireRole")
-  return function(req, res, next) {
-    if (req.session.user === null)
-    {
-        res.send(403);
-        return;
-    }
-    if (req.session.user && req.session.user.role === role) {
-      next();
-    } else {
-      res.send(403);
-    }
-  }
-}
 
 //use sessions for tracking logins
 app.use(session({
@@ -68,7 +53,7 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', index);
-app.use('/users', users.requireRole("admin"), users);
+app.use('/users',users);
 app.use('/ingredients', users.requireRole("admin"), ingredients);
 app.use('/vendors', users.requireRole("admin"), vendors);
 
