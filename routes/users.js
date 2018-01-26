@@ -100,13 +100,14 @@ router.post('/', function(req, res, next) {
   } else if (req.body.logemail && req.body.logpassword) {
     // Login
     User.authenticate(req.body.logemail, req.body.logpassword, function(error, user) {
-      if (error || !user) {
+      if (error || !user) 
+      {
         var err = new Error('Wrong email or password.');
         err.status = 401;
         return next(err);
-      } else {
-        console.log("user._id: ");
-        console.log(user._id);
+      } 
+      else 
+      {
         req.session.userId = user._id;
         console.log("Successfully set user ID, redirecting to profile")
         return res.redirect(req.baseUrl + '/profile');
@@ -119,46 +120,11 @@ router.post('/', function(req, res, next) {
   }
 });
 
-// router.post('/confirmation', function(req, res, next) {
-
-//   console.log("Confirmation POST went through!!!");
-
-//   req.assert('email', 'Email is not valid').isEmail();
-//   req.assert('email', 'Email cannot be blank').notEmpty();
-//   req.assert('token', 'Token cannot be blank').notEmpty();
-//   req.sanitize('email').normalizeEmail({ remove_dots: false });
-
-//   // Check for validation errors    
-//   var errors = req.validationErrors();
-//   if (errors) {
-//     console.log("Email confirmation errors!");
-//     return res.status(400).send(errors);
-//   }
-//   // Find a matching token
-//   Token.findOne({ token: req.body.token }, function(err, token) {
-//     if (!token) return res.status(400).send({ type: 'not-verified', msg: 'We were unable to find a valid token. Your token my have expired.' });
-
-//     // If we found a token, find a matching user
-//     User.findOne({ _id: token._userId }, function(err, user) {
-//       if (!user) return res.status(400).send({ msg: 'We were unable to find a user for this token.' });
-//       if (user.isVerified) return res.status(400).send({ type: 'already-verified', msg: 'This user has already been verified.' });
-
-//       // Verify and save the user
-//       user.isVerified = true;
-//       user.save(function(err) {
-//         if (err) { return res.status(500).send({ msg: err.message }); }
-//         res.status(200).send("The account has been verified. Please log in.");
-//       });
-//     });
-//   });
-// });
-
 
 router.get('/confirmation', function(req, res, next) {
 
   console.log("****Confirmation GET went through!!!");
 
-  
   // Find a matching token
   Token.findOne({ token: req.query.id }, function(err, token) {
     if (!token) return res.status(400).send({ type: 'not-verified', msg: 'We were unable to find a valid token. Your token my have expired.' });
@@ -166,19 +132,19 @@ router.get('/confirmation', function(req, res, next) {
     // If we found a token, find a matching user
     User.findOne({ _id: token._userId }, function(err, user) {
       if (!user) return res.status(400).send({ msg: 'We were unable to find a user for this token.' });
-      if (user.isVerified) return res.status(400).send({ type: 'already-verified', msg: 'This user has already been verified.' });
+      if (user.isVerified) return res.status(400).render('index', { title: 'This user has already been verified.' });
 
       // Verify and save the user
       user.isVerified = true;
       user.save(function(err) {
         if (err) { return res.status(500).send({ msg: err.message }); }
-        res.status(200).send("The account has been verified. Please log in.");
+        res.status(200).render('index', {title: 'The account has been verified. Please log in.'});
       });
     });
   });
 });
 
-
+// TODO: hook up UI to resend token
 router.post('/resendToken', function(req, res, next) {
   req.assert('email', 'Email is not valid').isEmail();
   req.assert('email', 'Email cannot be blank').notEmpty();
@@ -230,9 +196,6 @@ router.get('/profile', function(req, res, next) {
         return next(error);
       } else {
         if (user === null) {
-          // var err = new Error('Not authorized! Go back!');
-          // err.status = 400;
-          // return next(err);
           return res.redirect(req.baseUrl + '/');
         } else {
           res.render('profile', { title: 'Profile', name: user.username, mail: user.email });
