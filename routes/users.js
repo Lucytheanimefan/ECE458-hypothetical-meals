@@ -2,6 +2,11 @@ var express = require('express');
 var router = express.Router();
 var User = require('../models/user');
 var Cart = require('../models/cart');
+var Token = require('../models/token');
+var crypto = require('crypto');
+var nodemailer = require('nodemailer');
+
+
 
 /* GET users listing. */
 router.get('/', function(req, res, next) {
@@ -21,6 +26,7 @@ router.get('/', function(req, res, next) {
 
 //POST route for updating data
 router.post('/', function(req, res, next) {
+  // Create a user
   // confirm that user typed same password twice
   if (req.body.password !== req.body.passwordConf) {
     var err = new Error('Passwords do not match.');
@@ -29,7 +35,6 @@ router.post('/', function(req, res, next) {
     return next(err);
   }
 
-  // TODO: check if admin in order to create user
   if (req.body.email &&
     req.body.username &&
     req.body.password &&
@@ -47,14 +52,42 @@ router.post('/', function(req, res, next) {
 
     User.create(userData, function(error, user) {
       if (error) {
+        console.log("Error creating user");
         return next(error);
       } else {
-        req.session.userId = user._id;
-        return res.redirect(req.baseUrl + '/profile');
+        console.log("Create token");
+        // Create a verification token for this user
+        var token = new Token({ _userId: user._id, token: crypto.randomBytes(16).toString('hex') });
+
+        // Save the verification token
+
+        token.save(function(err) {
+          if (err) {
+            console.log("Error saving token");
+            return res.status(500).send({ msg: err.message });
+          }
+
+          console.log("Send the email for account confirmation");
+          // Send the email
+          var transporter = nodemailer.createTransport({ service: 'Hypothetical meals', auth: { user: process.env.SENDGRID_USERNAME, pass: process.env.SENDGRID_PASSWORD } });
+          var mailOptions = { from: 'no-reply@yourwebapplication.com', to: user.email, subject: 'Account Verification Token', text: 'Hello,\n\n' + 'Please verify your account by clicking the link: \nhttp:\/\/' + req.headers.host + '\/confirmation\/' + token.token + '.\n' };
+
+          transporter.sendMail(mailOptions, function(err) {
+            if (err) {
+              console.log("Error sending email");
+              return res.status(500).send({ msg: err.message });
+            }
+            res.status(200).send('A verification email has been sent to ' + user.email + '.');
+          });
+        });
+        //req.session.userId = user._id;
+
+        //return res.redirect(req.baseUrl + '/profile');
       }
     });
 
   } else if (req.body.logemail && req.body.logpassword) {
+    // Login
     User.authenticate(req.body.logemail, req.body.logpassword, function(error, user) {
       if (error || !user) {
         var err = new Error('Wrong email or password.');
@@ -146,6 +179,37 @@ router.get('/cart', function(req, res, next) {
     });
 });
 
+
+router.post('confirmation', function(req, res, next) {
+  req.assert('email', 'Email is not valid').isEmail();
+  req.assert('email', 'Email cannot be blank').notEmpty();
+  req.assert('token', 'Token cannot be blank').notEmpty();
+  req.sanitize('email').normalizeEmail({ remove_dots: false });
+
+  // Check for validation errors    
+  var errors = req.validationErrors();
+  if (errors) return res.status(400).send(errors);
+
+  // Find a matching token
+  Token.findOne({ token: req.body.token }, function(err, token) {
+    if (!token) return res.status(400).send({ type: 'not-verified', msg: 'We were unable to find a valid token. Your token my have expired.' });
+
+    // If we found a token, find a matching user
+    User.findOne({ _id: token._userId }, function(err, user) {
+      if (!user) return res.status(400).send({ msg: 'We were unable to find a user for this token.' });
+      if (user.isVerified) return res.status(400).send({ type: 'already-verified', msg: 'This user has already been verified.' });
+
+      // Verify and save the user
+      user.isVerified = true;
+      user.save(function(err) {
+        if (err) { return res.status(500).send({ msg: err.message }); }
+        res.status(200).send("The account has been verified. Please log in.");
+      });
+    });
+  });
+});
+
+
 router.post('/cart', function(req, res, next) {
   User.findById(req.session.userId)
     .exec(function(error, user) {
@@ -175,13 +239,19 @@ module.exports = router;
 module.exports.requireRole = function(role) {
   console.log("----Call user requireRole");
   return function(req, res, next) {
+
     User.findById(req.session.userId).exec(function(error, user) {
-        if (user.role.toUpperCase() === role.toUpperCase()) {
-          console.log("YES YOU ARE AN " + role +", go forth and access");
-          next();
-        } else if (error) {
-          res.send(403);
-        }
-      });
+      if (user === null) {
+        var err = new Error('Not authorized. Please ask your admin to gain administrator privileges.');
+        err.status = 403;
+        return next(err);
+      }
+      if (user.role.toUpperCase() === role.toUpperCase()) {
+        console.log("YES YOU ARE AN " + role + ", go forth and access");
+        next();
+      } else if (error) {
+        res.send(403);
+      }
+    });
   }
 }

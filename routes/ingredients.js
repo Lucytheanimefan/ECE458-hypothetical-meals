@@ -1,6 +1,7 @@
 var express = require('express');
 var router = express.Router();
 var Ingredient = require('../models/ingredient');
+var Vendor = require('../models/vendor');
 
 
 var packageTypes = ['Sack', 'Pail', 'Drum', 'Supersack', 'Truckload', 'Railcar'];
