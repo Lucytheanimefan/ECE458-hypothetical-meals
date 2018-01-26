@@ -24,7 +24,8 @@ block content
 			input.form-control(type='text', name='role', placeholder='role', required='', value='User')
 		button.btn.btn-primary.pull-right(type='submit', value='Create') Create
 
-	//- button.btn-primary.btn.accordion
-	//- 	h6 Manage Ingredients
-	//- .panel
-	//- 	form(action='#', method='post')
+	form(action='/users/resentToken', method='post')
+		.form-group
+			label.control-label Email
+			input.form-control(type='text', name='email', placeholder='Email', required='')
+		button.btn.btn-primary.pull-right(type='submit', value='Create') Resend Token
