@@ -3,6 +3,10 @@ var router = express.Router();
 var Ingredient = require('../models/ingredient');
 var Vendor = require('../models/vendor');
 
+
+var packageTypes = ['Sack', 'Pail', 'Drum', 'Supersack', 'Truckload', 'Railcar'];
+var temperatures = ['frozen', 'refrigerated', 'room temperature'];
+
 //GET request to show available ingredients
 router.get('/', function(req, res) {
   Ingredient.find({}, function(error, ings) {
@@ -11,7 +15,7 @@ router.get('/', function(req, res) {
       err.status = 400;
       return next(err);
     } else {
-      res.render('ingredients', { ingredients: ings });
+      res.render('ingredients', { ingredients: ings, packages: packageTypes, temps: temperatures });
     }
   })
 })
@@ -27,7 +31,7 @@ router.get('/:name', function(req, res, next) {
       err.status = 400;
       return next(err);
     } else {
-      res.render('ingredient', { ingredient: ing });
+      res.render('ingredient', { ingredient: ing, packages: packageTypes, temps: temperatures });
     }
   })
 })
@@ -48,8 +52,9 @@ router.post('/:name/delete', function(req, res, next) {
 
 
 router.post('/:name/update', function(req, res, next) {
+  let ingName = req.body.name.toLowerCase();
   Ingredient.findOneAndUpdate({name: req.params.name}, {$set: {
-    name: req.body.name,
+    name: ingName,
     package: req.body.package,
     temperature: req.body.temperature,
     amount: req.body.amount
@@ -59,15 +64,16 @@ router.post('/:name/update', function(req, res, next) {
       err.status = 400;
       return next(err);
     } else {
-      return res.redirect(req.baseUrl + '/' + req.body.name);
+      return res.redirect(req.baseUrl + '/' + ingName);
     }
   });
 });
 
 //POST request to create a new ingredient
 router.post('/new', function(req, res, next) {
+  let ingName = req.body.name.toLowerCase();
   Ingredient.create({
-    name: req.body.name,
+    name: ingName,
     package: req.body.package,
     temperature: req.body.temperature,
     amount: req.body.amount
@@ -75,7 +81,7 @@ router.post('/new', function(req, res, next) {
     if (error) {
       return next(error);
     } else {
-      return res.redirect(req.baseUrl + '/' + req.body.name);
+      return res.redirect(req.baseUrl + '/' + ingName);
       //alert user the ingredient has been successfully added.
     }
   });
