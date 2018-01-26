@@ -100,14 +100,13 @@ router.post('/', function(req, res, next) {
   } else if (req.body.logemail && req.body.logpassword) {
     // Login
     User.authenticate(req.body.logemail, req.body.logpassword, function(error, user) {
-      if (error || !user) 
-      {
+      if (error || !user) {
         var err = new Error('Wrong email or password.');
         err.status = 401;
         return next(err);
-      } 
-      else 
-      {
+      } else if (!user.isVerified) {
+        return res.status(401).render('index',{ title: 'Your account has not been verified.' });
+      } else {
         req.session.userId = user._id;
         console.log("Successfully set user ID, redirecting to profile")
         return res.redirect(req.baseUrl + '/profile');
@@ -138,7 +137,7 @@ router.get('/confirmation', function(req, res, next) {
       user.isVerified = true;
       user.save(function(err) {
         if (err) { return res.status(500).send({ msg: err.message }); }
-        res.status(200).render('index', {title: 'The account has been verified. Please log in.'});
+        res.status(200).render('index', { title: 'The account has been verified. Please log in.' });
       });
     });
   });
@@ -146,18 +145,14 @@ router.get('/confirmation', function(req, res, next) {
 
 // TODO: hook up UI to resend token
 router.post('/resendToken', function(req, res, next) {
-  req.assert('email', 'Email is not valid').isEmail();
-  req.assert('email', 'Email cannot be blank').notEmpty();
-  req.sanitize('email').normalizeEmail({ remove_dots: false });
-
-  // Check for validation errors    
-  var errors = req.validationErrors();
-  if (errors) return res.status(400).send(errors);
+  //req.assert('email', 'Email is not valid').isEmail();
+  //req.assert('email', 'Email cannot be blank').notEmpty();
+  //req.sanitize('email').normalizeEmail({ remove_dots: false });
+  //if (errors) return res.status(400).send(errors);
 
   User.findOne({ email: req.body.email }, function(err, user) {
     if (!user) return res.status(400).send({ msg: 'We were unable to find a user with that email.' });
-    if (user.isVerified) return res.status(400).send({ msg: 'This account has already been verified. Please log in.' });
-
+    if (user.isVerified) return res.status(400).render('index', { title: 'This user has already been verified.' });
     // Create a verification token, save it, and send email
     var token = new Token({ _userId: user._id, token: crypto.randomBytes(16).toString('hex') });
 
@@ -174,7 +169,7 @@ router.post('/resendToken', function(req, res, next) {
           pass: config["password"]
         }
       });
-      var mailOptions = { from: config['email'], to: user.email, subject: 'Account Verification Token', text: 'Hello,\n\n' + 'Please verify your account by clicking the link: \nhttp:\/\/' + req.headers.host + '/users/confirmation/' + token.token + '.\n' };
+      var mailOptions = { from: config['email'], to: user.email, subject: 'Account Verification Token', text: 'Hello,\n\n' + 'Please verify your account by clicking the link: \nhttp:\/\/' + req.headers.host + '/users/confirmation?id=' + token.token + '.\n' };
 
       transporter.sendMail(mailOptions, function(err) {
         if (err) {
