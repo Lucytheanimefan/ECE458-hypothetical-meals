@@ -31,17 +31,6 @@ db.once('open', function() {
   // we're connected!
 });
 
-function requireRole(role) {
-  console.log("Call requireRole")
-  return function(req, res, next) {
-    console.log(req.session.user + " vs. " + req.session.user.role);
-    if (req.session.user && req.session.user.role === role) {
-      next();
-    } else {
-      res.send(403);
-    }
-  }
-}
 
 //use sessions for tracking logins
 app.use(session({
@@ -66,9 +55,9 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', index);
-app.use('/users', users);
+app.use('/users',users);
 app.use('/ingredients', users.requireRole("admin"), ingredients);
-app.use('/vendors', vendors);
+app.use('/vendors', users.requireRole("admin"), vendors);
 
 
 // catch 404 and forward to error handler
