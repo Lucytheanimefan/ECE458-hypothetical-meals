@@ -12,9 +12,29 @@ block content
     input.form-control(type='text', name='name', placeholder = 'Vendor name', required='')
     label.control-label Contact Info
     input.form-control(type='text', name='contact', placeholder = 'Contact Info', required='')
-    label.control-label Location
-    input.form-control(type='text', name='location', placeholder = 'Location', required='')
+    label.control-label City
+    input.form-control(type='text', name='city', placeholder = 'city', required='')
+    label.control-label State
+    input.form-control(type='text', name='state', placeholder = 'state', required='')
+    label.control-label Ingredient
+    input.form-control(type='text', name='ingredient', placeholder = 'ingredient', required='')
+    label.control-label Contact Info
+    input.form-control(type='text', name='container', placeholder = 'units', required='')
+    label.control-label City
+    input.form-control(type='text', name='cost', placeholder = 'price', required='')
+    label.control-label State
+    input.form-control(type='text', name='available', placeholder = 'stock', required='')
     button.btn.btn-primary.pull-right(type='submit', value='update vendor') Update
 
   form(action='/vendors/' + vendor.code + '/delete', method='post')
     input(type='submit', value = 'Delete vendor')
+
+  h1= 'Update vendor'
+  form(action='/vendors/' + vendor.code + '/order', method='post')
+    label.control-label Ingredient
+    input.form-control(type='text', name='ingredient', placeholder = 'Ingredient', required='')
+    label.control-label Size
+    input.form-control(type='text', name='size', placeholder = 'Size', required='')
+    label.control-label Quantity
+    input.form-control(type='text', name='quantity', placeholder = 'Quantity', required='')
+    button.btn.btn-primary.pull-right(type='submit', value='order made') order
