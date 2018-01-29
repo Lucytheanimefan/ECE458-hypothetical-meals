@@ -26,6 +26,7 @@
     "nodemailer": "^4.4.2",
     "pug": "2.0.0-beta11",
     "serve-favicon": "~2.4.5",
+    "underscore": "^1.8.3",
     "uniqid": "^4.1.1"
   },
   "devDependencies": {

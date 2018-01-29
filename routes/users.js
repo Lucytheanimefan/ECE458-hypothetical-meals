@@ -5,6 +5,7 @@ var Cart = require('../models/cart');
 var Token = require('../models/token');
 var crypto = require('crypto');
 var nodemailer = require('nodemailer');
+var underscore = require('underscore');
 
 var config = require('../env.json');
 
@@ -250,6 +251,8 @@ router.get('/cart', function(req, res, next) {
           var quantity = cart[ingredient];
           ingredients.push({"ingredient" : ingredient, "quantity" : quantity});
         }
+
+        ingredients = underscore.sortBy(ingredients, "ingredient");
         res.render('cart', { ingredients});
       });
     }
