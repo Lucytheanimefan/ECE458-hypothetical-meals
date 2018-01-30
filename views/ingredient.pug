@@ -9,23 +9,22 @@ block content
   h2= ingredient.temperature
   h2= ingredient.amount
 
-  .row
-    form(action="/users/addtocart" method="post")
-      input(type="hidden" name="ingredient" value=ingredient.name) 
-      .form-group
-        label(style="color:black;padding: 0px 5px 0px 20px;") Quantity (Pounds)
-        select.form-control(name="quantity")
-          option(value="1") 1
-          option(value=2) 2
-          option(value=3) 3
-          option(value=4) 4
-          option(value=5) 5
-          option(value=6) 6
-          option(value=7) 7
-          option(value=8) 8
-          option(value=9) 9
-          option(value=10) 10
-      button.btn.btn-primary.pull-right(id="cartbtn" type="submit" name="submit" value="Add to Cart") Add to cart
+  form(action="/users/add_to_cart" method="post")
+    input(id="cartbtn" type="submit" name="submit" value="Add to Cart")
+    input(type="hidden" name="ingredient" value=ingredient.name)
+    input(type="hidden" name="amount" value=ingredient.amount)
+    label(style="color:black;padding: 0px 5px 0px 20px;") Quantity (Pounds)
+    select(name="quantity")
+      option(value="1") 1
+      option(value=2) 2
+      option(value=3) 3
+      option(value=4) 4
+      option(value=5) 5
+      option(value=6) 6
+      option(value=7) 7
+      option(value=8) 8
+      option(value=9) 9
+      option(value=10) 10
 
     form(action='/ingredients/' + ingredient.name + '/delete', method='post')
       button.btn.btn-primary(type='submit') Delete ingredient

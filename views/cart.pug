@@ -8,12 +8,25 @@ block content
       .card-header(data-background-color='purple')
         h2.title Cart
       .card-content
-        .col-md-11
+        .col-md-12
           h3(style="padding: 0px 0px 10px; text-decoration: underline") Ingredients
-          each ingredient in ingredients
-            p #{ingredient.ingredient}
-        .col-md-1
-          h3
-            br
-          each ingredient in ingredients
-            p Pounds: #{ingredient.quantity}
+        each ingredient in ingredients
+          .col-md-12
+            form(action="/users/remove_ingredient" method="post")
+              input(type="hidden" name="ingredient" value=ingredient.ingredient)
+              input(type="hidden" name="quantity" value=ingredient.quantity)
+              p(style="text-align:left;")
+                a(href='/ingredients/' + ingredient.ingredient)= ingredient.ingredient
+                span(style="float:right;")
+                  | Pounds: #{ingredient.quantity} &nbsp &nbsp
+                  input.btn.btn-secondary(type="submit" value="Remove" style="display:inline;")
+
+        .row
+          .col-md-12
+            p
+              br
+        .row
+          .col-md-10
+          .col-md-2
+            form(action="/users/checkout_cart" method="post")
+              input.btn.btn-primary(type="submit" name="checkout" value="Checkout Cart" style="float:right;")
