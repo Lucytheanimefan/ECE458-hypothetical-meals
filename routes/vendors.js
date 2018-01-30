@@ -38,6 +38,25 @@ router.post('/:code/delete', function(req, res, next) {
   });
 });
 
+router.post('/:code/add_ingredients', function(req,res,next){
+  Vendor.findOne({code:req.params.code}, function(err,vendor){
+    if (err) {
+      var error = new Error('Couldn\'t find that vendor.');
+      error.status = 400;
+      return next(error);
+    }
+    vendor.catalogue = genCatalogue(req.body,vendor.catalogue);
+    console.log(vendor.catalogue);
+    vendor.save(function(err) {
+      if (err) {
+        var error = new Error('Couldn\'t update that vendor.');
+        error.status = 400;
+        return next(error);
+        }
+      });
+      return res.redirect(req.baseUrl + '/' + req.params.code);
+  })
+});
 
 router.post('/:code/update', async function(req, res, next) {
   Vendor.findOne({code: req.params.code}, function(err, vendor){
@@ -48,9 +67,9 @@ router.post('/:code/update', async function(req, res, next) {
   }
     vendor.name = req.body.name;
     vendor.contact = req.body.contact;
-    location = genLocation(req.body);
-    catalogue = genCatalogue(req.body,vendor.catalogue);
-    history = [];
+    vendor.location = genLocation(req.body);
+    //vendor.catalogue = genCatalogue(req.body,vendor.catalogue);
+    vendor.history = [];
   vendor.save(function(err) {
     if (err) {
       var error = new Error('Couldn\'t update that vendor.');
@@ -89,12 +108,19 @@ router.post('/:code/order', function(req,res,next){
   if(checkFridge(quantity,'cold')){
     Vendor.findOne({code: req.params.code}, function(err, vendor){
     if (err) { return next(err); }
-      if(vendor['catalogue'][0]['units'][size]['available'] >= quantity){
-        vendor['catalogue'][0]['units'][size]['available'] -= quantity;
+      let ingIndex = searchIngredient(vendor['catalogue'],ingredient);
+      if(ingIndex == -1){
+        var err = new Error('Ingredient not found ');
+        err.status = 400;
+        return next(err);
+      }
+      if(vendor['catalogue'][ingIndex]['units'][size]['available'] >= quantity){
+        vendor['catalogue'][ingIndex]['units'][size]['available'] -= quantity;
       }
       vendor.save(function(err) {
         if (err) { return next(err); }
       });
+      return res.redirect(req.baseUrl + '/' + req.params.code);
     });
   }
 });
@@ -125,18 +151,29 @@ genLocation = function(data){
 
 genCatalogue = function(data,catalogue){
   console.log(catalogue);
+  console.log(data);
   var entry = {};
   entry.ingredient = data.ingredient;
   entry.units = {};
-  entry.units[data['container']]={};
-  entry.units[data['container']]['cost']=parseFloat(data.cost);
-  entry.units[data['container']]['available']=parseFloat(data.available);
+  entry.units[data['size']]={};
+  entry.units[data['size']]['cost']=parseFloat(data.cost);
+  entry.units[data['size']]['available']=parseFloat(data.quantity);
+  console.log(entry);
   catalogue.push(entry);
   return catalogue;
 }
 
 checkFridge = function(size,temp){
   return true;
+}
+
+searchIngredient = function(list,ing){
+  for(var i = 0; i < list.length; i++){
+    if(list[i]===ing){
+      return i;
+    }
+  }
+  return -1;
 }
 
 module.exports = router;
