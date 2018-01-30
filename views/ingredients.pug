@@ -7,7 +7,7 @@ block content
   ul.nav.nav-tabs
     li.active
       a(data-toggle='tab', href='#ing-table') Ingredients
-    li
+    li.adminOnly.hide
       a(data-toggle='tab', href='#create_form') Create
 
   .tab-content
@@ -28,7 +28,7 @@ block content
             th= ing.amount
 
 
-    .card-content.tab-pane.fade#create_form
+    .card-content.tab-pane.fade.adminOnly#create_form
       h1= 'Create new ingredient'
       form(action='/ingredients/new', method='post')
         label.control-label Ingredient Name
@@ -46,3 +46,9 @@ block content
         label.control-label Amount in Storage
         input.form-control(type='number', name='amount', placeholder = 'Amount in storage', required='')
         button.btn.btn-primary.pull-right(type='submit', value='add ingredient') Create ingredient
+
+block scripts
+  script.
+    loadAdminIngredientContent();
+
+

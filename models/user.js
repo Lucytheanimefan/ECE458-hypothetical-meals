@@ -41,7 +41,9 @@ var UserSchema = new mongoose.Schema({
 UserSchema.statics.authenticate = function(email, password, callback) {
   User.findOne({ email: email })
     .exec(function(err, user) {
+      console.log('authenticate: ' + user);
       if (err) {
+        console.log('Err: ' + err);
         return callback(err)
       } else if (!user) {
         var err = new Error('User not found.');
@@ -49,6 +51,7 @@ UserSchema.statics.authenticate = function(email, password, callback) {
         return callback(err);
       }
       bcrypt.compare(password, user.password, function(err, result) {
+        console.log('Compare password: ' + password + ' vs ' + user.password);
         if (result === true) {
           return callback(null, user);
         } else {
@@ -59,16 +62,17 @@ UserSchema.statics.authenticate = function(email, password, callback) {
 }
 
 //hashing a password before saving it to the database
-UserSchema.pre('save', function(next) {
-  var user = this;
-  bcrypt.hash(user.password, 10, function(err, hash) {
-    if (err) {
-      return next(err);
-    }
-    user.password = hash;
-    next();
-  })
-});
+//UserSchema.pre('save', function(next) {
+  // console.log('HASH THE PASSWORD');
+  // var user = this;
+  // bcrypt.hash(user.password, 10, function(err, hash) {
+  //   if (err) {
+  //     return next(err);
+  //   }
+  //   user.password = hash;
+  //   next();
+  // })
+//});
 
 
 var User = mongoose.model('User', UserSchema);
