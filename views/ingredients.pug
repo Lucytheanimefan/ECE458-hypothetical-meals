@@ -4,6 +4,19 @@ block link
   -var selected = 'Ingredients';
 
 block content
+  form(action='/ingredients/search_results' method='get')
+    input.form-control(type='text', name='name', placeholder='Search for Ingredient Name')
+    div
+      each package in packages
+        div
+          label=package
+          input(type='checkbox', name='package', value=package)
+    div
+      each temp in temps
+        div
+          label=temp
+          input(type='checkbox', name='temperature', value=temp)
+    button.btn.btn-primary.pull-right(type='submit', value='search') Search
   #ing-table
     table.table
       thead.text-primary
@@ -20,7 +33,7 @@ block content
           th= ing.temperature
           th= ing.amount
 
-  form(action="/users/cart" method="post")
+  form(action='/users/cart' method="post")
     button.btn.btn-primary.pull-right(id="cartbtn" type="submit" value="Add to Cart")
 
   .card-content
