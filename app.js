@@ -56,7 +56,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', index);
 app.use('/users',users);
-app.use('/ingredients', ingredients);
+app.get('/ingredients', ingredients);
+app.post('/ingredients/*', users.requireRole("admin"), ingredients);
 app.use('/vendors', users.requireRole("admin"), vendors);
 
 
