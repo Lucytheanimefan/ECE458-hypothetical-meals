@@ -10,8 +10,8 @@ block content
   h2= ingredient.amount
 
   form(action="/users/addtocart" method="post")
-    input(id="cartbtn" type="submit" name="submit" value="Add to Cart")
-    input(type="hidden" name="ingredient" value=ingredient.name)
+    button.btn.btn-primary.pull-right(id="cartbtn" type="submit" name="submit" value="Add to Cart") Add to cart
+    input(type="hidden" name="ingredient" value=ingredient.name) 
     label(style="color:black;padding: 0px 5px 0px 20px;") Quantity (Pounds)
     select(name="quantity")
       option(value="1") 1
@@ -24,18 +24,6 @@ block content
       option(value=8) 8
       option(value=9) 9
       option(value=10) 10
-
-  h1= 'Update ingredient'
-  form(action='/ingredients/' + ingredient.name + '/update', method='post')
-    label.control-label Ingredient Name
-    input.form-control(type='text', name='name', placeholder = 'Ingredient name', required='')
-    label.control-label Package Type (Sack, Pail, Drum, Supersack, Truckload, Railcar)
-    input.form-control(type='text', name='package', placeholder = 'Package Type', required='')
-    label.control-label Storage temperature
-    input.form-control(type='text', name='temperature', placeholder = 'Storage temperature', required='')
-    label.control-label Amount in storage
-    input.form-control(type='number', name='amount', placeholder = 'Amount in storage', required='')
-    button.btn.btn-primary.pull-right(type='submit', value='update ingredient') Update ingredient
 
   div
     form(action='/ingredients/' + ingredient.name + '/delete', method='post')
