@@ -9,6 +9,8 @@ var underscore = require('underscore');
 
 var config = require('../env.json');
 
+
+
 /* GET users listing. */
 router.get('/', function(req, res, next) {
   User.findById(req.session.userId)
