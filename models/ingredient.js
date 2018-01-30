@@ -25,5 +25,6 @@ var IngredientSchema = new mongoose.Schema({
   }
 })
 
+
 var Ingredient = mongoose.model('Ingredient', IngredientSchema);
 module.exports = Ingredient;

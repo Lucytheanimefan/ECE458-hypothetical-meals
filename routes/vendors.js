@@ -1,6 +1,8 @@
 var express = require('express');
 var router = express.Router();
 var Vendor = require('../models/vendor');
+var Inventory = require('../models/inventory');
+var Ingredient = require('../models/inventory');
 var uniqid = require('uniqid')
 
 //GET request to show available ingredients
@@ -116,6 +118,12 @@ router.post('/:code/order', function(req,res,next){
       }
       if(vendor['catalogue'][ingIndex]['units'][size]['available'] >= quantity){
         vendor['catalogue'][ingIndex]['units'][size]['available'] -= quantity;
+        var entry = {};
+        entry['ingredient'] = ingredient;
+        entry['cost'] = vendor['catalogue'][ingIndex]['units'][size]['cost'];
+        entry['units'] = size;
+        entry['number'] = quantity;
+        vendor['history'].push(entry);
       }
       vendor.save(function(err) {
         if (err) { return next(err); }
@@ -150,26 +158,36 @@ genLocation = function(data){
 }
 
 genCatalogue = function(data,catalogue){
-  console.log(catalogue);
-  console.log(data);
   var entry = {};
   entry.ingredient = data.ingredient;
   entry.units = {};
   entry.units[data['size']]={};
   entry.units[data['size']]['cost']=parseFloat(data.cost);
   entry.units[data['size']]['available']=parseFloat(data.quantity);
-  console.log(entry);
   catalogue.push(entry);
   return catalogue;
 }
 
-checkFridge = function(size,temp){
+checkFridge = function(ingredient,size,temp){
+  Ingredient.findOne({name: ingredient}, function(error, ing) {
+    if (ing == null) {
+      var err = new Error('That ingredient doesn\'t exist!');
+      err.status = 404;
+      return next(err);
+    } else if (error) {
+      var err = new Error('Error searching for ' + ingredient);
+      err.status = 400;
+      return next(err);
+    } else {
+      console.log(ing);
+    }
+  })
   return true;
 }
 
 searchIngredient = function(list,ing){
   for(var i = 0; i < list.length; i++){
-    if(list[i]===ing){
+    if(list[i]['ingredient']===ing){
       return i;
     }
   }
