@@ -28,7 +28,7 @@ block content
             th= ing.amount
 
 
-    .card-content.tab-pane.fade#create_form
+    .card-content.tab-pane.fade.adminOnly#create_form
       h1= 'Create new ingredient'
       form(action='/ingredients/new', method='post')
         label.control-label Ingredient Name
