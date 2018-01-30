@@ -5,7 +5,8 @@ block content
   form(action='/vendors/new', method='post')
     input(type='text', name='name', placeholder = 'Vendor name', required='')
     input(type='text', name='contact', placeholder = 'Contact Info', required='')
-    input(type='text', name='location', placeholder = 'Location', required='')
+    input(type='text', name='city', placeholder = 'city', required='')
+    input(type='text', name='state', placeholder = 'state', required='')
     input(type='submit', value='add vendor')
 
   h1= 'Search for Vendor'

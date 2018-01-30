@@ -4,15 +4,16 @@ block link
 
 block content
   .row
-  .col-md-8
     .card
       .card-header(data-background-color='purple')
-        h4.title Ingredient
+        h2.title Cart
       .card-content
-        p ingredients
-  .col-md-4
-    .card
-      .card-header(data-background-color='purple')
-        h4.title Quantity
-      .card-content
-        p quantities
+        .col-md-11
+          h3(style="padding: 0px 0px 10px; text-decoration: underline") Ingredients
+          each ingredient in ingredients
+            p #{ingredient.ingredient}
+        .col-md-1
+          h3
+            br
+          each ingredient in ingredients
+            p Pounds: #{ingredient.quantity}

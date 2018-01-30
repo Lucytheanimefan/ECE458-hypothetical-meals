@@ -5,6 +5,7 @@ var Cart = require('../models/cart');
 var Token = require('../models/token');
 var crypto = require('crypto');
 var nodemailer = require('nodemailer');
+var underscore = require('underscore');
 
 var config = require('../env.json');
 
@@ -239,45 +240,69 @@ router.get('/logout', function(req, res, next) {
 
 // GET route after registering
 router.get('/cart', function(req, res, next) {
-  User.findById(req.session.userId)
-    .exec(function(error, user) {
-      if (error) {
-        return next(error);
-      } else {
-        if (user === null) {
-          return res.redirect(req.baseUrl + '/');
-        } else {
-          res.render('cart', { title: 'Cart', name: user.username, mail: user.email });
+  User.count({ _id: req.session.userId }, function (err, count) {
+    if (err) return next(err);
+
+    if (count > 0) {
+      User.findById(req.session.userId, function (err, instance) {
+        if (err) return next(err);
+        var cart = instance["cart"][0];
+        var ingredients = [];
+
+        for (ingredient in cart) {
+          var quantity = cart[ingredient];
+          ingredients.push({"ingredient" : ingredient, "quantity" : quantity});
         }
-      }
-    });
+
+        ingredients = underscore.sortBy(ingredients, "ingredient");
+        res.render('cart', { ingredients});
+      });
+    }
+  });
 });
 
+router.post('/addtocart', function(req, res, next) {
+  var ingredient;
+  var quantity;
 
-router.post('/cart', function(req, res, next) {
-  User.findById(req.session.userId)
-    .exec(function(error, user) {
-      if (error) {
-        return next(error);
-      } else {
-        if (user === null) {
-          return res.redirect(req.baseUrl + '/');
-        } else {
-          Cart.findByIdAndUpdate('5a660f8df36d287087a28dc2', {
-            $set: {
-              cart: 'new ingredient'
-            }
-          }, (err, result) => {
-            if (err) return res.send(err)
-            res.send(result)
-          })
-          console.log('Added to cart')
+  User.count({ _id: req.session.userId }, function (err, count) {
+    if (err) return next(err);
+
+    ingredient = req.body.ingredient;
+    quantity = Number(req.body.quantity);
+
+    if (count > 0) {
+      User.find({ "_id":req.session.userId }, function (err, instance) {
+        if (err) return next(err);
+
+        var cart = instance[0].cart[0];
+        if (ingredient in cart) {
+          quantity += Number(cart[ingredient]);
         }
-      }
-    });
+        cart[ingredient] = quantity;
+
+        User.findByIdAndUpdate({
+          _id: req.session.userId
+        }, {
+          $set: {
+            cart: cart
+          }
+        }, function (err, cart_instance) {
+          if (err) return next(err);
+          return res.redirect(req.baseUrl + '/cart');
+        });
+      });
+    } else {
+      User.create({
+        _id: req.session.userId,
+        cart: {[ingredient]:quantity}
+      }, function (err, cart_instance) {
+        if (err) return next(err);
+        return res.redirect(req.baseUrl + '/cart');
+      });
+    }
+  });
 });
-
-
 
 module.exports = router;
 module.exports.requireRole = function(role) {
