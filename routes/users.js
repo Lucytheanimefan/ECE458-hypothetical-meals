@@ -108,7 +108,7 @@ router.post('/', function(req, res, next) {
         err.status = 401;
         return next(err);
       } else if (!user.isVerified) {
-        return res.status(401).render('index',{ title: 'Your account has not been verified.' });
+        return res.status(401).render('index', { title: 'Your account has not been verified.' });
       } else {
         req.session.userId = user._id;
         console.log("Successfully set user ID, redirecting to profile")
@@ -224,6 +224,22 @@ router.get('/admin', function(req, res, next) {
     });
 });
 
+/**
+ * This route is primarily used on the client side to determine whether or not you're an admin
+ * @param  {[type]} req   [description]
+ * @param  {[type]} res   [description]
+ * @param  {[type]} next) The callback that contains the dictionary information of whether you are an admin
+ * @return {null}       
+ */
+router.get('/isAdmin', function(req, res, next) {
+  User.findById(req.session.userId)
+    .exec(function(error, user) {
+      var isAdmin = (!error && user !== null && user.role.toUpperCase() === "ADMIN");
+      console.log('isAdmin: ' + isAdmin);
+      res.send({'isAdmin': isAdmin});
+    });
+});
+
 // GET for logout
 router.get('/logout', function(req, res, next) {
   if (req.session) {
@@ -240,22 +256,22 @@ router.get('/logout', function(req, res, next) {
 
 // GET route after registering
 router.get('/cart', function(req, res, next) {
-  User.count({ _id: req.session.userId }, function (err, count) {
+  User.count({ _id: req.session.userId }, function(err, count) {
     if (err) return next(err);
 
     if (count > 0) {
-      User.findById(req.session.userId, function (err, instance) {
+      User.findById(req.session.userId, function(err, instance) {
         if (err) return next(err);
         var cart = instance["cart"][0];
         var ingredients = [];
 
         for (ingredient in cart) {
           var quantity = cart[ingredient];
-          ingredients.push({"ingredient" : ingredient, "quantity" : quantity});
+          ingredients.push({ "ingredient": ingredient, "quantity": quantity });
         }
 
         ingredients = underscore.sortBy(ingredients, "ingredient");
-        res.render('cart', { ingredients});
+        res.render('cart', { ingredients });
       });
     }
   });
@@ -265,14 +281,14 @@ router.post('/addtocart', function(req, res, next) {
   var ingredient;
   var quantity;
 
-  User.count({ _id: req.session.userId }, function (err, count) {
+  User.count({ _id: req.session.userId }, function(err, count) {
     if (err) return next(err);
 
     ingredient = req.body.ingredient;
     quantity = Number(req.body.quantity);
 
     if (count > 0) {
-      User.find({ "_id":req.session.userId }, function (err, instance) {
+      User.find({ "_id": req.session.userId }, function(err, instance) {
         if (err) return next(err);
 
         var cart = instance[0].cart[0];
@@ -287,7 +303,7 @@ router.post('/addtocart', function(req, res, next) {
           $set: {
             cart: cart
           }
-        }, function (err, cart_instance) {
+        }, function(err, cart_instance) {
           if (err) return next(err);
           return res.redirect(req.baseUrl + '/cart');
         });
@@ -295,8 +311,9 @@ router.post('/addtocart', function(req, res, next) {
     } else {
       User.create({
         _id: req.session.userId,
-        cart: {[ingredient]:quantity}
-      }, function (err, cart_instance) {
+        cart: {
+          [ingredient]: quantity }
+      }, function(err, cart_instance) {
         if (err) return next(err);
         return res.redirect(req.baseUrl + '/cart');
       });
