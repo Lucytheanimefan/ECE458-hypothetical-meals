@@ -17,11 +17,11 @@ block content
     input(id='select_amount', type='number', name='quantity', value=amount, min="1", max=ingredient.amount, style="width:75px;")
 
   div.adminOnly.hide
-    form(action='/ingredients/admin/' + ingredient.name + '/delete', method='post')
+    form(action='/ingredients/' + ingredient.name + '/delete', method='post')
       button.btn.btn-primary(style="margin: 30px 15px;" type='submit') Delete ingredient
     .row
       h1= 'Update ingredient'
-      form(action='/ingredients/admin/' + ingredient.name + '/update', method='post')
+      form(action='/ingredients/' + ingredient.name + '/update', method='post')
         label.control-label Ingredient Name
         input.form-control(type='text', name='name', placeholder = 'Ingredient name', required='')
         label.control-label Package Type

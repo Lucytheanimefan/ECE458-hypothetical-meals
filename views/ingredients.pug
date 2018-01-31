@@ -50,7 +50,7 @@ block content
 
       .card-content.tab-pane.fade#create_form.adminOnly.hide
         h1= 'Create new ingredient'
-        form(action='/ingredients/admin/new', method='post')
+        form(action='/ingredients/new', method='post')
           label.control-label Ingredient Name
           input.form-control(type='text', name='name', placeholder = 'Ingredient name', required='')
           label.control-label Package Type
