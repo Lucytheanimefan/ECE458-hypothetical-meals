@@ -1,0 +1,30 @@
+
+.package-select, .temp-select {
+  display: block;
+  float: left;
+  margin: 20px;
+}
+
+.search-bar {
+  width: calc(100% - 105.97px);
+  display: inline-block;
+}
+
+.search-button {
+  width: 105.97px;
+  display: inline-block;
+  margin-left: 0;
+}
+
+.search-label {
+  color: #3C4850;
+}
+
+.options {
+  padding-left: 5px;
+}
+
+#tabs {
+  margin-top: 65px;
+  clear: both;
+}
