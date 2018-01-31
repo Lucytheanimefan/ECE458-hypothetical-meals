@@ -21,7 +21,7 @@ router.get('/', function(req, res) {
 })
 
 router.get('/:name', function(req, res, next) {
-  Ingredient.findOne({name: req.params.name}, function(error, ing) {
+  Ingredient.findOne({ name: req.params.name }, function(error, ing) {
     if (ing == null) {
       var err = new Error('That ingredient doesn\'t exist!');
       err.status = 404;
@@ -38,7 +38,7 @@ router.get('/:name', function(req, res, next) {
 
 //POST request to delete an existing ingredient
 router.post('/:name/delete', function(req, res, next) {
-  Ingredient.findOneAndRemove({name: req.params.name}, function(error, result) {
+  Ingredient.findOneAndRemove({ name: req.params.name }, function(error, result) {
     if (error) {
       var err = new Error('Couldn\'t delete that ingredient.');
       err.status = 400;
@@ -53,12 +53,14 @@ router.post('/:name/delete', function(req, res, next) {
 
 router.post('/:name/update', function(req, res, next) {
   let ingName = req.body.name.toLowerCase();
-  Ingredient.findOneAndUpdate({name: req.params.name}, {$set: {
-    name: ingName,
-    package: req.body.package,
-    temperature: req.body.temperature,
-    amount: req.body.amount
-  }}, function(error, result) {
+  Ingredient.findOneAndUpdate({ name: req.params.name }, {
+    $set: {
+      name: ingName,
+      package: req.body.package,
+      temperature: req.body.temperature,
+      amount: req.body.amount
+    }
+  }, function(error, result) {
     if (error) {
       var err = new Error('Couldn\'t update that ingredient.');
       err.status = 400;
@@ -77,7 +79,7 @@ router.post('/new', function(req, res, next) {
     package: req.body.package,
     temperature: req.body.temperature,
     amount: req.body.amount
-  }, function (error, newInstance) {
+  }, function(error, newInstance) {
     if (error) {
       return next(error);
     } else {
