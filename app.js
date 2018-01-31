@@ -14,14 +14,22 @@ var ingredients = require('./routes/ingredients');
 var vendors = require('./routes/vendors');
 var MongoStore = require('connect-mongo')(session);
 
+// var dotenv = require('dotenv');
+// dotenv.config();
+// dotenv.load();
+
 var app = express();
+
 
 var config = require('./env.json')[process.env.NODE_ENV || 'development'];
 
+var MONGO_URI = (process.env.MONGO_URI) ? process.env.MONGO_URI : config['MONGO_URI'];
+
+
 // connect to mongoDB
 // TODO: use env variables, either way this is a throwaway database URI
-/*'mongodb://heroku_0gvg0pwn:dqo4msao72pogasnsaaje91seo@ds255787.mlab.com:55787/heroku_0gvg0pwn'*/
-mongoose.connect(config["MONGO_URI"], {useMongoClient: true});
+
+mongoose.connect(MONGO_URI, {useMongoClient: true});
 mongoose.Promise = global.Promise;
 var db = mongoose.connection;
 
@@ -56,7 +64,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', index);
 app.use('/users',users);
-app.use('/ingredients', users.requireRole("admin"), ingredients);
+app.use('/ingredients', ingredients); //This is not ideal
+app.post('/ingredients/*', users.requireRole("admin"), ingredients);
 app.use('/vendors', users.requireRole("admin"), vendors);
 
 
