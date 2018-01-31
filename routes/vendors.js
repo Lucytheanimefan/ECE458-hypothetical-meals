@@ -5,6 +5,16 @@ var Inventory = require('../models/inventory');
 var Ingredient = require('../models/ingredient');
 var uniqid = require('uniqid')
 
+let weightMapping = {
+  sack:50,
+  pail:50,
+  drum:500,
+  supersack:2000,
+  truckload:50000,
+  railcar:280000
+}
+
+
 //GET request to show available ingredients
 router.get('/', function(req, res) {
   res.render('vendors');
@@ -103,9 +113,9 @@ router.post('/new', function(req, res, next) {
 });
 
 router.post('/:code/order', async function(req,res,next){
-  let quantity = req.body.quantity;
   let size = req.body.size.toLowerCase();
   let ingredient = req.body.ingredient.toLowerCase();
+  let quantity = parseFloat(req.body.quantity)*weightMapping[size];
   let ing = await queryIngredient(ingredient,next);
   if(checkFridge(ingredient,quantity,next)){
     await Vendor.findOne({code: req.params.code}, function(err, vendor){
@@ -116,13 +126,13 @@ router.post('/:code/order', async function(req,res,next){
         err.status = 400;
         return next(err);
       }
-      if(vendor['catalogue'][ingIndex]['units'][size]['available'] >= quantity){
-        vendor['catalogue'][ingIndex]['units'][size]['available'] -= quantity;
+      if(vendor['catalogue'][ingIndex]['units'][size]['available'] >= parseFloat(req.body.quantity)){
+        vendor['catalogue'][ingIndex]['units'][size]['available'] -= parseFloat(req.body.quantity);
         var entry = {};
         entry['ingredient'] = ingredient.toLowerCase();
         entry['cost'] = vendor['catalogue'][ingIndex]['units'][size]['cost'];
         entry['units'] = size.toLowerCase();
-        entry['number'] = quantity;
+        entry['number'] = parseFloat(req.body.quantity);
         vendor['history'].push(entry);
       }
       vendor.save(function(err) {
@@ -130,6 +140,11 @@ router.post('/:code/order', async function(req,res,next){
       });
       return res.redirect(req.baseUrl + '/' + req.params.code);
     });
+  }
+  else{
+    var error = new Error("Exceeds Refrigeration Capacity or Not Enough in Stock");
+    err.status = 400;
+    return next(err);
   }
 });
 
