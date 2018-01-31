@@ -279,7 +279,7 @@ router.get('/cart', function(req, res, next) {
     if (err) return next(err);
 
     if (count > 0) {
-      User.findById(req.session.userId, async function (err, instance) {
+      User.findById(req.session.userId, function (err, instance) {
         if (err) return next(err);
 
         var cart = instance["cart"][0];
@@ -287,21 +287,7 @@ router.get('/cart', function(req, res, next) {
 
         for (ingredient in cart) {
           var quantity = cart[ingredient];
-          var amount;
-
-          await Ingredient.find({ "name": ingredient }, function (err, instance) {
-            if (err) return next(err);
-
-            amount = instance[0].amount;
-          });
-
-          if (quantity > amount) {
-            if (amount > 0) {
-              ingredients.push({"ingredient" : ingredient, "quantity" : amount});
-            }
-          } else {
-            ingredients.push({"ingredient" : ingredient, "quantity" : quantity});
-          }
+          ingredients.push({"ingredient" : ingredient, "quantity" : quantity});
         }
 
         ingredients = underscore.sortBy(ingredients, "ingredient");
@@ -324,14 +310,9 @@ router.post('/add_to_cart', function(req, res, next) {
         if (err) return next(err);
 
         var cart = instance[0].cart[0];
-        if (ingredient in cart) {
+        /*if (ingredient in cart) {
           quantity += Number(cart[ingredient]);
-        }
-
-        if (quantity > amount) {
-          dialog.err('Not enough of ingredient in inventory!');
-          return res.redirect('/ingredients/' + ingredient);
-        }
+        }*/
 
         cart[ingredient] = quantity;
 
