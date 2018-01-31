@@ -1,6 +1,6 @@
 extends layout
 block link
-  -var selected = 'cart';
+  -var selected = 'Cart';
 
 block content
   .row
@@ -10,16 +10,20 @@ block content
       .card-content
         .col-md-12
           h3(style="padding: 0px 0px 10px; text-decoration: underline") Ingredients
+          p
+            br
         each ingredient in ingredients
           .col-md-12
-            form(action="/users/remove_ingredient" method="post")
-              input(type="hidden" name="ingredient" value=ingredient.ingredient)
-              input(type="hidden" name="quantity" value=ingredient.quantity)
-              p(style="text-align:left;")
-                a(href='/ingredients/' + ingredient.ingredient)= ingredient.ingredient
+            p(style="text-align:left;")
+              a(href='/ingredients/' + ingredient.ingredient)= ingredient.ingredient
+              form(action="/users/remove_ingredient" method="post")
                 span(style="float:right;")
                   | Pounds: #{ingredient.quantity} &nbsp &nbsp
-                  input.btn.btn-secondary(type="submit" value="Remove" style="display:inline;")
+                  a(href='/ingredients/' + ingredient.ingredient + '/' + ingredient.quantity)
+                    button(class="btn btn-secondary" type="button" style="margin-right: 10px; padding: 5px; background-color:#66c2ff; color: white; display:inline;") Edit
+                  input(type="hidden" name="ingredient" value=ingredient.ingredient)
+                  input(type="hidden" name="quantity" value=ingredient.quantity)
+                  input.btn.btn-secondary(type="submit" value="Remove" style="padding: 5px; background-color:#66c2ff; color: white; display:inline;")
 
         .row
           .col-md-12
