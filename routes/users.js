@@ -12,6 +12,8 @@ var dialog = require('dialog');
 var config = require('../env.json');
 var bcrypt = require('bcrypt');
 
+var EMAIL = (process.env.EMAIL) ? process.env.EMAIL : config['email'];
+var PASSWORD = (process.env.PASSWORD) ? process.env.PASSWORD : config['password'];
 
 /* GET users listing. */
 router.get('/', function(req, res, next) {
@@ -88,8 +90,8 @@ router.post('/', function(req, res, next) {
                 host: 'smtp.gmail.com',
                 port: 465,
                 auth: {
-                  user: config["email"],
-                  pass: config["password"]
+                  user: EMAIL,
+                  pass: PASSWORD
                 }
               });
               var mailOptions = {
