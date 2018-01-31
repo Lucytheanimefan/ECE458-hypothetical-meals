@@ -23,7 +23,7 @@ var app = express();
 
 //var config = require('./env.json')[process.env.NODE_ENV || 'development'];
 
-var MONGO_URI = (process.env.MONGO_URI) ? process.env.MONGO_URI : require('./env.json')[process.env.NODE_ENV || 'development']['MONGO_URI'];
+var MONGO_URI = (process.env.MONGO_URI);// ? process.env.MONGO_URI : require('./env.json')[process.env.NODE_ENV || 'development']['MONGO_URI'];
 
 
 // connect to mongoDB
