@@ -1,0 +1,24 @@
+extends ingredients
+
+block link
+  -var selected = 'Ingredients';
+
+block admin
+  .card-content
+    h1= 'Create new ingredient'
+    form(action='/ingredients/admin/new', method='post')
+      label.control-label Ingredient Name
+      input.form-control(type='text', name='name', placeholder = 'Ingredient name', required='')
+      label.control-label Package Type
+      select.form-control(name='package', placeholder = '', required='')
+        option(disabled='' selected='' value='') Select an option
+        each package in packages
+          option(value=package)= package
+      label.control-label Storage Temperature
+      select.form-control(name='temperature', placeholder = '', required='')
+        option(disabled="" selected="" value="") Select an option
+        each temp in temps
+          option(value=temp)= temp
+      label.control-label Amount in Storage
+      input.form-control(type='number', name='amount', placeholder = 'Amount in storage', required='')
+      button.btn.btn-primary.pull-right(type='submit', value='add ingredient') Create ingredient

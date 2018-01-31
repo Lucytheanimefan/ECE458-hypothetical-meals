@@ -16,12 +16,14 @@ html(lang='en')
     link(href='/css/demo.css', rel='stylesheet')
     // Custom css
     link(href='/stylesheets/style.css', rel='stylesheet')
+    block css
     // Fonts and icons
     link(href='http://maxcdn.bootstrapcdn.com/font-awesome/latest/css/font-awesome.min.css', rel='stylesheet')
     link(href='http://fonts.googleapis.com/css?family=Roboto:400,700,300|Material+Icons', rel='stylesheet', type='text/css')
   block link
     -var selected = 'home'; // default
-    -var userStatus = 'logout';
+  block status
+    -var user_status = 'Logout';
   body
     .wrapper
       .sidebar(data-color='purple', data-image='/img/sidebar-1.jpg')
@@ -80,12 +82,16 @@ html(lang='en')
                       a(href='#') Another Notification
                     li
                       a(href='#') Another One
-                li
-                  a(href='/users/profile')
+                li.dropdown
+                  a.dropdown-toggle(href='#', data-toggle='dropdown')
                     i.material-icons person
-                    p.hidden-lg.hidden-md Profile
-                li
-                  a(href='/users/#{userStatus}') #{userStatus}
+                    //- p.hidden-lg.hidden-md Notifications
+                  ul.dropdown-menu
+                    li
+                      a(href='/users/profile') Profile
+                    li
+                      a(href='/users/' + user_status) #{user_status}
+                    
               form.navbar-form.navbar-right(role='search')
                 .form-group.is-empty
                   input.form-control(type='text', placeholder='Search')

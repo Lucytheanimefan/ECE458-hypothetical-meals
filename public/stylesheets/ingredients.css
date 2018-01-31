@@ -1,0 +1,14 @@
+#tabs {
+  margin-top: 65px;
+}
+
+.search-bar {
+  width: calc(100% - 105.97px);
+  display: inline-block;
+}
+
+.search-button {
+  width: 105.97px;
+  display: inline-block;
+  margin-left: 0;
+}
