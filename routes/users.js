@@ -9,11 +9,11 @@ var nodemailer = require('nodemailer');
 var underscore = require('underscore');
 var dialog = require('dialog');
 
-var config = require('../env.json');
+//var config = require('../env.json');
 var bcrypt = require('bcrypt');
 
-var EMAIL = (process.env.EMAIL) ? process.env.EMAIL : config['email'];
-var PASSWORD = (process.env.PASSWORD) ? process.env.PASSWORD : config['password'];
+var EMAIL = (process.env.EMAIL) ? process.env.EMAIL : require('../env.json')['email'];
+var PASSWORD = (process.env.PASSWORD) ? process.env.PASSWORD : require('../env.json')['password'];
 
 /* GET users listing. */
 router.get('/', function(req, res, next) {
