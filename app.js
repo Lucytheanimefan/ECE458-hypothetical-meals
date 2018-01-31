@@ -25,7 +25,6 @@ var config = require('./env.json')[process.env.NODE_ENV || 'development'];
 
 var MONGO_URI = (process.env.MONGO_URI) ? process.env.MONGO_URI : config['MONGO_URI'];
 
-console.log('MONGO_URI: ' + MONGO_URI);
 
 // connect to mongoDB
 // TODO: use env variables, either way this is a throwaway database URI
