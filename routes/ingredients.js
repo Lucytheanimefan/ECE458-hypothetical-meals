@@ -2,16 +2,41 @@ var express = require('express');
 var router = express.Router();
 var Ingredient = require('../models/ingredient');
 var Vendor = require('../models/vendor');
+var users = require('./users');
 
 
 var packageTypes = ['Sack', 'Pail', 'Drum', 'Supersack', 'Truckload', 'Railcar'];
 var temperatures = ['frozen', 'refrigerated', 'room temperature'];
 
 //GET request to show available ingredients
-router.get('/', function(req, res) {
+router.get('/', function(req, res, next) {
   Ingredient.find({}, function(error, ings) {
     if (error) {
       var err = new Error('Error searching for ' + req.params.name);
+      err.status = 400;
+      return next(err);
+    } else {
+      res.render('ingredients', { ingredients: ings, packages: packageTypes, temps: temperatures });
+    }
+  })
+})
+
+router.get('/search_results', function(req, res, next) {
+  var query = Ingredient.find();
+  if (req.query.name != null) {
+    var name = req.query.name;
+    var search = '.*' + name + '.*'
+    query.where({name: new RegExp(search)});
+  }
+  if (req.query.package != null) {
+    query.where('package').in(req.query.package);
+  }
+  if (req.query.temperature != null) {
+    query.where('temperature').in(req.query.temperature);
+  }
+  query.exec(function(error, ings) {
+    if (error) {
+      var err = new Error('Error during search');
       err.status = 400;
       return next(err);
     } else {

@@ -16,11 +16,10 @@ block content
     label(style="color:black;padding: 0px 5px 0px 20px;") Quantity (Pounds)
     input(id='select_amount', type='number', name='quantity', value=amount, min="1", max=ingredient.amount, style="width:75px;")
 
-  .row
+  div.adminOnly.hide
     form(action='/ingredients/' + ingredient.name + '/delete', method='post')
       button.btn.btn-primary(style="margin: 30px 15px;" type='submit') Delete ingredient
-  .row
-    div
+    .row
       h1= 'Update ingredient'
       form(action='/ingredients/' + ingredient.name + '/update', method='post')
         label.control-label Ingredient Name
@@ -38,3 +37,7 @@ block content
         label.control-label Amount in storage
         input.form-control(type='number', name='amount', placeholder = 'Amount in storage', required='')
         button.btn.btn-primary.pull-right(type='submit') Update ingredient
+
+block scripts
+  script.
+    loadAdminIngredientContent();
