@@ -26,12 +26,33 @@ function checkIsAdmin(callback) {
   });
 }
 
-function loadAdminOnlyContent(){
-	checkIsAdmin(function(isAdmin){
-		if (!isAdmin) return;
+function loadAdminOnlyContent() {
+  checkIsAdmin(function(isAdmin) {
+    if (!isAdmin) return;
 
-		// Is admin
-		$('.adminOnly').removeClass('hide');
+    // Is admin
+    $('.adminOnly').removeClass('hide');
 
-	})
+  });
+}
+
+function loadAdminOnlySideBar() {
+  console.log('loadAdminOnlySideBar');
+  checkIsAdmin(function(isAdmin) {
+    if (!isAdmin) return;
+
+    // Is admin
+    $('.meal-category').each(function() {
+      if (isAdmin) {
+        $(this).removeClass('hide');
+      } else {
+        let tmp = $(this).find('a')[0];
+        let category = $($(tmp).find('p')[0]).text();
+        if (category !== 'Vendors') {
+          $(this).removeClass('hide');
+        }
+      }
+    });
+
+  })
 }
