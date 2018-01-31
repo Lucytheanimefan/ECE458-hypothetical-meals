@@ -11,3 +11,27 @@ function dropDownInteractivity() {
 }
 
 dropDownInteractivity();
+
+
+function checkIsAdmin(callback) {
+  $.ajax({
+    type: 'GET',
+    url: '/users/isAdmin',
+    contentType: 'application/json; charset=utf-8',
+    dataType: 'json',
+    success: function(response) {
+      console.log(response);
+      callback(response['isAdmin']);
+    }
+  });
+}
+
+function loadAdminOnlyContent(){
+	checkIsAdmin(function(isAdmin){
+		if (!isAdmin) return;
+
+		// Is admin
+		$('.adminOnly').removeClass('hide');
+
+	})
+}

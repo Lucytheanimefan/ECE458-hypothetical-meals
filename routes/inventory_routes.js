@@ -17,9 +17,9 @@ router.post('/update_limits',function(req,res,next){
     error.status = 400;
     return next(error);
   }
-    inv.limits.frozen = req.body.frozen;
-    inv.limits.room = req.body.room;
-    inv.limits.refrigerated = req.body.refrigerated;
+    inv.limits.frozen = req.body.frozen>=inv.current.frozen ? req.body.frozen : inv.limits.frozen;
+    inv.limits.room = req.body.room>=inv.current.room ? req.body.room : inv.limits.room;
+    inv.limits.refrigerated = req.body.refrigerated>=inv.current.refrigerated ? req.body.refrigerated : inv.limits.refrigerated;
     inv.save(function(err) {
     if (err) {
       var error = new Error('Couldn\'t update the inventory limits.');

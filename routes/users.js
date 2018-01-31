@@ -2,12 +2,18 @@ var express = require('express');
 var router = express.Router();
 var User = require('../models/user');
 var Cart = require('../models/cart');
+var Ingredient = require('../models/ingredient');
 var Token = require('../models/token');
 var crypto = require('crypto');
 var nodemailer = require('nodemailer');
 var underscore = require('underscore');
+var dialog = require('dialog');
 
 var config = require('../env.json');
+var bcrypt = require('bcrypt');
+
+var EMAIL = (process.env.EMAIL) ? process.env.EMAIL : config['email'];
+var PASSWORD = (process.env.PASSWORD) ? process.env.PASSWORD : config['password'];
 
 /* GET users listing. */
 router.get('/', function(req, res, next) {
@@ -39,16 +45,15 @@ router.post('/', function(req, res, next) {
   if (req.body.email &&
     req.body.username &&
     req.body.password &&
-    req.body.passwordConf) {
-
-    var userRole = req.body.role ? req.body.role : "User";
+    req.body.passwordConf &&
+    req.body.role) {
 
     var userData = {
       email: req.body.email,
       username: req.body.username,
       password: req.body.password,
       passwordConf: req.body.passwordConf,
-      role: userRole,
+      role: req.body.role,
     }
 
     User.create(userData, function(error, user) {
@@ -56,44 +61,60 @@ router.post('/', function(req, res, next) {
         console.log("Error creating user");
         return next(error);
       } else {
-        console.log("Create token");
-        // Create a verification token for this user
-        var token = new Token({ _userId: user._id, token: crypto.randomBytes(16).toString('hex') });
-
-        // Save the verification token
-
-        token.save(function(err) {
+        console.log('Hash the password');
+        bcrypt.hash(user.password, 10, function(err, hash) {
           if (err) {
-            console.log("Error saving token");
-            return res.status(500).send({ msg: err.message });
+            return next(err);
           }
 
-          console.log("Send the email for account confirmation");
-          // Send the email
-          var transporter = nodemailer.createTransport({
-            host: 'smtp.gmail.com',
-            port: 465,
-            auth: {
-              user: config["email"],
-              pass: config["password"]
-            }
-          });
-          var mailOptions = {
-            from: 'spothorse9.lucy@gmail.com',
-            to: user.email,
-            subject: 'Account Verification Token',
-            text: 'Hello,\n\n' + 'Please verify your account by clicking the link: \nhttp:\/\/' +
-              req.headers.host + '\/users\/confirmation?id=' + token.token + '.\n'
-          };
+          console.log('Successful hash');
+          user.password = hash;
+          user.save(function(err) {
+            if (err) { return res.status(500).send({ msg: err.message }); }
 
-          transporter.sendMail(mailOptions, function(err) {
-            if (err) {
-              console.log("Error sending email");
-              return res.status(500).send({ msg: err.message });
-            }
-            res.status(200).render(index, { title: 'A verification email has been sent to ' + user.email + '.' });
+            console.log("Create token");
+            // Create a verification token for this user
+            var token = new Token({ _userId: user._id, token: crypto.randomBytes(16).toString('hex') });
+
+            // Save the verification token
+
+            token.save(function(err) {
+              if (err) {
+                console.log("Error saving token");
+                return res.status(500).send({ msg: err.message });
+              }
+
+              console.log("Send the email for account confirmation");
+              // Send the email
+              var transporter = nodemailer.createTransport({
+                host: 'smtp.gmail.com',
+                port: 465,
+                auth: {
+                  user: EMAIL,
+                  pass: PASSWORD
+                }
+              });
+              var mailOptions = {
+                from: 'spothorse9.lucy@gmail.com',
+                to: user.email,
+                subject: 'Account Verification Token',
+                text: 'Hello,\n\n' + 'Please verify your account by clicking the link: \nhttp:\/\/' +
+                  req.headers.host + '\/users\/confirmation?id=' + token.token + '.\n'
+              };
+
+              transporter.sendMail(mailOptions, function(err) {
+                if (err) {
+                  console.log("Error sending email");
+                  return res.status(500).send({ msg: err.message });
+                }
+                res.status(200).render(index, { title: 'A verification email has been sent to ' + user.email + '.' });
+              });
+            });
+
           });
-        });
+
+        })
+
 
       }
     });
@@ -106,7 +127,7 @@ router.post('/', function(req, res, next) {
         err.status = 401;
         return next(err);
       } else if (!user.isVerified) {
-        return res.status(401).render('index',{ title: 'Your account has not been verified.' });
+        return res.status(401).render('index', { title: 'Your account has not been verified.' });
       } else {
         req.session.userId = user._id;
         console.log("Successfully set user ID, redirecting to profile")
@@ -222,6 +243,22 @@ router.get('/admin', function(req, res, next) {
     });
 });
 
+/**
+ * This route is primarily used on the client side to determine whether or not you're an admin
+ * @param  {[type]} req   [description]
+ * @param  {[type]} res   [description]
+ * @param  {[type]} next) The callback that contains the dictionary information of whether you are an admin
+ * @return {null}
+ */
+router.get('/isAdmin', function(req, res, next) {
+  User.findById(req.session.userId)
+    .exec(function(error, user) {
+      var isAdmin = (!error && user !== null && user.role.toUpperCase() === "ADMIN");
+      console.log('isAdmin: ' + isAdmin);
+      res.send({ 'isAdmin': isAdmin });
+    });
+});
+
 // GET for logout
 router.get('/logout', function(req, res, next) {
   if (req.session) {
@@ -238,12 +275,13 @@ router.get('/logout', function(req, res, next) {
 
 // GET route after registering
 router.get('/cart', function(req, res, next) {
-  User.count({ _id: req.session.userId }, function (err, count) {
+  User.count({ _id: req.session.userId }, function(err, count) {
     if (err) return next(err);
 
     if (count > 0) {
       User.findById(req.session.userId, function (err, instance) {
         if (err) return next(err);
+
         var cart = instance["cart"][0];
         var ingredients = [];
 
@@ -253,21 +291,61 @@ router.get('/cart', function(req, res, next) {
         }
 
         ingredients = underscore.sortBy(ingredients, "ingredient");
-        res.render('cart', { ingredients});
+        return res.render('cart', { ingredients});
       });
     }
   });
 });
 
-router.post('/addtocart', function(req, res, next) {
-  var ingredient;
-  var quantity;
+router.post('/add_to_cart', function(req, res, next) {
+  User.count({ _id: req.session.userId }, function (err, count) {
+    if (err) return next(err);
 
+    var ingredient = req.body.ingredient;
+    var quantity = Number(req.body.quantity);
+    var amount = Number(req.body.amount);
+
+    if (count > 0) {
+      User.find({ "_id": req.session.userId }, function(err, instance) {
+        if (err) return next(err);
+
+        var cart = instance[0].cart[0];
+        /*if (ingredient in cart) {
+          quantity += Number(cart[ingredient]);
+        }*/
+
+        cart[ingredient] = quantity;
+
+        User.findByIdAndUpdate({
+          _id: req.session.userId
+        }, {
+          $set: {
+            cart: cart
+          }
+        }, function(err, cart_instance) {
+          if (err) return next(err);
+          return res.redirect(req.baseUrl + '/cart');
+        });
+      });
+    } else {
+      User.create({
+        _id: req.session.userId,
+        cart: {
+          [ingredient]: quantity
+        }
+      }, function(err, cart_instance) {
+        if (err) return next(err);
+        return res.redirect(req.baseUrl + '/cart');
+      });
+    }
+  });
+});
+
+router.post('/remove_ingredient', function(req, res, next) {
   User.count({ _id: req.session.userId }, function (err, count) {
     if (err) return next(err);
 
     ingredient = req.body.ingredient;
-    quantity = Number(req.body.quantity);
 
     if (count > 0) {
       User.find({ "_id":req.session.userId }, function (err, instance) {
@@ -275,9 +353,8 @@ router.post('/addtocart', function(req, res, next) {
 
         var cart = instance[0].cart[0];
         if (ingredient in cart) {
-          quantity += Number(cart[ingredient]);
+          delete cart[ingredient];
         }
-        cart[ingredient] = quantity;
 
         User.findByIdAndUpdate({
           _id: req.session.userId
@@ -291,12 +368,60 @@ router.post('/addtocart', function(req, res, next) {
         });
       });
     } else {
-      User.create({
-        _id: req.session.userId,
-        cart: {[ingredient]:quantity}
-      }, function (err, cart_instance) {
+      //TODO : error handling?
+    }
+  });
+});
+
+router.post('/checkout_cart', function(req, res, next) {
+  User.count({ _id: req.session.userId }, function (err, count) {
+    if (err) return next(err);
+
+    var ingredient = req.body.ingredient;
+    var quantity = Number(req.body.quantity);
+    var amount = Number(req.body.amount);
+
+    if (count > 0) {
+      User.find({ "_id":req.session.userId }, async function (err, instance) {
         if (err) return next(err);
-        return res.redirect(req.baseUrl + '/cart');
+
+        var cart = instance[0].cart[0];
+        for (ingredient in cart) {
+
+          console.log(ingredient);
+          var quantity = cart[ingredient];
+          var amount;
+
+          await Ingredient.find({ "name": ingredient }, function (err, instance) {
+            if (err) return next(err);
+            amount = instance[0].amount;
+          });
+
+          amount = amount - quantity;
+
+          Ingredient.findOneAndUpdate({
+            name: ingredient
+          }, {
+            $set: {
+              amount: amount
+            }
+          }, function (err, cart_instance) {
+            if (err) return next(err);
+          });
+
+          delete cart[ingredient];
+        }
+
+        User.findByIdAndUpdate({
+          _id: req.session.userId
+        }, {
+          $set: {
+            cart: cart
+          }
+        }, function (err, cart_instance) {
+          if (err) return next(err);
+          return res.redirect(req.baseUrl + '/cart');
+        });
       });
     }
   });
