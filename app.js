@@ -21,9 +21,9 @@ var MongoStore = require('connect-mongo')(session);
 var app = express();
 
 
-var config = require('./env.json')[process.env.NODE_ENV || 'development'];
 
-var MONGO_URI = (process.env.MONGO_URI) ? process.env.MONGO_URI : config['MONGO_URI'];
+var MONGO_URI = (process.env.MONGODB_URI) ? process.env.MONGODB_URI : require('./env.json')[process.env.NODE_ENV || 'development']['MONGO_URI'];
+
 
 
 // connect to mongoDB
@@ -64,7 +64,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', index);
 app.use('/users',users);
-app.use('/ingredients', ingredients); //This is not ideal
+app.use('/ingredients', users.requireLogin(),ingredients); //This is not ideal
 app.post('/ingredients/*', users.requireRole("admin"), ingredients);
 app.use('/vendors', users.requireRole("admin"), vendors);
 
