@@ -2,10 +2,12 @@ var express = require('express');
 var router = express.Router();
 var User = require('../models/user');
 var Cart = require('../models/cart');
+var Ingredient = require('../models/ingredient');
 var Token = require('../models/token');
 var crypto = require('crypto');
 var nodemailer = require('nodemailer');
 var underscore = require('underscore');
+var dialog = require('dialog');
 
 var config = require('../env.json');
 var bcrypt = require('bcrypt');
@@ -244,7 +246,7 @@ router.get('/admin', function(req, res, next) {
  * @param  {[type]} req   [description]
  * @param  {[type]} res   [description]
  * @param  {[type]} next) The callback that contains the dictionary information of whether you are an admin
- * @return {null}       
+ * @return {null}
  */
 router.get('/isAdmin', function(req, res, next) {
   User.findById(req.session.userId)
@@ -275,32 +277,45 @@ router.get('/cart', function(req, res, next) {
     if (err) return next(err);
 
     if (count > 0) {
-      User.findById(req.session.userId, function(err, instance) {
+      User.findById(req.session.userId, async function (err, instance) {
         if (err) return next(err);
+
         var cart = instance["cart"][0];
         var ingredients = [];
 
         for (ingredient in cart) {
           var quantity = cart[ingredient];
-          ingredients.push({ "ingredient": ingredient, "quantity": quantity });
+          var amount;
+
+          await Ingredient.find({ "name": ingredient }, function (err, instance) {
+            if (err) return next(err);
+
+            amount = instance[0].amount;
+          });
+
+          if (quantity > amount) {
+            if (amount > 0) {
+              ingredients.push({"ingredient" : ingredient, "quantity" : amount});
+            }
+          } else {
+            ingredients.push({"ingredient" : ingredient, "quantity" : quantity});
+          }
         }
 
         ingredients = underscore.sortBy(ingredients, "ingredient");
-        res.render('cart', { ingredients });
+        return res.render('cart', { ingredients});
       });
     }
   });
 });
 
-router.post('/addtocart', function(req, res, next) {
-  var ingredient;
-  var quantity;
-
-  User.count({ _id: req.session.userId }, function(err, count) {
+router.post('/add_to_cart', function(req, res, next) {
+  User.count({ _id: req.session.userId }, function (err, count) {
     if (err) return next(err);
 
-    ingredient = req.body.ingredient;
-    quantity = Number(req.body.quantity);
+    var ingredient = req.body.ingredient;
+    var quantity = Number(req.body.quantity);
+    var amount = Number(req.body.amount);
 
     if (count > 0) {
       User.find({ "_id": req.session.userId }, function(err, instance) {
@@ -310,6 +325,12 @@ router.post('/addtocart', function(req, res, next) {
         if (ingredient in cart) {
           quantity += Number(cart[ingredient]);
         }
+
+        if (quantity > amount) {
+          dialog.err('Not enough of ingredient in inventory!');
+          return res.redirect('/ingredients/' + ingredient);
+        }
+
         cart[ingredient] = quantity;
 
         User.findByIdAndUpdate({
@@ -332,6 +353,92 @@ router.post('/addtocart', function(req, res, next) {
       }, function(err, cart_instance) {
         if (err) return next(err);
         return res.redirect(req.baseUrl + '/cart');
+      });
+    }
+  });
+});
+
+router.post('/remove_ingredient', function(req, res, next) {
+  User.count({ _id: req.session.userId }, function (err, count) {
+    if (err) return next(err);
+
+    ingredient = req.body.ingredient;
+
+    if (count > 0) {
+      User.find({ "_id":req.session.userId }, function (err, instance) {
+        if (err) return next(err);
+
+        var cart = instance[0].cart[0];
+        if (ingredient in cart) {
+          delete cart[ingredient];
+        }
+
+        User.findByIdAndUpdate({
+          _id: req.session.userId
+        }, {
+          $set: {
+            cart: cart
+          }
+        }, function (err, cart_instance) {
+          if (err) return next(err);
+          return res.redirect(req.baseUrl + '/cart');
+        });
+      });
+    } else {
+      //TODO : error handling?
+    }
+  });
+});
+
+router.post('/checkout_cart', function(req, res, next) {
+  User.count({ _id: req.session.userId }, function (err, count) {
+    if (err) return next(err);
+
+    var ingredient = req.body.ingredient;
+    var quantity = Number(req.body.quantity);
+    var amount = Number(req.body.amount);
+
+    if (count > 0) {
+      User.find({ "_id":req.session.userId }, async function (err, instance) {
+        if (err) return next(err);
+
+        var cart = instance[0].cart[0];
+        for (ingredient in cart) {
+
+          console.log(ingredient);
+          var quantity = cart[ingredient];
+          var amount;
+
+          await Ingredient.find({ "name": ingredient }, function (err, instance) {
+            if (err) return next(err);
+            amount = instance[0].amount;
+          });
+
+          amount = amount - quantity;
+
+          Ingredient.findOneAndUpdate({
+            name: ingredient
+          }, {
+            $set: {
+              amount: amount
+            }
+          }, function (err, cart_instance) {
+            if (err) return next(err);
+          });
+
+          delete cart[ingredient];
+        }
+
+        User.findByIdAndUpdate({
+          _id: req.session.userId
+        }, {
+          $set: {
+            cart: cart
+          }
+        }, function (err, cart_instance) {
+          if (err) return next(err);
+          return res.redirect(req.baseUrl + '/cart');
+        });
       });
     }
   });
