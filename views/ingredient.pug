@@ -14,21 +14,11 @@ block content
     input(type="hidden" name="ingredient" value=ingredient.name)
     input(type="hidden" name="amount" value=ingredient.amount)
     label(style="color:black;padding: 0px 5px 0px 20px;") Quantity (Pounds)
-    select(name="quantity")
-      option(value="1") 1
-      option(value=2) 2
-      option(value=3) 3
-      option(value=4) 4
-      option(value=5) 5
-      option(value=6) 6
-      option(value=7) 7
-      option(value=8) 8
-      option(value=9) 9
-      option(value=10) 10
+    input(id='select_amount', type='number', name='quantity', value=amount, min="1", max=ingredient.amount, style="width:75px;")
 
   div.adminOnly.hide
     form(action='/ingredients/admin/' + ingredient.name + '/delete', method='post')
-      button.btn.btn-primary(type='submit') Delete ingredient
+      button.btn.btn-primary(style="margin: 30px 15px;" type='submit') Delete ingredient
     .row
       h1= 'Update ingredient'
       form(action='/ingredients/admin/' + ingredient.name + '/update', method='post')

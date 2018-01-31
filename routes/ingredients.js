@@ -61,6 +61,22 @@ router.get('/:name', function(req, res, next) {
   })
 })
 
+router.get('/:name/:amt', function(req, res, next) {
+  Ingredient.findOne({name: req.params.name}, function(error, ing) {
+    if (ing == null) {
+      var err = new Error('That ingredient doesn\'t exist!');
+      err.status = 404;
+      return next(err);
+    } else if (error) {
+      var err = new Error('Error searching for ' + req.params.name);
+      err.status = 400;
+      return next(err);
+    } else {
+      res.render('ingredient', { ingredient: ing, packages: packageTypes, temps: temperatures, amount: req.params.amt });
+    }
+  })
+})
+
 router.all('/admin/*', users.requireRole('admin'), function(req, res, next) {
   next();
 })
