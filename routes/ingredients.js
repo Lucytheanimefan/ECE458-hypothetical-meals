@@ -2,6 +2,7 @@ var express = require('express');
 var router = express.Router();
 var Ingredient = require('../models/ingredient');
 var Vendor = require('../models/vendor');
+var users = require('./users');
 
 
 var packageTypes = ['Sack', 'Pail', 'Drum', 'Supersack', 'Truckload', 'Railcar'];
@@ -60,8 +61,12 @@ router.get('/:name', function(req, res, next) {
   })
 })
 
+router.all('/admin/*', users.requireRole('admin'), function(req, res, next) {
+  next();
+})
+
 //POST request to delete an existing ingredient
-router.post('/:name/delete', function(req, res, next) {
+router.post('/admin/:name/delete', function(req, res, next) {
   Ingredient.findOneAndRemove({ name: req.params.name }, function(error, result) {
     if (error) {
       var err = new Error('Couldn\'t delete that ingredient.');
@@ -75,7 +80,7 @@ router.post('/:name/delete', function(req, res, next) {
 });
 
 
-router.post('/:name/update', function(req, res, next) {
+router.post('/admin/:name/update', function(req, res, next) {
   let ingName = req.body.name.toLowerCase();
   Ingredient.findOneAndUpdate({ name: req.params.name }, {
     $set: {
@@ -96,7 +101,7 @@ router.post('/:name/update', function(req, res, next) {
 });
 
 //POST request to create a new ingredient
-router.post('/new', function(req, res, next) {
+router.post('/admin/new', function(req, res, next) {
   let ingName = req.body.name.toLowerCase();
   Ingredient.create({
     name: ingName,

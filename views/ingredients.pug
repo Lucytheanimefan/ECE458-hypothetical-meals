@@ -12,22 +12,24 @@ block content
       input.form-control(type='text', name='name', placeholder='Search for Ingredient Name')
     div.search-button
       button.btn.btn-primary(type='submit', value='search') Search
-    div
+    div.package-select
+      label.search-label Package Type
       each package in packages
         div
-          label=package
           input(type='checkbox', name='package', value=package)
-    div
+          label.options=package
+    div.temp-select
+      label.search-label Storage Temperature
       each temp in temps
         div
-          label=temp
           input(type='checkbox', name='temperature', value=temp)
+          label.options=temp
 
   div#tabs
     ul.nav.nav-tabs
       li.active
         a(data-toggle='tab', href='#ing-table') Ingredients
-      li
+      li.adminOnly.hide
         a(data-toggle='tab', href='#create_form') Create
     .tab-content
       #ing-table.tab-pane.fade.in.active
@@ -46,9 +48,9 @@ block content
               th= ing.temperature
               th= ing.amount
 
-      .card-content.tab-pane.fade#create_form
+      .card-content.tab-pane.fade#create_form.adminOnly.hide
         h1= 'Create new ingredient'
-        form(action='/ingredients/new', method='post')
+        form(action='/ingredients/admin/new', method='post')
           label.control-label Ingredient Name
           input.form-control(type='text', name='name', placeholder = 'Ingredient name', required='')
           label.control-label Package Type

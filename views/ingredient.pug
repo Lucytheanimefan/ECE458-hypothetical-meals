@@ -26,12 +26,12 @@ block content
       option(value=9) 9
       option(value=10) 10
 
-    form(action='/ingredients/' + ingredient.name + '/delete', method='post')
+  div.adminOnly.hide
+    form(action='/ingredients/admin/' + ingredient.name + '/delete', method='post')
       button.btn.btn-primary(type='submit') Delete ingredient
-  .row
-    div
+    .row
       h1= 'Update ingredient'
-      form(action='/ingredients/' + ingredient.name + '/update', method='post')
+      form(action='/ingredients/admin/' + ingredient.name + '/update', method='post')
         label.control-label Ingredient Name
         input.form-control(type='text', name='name', placeholder = 'Ingredient name', required='')
         label.control-label Package Type
@@ -47,3 +47,7 @@ block content
         label.control-label Amount in storage
         input.form-control(type='number', name='amount', placeholder = 'Amount in storage', required='')
         button.btn.btn-primary.pull-right(type='submit') Update ingredient
+
+block scripts
+  script.
+    loadAdminIngredientContent();
