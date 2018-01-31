@@ -104,9 +104,10 @@ router.post('/new', function(req, res, next) {
 
 router.post('/:code/order', async function(req,res,next){
   let quantity = req.body.quantity;
-  let size = req.body.size;
-  let ingredient = req.body.ingredient;
-  if(checkFridge(quantity,'cold')){
+  let size = req.body.size.toLowerCase();
+  let ingredient = req.body.ingredient.toLowerCase();
+  let ing = await queryIngredient(ingredient,next);
+  if(checkFridge(ingredient,quantity,next)){
     await Vendor.findOne({code: req.params.code}, function(err, vendor){
     if (err) { return next(err); }
       let ingIndex = searchIngredient(vendor['catalogue'],ingredient);
@@ -118,9 +119,9 @@ router.post('/:code/order', async function(req,res,next){
       if(vendor['catalogue'][ingIndex]['units'][size]['available'] >= quantity){
         vendor['catalogue'][ingIndex]['units'][size]['available'] -= quantity;
         var entry = {};
-        entry['ingredient'] = ingredient;
+        entry['ingredient'] = ingredient.toLowerCase();
         entry['cost'] = vendor['catalogue'][ingIndex]['units'][size]['cost'];
-        entry['units'] = size;
+        entry['units'] = size.toLowerCase();
         entry['number'] = quantity;
         vendor['history'].push(entry);
       }
@@ -149,6 +150,24 @@ router.get('/search', function(req, res, next){
   })
 })
 
+queryIngredient = function(name,next){
+  Ingredient.findOne({name:name},function(err,ing){
+    if(err){return next(err);}
+    else{
+      return ing;
+    }
+  })
+}
+
+queryInventory = async function(next){
+  await Inventory.findOne({type:"master"},function(err,inv){
+    if(err){return next(err);}
+    else{
+      return inv;
+    }
+  })
+}
+
 genLocation = function(data){
   var loc = {};
   loc['city']=data['city'];
@@ -158,7 +177,7 @@ genLocation = function(data){
 
 genCatalogue = function(data,catalogue){
   var entry = {};
-  entry.ingredient = data.ingredient;
+  entry.ingredient = data.ingredient.toLowerCase();
   entry.units = {};
   entry.units[data['size']]={};
   entry.units[data['size']]['cost']=parseFloat(data.cost);
@@ -167,35 +186,29 @@ genCatalogue = function(data,catalogue){
   return catalogue;
 }
 
-checkFridge = async function(ingredient,size,temp){
-  await Ingredient.findOne({name: ingredient}, function(error, ing) {
-    if (ing == null) {
-      var err = new Error('That ingredient doesn\'t exist!');
-      err.status = 404;
-      return next(err);
-    } else if (error) {
-      var err = new Error('Error searching for ' + ingredient);
-      err.status = 400;
-      return next(err);
-    } else {
-      let temp = ing['temperature'];
-      Inventory.findOne({type:"master"}, function(error, inv) {
-        if (ing == null) {
-          var err = new Error('Inventory data missing');
-          err.status = 404;
-          return next(err);
-        } else if (error) {
-          var err = new Error('Inventory data error');
-          err.status = 400;
-          return next(err);
-        } else {
-          let space = inv['limits'][temp]-inv['current'][temp];
-          return space>=size
+checkFridge = async function(name,amount,next){
+  await Ingredient.findOne({name:name},async function(err,ing){
+    if(err){return next(err);}
+    else{
+      await Inventory.findOne({type:"master"},function(err,inv){
+        if(err){return next(err);}
+        else{
+          let temp = ing['temperature'].split(" ")[0];
+          let space = inv['limits'][temp]-inv['current'][temp]
+          let diff = space>=amount ? amount:0;
+          inv.current[temp]+=diff;
+          inv.save(function(err) {
+            if (err) {
+              var error = new Error('Couldn\'t update the inventory.');
+              error.status = 400;
+              return next(error);
+              }
+            });
+          return space>=amount;
         }
       })
     }
   })
-  return true;
 }
 
 searchIngredient = function(list,ing){
