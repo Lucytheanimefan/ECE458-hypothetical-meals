@@ -2,7 +2,7 @@ extends layout
 
 block content
   ul.nav.nav-tabs
-    li.active.adminOnly
+    li.active.adminOnly.hide
       a(data-toggle='tab', href='#create_vendor') Create
     li
       a(data-toggle='tab', href='#search_vendor') Search
@@ -41,3 +41,7 @@ block content
           label.control-label Vendor Code
           input.form-control(type='text', name='code')
         button.btn.btn-primary.pull-right(type='submit', value='search') Search
+
+block scripts
+  script.
+    loadAdminOnlyContent();

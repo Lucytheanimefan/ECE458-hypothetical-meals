@@ -26,7 +26,7 @@ function checkIsAdmin(callback) {
   });
 }
 
-function loadAdminIngredientContent(){
+function loadAdminOnlyContent(){
 	checkIsAdmin(function(isAdmin){
 		if (!isAdmin) return;
 
