@@ -2,7 +2,7 @@ var express = require('express');
 var router = express.Router();
 var Vendor = require('../models/vendor');
 var Inventory = require('../models/inventory');
-var Ingredient = require('../models/inventory');
+var Ingredient = require('../models/ingredient');
 var uniqid = require('uniqid')
 
 //GET request to show available ingredients
@@ -48,7 +48,6 @@ router.post('/:code/add_ingredients', function(req,res,next){
       return next(error);
     }
     vendor.catalogue = genCatalogue(req.body,vendor.catalogue);
-    console.log(vendor.catalogue);
     vendor.save(function(err) {
       if (err) {
         var error = new Error('Couldn\'t update that vendor.');
@@ -103,12 +102,12 @@ router.post('/new', function(req, res, next) {
   });
 });
 
-router.post('/:code/order', function(req,res,next){
+router.post('/:code/order', async function(req,res,next){
   let quantity = req.body.quantity;
   let size = req.body.size;
   let ingredient = req.body.ingredient;
   if(checkFridge(quantity,'cold')){
-    Vendor.findOne({code: req.params.code}, function(err, vendor){
+    await Vendor.findOne({code: req.params.code}, function(err, vendor){
     if (err) { return next(err); }
       let ingIndex = searchIngredient(vendor['catalogue'],ingredient);
       if(ingIndex == -1){
@@ -168,8 +167,8 @@ genCatalogue = function(data,catalogue){
   return catalogue;
 }
 
-checkFridge = function(ingredient,size,temp){
-  Ingredient.findOne({name: ingredient}, function(error, ing) {
+checkFridge = async function(ingredient,size,temp){
+  await Ingredient.findOne({name: ingredient}, function(error, ing) {
     if (ing == null) {
       var err = new Error('That ingredient doesn\'t exist!');
       err.status = 404;
@@ -179,7 +178,21 @@ checkFridge = function(ingredient,size,temp){
       err.status = 400;
       return next(err);
     } else {
-      console.log(ing);
+      let temp = ing['temperature'];
+      Inventory.findOne({type:"master"}, function(error, inv) {
+        if (ing == null) {
+          var err = new Error('Inventory data missing');
+          err.status = 404;
+          return next(err);
+        } else if (error) {
+          var err = new Error('Inventory data error');
+          err.status = 400;
+          return next(err);
+        } else {
+          let space = inv['limits'][temp]-inv['current'][temp];
+          return space>=size
+        }
+      })
     }
   })
   return true;

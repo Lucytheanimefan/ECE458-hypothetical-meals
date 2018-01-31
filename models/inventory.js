@@ -2,6 +2,7 @@ var mongoose = require('mongoose');
 
 
 var InventorySchema = new mongoose.Schema({
+  type:String,
   limits: {
     refrigerated:Number,
     frozen:Number,
