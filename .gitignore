@@ -6,3 +6,4 @@ npm-debug.log
 .jsbeautifyrc
 env.json
 /db
+.dbshell
