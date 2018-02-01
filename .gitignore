@@ -5,3 +5,4 @@ npm-debug.log
 .sample-env
 .jsbeautifyrc
 env.json
+/db

@@ -14,9 +14,7 @@ var ingredients = require('./routes/ingredients');
 var vendors = require('./routes/vendors');
 var MongoStore = require('connect-mongo')(session);
 
-// var dotenv = require('dotenv');
-// dotenv.config();
-// dotenv.load();
+//var seed = require('./helpers/seed.js');
 
 var app = express();
 
