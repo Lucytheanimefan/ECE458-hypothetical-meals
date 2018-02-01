@@ -4,7 +4,8 @@ block content
   h1= vendor.name
   h2= vendor.code
   h2= vendor.contact
-  h2= vendor.location
+  h2= vendor.location.city
+  h2= vendor.location.state
 
   h1= 'Update vendor'
   form(action='/vendors/' + vendor.code + '/update', method='post')
@@ -16,29 +17,44 @@ block content
     input.form-control(type='text', name='city', placeholder = 'city', required='')
     label.control-label State
     input.form-control(type='text', name='state', placeholder = 'state', required='')
-
+  form(action='/vendors/' + vendor.code + '/delete', method='post')
+    input(type='submit', value = 'Delete vendor')
 
   h1= 'Add Ingredient'
   form(action='/vendors/' + vendor.code + '/add_ingredients', method='post')
     label.control-label Ingredient
     input.form-control(type='text', name='ingredient', placeholder = 'Ingredient', required='')
     label.control-label Size
-    input.form-control(type='text', name='size', placeholder = 'Size', required='')
+    .dropdown
+    select(name='size')
+      option(value='sack') sack
+      option(value='pail') pail
+      option(value='drum') drum
+      option(value='supersack') supersack
+      option(value='truckload') truckload
+      option(value='railcar') railcar
+
     label.control-label Quantity
     input.form-control(type='text', name='quantity', placeholder = 'Quantity', required='')
     label.control-label Cost
     input.form-control(type='text', name='cost', placeholder = 'Cost/Unit', required='')
     button.btn.btn-primary.pull-right(type='submit', value='ingredient added') add
 
-  form(action='/vendors/' + vendor.code + '/delete', method='post')
-    input(type='submit', value = 'Delete vendor')
+
 
   h1= 'Make Order'
   form(action='/vendors/' + vendor.code + '/order', method='post')
     label.control-label Ingredient
     input.form-control(type='text', name='ingredient', placeholder = 'Ingredient', required='')
     label.control-label Size
-    input.form-control(type='text', name='size', placeholder = 'Size', required='')
+    .dropdown
+    select(name='size')
+      option(value='sack') sack
+      option(value='pail') pail
+      option(value='drum') drum
+      option(value='supersack') supersack
+      option(value='truckload') truckload
+      option(value='railcar') railcar
     label.control-label Quantity
     input.form-control(type='text', name='quantity', placeholder = 'Quantity', required='')
     button.btn.btn-primary.pull-right(type='submit', value='order made') order
