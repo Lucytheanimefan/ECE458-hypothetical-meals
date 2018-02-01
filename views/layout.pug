@@ -18,8 +18,8 @@ html(lang='en')
     link(href='/stylesheets/style.css', rel='stylesheet')
     block css
     // Fonts and icons
-    link(href='http://maxcdn.bootstrapcdn.com/font-awesome/latest/css/font-awesome.min.css', rel='stylesheet')
-    link(href='http://fonts.googleapis.com/css?family=Roboto:400,700,300|Material+Icons', rel='stylesheet', type='text/css')
+    link(href='/stylesheets/font-awesome.min.css', rel='stylesheet')
+    link(href='https://fonts.googleapis.com/css?family=Roboto:400,700,300|Material+Icons', rel='stylesheet', type='text/css')
   block link
     -var selected = 'home'; // default
   block status
@@ -40,12 +40,12 @@ html(lang='en')
           ul.nav
             each val, key in menu
               if selected === key
-                li.active
+                li.active.meal-category.hide
                   a(href=val)
                     i.material-icons dashboard
                     p #{key}
               else
-                li
+                li.meal-category.hide
                   a(href=val)
                     i.material-icons dashboard
                     p #{key}
@@ -131,5 +131,7 @@ html(lang='en')
   script(src='/js/material-dashboard.js?v=1.2.0')
   // Custom js
   script(src='/js/script.js')
+  script.
+    loadAdminOnlySideBar();
 
   block scripts
