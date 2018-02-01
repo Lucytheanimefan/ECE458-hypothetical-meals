@@ -9,11 +9,13 @@ var nodemailer = require('nodemailer');
 var underscore = require('underscore');
 var dialog = require('dialog');
 
-var config = require('../env.json');
+
 var bcrypt = require('bcrypt');
 
-var EMAIL = (process.env.EMAIL) ? process.env.EMAIL : config['email'];
-var PASSWORD = (process.env.PASSWORD) ? process.env.PASSWORD : config['password'];
+
+var EMAIL = (process.env.EMAIL) ? process.env.EMAIL : require('../env.json')['email'];
+var PASSWORD = (process.env.PASSWORD) ? process.env.PASSWORD : require('../env.json')['password'];
+
 
 /* GET users listing. */
 router.get('/', function(req, res, next) {
@@ -279,7 +281,7 @@ router.get('/cart', function(req, res, next) {
     if (err) return next(err);
 
     if (count > 0) {
-      User.findById(req.session.userId, function (err, instance) {
+      User.findById(req.session.userId, function(err, instance) {
         if (err) return next(err);
 
         var cart = instance["cart"][0];
@@ -287,18 +289,18 @@ router.get('/cart', function(req, res, next) {
 
         for (ingredient in cart) {
           var quantity = cart[ingredient];
-          ingredients.push({"ingredient" : ingredient, "quantity" : quantity});
+          ingredients.push({ "ingredient": ingredient, "quantity": quantity });
         }
 
         ingredients = underscore.sortBy(ingredients, "ingredient");
-        return res.render('cart', { ingredients});
+        return res.render('cart', { ingredients });
       });
     }
   });
 });
 
 router.post('/add_to_cart', function(req, res, next) {
-  User.count({ _id: req.session.userId }, function (err, count) {
+  User.count({ _id: req.session.userId }, function(err, count) {
     if (err) return next(err);
 
     var ingredient = req.body.ingredient;
@@ -342,13 +344,13 @@ router.post('/add_to_cart', function(req, res, next) {
 });
 
 router.post('/remove_ingredient', function(req, res, next) {
-  User.count({ _id: req.session.userId }, function (err, count) {
+  User.count({ _id: req.session.userId }, function(err, count) {
     if (err) return next(err);
 
     ingredient = req.body.ingredient;
 
     if (count > 0) {
-      User.find({ "_id":req.session.userId }, function (err, instance) {
+      User.find({ "_id": req.session.userId }, function(err, instance) {
         if (err) return next(err);
 
         var cart = instance[0].cart[0];
@@ -362,7 +364,7 @@ router.post('/remove_ingredient', function(req, res, next) {
           $set: {
             cart: cart
           }
-        }, function (err, cart_instance) {
+        }, function(err, cart_instance) {
           if (err) return next(err);
           return res.redirect(req.baseUrl + '/cart');
         });
@@ -374,7 +376,7 @@ router.post('/remove_ingredient', function(req, res, next) {
 });
 
 router.post('/checkout_cart', function(req, res, next) {
-  User.count({ _id: req.session.userId }, function (err, count) {
+  User.count({ _id: req.session.userId }, function(err, count) {
     if (err) return next(err);
 
     var ingredient = req.body.ingredient;
@@ -382,7 +384,7 @@ router.post('/checkout_cart', function(req, res, next) {
     var amount = Number(req.body.amount);
 
     if (count > 0) {
-      User.find({ "_id":req.session.userId }, async function (err, instance) {
+      User.find({ "_id": req.session.userId }, async function(err, instance) {
         if (err) return next(err);
 
         var cart = instance[0].cart[0];
@@ -392,7 +394,7 @@ router.post('/checkout_cart', function(req, res, next) {
           var quantity = cart[ingredient];
           var amount;
 
-          await Ingredient.find({ "name": ingredient }, function (err, instance) {
+          await Ingredient.find({ "name": ingredient }, function(err, instance) {
             if (err) return next(err);
             amount = instance[0].amount;
           });
@@ -405,7 +407,7 @@ router.post('/checkout_cart', function(req, res, next) {
             $set: {
               amount: amount
             }
-          }, function (err, cart_instance) {
+          }, function(err, cart_instance) {
             if (err) return next(err);
           });
 
@@ -418,7 +420,7 @@ router.post('/checkout_cart', function(req, res, next) {
           $set: {
             cart: cart
           }
-        }, function (err, cart_instance) {
+        }, function(err, cart_instance) {
           if (err) return next(err);
           return res.redirect(req.baseUrl + '/cart');
         });
@@ -445,5 +447,18 @@ module.exports.requireRole = function(role) {
         res.send(403);
       }
     });
+  }
+}
+
+module.exports.requireLogin = function() {
+  return function(req, res, next) {
+    console.log('Require login!');
+    if (req.session.userId !== null && req.session.userId !== undefined) {
+      console.log('Logged in with id: ' + req.session.userId);
+      next(); // allow the next route to run
+    } else {
+      // require the user to log in
+      res.redirect("/users"); // or render a form, etc.
+    }
   }
 }

@@ -39,12 +39,12 @@ html(lang='en')
           ul.nav
             each val, key in menu
               if selected === key
-                li.active
+                li.active.meal-category.hide
                   a(href=val)
                     i.material-icons dashboard
                     p #{key}
               else
-                li
+                li.meal-category.hide
                   a(href=val)
                     i.material-icons dashboard
                     p #{key}
@@ -130,5 +130,7 @@ html(lang='en')
   script(src='/js/material-dashboard.js?v=1.2.0')
   // Custom js
   script(src='/js/script.js')
+  script.
+    loadAdminOnlySideBar();
 
   block scripts
