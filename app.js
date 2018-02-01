@@ -12,6 +12,7 @@ var index = require('./routes/index');
 var users = require('./routes/users');
 var ingredients = require('./routes/ingredients');
 var vendors = require('./routes/vendors');
+var files = require('./routes/files');
 var MongoStore = require('connect-mongo')(session);
 
 //var seed = require('./helpers/seed.js');
@@ -66,7 +67,7 @@ app.use('/users',users);
 app.use('/ingredients', users.requireLogin(),ingredients); //This is not ideal
 app.post('/ingredients/*', users.requireRole("admin"), ingredients);
 app.use('/vendors', users.requireRole("admin"), vendors);
-
+app.use('/files', files);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
