@@ -1,0 +1,9 @@
+extends layout
+block link
+	-var selected = 'Uploads';
+
+block content
+	form(action='/files/upload', enctype='multipart/form-data', method='post')
+		input.form-control(type='text', name='title')
+		input(type='file', name='file', required='')
+		button.btn.btn-primary.pull-right(type='submit', value='Upload') Upload
