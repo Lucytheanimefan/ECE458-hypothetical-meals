@@ -10,7 +10,7 @@ function dropDownInteractivity() {
   }
 }
 
-dropDownInteractivity();
+//dropDownInteractivity();
 
 
 function checkIsAdmin(callback) {
@@ -44,6 +44,7 @@ function loadAdminOnlySideBar() {
       if (isAdmin) {
         $(this).removeClass('hide');
       } else {
+        // Users
         let tmp = $(this).find('a')[0];
         let category = $($(tmp).find('p')[0]).text();
         if (category !== 'Vendors') {
