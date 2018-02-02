@@ -236,3 +236,4 @@ searchIngredient = function(list,ing){
 }
 
 module.exports = router;
+module.exports.searchIngredient = searchIngredient;
