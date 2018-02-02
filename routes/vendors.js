@@ -1,7 +1,19 @@
 var express = require('express');
 var router = express.Router();
 var Vendor = require('../models/vendor');
+var Inventory = require('../models/inventory');
+var Ingredient = require('../models/ingredient');
 var uniqid = require('uniqid')
+
+let weightMapping = {
+  sack:50,
+  pail:50,
+  drum:500,
+  supersack:2000,
+  truckload:50000,
+  railcar:280000
+}
+
 
 //GET request to show available ingredients
 router.get('/', function(req, res) {
@@ -46,7 +58,6 @@ router.post('/:code/add_ingredients', function(req,res,next){
       return next(error);
     }
     vendor.catalogue = genCatalogue(req.body,vendor.catalogue);
-    console.log(vendor.catalogue);
     vendor.save(function(err) {
       if (err) {
         var error = new Error('Couldn\'t update that vendor.');
@@ -101,12 +112,13 @@ router.post('/new', function(req, res, next) {
   });
 });
 
-router.post('/:code/order', function(req,res,next){
-  let quantity = req.body.quantity;
-  let size = req.body.size;
-  let ingredient = req.body.ingredient;
-  if(checkFridge(quantity,'cold')){
-    Vendor.findOne({code: req.params.code}, function(err, vendor){
+router.post('/:code/order', async function(req,res,next){
+  let size = req.body.size.toLowerCase();
+  let ingredient = req.body.ingredient.toLowerCase();
+  let quantity = parseFloat(req.body.quantity)*weightMapping[size];
+  let ing = await queryIngredient(ingredient,next);
+  if(checkFridge(ingredient,quantity,next)){
+    await Vendor.findOne({code: req.params.code}, function(err, vendor){
     if (err) { return next(err); }
       let ingIndex = searchIngredient(vendor['catalogue'],ingredient);
       if(ingIndex == -1){
@@ -114,14 +126,25 @@ router.post('/:code/order', function(req,res,next){
         err.status = 400;
         return next(err);
       }
-      if(vendor['catalogue'][ingIndex]['units'][size]['available'] >= quantity){
-        vendor['catalogue'][ingIndex]['units'][size]['available'] -= quantity;
+      if(vendor['catalogue'][ingIndex]['units'][size]['available'] >= parseFloat(req.body.quantity)){
+        vendor['catalogue'][ingIndex]['units'][size]['available'] -= parseFloat(req.body.quantity);
+        var entry = {};
+        entry['ingredient'] = ingredient.toLowerCase();
+        entry['cost'] = vendor['catalogue'][ingIndex]['units'][size]['cost'];
+        entry['units'] = size.toLowerCase();
+        entry['number'] = parseFloat(req.body.quantity);
+        vendor['history'].push(entry);
       }
       vendor.save(function(err) {
         if (err) { return next(err); }
       });
       return res.redirect(req.baseUrl + '/' + req.params.code);
     });
+  }
+  else{
+    var error = new Error("Exceeds Refrigeration Capacity or Not Enough in Stock");
+    err.status = 400;
+    return next(err);
   }
 });
 
@@ -142,6 +165,24 @@ router.get('/search', function(req, res, next){
   })
 })
 
+queryIngredient = function(name,next){
+  Ingredient.findOne({name:name},function(err,ing){
+    if(err){return next(err);}
+    else{
+      return ing;
+    }
+  })
+}
+
+queryInventory = async function(next){
+  await Inventory.findOne({type:"master"},function(err,inv){
+    if(err){return next(err);}
+    else{
+      return inv;
+    }
+  })
+}
+
 genLocation = function(data){
   var loc = {};
   loc['city']=data['city'];
@@ -150,26 +191,44 @@ genLocation = function(data){
 }
 
 genCatalogue = function(data,catalogue){
-  console.log(catalogue);
-  console.log(data);
   var entry = {};
-  entry.ingredient = data.ingredient;
+  entry.ingredient = data.ingredient.toLowerCase();
   entry.units = {};
   entry.units[data['size']]={};
   entry.units[data['size']]['cost']=parseFloat(data.cost);
   entry.units[data['size']]['available']=parseFloat(data.quantity);
-  console.log(entry);
   catalogue.push(entry);
   return catalogue;
 }
 
-checkFridge = function(size,temp){
-  return true;
+checkFridge = async function(name,amount,next){
+  await Ingredient.findOne({name:name},async function(err,ing){
+    if(err){return next(err);}
+    else{
+      await Inventory.findOne({type:"master"},function(err,inv){
+        if(err){return next(err);}
+        else{
+          let temp = ing['temperature'].split(" ")[0];
+          let space = inv['limits'][temp]-inv['current'][temp]
+          let diff = space>=amount ? amount:0;
+          inv.current[temp]+=diff;
+          inv.save(function(err) {
+            if (err) {
+              var error = new Error('Couldn\'t update the inventory.');
+              error.status = 400;
+              return next(error);
+              }
+            });
+          return space>=amount;
+        }
+      })
+    }
+  })
 }
 
 searchIngredient = function(list,ing){
   for(var i = 0; i < list.length; i++){
-    if(list[i]===ing){
+    if(list[i]['ingredient']===ing){
       return i;
     }
   }
@@ -177,3 +236,4 @@ searchIngredient = function(list,ing){
 }
 
 module.exports = router;
+module.exports.searchIngredient = searchIngredient;

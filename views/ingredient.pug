@@ -1,50 +1,86 @@
 extends layout
 
+block css
+  link(href='/stylesheets/ingredients.css', rel='stylesheet')
+
 block link
   -var selected = 'Ingredients';
 
 block content
-  .row
-    form(action='/ingredients/' + ingredient.name + '/delete', method='post')
-      button.btn.btn-primary.pull-right(style="margin: 30px 15px;" type='submit') Delete ingredient
-    .col-md-6
-      h1= ingredient.name
-      h4= ingredient.package
-      h4= ingredient.temperature
-      h4= ingredient.amount
-    .col-md-6
-      form(action="/users/add_to_cart" method="post")
-        input.form-control(type="hidden" name="ingredient" value=ingredient.name)
-        input.form-control(type="hidden" name="amount" value=ingredient.amount)
-        .row
-          .col-md-8
-          .col-md-4
-            label.control-label(style="color:black;") Quantity (Pounds)
-            input.form-control(id='select_amount', type='number', name='quantity', value=amount, min="1", max=ingredient.amount)
-        .row
-          .col-md-8
-          .col-md-4
-            button.btn.btn-primary.pull-right(id="cartbtn" type="submit" name="submit" value="Add to Cart") Add to Cart
+  h1= ingredient.name
+  div#tabs
+    ul.nav.nav-tabs
+      li.active
+        a(data-toggle='tab', href='#ingredient-info') Ingredient Information
+      li
+        a(data-toggle='tab', href='#vendor-info') Vendors
+      li.adminOnly.hide
+        a(data-toggle='tab', href='#update-form') Update Ingredient
+    .tab-content
+      .row.tab-pane.fade.in.active#ingredient-info
+        .col-md-6
+          table.table
+            tr
+              th Package Type
+              td= ingredient.package
+            tr
+              th Storage Temperature
+              td= ingredient.temperature
+            tr
+              th Units in Storage
+              td= ingredient.amount
+          div.delete-form
+            form(action='/ingredients/' + ingredient.name + '/delete', method='post')
+              button.btn.btn-primary.pull-right(style="margin: 30px 15px;" type='submit') Delete ingredient
 
-  .adminOnly.hide.row
-    .row
-      h1= 'Update ingredient'
-      form(action='/ingredients/' + ingredient.name + '/update', method='post')
-        label.control-label Ingredient Name
-        input.form-control(type='text', name='name', placeholder = 'Ingredient name', required='')
-        label.control-label Package Type
-        select.form-control(name='package', placeholder = '', required='')
-          option(disabled='' selected='' value='') Select an option
-          each package in packages
-            option(value=package)= package
-        label.control-label Storage Temperature
-        select.form-control(name='temperature', placeholder = '', required='')
-          option(disabled="" selected="" value="") Select an option
-          each temp in temps
-            option(value=temp)= temp
-        label.control-label Amount in storage
-        input.form-control(type='number', name='amount', placeholder = 'Amount in storage', required='')
-        button.btn.btn-primary.pull-right(type='submit') Update ingredient
+        .col-md-6
+          form(action="/users/add_to_cart" method="post")
+            input.form-control(type="hidden" name="ingredient" value=ingredient.name)
+            input.form-control(type="hidden" name="amount" value=ingredient.amount)
+            .row
+              .col-md-8
+              .col-md-4
+                label.control-label(style="color:black;") Quantity (Pounds)
+                input.form-control(id='select_amount', type='number', name='quantity', value=amount, min="1", max=ingredient.amount)
+            .row
+              .col-md-8
+              .col-md-4
+                button.btn.btn-primary.pull-right(id="cartbtn" type="submit" name="submit" value="Add to Cart") Add to Cart
+
+      .adminOnly.hide.card-content.tab-pane.fade#update-form
+        h1= 'Update ingredient'
+        form(action='/ingredients/' + ingredient.name + '/update', method='post')
+          label.control-label Ingredient Name
+          input.form-control(type='text', name='name', placeholder = 'Ingredient name', required='')
+          label.control-label Package Type
+          select.form-control(name='package', placeholder = '', required='')
+            option(disabled='' selected='' value='') Select an option
+            each package in packages
+              option(value=package)= package
+          label.control-label Storage Temperature
+          select.form-control(name='temperature', placeholder = '', required='')
+            option(disabled="" selected="" value="") Select an option
+            each temp in temps
+              option(value=temp)= temp
+          label.control-label Amount in storage
+          input.form-control(type='number', name='amount', placeholder = 'Amount in storage', required='')
+          button.btn.btn-primary.pull-right(type='submit') Update ingredient
+
+      div.card-content.tab-pane.fade#vendor-info
+        table.table
+          thead.text-primary
+            th Vendor
+            th Package
+            th Units Available
+            th Cost Per Unit ($)
+            each vendor in vendors
+              tr
+                th
+                  a(href="/vendors/" + vendor.vendorCode)= vendor.vendorName
+                each record in vendor.records
+                  th= record[0]
+                  th= record[1]
+                  th= record[2]
 
 block scripts
   script.
