@@ -3,8 +3,10 @@ extends layout
 block link
   -var selected = 'Vendors';
 
+
+
 block content
-  #ing-table
+  #vendor-table
     table.table
       thead.text-primary
         th Vendor
@@ -19,19 +21,49 @@ block content
           th= vendor.code
           th= vendor.contact
           th= vendor.location.state
+  ul.nav.nav-tabs
+    li.active.adminOnly.hide
+      a(data-toggle='tab', href='#create_vendor') Create
+    li
+      a(data-toggle='tab', href='#search_vendor') Search
 
-  h1= 'Create Vendor'
-  form(action='/vendors/new', method='post')
-    input(type='text', name='name', placeholder = 'Vendor name', required='')
-    input(type='text', name='contact', placeholder = 'Contact Info', required='')
-    input(type='text', name='city', placeholder = 'city', required='')
-    input(type='text', name='state', placeholder = 'state', required='')
-    input(type='submit', value='add vendor')
+  .tab-content
+    .card-content#create_vendor.tab-pane.fade.in.active
+      h1= 'Create Vendor'
+      form(action='/vendors/new', method='post')
+        .form-group
+          label.control-label Vendor name
+          input.form-control(type='text', name='name', required='')
+        .form-group
+          label.control-label Contact Info
+          input.form-control(type='text', name='contact', required='')
+        .form-group
+          label.control-label City
+          input.form-control(type='text', name='city', required='')
+        .form-group
+          label.control-label State
+          input.form-control(type='text', name='state', required='')
+        button.btn.btn-primary.pull-right(type='submit', value='add vendor') Add vendor
 
-  h1= 'Search for Vendor'
-  form(action='/vendors/search', method='get')
-    input(type='text', name='name', placeholder = 'Name')
-    input(type='text', name='ingredient', placeholder = 'Ingredient')
-    input(type='text', name='location', placeholder = 'Location')
-    input(type='text', name='code', placeholder = 'Vendor Code')
-    input(type='submit', value='search')
+    .card-content#search_vendor.tab-pane.fade
+      h1= 'Search for Vendor'
+      form(action='/vendors/search', method='get')
+        .form-group
+          label.control-label Name
+          input.form-control(type='text', name='name', )
+        .form-group
+          label.control-label Ingredient
+          input.form-control(type='text', name='ingredient')
+        .form-group
+          label.control-label Location
+          input.form-control(type='text', name='location')
+        .form-group
+          label.control-label Vendor Code
+          input.form-control(type='text', name='code')
+        button.btn.btn-primary.pull-right(type='submit', value='search') Search
+
+
+
+block scripts
+  script.
+    loadAdminOnlyContent();
