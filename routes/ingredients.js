@@ -67,24 +67,7 @@ router.get('/:name', function(req, res, next) {
         }
       });
       // console.log(vendors[0]);
-      var catalogue = new Map();
-      for (i = 0; i < vendors.length; i++) {
-        var vendor = vendors[i];
-        for (j = 0; j < vendor['catalogue'].length; j++) {
-          if (vendor['catalogue'][j]['ingredient'] == req.params.name) {
-            var record = vendor['catalogue'][j]['units'];
-            var recordList = [];
-            for (k = 0; k < packageTypes.length; k++) {
-              var type = packageTypes[k].toLowerCase();
-              if (record[type]['cost'] != null) {
-                recordList.push([type, record[type]['cost'], record[type]['available']]);
-              }
-            }
-            catalogue.set(vendor['name'], recordList);
-          }
-        }
-      }
-      console.log(catalogue);
+      var catalogue = createCatalogue(vendors, req.params.name);
       res.render('ingredient', { ingredient: ing, packages: packageTypes, temps: temperatures, vendors: catalogue });
     }
   })
@@ -159,6 +142,27 @@ router.post('/new', function(req, res, next) {
   });
 });
 
+createCatalogue = function(vendors, name) {
+  var catalogue = [];
+  for (i = 0; i < vendors.length; i++) {
+    var vendor = vendors[i];
+    for (j = 0; j < vendor['catalogue'].length; j++) {
+      if (vendor['catalogue'][j]['ingredient'] == name) {
+        var record = vendor['catalogue'][j]['units'];
+        var recordList = [];
+        for (k = 0; k < packageTypes.length; k++) {
+          var type = packageTypes[k].toLowerCase();
+          if (record[type]['cost'] != null) {
+            recordList.push([type, record[type]['cost'], record[type]['available']]);
+          }
+        }
+        catalogue.push({vendorName: vendor['name'], vendorCode: vendor['code'], records: recordList});
+        // catalogue.set(vendor['name'], recordList);
+      }
+    }
+  }
+  return catalogue
+}
 
 
 //PUT request to update an existing ingredient
