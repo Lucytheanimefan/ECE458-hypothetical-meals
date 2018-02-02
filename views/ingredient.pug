@@ -4,21 +4,29 @@ block link
   -var selected = 'Ingredients';
 
 block content
-  h1= ingredient.name
-  h2= ingredient.package
-  h2= ingredient.temperature
-  h2= ingredient.amount
-
-  form(action="/users/add_to_cart" method="post")
-    input(id="cartbtn" type="submit" name="submit" value="Add to Cart")
-    input(type="hidden" name="ingredient" value=ingredient.name)
-    input(type="hidden" name="amount" value=ingredient.amount)
-    label(style="color:black;padding: 0px 5px 0px 20px;") Quantity (Pounds)
-    input(id='select_amount', type='number', name='quantity', value=amount, min="1", max=ingredient.amount, style="width:75px;")
-
-  div.adminOnly.hide
+  .row
     form(action='/ingredients/' + ingredient.name + '/delete', method='post')
-      button.btn.btn-primary(style="margin: 30px 15px;" type='submit') Delete ingredient
+      button.btn.btn-primary.pull-right(style="margin: 30px 15px;" type='submit') Delete ingredient
+    .col-md-6
+      h1= ingredient.name
+      h4= ingredient.package
+      h4= ingredient.temperature
+      h4= ingredient.amount
+    .col-md-6
+      form(action="/users/add_to_cart" method="post")
+        input.form-control(type="hidden" name="ingredient" value=ingredient.name)
+        input.form-control(type="hidden" name="amount" value=ingredient.amount)
+        .row
+          .col-md-8
+          .col-md-4
+            label.control-label(style="color:black;") Quantity (Pounds)
+            input.form-control(id='select_amount', type='number', name='quantity', value=amount, min="1", max=ingredient.amount)
+        .row
+          .col-md-8
+          .col-md-4
+            button.btn.btn-primary.pull-right(id="cartbtn" type="submit" name="submit" value="Add to Cart") Add to Cart
+
+  .adminOnly.hide.row
     .row
       h1= 'Update ingredient'
       form(action='/ingredients/' + ingredient.name + '/update', method='post')
