@@ -39,8 +39,6 @@ function loadAdminOnlyContent() {
 function loadAdminOnlySideBar() {
   console.log('loadAdminOnlySideBar');
   checkIsAdmin(function(isAdmin) {
-    if (!isAdmin) return;
-
     // Is admin
     $('.meal-category').each(function() {
       if (isAdmin) {
