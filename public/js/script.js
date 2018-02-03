@@ -10,7 +10,7 @@ function dropDownInteractivity() {
   }
 }
 
-dropDownInteractivity();
+//dropDownInteractivity();
 
 
 function checkIsAdmin(callback) {
@@ -39,13 +39,12 @@ function loadAdminOnlyContent() {
 function loadAdminOnlySideBar() {
   console.log('loadAdminOnlySideBar');
   checkIsAdmin(function(isAdmin) {
-    if (!isAdmin) return;
-
     // Is admin
     $('.meal-category').each(function() {
       if (isAdmin) {
         $(this).removeClass('hide');
       } else {
+        // Users
         let tmp = $(this).find('a')[0];
         let category = $($(tmp).find('p')[0]).text();
         if (category !== 'Vendors') {

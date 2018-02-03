@@ -1,0 +1,7 @@
+INGREDIENT,PACKAGE,AMOUNT (LBS),PRICE PER PACKAGE,VENDOR FREIGHT CODE,TEMPERATURE
+"Carrots, pail",pail,89,20.15,DF2CK21,room temperature
+"Carrots, pail",pail,45,16.89,JK878DC,room temperature
+Carrots - railcar,railcar,24690,4000,DF2CK21,room temperature
+Apples - supersack,supersack,60,69.32,JK878DC,frozen
+Potatoes - drum,drum,129,32.1,DF2CK21,refrigerated
+"Potatoes, sack",sack,55,6.01,KDC322D,refrigerated

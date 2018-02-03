@@ -16,10 +16,17 @@ let weightMapping = {
 
 
 //GET request to show available ingredients
-router.get('/', function(req, res) {
-  res.render('vendors');
+router.get('/', function(req, res, next) {
+  Vendor.find({}, function(error, vendors) {
+    if (error) {
+      var err = new Error('Error searching for ' + req.params.name);
+      err.status = 400;
+      return next(err);
+    } else {
+      res.render('vendors', { vendors: vendors});
+    }
+  })
 })
-
 router.get('/:code', function(req, res, next) {
   Vendor.findOne({code: req.params.code}, function(error, ing) {
     if (ing == null) {
@@ -117,7 +124,7 @@ router.post('/:code/order', async function(req,res,next){
   let ingredient = req.body.ingredient.toLowerCase();
   let quantity = parseFloat(req.body.quantity)*weightMapping[size];
   let ing = await queryIngredient(ingredient,next);
-  if(checkFridge(ingredient,quantity,next)){
+  if(checkFridge(ingredient,quantity,size,next)){
     await Vendor.findOne({code: req.params.code}, function(err, vendor){
     if (err) { return next(err); }
       let ingIndex = searchIngredient(vendor['catalogue'],ingredient);
@@ -201,7 +208,7 @@ genCatalogue = function(data,catalogue){
   return catalogue;
 }
 
-checkFridge = async function(name,amount,next){
+checkFridge = async function(name,amount,size,next){
   await Ingredient.findOne({name:name},async function(err,ing){
     if(err){return next(err);}
     else{
@@ -210,7 +217,12 @@ checkFridge = async function(name,amount,next){
         else{
           let temp = ing['temperature'].split(" ")[0];
           let space = inv['limits'][temp]-inv['current'][temp]
-          let diff = space>=amount ? amount:0;
+          let diff = space>=amount || size==="truckload" || size==="railcar" ? amount:0;
+          if(space<amount){
+            var error = new Error('There is not enough space in inventory for transaction');
+            error.status = 400;
+            return(next(error));
+          }
           inv.current[temp]+=diff;
           inv.save(function(err) {
             if (err) {
@@ -236,4 +248,3 @@ searchIngredient = function(list,ing){
 }
 
 module.exports = router;
-module.exports.searchIngredient = searchIngredient;
