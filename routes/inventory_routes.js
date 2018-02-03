@@ -7,7 +7,14 @@ var uniqid = require('uniqid')
 
 //GET request to show available ingredients
 router.get('/', function(req, res) {
-  res.render('inventory');
+  Inventory.findOne({type:"master"},function(err,inv){
+    if(err){
+      var error = new Error('Couldn\'t find inventory.');
+      error.status = 400;
+      return next(error);
+    }
+    res.render('inventory',{inventory:inv})
+  })
 });
 
 router.post('/update_limits',function(req,res,next){
@@ -30,5 +37,6 @@ router.post('/update_limits',function(req,res,next){
   return res.redirect(req.baseUrl + '/');
   });
 });
+
 
 module.exports = router;

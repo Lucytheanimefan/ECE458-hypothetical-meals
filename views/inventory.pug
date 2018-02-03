@@ -1,9 +1,33 @@
 extends layout
 
+block link
+  -var selected = 'Inventory';
+
 block content
-  h1= 'Update Inventory Limits'
-  form(action='/inventory/update_limits', method='post')
-    input(type='text', name='frozen', placeholder = 'Frozen Limit')
-    input(type='text', name='refrigerated', placeholder = 'Refrigerator Limit')
-    input(type='text', name='room', placeholder = 'Room Limit')
-    input(type='submit', value='update')
+  ul.nav.nav-tabs
+    li.active.adminOnly.hide
+      a(data-toggle='tab', href='#update_limits') Update
+    li
+      a(data-toggle='tab', href='#see_limits') View
+
+  .tab-content
+    .card-content#update_limits.tab-pane.fade.in.active
+      h1= 'Update Inventory Limits'
+      form(action='/inventory/update_limits', method='post')
+        input(type='text', name='frozen', placeholder = 'Frozen Limit')
+        input(type='text', name='refrigerated', placeholder = 'Refrigerator Limit')
+        input(type='text', name='room', placeholder = 'Room Limit')
+        input(type='submit', value='update')
+
+    .card-content#see_limits.tab-pane.fade
+      h1= 'View Inventory Status'
+      h4= 'Frozen: ' + inventory['current']['frozen'] + ' lb out of ' + inventory['limits']['frozen'] + ' occupied.'
+      h4= 'Refrigerated: ' + inventory['current']['refrigerated'] + ' lb out of ' + inventory['limits']['refrigerated'] + ' occupied.'
+      h4= 'Room: ' + inventory['current']['room'] + ' lb out of ' + inventory['limits']['room'] + ' occupied.'
+
+
+
+
+block scripts
+  script.
+    loadAdminOnlyContent();
