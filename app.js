@@ -20,9 +20,9 @@ var MongoStore = require('connect-mongo')(session);
 
 var app = express();
 
+var MONGO_URI = (process.env.MONGODB_URI);
 
-
-var MONGO_URI = (process.env.MONGODB_URI) ? process.env.MONGODB_URI : require('./env.json')[process.env.NODE_ENV || 'development']['MONGO_URI'];
+//var MONGO_URI = (process.env.MONGODB_URI) ? process.env.MONGODB_URI : require('./env.json')[process.env.NODE_ENV || 'development']['MONGO_URI'];
 
 
 
