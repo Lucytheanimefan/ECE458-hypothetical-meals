@@ -6,7 +6,7 @@ var users = require('./users');
 
 
 var packageTypes = ['Sack', 'Pail', 'Drum', 'Supersack', 'Truckload', 'Railcar'];
-var temperatures = ['frozen', 'refrigerated', 'room temperature'];
+var temperatures = ['Frozen', 'Refrigerated', 'Room temperature'];
 
 //GET request to show available ingredients
 router.get('/', function(req, res, next) {
@@ -29,10 +29,10 @@ router.get('/search_results', function(req, res, next) {
     query.where({name: new RegExp(search)});
   }
   if (req.query.package != null) {
-    query.where('package').in(req.query.package);
+    query.where('package').in(req.query.package.toLowerCase());
   }
   if (req.query.temperature != null) {
-    query.where('temperature').in(req.query.temperature);
+    query.where('temperature').in(req.query.temperature.toLowerCase());
   }
   query.exec(function(error, ings) {
     if (error) {
@@ -109,8 +109,8 @@ router.post('/:name/update', function(req, res, next) {
   Ingredient.findOneAndUpdate({ name: req.params.name }, {
     $set: {
       name: ingName,
-      package: req.body.package,
-      temperature: req.body.temperature,
+      package: req.body.package.toLowerCase(),
+      temperature: req.body.temperature.toLowerCase(),
       amount: req.body.amount
     }
   }, function(error, result) {
@@ -129,8 +129,8 @@ router.post('/new', function(req, res, next) {
   let ingName = req.body.name.toLowerCase();
   Ingredient.create({
     name: ingName,
-    package: req.body.package,
-    temperature: req.body.temperature,
+    package: req.body.package.toLowerCase(),
+    temperature: req.body.temperature.toLowerCase(),
     amount: req.body.amount
   }, function(error, newInstance) {
     if (error) {

@@ -2,6 +2,7 @@ var express = require('express');
 var router = express.Router();
 var csvparse = require('csv-parse');
 var async = require('async');
+var Ingredient = require('../models/ingredient');
 
 const fs = require('fs');
 const formidable = require('formidable')
@@ -34,7 +35,12 @@ router.post('/upload', function(req, res, next) {
     let filepath = files.file.path;
     console.log('File path: ' + filepath);
 
-    parseFile(filepath, function(index, csvRow) {
+    var ingIndex;
+    var packageIndex;
+    var tempIndex;
+    var amountIndex;
+
+    parseFile(filepath, async function(index, csvRow) {
       //let csvRow = CSVtoArray(line);//line[0].split(',');
 
       console.log(csvRow.length);
@@ -48,6 +54,10 @@ router.post('/upload', function(req, res, next) {
           err.status = 400;
           return next(err);
         }
+        ingIndex = csvRow.indexOf('INGREDIENT');
+        packageIndex = csvRow.indexOf('PACKAGE');
+        tempIndex = csvRow.indexOf('TEMPERATURE');
+        amountIndex = csvRow.indexOf('AMOUNT (LBS)');
       } else {
 
         let validDataRowData = validDataRow(csvRow);
@@ -58,8 +68,48 @@ router.post('/upload', function(req, res, next) {
           err.status = 400;
           return next(err);
         }
-        // TODO: Create the ingredient
+        // Create/Update the ingredient
+        var createIngredient;
+        await Ingredient.findOne({name: csvRow[ingIndex]}, function(error, ing) {
+          if (error) {
+            var err = new Error('Error searching for ' + csvRow[ingIndex]);
+            err.status = 400;
+            return next(err);
+          } else {
+            createIngredient = (ing == null);
+          }
+        });
+        if (createIngredient) {
+          console.log('Creating ingredient');
+          Ingredient.create({
+            name: csvRow[ingIndex],
+            package: csvRow[packageIndex],
+            temperature: csvRow[tempIndex],
+            amount: parseInt(csvRow[amountIndex])
+          }, function(error, result) {
+            if (error) {
+              var err = new Error('Error creating ingredient ' + csvRow[ingIndex]);
+              err.status = 400;
+              return next(err);
+            }
+          });
+        } else {
+          console.log('Updating ingredient');
+          Ingredient.findOneAndUpdate({ name: csvRow[ingIndex] }, {
+              $inc: {
+                amount: parseInt(csvRow[amountIndex])
+              }
+            }, function (error, result) {
+              if (error) {
+                var err = new Error('Couldn\'t update that ingredient.');
+                err.status = 400;
+                return next(err);
+              }
+            });
+        }
         // NOTE: Columns may not necessarily be in the same order as specified in validHeaders array below (line 79 ish).
+
+        // TODO: Update the vendor
 
         console.log('All good!');
         return next();

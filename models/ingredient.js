@@ -9,7 +9,7 @@ var IngredientSchema = new mongoose.Schema({
   },
   package: {
     type: String,
-    enum: ['Sack', 'Pail', 'Drum', 'Supersack', 'Truckload', 'Railcar'],
+    enum: ['sack', 'pail', 'drum', 'supersack', 'truckload', 'railcar'],
     required: true,
     trim: true
   },
