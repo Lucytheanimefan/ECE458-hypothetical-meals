@@ -11,8 +11,6 @@ var underscore = require('underscore');
 var dialog = require('dialog');
 var bcrypt = require('bcrypt');
 
-
-
 // var EMAIL = (process.env.EMAIL);
 // var PASSWORD = (process.env.PASSWORD);
 
@@ -73,48 +71,12 @@ router.post('/', function(req, res, next) {
 
             console.log("Create token");
             // Create a verification token for this user
-            var token = new Token({ _userId: user._id, token: crypto.randomBytes(16).toString('hex') });
 
-            // Save the verification token
-
-            token.save(function(err) {
-              if (err) {
-                console.log("Error saving token");
-                return res.status(500).send({ msg: err.message });
-              }
-
-              console.log("Send the email for account confirmation");
-              // Send the email
-              var transporter = nodemailer.createTransport({
-                host: 'smtp.gmail.com',
-                port: 465,
-                auth: {
-                  user: EMAIL,
-                  pass: PASSWORD
-                }
-              });
-              var mailOptions = {
-                from: 'spothorse9.lucy@gmail.com',
-                to: user.email,
-                subject: 'Account Verification Token',
-                text: 'Hello,\n\n' + 'Please verify your account by clicking the link: \nhttp:\/\/' +
-                  req.headers.host + '\/users\/confirmation?id=' + token.token + '.\n'
-              };
-
-              transporter.sendMail(mailOptions, function(err) {
-                if (err) {
-                  console.log("Error sending email");
-                  return res.status(500).send({ msg: err.message });
-                }
-                res.status(200).render(index, { title: 'A verification email has been sent to ' + user.email + '.' });
-              });
+            sendEmailVerification(user, req, res, function() {
+              res.status(200).render('index', { title: 'A verification email has been sent to ' + user.email + '.' });
             });
-
           });
-
-        })
-
-
+        });
       }
     });
 
@@ -141,6 +103,48 @@ router.post('/', function(req, res, next) {
   }
 });
 
+
+sendEmailVerification = function(user, req, res, callback = null) {
+  var token = new Token({ _userId: user._id, token: crypto.randomBytes(16).toString('hex') });
+
+  // Save the verification token
+
+  token.save(function(err) {
+    if (err) {
+      console.log("Error saving token");
+      return res.status(500).send({ msg: err.message });
+    }
+
+    console.log("Send the email for account confirmation");
+    // Send the email
+    var transporter = nodemailer.createTransport({
+      host: 'smtp.gmail.com',
+      port: 465,
+      auth: {
+        user: EMAIL,
+        pass: PASSWORD
+      }
+    });
+    var mailOptions = {
+      from: 'spothorse9.lucy@gmail.com',
+      to: user.email,
+      subject: 'Account Verification Token',
+      text: 'Hello,\n\n' + 'Please verify your account by clicking the link: \nhttp:\/\/' +
+        req.headers.host + '\/users\/confirmation?id=' + token.token + '.\n'
+    };
+
+    transporter.sendMail(mailOptions, function(err) {
+      if (err) {
+        console.log("Error sending email");
+        return res.status(500).send({ msg: err.message });
+      }
+      res.status(200).render('index', { title: 'A verification email has been sent to ' + user.email + '.' });
+    });
+    if (callback !== null) {
+      callback();
+    }
+  });
+}
 
 router.get('/confirmation', function(req, res, next) {
 
@@ -187,11 +191,11 @@ router.post('/resendToken', function(req, res, next) {
         host: 'smtp.gmail.com',
         port: 465,
         auth: {
-          user: config["email"],
-          pass: config["password"]
+          user: EMAIL,
+          pass: PASSWORD
         }
       });
-      var mailOptions = { from: config['email'], to: user.email, subject: 'Account Verification Token', text: 'Hello,\n\n' + 'Please verify your account by clicking the link: \nhttp:\/\/' + req.headers.host + '/users/confirmation?id=' + token.token + '.\n' };
+      var mailOptions = { from: EMAIL, to: user.email, subject: 'Account Verification Token', text: 'Hello,\n\n' + 'Please verify your account by clicking the link: \nhttp:\/\/' + req.headers.host + '/users/confirmation?id=' + token.token + '.\n' };
 
       transporter.sendMail(mailOptions, function(err) {
         if (err) {
