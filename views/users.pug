@@ -38,3 +38,13 @@ block content
 					label.control-label Email
 					input.form-control(type='text', name='email', placeholder='', required='')
 				button.btn.btn-primary.pull-right(type='submit', value='Create') Resend Token
+
+	.row
+		.card-content
+			h6 Delete a user
+
+			form(action='/users/delete', method='post')
+				.form-group
+					label.control-label Email
+					input.form-control(type='text', name='email', placeholder='', required='')
+				button.btn.btn-primary.pull-right(type='submit', value='delete') Delete

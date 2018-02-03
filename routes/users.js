@@ -42,13 +42,6 @@ router.get('/', function(req, res, next) {
 //POST route for updating data
 router.post('/', function(req, res, next) {
   // Create a user
-  // confirm that user typed same password twice
-  // if (req.body.password !== req.body.passwordConf) {
-  //   var err = new Error('Passwords do not match.');
-  //   err.status = 400;
-  //   res.send("passwords dont match");
-  //   return next(err);
-  // }
 
   if (req.body.email &&
     req.body.username &&
@@ -248,6 +241,20 @@ router.get('/admin', function(req, res, next) {
         }
       }
     });
+});
+
+//POST request to delete an existing ingredient
+router.post('/delete', function(req, res, next) {
+  User.findOneAndRemove({email: req.body.email}, function(error, result) {
+    if (error) {
+      var err = new Error('Couldn\'t delete that user.');
+      err.status = 400;
+      return next(err);
+    } else {
+      //alert user the ingredient has been deleted.
+      return res.redirect(req.baseUrl);
+    }
+  });
 });
 
 /**
