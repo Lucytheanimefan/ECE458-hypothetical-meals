@@ -28,6 +28,8 @@
     "js-popup": "^1.0.4",
     "mongodb": "^3.0.1",
     "mongoose": "^4.13.9",
+    "mongoose-double": "0.0.1",
+    "mongoose-paginate": "^5.0.3",
     "morgan": "~1.9.0",
     "nodemailer": "^4.4.2",
     "popups": "^1.1.3",

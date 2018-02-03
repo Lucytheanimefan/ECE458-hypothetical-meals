@@ -1,6 +1,8 @@
 var mongoose = require('mongoose');
+var mongoosePaginate = require('mongoose-paginate');
+require('mongoose-double')(mongoose);
 
-
+var SchemaTypes = mongoose.Schema.Types;
 var IngredientSchema = new mongoose.Schema({
   name: {
     type: String,
@@ -20,10 +22,11 @@ var IngredientSchema = new mongoose.Schema({
     trim: true
   },
   amount: {
-    type: Number,
+    type: SchemaTypes.Double,
     required: true
   }
-})
+});
+IngredientSchema.plugin(mongoosePaginate);
 
 
 var Ingredient = mongoose.model('Ingredient', IngredientSchema);

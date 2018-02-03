@@ -7,7 +7,7 @@ block link
   -var selected = 'Ingredients';
 
 block content
-  form(action='/ingredients/search_results' method='get')
+  form(action='/ingredients/search_results/1' method='get')
     div.search-bar
       input.form-control(type='text', name='name', placeholder='Search for Ingredient Name')
     div.search-button
@@ -48,6 +48,12 @@ block content
               th= ing.package
               th= ing.temperature
               th= ing.amount
+        div.previous
+          form(action='/ingredients/search_results/' + (parseInt(page)-1).toString(), method='get')
+            button.btn.btn-white.btn-round.btn-just-icon(type='submit') Prev
+        div.next
+          form(action='/ingredients/search_results/' + (parseInt(page)+1).toString(), method='get')
+            button.btn.btn-white.btn-round.btn-just-icon(type='submit') Next
 
       .card-content.tab-pane.fade#create_form.adminOnly.hide
         h1= 'Create new ingredient'
@@ -61,11 +67,11 @@ block content
               option(value=package)= package
           label.control-label Storage Temperature
           select.form-control(name='temperature', placeholder = '', required='')
-            option(disabled="" selected="" value="") Select an option
+            option(disabled='' selected='' value='') Select an option
             each temp in temps
               option(value=temp)= temp
           label.control-label Amount in Storage
-          input.form-control(type='number', name='amount', placeholder = 'Amount in storage', required='')
+          input.form-control(type='number', step="any", name='amount', placeholder = 'Amount in storage', required='')
           button.btn.btn-primary.pull-right(type='submit', value='add ingredient') Create ingredient
 
 block scripts

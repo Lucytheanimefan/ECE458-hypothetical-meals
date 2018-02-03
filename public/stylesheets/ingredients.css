@@ -32,3 +32,11 @@
 .delete-form {
   float: left;
 }
+
+.previous {
+  float: left;
+}
+
+.next {
+  float: left;
+}
