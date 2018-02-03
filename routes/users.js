@@ -32,6 +32,7 @@ router.get('/', function(req, res, next) {
         if (user === null) {
           res.render('login');
         } else {
+          console.log('Render profile');
           return res.redirect(req.baseUrl + '/profile');
         }
       }
@@ -42,24 +43,22 @@ router.get('/', function(req, res, next) {
 router.post('/', function(req, res, next) {
   // Create a user
   // confirm that user typed same password twice
-  if (req.body.password !== req.body.passwordConf) {
-    var err = new Error('Passwords do not match.');
-    err.status = 400;
-    res.send("passwords dont match");
-    return next(err);
-  }
+  // if (req.body.password !== req.body.passwordConf) {
+  //   var err = new Error('Passwords do not match.');
+  //   err.status = 400;
+  //   res.send("passwords dont match");
+  //   return next(err);
+  // }
 
   if (req.body.email &&
     req.body.username &&
     req.body.password &&
-    req.body.passwordConf &&
     req.body.role) {
 
     var userData = {
       email: req.body.email,
       username: req.body.username,
       password: req.body.password,
-      passwordConf: req.body.passwordConf,
       role: req.body.role,
     }
 
@@ -128,6 +127,7 @@ router.post('/', function(req, res, next) {
 
   } else if (req.body.logemail && req.body.logpassword) {
     // Login
+    console.log('Authenticate!');
     User.authenticate(req.body.logemail, req.body.logpassword, function(error, user) {
       if (error || !user) {
         var err = new Error('Wrong email or password.');
@@ -453,7 +453,7 @@ module.exports = router;
 module.exports.requireRole = function(role) {
   console.log("----Call user requireRole");
   return function(req, res, next) {
-
+    console.log('In require role callback function');
     User.findById(req.session.userId).exec(function(error, user) {
       if (user === null) {
         var err = new Error('Not authorized. Please ask your admin to gain administrator privileges.');
@@ -478,7 +478,7 @@ module.exports.requireLogin = function() {
       next(); // allow the next route to run
     } else {
       // require the user to log in
-      res.redirect("/users"); // or render a form, etc.
+      res.render('login'); // or render a form, etc.
     }
   }
 }
