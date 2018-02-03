@@ -10,24 +10,24 @@ var temperatures = ['frozen', 'refrigerated', 'room temperature'];
 
 //GET request to show available ingredients
 router.get('/', function(req, res, next) {
-  res.render('ingredients', { ingredients: {}, packages: packageTypes, temps: temperatures, page: 0 });
-  // Ingredient.find({}, function(error, ings) {
-  //   if (error) {
-  //     var err = new Error('Error searching for ' + req.params.name);
-  //     err.status = 400;
-  //     return next(err);
-  //   } else {
-  //     res.render('ingredients', { ingredients: {}, packages: packageTypes, temps: temperatures });
-  //   }
-  // })
+  // res.render('ingredients', { ingredients: {}, packages: packageTypes, temps: temperatures/*, page: 0 */});
+  Ingredient.find({}, function(error, ings) {
+    if (error) {
+      var err = new Error('Error searching for ' + req.params.name);
+      err.status = 400;
+      return next(err);
+    } else {
+      res.render('ingredients', { ingredients: ings, packages: packageTypes, temps: temperatures });
+    }
+  })
 })
 
-router.get('/search_results/:page', function(req, res, next) {
+router.get('/search_results/', function(req, res, next) {
   var query = Ingredient.find();
   if (req.query.name != null) {
     var name = req.query.name;
     var search = '.*' + name + '.*'
-    query.where({name: new RegExp(search)});
+    query.where({name: new RegExp(search, 'i')});
   }
   if (req.query.package != null) {
     query.where('package').in(req.query.package);
@@ -35,27 +35,28 @@ router.get('/search_results/:page', function(req, res, next) {
   if (req.query.temperature != null) {
     query.where('temperature').in(req.query.temperature);
   }
-  var currentPage = parseInt(req.params.page);
-  currentPage = currentPage <= 0 ? 1 : currentPage;
-  Ingredient.paginate(query, { page: currentPage, limit: 10 }, function(error, ings) {
-    console.log(ings);
-    if (error) {
-      var err = new Error('Error during search');
-      err.status = 400;
-      return next(err);
-    } else {
-      res.render('ingredients', { ingredients: ings.docs, packages: packageTypes, temps: temperatures, page: currentPage });
-    }
-  });
-  // query.exec(function(error, ings) {
+  // TODO: Paginate
+  // var currentPage = parseInt(req.params.page);
+  // currentPage = currentPage <= 0 ? 1 : currentPage;
+  // Ingredient.paginate(query, { page: currentPage, limit: 10 }, function(error, ings) {
+  //   console.log(ings);
   //   if (error) {
   //     var err = new Error('Error during search');
   //     err.status = 400;
   //     return next(err);
   //   } else {
-  //     res.render('ingredients', { ingredients: ings, packages: packageTypes, temps: temperatures });
+  //     res.render('ingredients', { ingredients: ings.docs, packages: packageTypes, temps: temperatures, page: currentPage });
   //   }
   // });
+  query.exec(function(error, ings) {
+    if (error) {
+      var err = new Error('Error during search');
+      err.status = 400;
+      return next(err);
+    } else {
+      res.render('ingredients', { ingredients: ings, packages: packageTypes, temps: temperatures });
+    }
+  });
 })
 
 router.get('/:name', function(req, res, next) {

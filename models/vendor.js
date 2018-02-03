@@ -1,5 +1,5 @@
 var mongoose = require('mongoose');
-
+// var mongoosePaginate = require('mongoose-paginate');
 
 var VendorSchema = new mongoose.Schema({
   name: {
