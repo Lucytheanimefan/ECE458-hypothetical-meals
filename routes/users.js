@@ -215,7 +215,7 @@ router.get('/profile', function(req, res, next) {
         if (user === null) {
           return res.redirect(req.baseUrl + '/');
         } else {
-          res.render('profile', { title: 'Profile', name: user.username, mail: user.email });
+          res.render('profile', { title: 'Profile', username: user.username, email: user.email });
         }
       }
     });
@@ -243,9 +243,8 @@ router.get('/admin', function(req, res, next) {
     });
 });
 
-//POST request to delete an existing ingredient
 router.post('/delete', function(req, res, next) {
-  User.findOneAndRemove({email: req.body.email}, function(error, result) {
+  User.findOneAndRemove({ email: req.body.email }, function(error, result) {
     if (error) {
       var err = new Error('Couldn\'t delete that user.');
       err.status = 400;
@@ -255,6 +254,27 @@ router.post('/delete', function(req, res, next) {
       return res.redirect(req.baseUrl);
     }
   });
+});
+
+router.post('/update', async function(req, res, next) {
+  User.findOne({ email: req.body.email }, function(err, user) {
+    if (err) {
+      var error = new Error('Couldn\'t find that user.');
+      error.status = 400;
+      return next(error);
+    }
+    user.username = req.body.username;
+
+    user.save(function(err) {
+      if (err) {
+        var error = new Error('Couldn\'t update that user.');
+        error.status = 400;
+        return next(error);
+      }
+    });
+    return res.redirect(req.baseUrl + '/profile');
+  });
+
 });
 
 /**
@@ -391,8 +411,8 @@ router.post('/checkout_cart', function(req, res, next) {
   User.count({ _id: req.session.userId }, async function(err, count) {
     if (err) return next(err);
     var invdb;
-    await Inventory.findOne({type:"master"},async function(err,inv){
-      if(err){return next(err);}
+    await Inventory.findOne({ type: "master" }, async function(err, inv) {
+      if (err) { return next(err); }
       invdb = inv
     });
 
@@ -407,8 +427,8 @@ router.post('/checkout_cart', function(req, res, next) {
         var cart = instance[0].cart[0];
         for (ingredient in cart) {
           var ingObj;
-          await Ingredient.findOne({name:ingredient},function(err,instance){
-            if(err){return next(err);}
+          await Ingredient.findOne({ name: ingredient }, function(err, instance) {
+            if (err) { return next(err); }
             ingObj = instance
           })
           var quantity = cart[ingredient];
@@ -420,13 +440,13 @@ router.post('/checkout_cart', function(req, res, next) {
           });
 
           amount = amount - quantity;
-          invdb.current[degrees]-=amount;
+          invdb.current[degrees] -= amount;
           invdb.save(function(err) {
             if (err) {
               var error = new Error('Couldn\'t update the inventory.');
               error.status = 400;
               return next(error);
-              }
+            }
           });
           Ingredient.findOneAndUpdate({
             name: ingredient
