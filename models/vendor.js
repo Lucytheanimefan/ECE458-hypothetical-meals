@@ -47,20 +47,7 @@ var VendorSchema = new mongoose.Schema({
     }
 
   }],
-  history:[{
-    ingredient:{
-      type:String,
-      required:true
-    },
-    units:{
-      sack:Number,
-      pail:Number,
-      drum:Number,
-      supersack:Number,
-      truckload:Number,
-      railcar:Number
-    }
-  }]
+  history:[{ingredient:String, cost:Number, units:String, number:Number}]
 })
 
 var Vendor = mongoose.model('Vendor', VendorSchema);

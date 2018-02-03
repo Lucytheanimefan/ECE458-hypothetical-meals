@@ -7,13 +7,6 @@ block link
   -var selected = 'Ingredients';
 
 block content
-  //- form.navbar-form.navbar-right(role='search')
-              //-   .form-group.is-empty
-              //-     input.form-control(type='text', placeholder='Search')
-              //-     span.material-input
-              //-   button.btn.btn-white.btn-round.btn-just-icon(type='submit')
-              //-     i.material-icons search
-              //-     .ripple-container
   form(action='/ingredients/search_results' method='get')
     div.search-bar
       input.form-control(type='text', name='name', placeholder='Search for Ingredient Name')
@@ -46,7 +39,7 @@ block content
             th Ingredient
             th Package
             th Temperature
-            th Amount
+            th Units
           tbody
           each ing in ingredients
             tr

@@ -1,0 +1,9 @@
+extends layout
+
+block content
+  h1= 'Update Inventory Limits'
+  form(action='/inventory/update_limits', method='post')
+    input(type='text', name='frozen', placeholder = 'Frozen Limit')
+    input(type='text', name='refrigerated', placeholder = 'Refrigerator Limit')
+    input(type='text', name='room', placeholder = 'Room Limit')
+    input(type='submit', value='update')

@@ -3,6 +3,7 @@ var router = express.Router();
 var User = require('../models/user');
 var Cart = require('../models/cart');
 var Ingredient = require('../models/ingredient');
+var Inventory = require('../models/inventory');
 var Token = require('../models/token');
 var crypto = require('crypto');
 var nodemailer = require('nodemailer');
@@ -380,31 +381,46 @@ router.post('/remove_ingredient', function(req, res, next) {
 });
 
 router.post('/checkout_cart', function(req, res, next) {
-  User.count({ _id: req.session.userId }, function(err, count) {
+  User.count({ _id: req.session.userId }, async function(err, count) {
     if (err) return next(err);
+    var invdb;
+    await Inventory.findOne({type:"master"},async function(err,inv){
+      if(err){return next(err);}
+      invdb = inv
+    });
 
     var ingredient = req.body.ingredient;
     var quantity = Number(req.body.quantity);
     var amount = Number(req.body.amount);
 
     if (count > 0) {
-      User.find({ "_id": req.session.userId }, async function(err, instance) {
+      await User.find({ "_id": req.session.userId }, async function(err, instance) {
         if (err) return next(err);
 
         var cart = instance[0].cart[0];
         for (ingredient in cart) {
-
-          console.log(ingredient);
+          var ingObj;
+          await Ingredient.findOne({name:ingredient},function(err,instance){
+            if(err){return next(err);}
+            ingObj = instance
+          })
           var quantity = cart[ingredient];
           var amount;
-
+          let degrees = ingObj['temperature'].split(" ")[0];
           await Ingredient.find({ "name": ingredient }, function(err, instance) {
             if (err) return next(err);
             amount = instance[0].amount;
           });
 
           amount = amount - quantity;
-
+          invdb.current[degrees]-=amount;
+          invdb.save(function(err) {
+            if (err) {
+              var error = new Error('Couldn\'t update the inventory.');
+              error.status = 400;
+              return next(error);
+              }
+          });
           Ingredient.findOneAndUpdate({
             name: ingredient
           }, {
