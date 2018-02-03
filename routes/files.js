@@ -81,7 +81,7 @@ router.post('/upload', function(req, res, next) {
         });
         if (createIngredient) {
           console.log('Creating ingredient');
-          Ingredient.create({
+          await Ingredient.create({
             name: csvRow[ingIndex],
             package: csvRow[packageIndex],
             temperature: csvRow[tempIndex],
@@ -95,7 +95,7 @@ router.post('/upload', function(req, res, next) {
           });
         } else {
           console.log('Updating ingredient');
-          Ingredient.findOneAndUpdate({ name: csvRow[ingIndex] }, {
+          await Ingredient.findOneAndUpdate({ name: csvRow[ingIndex] }, {
               $inc: {
                 amount: parseInt(csvRow[amountIndex])
               }
