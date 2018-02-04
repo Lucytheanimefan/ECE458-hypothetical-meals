@@ -69,44 +69,44 @@ router.post('/upload', function(req, res, next) {
           return next(err);
         }
         // Create/Update the ingredient
-        var createIngredient;
-        await Ingredient.findOne({name: csvRow[ingIndex]}, function(error, ing) {
-          if (error) {
-            var err = new Error('Error searching for ' + csvRow[ingIndex]);
-            err.status = 400;
-            return next(err);
-          } else {
-            createIngredient = (ing == null);
-          }
-        });
-        if (createIngredient) {
-          console.log('Creating ingredient');
-          await Ingredient.create({
-            name: csvRow[ingIndex],
-            package: csvRow[packageIndex],
-            temperature: csvRow[tempIndex],
-            amount: parseInt(csvRow[amountIndex])
-          }, function(error, result) {
-            if (error) {
-              var err = new Error('Error creating ingredient ' + csvRow[ingIndex]);
-              err.status = 400;
-              return next(err);
-            }
-          });
-        } else {
-          console.log('Updating ingredient');
-          await Ingredient.findOneAndUpdate({ name: csvRow[ingIndex] }, {
-              $inc: {
-                amount: parseInt(csvRow[amountIndex])
-              }
-            }, function (error, result) {
-              if (error) {
-                var err = new Error('Couldn\'t update that ingredient.');
-                err.status = 400;
-                return next(err);
-              }
-            });
-        }
+        // var createIngredient;
+        // await Ingredient.findOne({name: csvRow[ingIndex]}, function(error, ing) {
+        //   if (error) {
+        //     var err = new Error('Error searching for ' + csvRow[ingIndex]);
+        //     err.status = 400;
+        //     return next(err);
+        //   } else {
+        //     createIngredient = (ing == null);
+        //   }
+        // });
+        // if (createIngredient) {
+        //   console.log('Creating ingredient');
+        //   await Ingredient.create({
+        //     name: csvRow[ingIndex],
+        //     package: csvRow[packageIndex],
+        //     temperature: csvRow[tempIndex],
+        //     amount: parseInt(csvRow[amountIndex])
+        //   }, function(error, result) {
+        //     if (error) {
+        //       var err = new Error('Error creating ingredient ' + csvRow[ingIndex]);
+        //       err.status = 400;
+        //       return next(err);
+        //     }
+        //   });
+        // } else {
+        //   console.log('Updating ingredient');
+        //   await Ingredient.findOneAndUpdate({ name: csvRow[ingIndex] }, {
+        //       $inc: {
+        //         amount: parseInt(csvRow[amountIndex])
+        //       }
+        //     }, function (error, result) {
+        //       if (error) {
+        //         var err = new Error('Couldn\'t update that ingredient.');
+        //         err.status = 400;
+        //         return next(err);
+        //       }
+        //     });
+        // }
         // NOTE: Columns may not necessarily be in the same order as specified in validHeaders array below (line 79 ish).
 
         // TODO: Update the vendor
