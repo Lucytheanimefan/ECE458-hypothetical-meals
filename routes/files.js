@@ -18,7 +18,7 @@ router.get('/', function(req, res) {
 router.get('/documentation', function (req, res) {
     var filePath = "/files/BulkFormatDocumentation.pdf";
 
-    console.log('PDF file name: ' + __dirname + filePath);
+    //console.log('PDF file name: ' + __dirname + filePath);
     fs.readFile(__dirname + filePath , function (err,data){
         res.contentType("application/pdf");
         res.send(data);

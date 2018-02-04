@@ -275,14 +275,28 @@ router.post('/update', async function(req, res, next) {
     }
     user.username = req.body.username;
 
-    user.save(function(err) {
+    let password = req.body.password;
+    if (password !== null && password !== undefined){
+      if (password.length > 0){
+        user.password = password;
+      }
+    }
+    user.password = req.body.password;
+    encryptPassword(user, function(err) {
       if (err) {
-        var error = new Error('Couldn\'t update that user.');
+        var error = new Error('There were errors updating your password. Try again later.');
         error.status = 400;
         return next(error);
       }
+      user.save(function(err) {
+        if (err) {
+          var error = new Error('Couldn\'t update that user.');
+          error.status = 400;
+          return next(error);
+        }
+        return res.redirect(req.baseUrl + '/profile');
+      });
     });
-    return res.redirect(req.baseUrl + '/profile');
   });
 
 });
