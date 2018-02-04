@@ -1,12 +1,22 @@
 var express = require('express');
 var router = express.Router();
 var Ingredient = require('../models/ingredient');
+var Inventory = require('../models/inventory');
 var Vendor = require('../models/vendor');
 var users = require('./users');
 
 
 var packageTypes = ['Sack', 'Pail', 'Drum', 'Supersack', 'Truckload', 'Railcar'];
 var temperatures = ['frozen', 'refrigerated', 'room temperature'];
+
+let weightMapping = {
+  sack:50,
+  pail:50,
+  drum:500,
+  supersack:2000,
+  truckload:50000,
+  railcar:280000
+}
 
 //GET request to show available ingredients
 router.get('/', function(req, res, next) {
@@ -104,9 +114,23 @@ router.post('/:name/delete', function(req, res, next) {
 });
 
 
-router.post('/:name/update', function(req, res, next) {
+router.post('/:name/update', async function(req, res, next) {
   let ingName = req.body.name.toLowerCase();
-  Ingredient.findOneAndUpdate({ name: req.params.name }, {
+  var searchInv;
+  var searchIng;
+  await Ingredient.findOne({name:req.params.name},async function(err,ing){
+    if(err){return next(err);}
+    searchIng = ing;
+  })
+  await Inventory.findOne({type:"master"},function(err,inv){
+    if(err){return next(err);}
+    searchInv = inv;
+  })
+  let amount = searchIng.amount;
+  let temp = searchIng.temperature.split(" ")[0];
+  let space = amount*weightMapping[searchIng.package.toLowerCase()];
+  searchInv['current'][temp]-=space;
+  await Ingredient.findOneAndUpdate({ name: req.params.name }, {
     $set: {
       name: ingName,
       package: req.body.package,
@@ -119,9 +143,20 @@ router.post('/:name/update', function(req, res, next) {
       err.status = 400;
       return next(err);
     } else {
+      let newSpace = amount*weightMapping[req.body.package.toLowerCase()];
+      let newTemp = req.body.temperature.split(" ")[0]
+      searchInv['current'][newTemp]+=newSpace;
+      searchInv.save(function(err) {
+        if (err) {
+          var error = new Error('Couldn\'t update inventory.');
+          error.status = 400;
+          return next(error);
+          }
+        });
       return res.redirect(req.baseUrl + '/' + ingName);
     }
   });
+
 });
 
 //POST request to create a new ingredient
