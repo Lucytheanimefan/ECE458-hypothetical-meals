@@ -148,16 +148,8 @@ createCatalogue = function(vendors, name) {
     var vendor = vendors[i];
     for (j = 0; j < vendor['catalogue'].length; j++) {
       if (vendor['catalogue'][j]['ingredient'] == name) {
-        var record = vendor['catalogue'][j]['units'];
-        var recordList = [];
-        for (k = 0; k < packageTypes.length; k++) {
-          var type = packageTypes[k].toLowerCase();
-          if (record[type]['cost'] != null) {
-            recordList.push([type, record[type]['cost'], record[type]['available']]);
-          }
-        }
-        catalogue.push({vendorName: vendor['name'], vendorCode: vendor['code'], records: recordList});
-        // catalogue.set(vendor['name'], recordList);
+        console.log(vendor['catalogue'][j]);
+        catalogue.push({vendorName: vendor['name'], vendorCode: vendor['code'], record: vendor['catalogue'][j]});
       }
     }
   }
