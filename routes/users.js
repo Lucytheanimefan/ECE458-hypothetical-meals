@@ -390,11 +390,12 @@ router.post('/add_to_cart', function(req, res, next) {
           quantity += Number(cart[ingredient]);
         }*/
 
-        if (cart === null){
-          cart = {}
+        if (cart === null | cart === undefined){
+          cart = [];
         }
 
-        cart[ingredient] = quantity;
+        cart.push({ingredient: quantity});
+        //cart[ingredient] = quantity;
 
         User.findByIdAndUpdate({
           _id: req.session.userId
