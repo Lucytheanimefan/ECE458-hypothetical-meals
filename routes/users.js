@@ -344,10 +344,11 @@ router.get('/cart', function(req, res, next) {
     if (err) return next(err);
 
     if (count > 0) {
-      User.findById(req.session.userId, function(err, instance) {
+      User.findById(req.session.userId, function(err, user) {
         if (err) return next(err);
 
-        var cart = instance["cart"][0];
+        console.log(user.cart);
+        var cart = user.cart;//["cart"][0];
         var ingredients = [];
 
         for (ingredient in cart) {
@@ -373,14 +374,19 @@ router.post('/add_to_cart', function(req, res, next) {
     if (count > 0) {
       User.findOne({ "_id": req.session.userId }, function(err, instance) {
         if (err) return next(err);
+        var cart;
 
         console.log('Instance: ' + instance);
         console.log('Instance.cart: ' + instance.cart);
-        var cart = instance.cart;//[0].cart[0];
+        cart = instance.cart;//[0].cart[0];
         console.log('Cart: ' + cart);
         /*if (ingredient in cart) {
           quantity += Number(cart[ingredient]);
         }*/
+
+        if (cart === null){
+          cart = {}
+        }
 
         cart[ingredient] = quantity;
 
