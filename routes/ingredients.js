@@ -92,30 +92,6 @@ router.post('/:name/delete', function(req, res, next) {
 
 router.post('/:name/update', function(req, res, next) {
   let ingName = req.body.name.toLowerCase();
-  var invDb;
-  var findInventory = Inventory.findOne({type: 'master'});
-  var findIngredient = Ingredient.findOne({name:req.params.name});
-
-  findInventory.then(function(inv) {
-    invDb = inv;
-    return findIngredient;
-  }).then(function(ing) {
-    let currIndTemp = ing['temperature'].toLowerCase().split(" ")[0];
-    let currAmount = parseFloat(ing['amount']) * weightMapping[ing['package']];
-    invDb['current'][currIndTemp]-=currAmount;
-  }).catch(function(error) {
-    next(error);
-  })
-  // await Inventory.findOne({type:"master"},function(err,inv){
-  //   if(err){return next(err);}
-  //   invDb = inv;
-  // });
-  // await Ingredient.findOne({name:req.params.name},function(err,ing){
-  //   if(err){return next(err);}
-  //   let currIndTemp = ing['temperature'].toLowerCase().split(" ")[0];
-  //   let currAmount = parseFloat(ing['amount']) * weightMapping[ing['package']];
-  //   invDb['current'][currIndTemp]-=currAmount;
-  // })
 
   var query = Ingredient.findOneAndUpdate({ name: req.params.name }, {
     $set: {
@@ -133,10 +109,24 @@ router.post('/:name/update', function(req, res, next) {
     next(err);
   });
 
-  let newIndTemp = req.body.temperature.toLowerCase().split(" ")[0];
-  let newAmount = parseFloat(req.body.amount) * weightMapping[req.body.package.toLowerCase()];
-  invDb['current'][newIndTemp]+=newAmount;
-  invDb.save().catch(function(error) {
+  var invDb;
+  var findInventory = Inventory.findOne({type: "master"});
+  var findIngredient = Ingredient.findOne({name:req.params.name});
+
+  findInventory.then(function(inv) {
+    invDb = inv;
+    return findIngredient;
+  }).then(function(ing) {
+    let currIndTemp = ing['temperature'].toLowerCase().split(" ")[0];
+    let currAmount = parseFloat(ing['amount']) * weightMapping[ing['package']];
+    invDb['current'][currIndTemp]-=currAmount;
+    return ing;
+  }).then(function(ing) {
+    let newIndTemp = req.body.temperature.toLowerCase().split(" ")[0];
+    let newAmount = parseFloat(req.body.amount) * weightMapping[req.body.package.toLowerCase()];
+    invDb['current'][newIndTemp]+=newAmount;
+    return invDb.save();
+  }).catch(function(error) {
     var error = new Error('Couldn\'t update the inventory.');
     error.status = 400;
     next(error);
