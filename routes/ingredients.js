@@ -49,7 +49,6 @@ router.get('/:name', function(req, res, next) {
 router.get('/:name/:amt', function(req, res, next) {
   var ingQuery = Ingredient.findOne({ name: req.params.name });
   var venderQuery = Vendor.find({ 'catalogue.ingredient': req.params.name });
-  var promise = ingQuery.exec();
   var ingredient;
   ingQuery.then(function(ing) {
     if (ing == null) {
