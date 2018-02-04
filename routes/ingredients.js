@@ -105,32 +105,31 @@ router.post('/:name/update', function(req, res, next) {
       amount: req.body.amount
     }
   });
-  query.then(function(result) {
-    console.log("success");
-    return findInventory;
-  }).catch(function(error) {
-    var err = new Error('Couldn\'t update that ingredient.');
-    err.status = 400;
-    next(err);
-  }).then(function(inv) {
+  findInventory.then(function(inv) {
     invDb = inv;
     return findIngredient;
   }).then(function(ing) {
     let currIndTemp = ing['temperature'].toLowerCase().split(" ")[0];
-    let currAmount = parseFloat(ing['amount']) * weightMapping[ing['package']];
+    let currAmount = parseFloat(ing['amount']);
     invDb['current'][currIndTemp]-=currAmount;
     return invDb;
   }).then(function(db) {
     let newIndTemp = req.body.temperature.toLowerCase().split(" ")[0];
-    let newAmount = parseFloat(req.body.amount) * weightMapping[req.body.package.toLowerCase()];
+    let newAmount = parseFloat(req.body.amount);
     invDb['current'][newIndTemp]+=newAmount;
     return invDb.save();
-  }).then(function(result) {
-    res.redirect(req.baseUrl + '/' + ingName);
   }).catch(function(error) {
     var error = new Error('Couldn\'t update the inventory.');
     error.status = 400;
     next(error);
+  }).then(function(result) {
+    return query.exec();
+  }).then(function(result) {
+    res.redirect(req.baseUrl + '/' + ingName);
+  }).catch(function(error) {
+    var err = new Error('Couldn\'t update that ingredient.');
+    err.status = 400;
+    next(err);
   });
 
 });
@@ -157,7 +156,6 @@ createCatalogue = function(vendors, name) {
     var vendor = vendors[i];
     for (j = 0; j < vendor['catalogue'].length; j++) {
       if (vendor['catalogue'][j]['ingredient'] == name) {
-        console.log(vendor['catalogue'][j]);
         catalogue.push({vendorName: vendor['name'], vendorCode: vendor['code'], record: vendor['catalogue'][j]});
       }
     }

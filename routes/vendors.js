@@ -291,7 +291,7 @@ checkFridge = async function(name,amount,next){
             return(next(error));
           }
           inv.current[temp]+=diff;
-          ing.amount+=amount;
+          ing.amount+=amountInPounds;
           inv.save(function(err) {
             if (err) {
               var error = new Error('Couldn\'t update the inventory.');
