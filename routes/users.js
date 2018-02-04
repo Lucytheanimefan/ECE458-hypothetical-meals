@@ -491,6 +491,7 @@ router.post('/checkout_cart', function(req, res, next) {
           invdb.current[degrees] -= amount;
           invdb.save(function(err) {
             if (err) {
+              console.log(err);
               var error = new Error('Couldn\'t update the inventory.');
               error.status = 400;
               return next(error);
