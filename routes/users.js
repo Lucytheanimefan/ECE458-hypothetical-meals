@@ -430,10 +430,10 @@ router.post('/remove_ingredient', function(req, res, next) {
     ingredient = req.body.ingredient;
 
     if (count > 0) {
-      User.find({ "_id": req.session.userId }, function(err, user) {
+      User.findOne({ "_id": req.session.userId }, function(err, user) {
         if (err) return next(err);
 
-        var cart = user[0].cart[0];
+        var cart = user.cart[0];
         if (ingredient in cart) {
           delete cart[ingredient];
         }
@@ -469,10 +469,10 @@ router.post('/checkout_cart', function(req, res, next) {
     var amount = Number(req.body.amount);
 
     if (count > 0) {
-      await User.find({ "_id": req.session.userId }, async function(err, user) {
+      await User.findOne({ "_id": req.session.userId }, async function(err, user) {
         if (err) return next(err);
 
-        var cart = user[0].cart[0];
+        var cart = user.cart[0];
         for (ingredient in cart) {
           var ingObj;
           await Ingredient.findOne({ name: ingredient }, function(err, instance) {
