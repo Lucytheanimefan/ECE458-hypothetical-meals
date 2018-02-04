@@ -5,6 +5,10 @@ block link
 block content
 	h1 Bulk Import File Upload
 	p Information on file formatting #[a( href='http://google.com' ) here]
+
+	#fileFormatDocumentation
+		
+
 	form(action='/files/upload', enctype='multipart/form-data', method='post')
 		input.form-control(type='text', name='title')
 		input.pull-left(type='file', name='file', required='')
