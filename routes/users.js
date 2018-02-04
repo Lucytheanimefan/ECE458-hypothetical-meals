@@ -12,7 +12,6 @@ var dialog = require('dialog');
 var bcrypt = require('bcrypt');
 
 
-
 var EMAIL = (process.env.EMAIL);
 var PASSWORD = (process.env.PASSWORD);
 
@@ -32,6 +31,7 @@ router.get('/', function(req, res, next) {
         if (user === null) {
           res.render('login');
         } else {
+          console.log('Render profile');
           return res.redirect(req.baseUrl + '/profile');
         }
       }
@@ -41,25 +41,16 @@ router.get('/', function(req, res, next) {
 //POST route for updating data
 router.post('/', function(req, res, next) {
   // Create a user
-  // confirm that user typed same password twice
-  if (req.body.password !== req.body.passwordConf) {
-    var err = new Error('Passwords do not match.');
-    err.status = 400;
-    res.send("passwords dont match");
-    return next(err);
-  }
 
   if (req.body.email &&
     req.body.username &&
     req.body.password &&
-    req.body.passwordConf &&
     req.body.role) {
 
     var userData = {
       email: req.body.email,
       username: req.body.username,
       password: req.body.password,
-      passwordConf: req.body.passwordConf,
       role: req.body.role,
     }
 
@@ -81,56 +72,21 @@ router.post('/', function(req, res, next) {
 
             console.log("Create token");
             // Create a verification token for this user
-            var token = new Token({ _userId: user._id, token: crypto.randomBytes(16).toString('hex') });
 
-            // Save the verification token
-
-            token.save(function(err) {
-              if (err) {
-                console.log("Error saving token");
-                return res.status(500).send({ msg: err.message });
-              }
-
-              console.log("Send the email for account confirmation");
-              // Send the email
-              var transporter = nodemailer.createTransport({
-                host: 'smtp.gmail.com',
-                port: 465,
-                auth: {
-                  user: EMAIL,
-                  pass: PASSWORD
-                }
-              });
-              var mailOptions = {
-                from: 'spothorse9.lucy@gmail.com',
-                to: user.email,
-                subject: 'Account Verification Token',
-                text: 'Hello,\n\n' + 'Please verify your account by clicking the link: \nhttp:\/\/' +
-                  req.headers.host + '\/users\/confirmation?id=' + token.token + '.\n'
-              };
-
-              transporter.sendMail(mailOptions, function(err) {
-                if (err) {
-                  console.log("Error sending email");
-                  return res.status(500).send({ msg: err.message });
-                }
-                res.status(200).render(index, { title: 'A verification email has been sent to ' + user.email + '.' });
-              });
+            sendEmailVerification(user, req, res, function() {
+              res.status(200).render('index', { title: 'A verification email has been sent to ' + user.email + '.' });
             });
-
           });
-
-        })
-
-
+        });
       }
     });
 
   } else if (req.body.logemail && req.body.logpassword) {
     // Login
+    console.log('Authenticate!');
     User.authenticate(req.body.logemail, req.body.logpassword, function(error, user) {
       if (error || !user) {
-        var err = new Error('Wrong email or password.');
+        let err = new Error('Wrong email or password.');
         err.status = 401;
         return next(err);
       } else if (!user.isVerified) {
@@ -142,12 +98,54 @@ router.post('/', function(req, res, next) {
       }
     });
   } else {
-    var err = new Error('All fields required.');
+    let err = new Error('All fields required.');
     err.status = 400;
     return next(err);
   }
 });
 
+
+sendEmailVerification = function(user, req, res, callback = null) {
+  var token = new Token({ _userId: user._id, token: crypto.randomBytes(16).toString('hex') });
+
+  // Save the verification token
+
+  token.save(function(err) {
+    if (err) {
+      console.log("Error saving token");
+      return res.status(500).send({ msg: err.message });
+    }
+
+    console.log("Send the email for account confirmation");
+    // Send the email
+    var transporter = nodemailer.createTransport({
+      host: 'smtp.gmail.com',
+      port: 465,
+      auth: {
+        user: EMAIL,
+        pass: PASSWORD
+      }
+    });
+    var mailOptions = {
+      from: 'spothorse9.lucy@gmail.com',
+      to: user.email,
+      subject: 'Account Verification Token',
+      text: 'Hello,\n\n' + 'Please verify your account by clicking the link: \nhttp:\/\/' +
+        req.headers.host + '\/users\/confirmation?id=' + token.token + '.\n'
+    };
+
+    transporter.sendMail(mailOptions, function(err) {
+      if (err) {
+        console.log("Error sending email");
+        return res.status(500).send({ msg: err.message });
+      }
+      res.status(200).render('index', { title: 'A verification email has been sent to ' + user.email + '.' });
+    });
+    if (callback !== null) {
+      callback();
+    }
+  });
+}
 
 router.get('/confirmation', function(req, res, next) {
 
@@ -194,11 +192,11 @@ router.post('/resendToken', function(req, res, next) {
         host: 'smtp.gmail.com',
         port: 465,
         auth: {
-          user: config["email"],
-          pass: config["password"]
+          user: EMAIL,
+          pass: PASSWORD
         }
       });
-      var mailOptions = { from: config['email'], to: user.email, subject: 'Account Verification Token', text: 'Hello,\n\n' + 'Please verify your account by clicking the link: \nhttp:\/\/' + req.headers.host + '/users/confirmation?id=' + token.token + '.\n' };
+      var mailOptions = { from: EMAIL, to: user.email, subject: 'Account Verification Token', text: 'Hello,\n\n' + 'Please verify your account by clicking the link: \nhttp:\/\/' + req.headers.host + '/users/confirmation?id=' + token.token + '.\n' };
 
       transporter.sendMail(mailOptions, function(err) {
         if (err) {
@@ -222,7 +220,7 @@ router.get('/profile', function(req, res, next) {
         if (user === null) {
           return res.redirect(req.baseUrl + '/');
         } else {
-          res.render('profile', { title: 'Profile', name: user.username, mail: user.email });
+          res.render('profile', { title: 'Profile', username: user.username, email: user.email });
         }
       }
     });
@@ -248,6 +246,40 @@ router.get('/admin', function(req, res, next) {
         }
       }
     });
+});
+
+router.post('/delete', function(req, res, next) {
+  User.findOneAndRemove({ email: req.body.email }, function(error, result) {
+    if (error) {
+      var err = new Error('Couldn\'t delete that user.');
+      err.status = 400;
+      return next(err);
+    } else {
+      //alert user the ingredient has been deleted.
+      return res.redirect(req.baseUrl);
+    }
+  });
+});
+
+router.post('/update', async function(req, res, next) {
+  User.findOne({ email: req.body.email }, function(err, user) {
+    if (err) {
+      var error = new Error('Couldn\'t find that user.');
+      error.status = 400;
+      return next(error);
+    }
+    user.username = req.body.username;
+
+    user.save(function(err) {
+      if (err) {
+        var error = new Error('Couldn\'t update that user.');
+        error.status = 400;
+        return next(error);
+      }
+    });
+    return res.redirect(req.baseUrl + '/profile');
+  });
+
 });
 
 /**
@@ -384,8 +416,8 @@ router.post('/checkout_cart', function(req, res, next) {
   User.count({ _id: req.session.userId }, async function(err, count) {
     if (err) return next(err);
     var invdb;
-    await Inventory.findOne({type:"master"},async function(err,inv){
-      if(err){return next(err);}
+    await Inventory.findOne({ type: "master" }, async function(err, inv) {
+      if (err) { return next(err); }
       invdb = inv
     });
 
@@ -400,8 +432,8 @@ router.post('/checkout_cart', function(req, res, next) {
         var cart = instance[0].cart[0];
         for (ingredient in cart) {
           var ingObj;
-          await Ingredient.findOne({name:ingredient},function(err,instance){
-            if(err){return next(err);}
+          await Ingredient.findOne({ name: ingredient }, function(err, instance) {
+            if (err) { return next(err); }
             ingObj = instance
           })
           var quantity = cart[ingredient];
@@ -413,13 +445,13 @@ router.post('/checkout_cart', function(req, res, next) {
           });
 
           amount = amount - quantity;
-          invdb.current[degrees]-=amount;
+          invdb.current[degrees] -= amount;
           invdb.save(function(err) {
             if (err) {
               var error = new Error('Couldn\'t update the inventory.');
               error.status = 400;
               return next(error);
-              }
+            }
           });
           Ingredient.findOneAndUpdate({
             name: ingredient
@@ -453,7 +485,7 @@ module.exports = router;
 module.exports.requireRole = function(role) {
   console.log("----Call user requireRole");
   return function(req, res, next) {
-
+    console.log('In require role callback function');
     User.findById(req.session.userId).exec(function(error, user) {
       if (user === null) {
         var err = new Error('Not authorized. Please ask your admin to gain administrator privileges.');
@@ -478,7 +510,7 @@ module.exports.requireLogin = function() {
       next(); // allow the next route to run
     } else {
       // require the user to log in
-      res.redirect("/users"); // or render a form, etc.
+      res.render('login'); // or render a form, etc.
     }
   }
 }
