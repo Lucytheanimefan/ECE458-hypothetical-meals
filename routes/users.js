@@ -297,6 +297,13 @@ router.get('/isAdmin', function(req, res, next) {
     });
 });
 
+router.get('/isLoggedIn', function(req, res, next) {
+  console.log('Check is logged in');
+  res.send(req.session.userId !== null && req.session.userId !== undefined);
+});
+
+
+
 // GET for logout
 router.get('/logout', function(req, res, next) {
   if (req.session) {
