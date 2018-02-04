@@ -85,7 +85,7 @@ router.post('/', function(req, res, next) {
     console.log('Authenticate!');
     User.authenticate(req.body.logemail, req.body.logpassword, function(error, user) {
       if (error || !user) {
-        var err = new Error('Wrong email or password.');
+        let err = new Error('Wrong email or password.');
         err.status = 401;
         return next(err);
       } else if (!user.isVerified) {
@@ -97,7 +97,7 @@ router.post('/', function(req, res, next) {
       }
     });
   } else {
-    var err = new Error('All fields required.');
+    let err = new Error('All fields required.');
     err.status = 400;
     return next(err);
   }

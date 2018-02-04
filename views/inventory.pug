@@ -5,11 +5,11 @@ block content
   form(action='/inventory/update_limits', method='post')
     .form-group
       label.control-label Frozen Limit
-      input.form-control(type='number', name='frozen', placeholder = 'Frozen Limit')
+      input.form-control(type='number', name='frozen', placeholder = 'Frozen Limit', value=frozen) 
     .form-group
       label.control-label Refrigerator Limit
-      input.form-control(type='number', name='refrigerated', placeholder = 'Refrigerator Limit')
+      input.form-control(type='number', name='refrigerated', placeholder = 'Refrigerator Limit', value=refrigerated) 
     .form-group
       label.control-label Room Limit
-      input.form-control(type='number', name='room', placeholder = 'Room Limit')
+      input.form-control(type='number', name='room', placeholder = 'Room Limit', value=room)
     button.btn.btn-primary.pull-right(type='submit', value='update') Update
