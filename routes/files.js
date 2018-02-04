@@ -27,8 +27,19 @@ router.post('/upload', function(req, res, next) {
   var form = new formidable.IncomingForm();
   form.multiples = true;
   form.keepExtensions = true;
-  //form.uploadDir = uploadDir;
+
   console.log('Some way through uploading');
+
+  var error = false;
+  form.on('fileBegin', function(name, file) {
+    var fileType = file.type.split('/').pop();
+    if (fileType.toUpperCase() !== 'CSV') {
+      error = true;
+      let err = new Error('File must be in CSV format.');
+      err.status = 400;
+      return next(err);
+    }
+  })
   form.parse(req, (err, fields, files) => {
     if (err) return res.status(500).json({ error: err });
     console.log('Uploaded true!');
@@ -40,6 +51,9 @@ router.post('/upload', function(req, res, next) {
     var tempIndex;
     var amountIndex;
 
+    if (error) {
+      return true;
+    }
     parseFile(filepath, async function(index, csvRow) {
       //let csvRow = CSVtoArray(line);//line[0].split(',');
 
