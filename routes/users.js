@@ -59,24 +59,17 @@ router.post('/', function(req, res, next) {
         return next(error);
       } else {
         console.log('Hash the password');
-        bcrypt.hash(user.password, 10, function(err, hash) {
-          if (err) {
-            return next(err);
-          }
 
-          console.log('Successful hash');
-          user.password = hash;
-          user.save(function(err) {
-            if (err) { return res.status(500).send({ msg: err.message }); }
+        encryptPassword(user, function(err) {
+          if (err) { return res.status(500).send({ msg: err.message }); }
 
-            console.log("Create token");
-            // Create a verification token for this user
+          console.log("Create token");
+          // Create a verification token for this user
 
-            sendEmailVerification(user, req, res, function() {
-              res.status(200).render('index', { title: 'A verification email has been sent to ' + user.email + '.' });
-            });
+          sendEmailVerification(user, req, res, function() {
+            res.status(200).render('index', { title: 'A verification email has been sent to ' + user.email + '.' });
           });
-        });
+        })
       }
     });
 
@@ -103,6 +96,19 @@ router.post('/', function(req, res, next) {
   }
 });
 
+encryptPassword = function(user, callback) {
+  bcrypt.hash(user.password, 10, function(err, hash) {
+    if (err) {
+      return next(err);
+    }
+
+    console.log('Successful hash');
+    user.password = hash;
+    user.save(function(err) {
+      callback(err);
+    });
+  });
+}
 
 sendEmailVerification = function(user, req, res, callback = null) {
   var token = new Token({ _userId: user._id, token: crypto.randomBytes(16).toString('hex') });
@@ -269,14 +275,28 @@ router.post('/update', async function(req, res, next) {
     }
     user.username = req.body.username;
 
-    user.save(function(err) {
+    let password = req.body.password;
+    if (password !== null && password !== undefined){
+      if (password.length > 0){
+        user.password = password;
+      }
+    }
+    user.password = req.body.password;
+    encryptPassword(user, function(err) {
       if (err) {
-        var error = new Error('Couldn\'t update that user.');
+        var error = new Error('There were errors updating your password. Try again later.');
         error.status = 400;
         return next(error);
       }
+      user.save(function(err) {
+        if (err) {
+          var error = new Error('Couldn\'t update that user.');
+          error.status = 400;
+          return next(error);
+        }
+        return res.redirect(req.baseUrl + '/profile');
+      });
     });
-    return res.redirect(req.baseUrl + '/profile');
   });
 
 });
