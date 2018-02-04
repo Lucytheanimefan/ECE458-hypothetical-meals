@@ -378,13 +378,13 @@ router.post('/add_to_cart', function(req, res, next) {
     var amount = Number(req.body.amount);
 
     if (count > 0) {
-      User.findOne({ "_id": req.session.userId }, function(err, instance) {
+      User.findOne({ "_id": req.session.userId }, function(err, user) {
         if (err) return next(err);
         var cart;
 
-        console.log('Instance: ' + instance);
-        console.log('Instance.cart: ' + instance.cart);
-        cart = instance.cart[0]; //[0].cart[0];
+        console.log('User: ' + user);
+        console.log('user.cart: ' + user.cart);
+        cart = user.cart[0]; //[0].cart[0];
         console.log('Cart: ' + cart);
         
         if (ingredient in cart) {
@@ -430,10 +430,10 @@ router.post('/remove_ingredient', function(req, res, next) {
     ingredient = req.body.ingredient;
 
     if (count > 0) {
-      User.find({ "_id": req.session.userId }, function(err, instance) {
+      User.find({ "_id": req.session.userId }, function(err, user) {
         if (err) return next(err);
 
-        var cart = instance[0].cart[0];
+        var cart = user[0].cart[0];
         if (ingredient in cart) {
           delete cart[ingredient];
         }
@@ -469,10 +469,10 @@ router.post('/checkout_cart', function(req, res, next) {
     var amount = Number(req.body.amount);
 
     if (count > 0) {
-      await User.find({ "_id": req.session.userId }, async function(err, instance) {
+      await User.find({ "_id": req.session.userId }, async function(err, user) {
         if (err) return next(err);
 
-        var cart = instance[0].cart[0];
+        var cart = user[0].cart[0];
         for (ingredient in cart) {
           var ingObj;
           await Ingredient.findOne({ name: ingredient }, function(err, instance) {
