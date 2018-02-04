@@ -77,10 +77,9 @@ block content
               tr
                 th
                   a(href="/vendors/" + vendor.vendorCode)= vendor.vendorName
-                each record in vendor.records
-                  th= record[0]
-                  th= record[1]
-                  th= record[2]
+                th= vendor.record.package
+                th= vendor.record.available
+                th= vendor.record.cost
 
 block scripts
   script.

@@ -7,7 +7,7 @@ var users = require('./users');
 
 
 var packageTypes = ['Sack', 'Pail', 'Drum', 'Supersack', 'Truckload', 'Railcar'];
-var temperatures = ['frozen', 'refrigerated', 'room temperature'];
+var temperatures = ['Frozen', 'Refrigerated', 'Room temperature'];
 
 let weightMapping = {
   sack:50,
@@ -39,10 +39,10 @@ router.get('/search_results', function(req, res, next) {
     query.where({name: new RegExp(search)});
   }
   if (req.query.package != null) {
-    query.where('package').in(req.query.package);
+    query.where('package').in(req.query.package.toLowerCase());
   }
   if (req.query.temperature != null) {
-    query.where('temperature').in(req.query.temperature);
+    query.where('temperature').in(req.query.temperature.toLowerCase());
   }
   query.exec(function(error, ings) {
     if (error) {
@@ -133,8 +133,8 @@ router.post('/:name/update', async function(req, res, next) {
   await Ingredient.findOneAndUpdate({ name: req.params.name }, {
     $set: {
       name: ingName,
-      package: req.body.package,
-      temperature: req.body.temperature,
+      package: req.body.package.toLowerCase(),
+      temperature: req.body.temperature.toLowerCase(),
       amount: req.body.amount
     }
   }, function(error, result) {
@@ -164,8 +164,8 @@ router.post('/new', function(req, res, next) {
   let ingName = req.body.name.toLowerCase();
   Ingredient.create({
     name: ingName,
-    package: req.body.package,
-    temperature: req.body.temperature,
+    package: req.body.package.toLowerCase(),
+    temperature: req.body.temperature.toLowerCase(),
     amount: req.body.amount
   }, function(error, newInstance) {
     if (error) {
@@ -183,16 +183,8 @@ createCatalogue = function(vendors, name) {
     var vendor = vendors[i];
     for (j = 0; j < vendor['catalogue'].length; j++) {
       if (vendor['catalogue'][j]['ingredient'] == name) {
-        var record = vendor['catalogue'][j]['units'];
-        var recordList = [];
-        for (k = 0; k < packageTypes.length; k++) {
-          var type = packageTypes[k].toLowerCase();
-          if (record[type]['cost'] != null) {
-            recordList.push([type, record[type]['cost'], record[type]['available']]);
-          }
-        }
-        catalogue.push({vendorName: vendor['name'], vendorCode: vendor['code'], records: recordList});
-        // catalogue.set(vendor['name'], recordList);
+        console.log(vendor['catalogue'][j]);
+        catalogue.push({vendorName: vendor['name'], vendorCode: vendor['code'], record: vendor['catalogue'][j]});
       }
     }
   }
