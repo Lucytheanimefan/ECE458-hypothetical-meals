@@ -1,12 +1,22 @@
 var express = require('express');
 var router = express.Router();
 var Ingredient = require('../models/ingredient');
+var Inventory = require('../models/inventory');
 var Vendor = require('../models/vendor');
 var users = require('./users');
 
 
-var packageTypes = ['Sack', 'Pail', 'Drum', 'Supersack', 'Truckload', 'Railcar'];
-var temperatures = ['Frozen', 'Refrigerated', 'Room temperature'];
+var packageTypes = ['sack', 'pail', 'drum', 'supersack', 'truckload', 'railcar'];
+var temperatures = ['frozen', 'refrigerated', 'room temperature'];
+
+let weightMapping = {
+  sack:50,
+  pail:50,
+  drum:500,
+  supersack:2000,
+  truckload:50000,
+  railcar:280000
+}
 
 //GET request to show available ingredients
 router.get('/', function(req, res, next) {
@@ -82,6 +92,11 @@ router.post('/:name/delete', function(req, res, next) {
 
 router.post('/:name/update', function(req, res, next) {
   let ingName = req.body.name.toLowerCase();
+
+  var invDb;
+  var findInventory = Inventory.findOne({type: "master"});
+  var findIngredient = Ingredient.findOne({name:req.params.name});
+
   var query = Ingredient.findOneAndUpdate({ name: req.params.name }, {
     $set: {
       name: ingName,
@@ -90,13 +105,33 @@ router.post('/:name/update', function(req, res, next) {
       amount: req.body.amount
     }
   });
-  query.then(function(result) {
+  findInventory.then(function(inv) {
+    invDb = inv;
+    return findIngredient;
+  }).then(function(ing) {
+    let currIndTemp = ing['temperature'].toLowerCase().split(" ")[0];
+    let currAmount = parseFloat(ing['amount']);
+    invDb['current'][currIndTemp]-=currAmount;
+    return invDb;
+  }).then(function(db) {
+    let newIndTemp = req.body.temperature.toLowerCase().split(" ")[0];
+    let newAmount = parseFloat(req.body.amount);
+    invDb['current'][newIndTemp]+=newAmount;
+    return invDb.save();
+  }).catch(function(error) {
+    var error = new Error('Couldn\'t update the inventory.');
+    error.status = 400;
+    next(error);
+  }).then(function(result) {
+    return query.exec();
+  }).then(function(result) {
     res.redirect(req.baseUrl + '/' + ingName);
   }).catch(function(error) {
     var err = new Error('Couldn\'t update that ingredient.');
     err.status = 400;
     next(err);
   });
+
 });
 
 //POST request to create a new ingredient
@@ -121,7 +156,6 @@ createCatalogue = function(vendors, name) {
     var vendor = vendors[i];
     for (j = 0; j < vendor['catalogue'].length; j++) {
       if (vendor['catalogue'][j]['ingredient'] == name) {
-        console.log(vendor['catalogue'][j]);
         catalogue.push({vendorName: vendor['name'], vendorCode: vendor['code'], record: vendor['catalogue'][j]});
       }
     }
