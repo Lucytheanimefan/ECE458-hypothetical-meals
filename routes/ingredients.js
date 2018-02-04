@@ -118,12 +118,15 @@ router.post('/:name/update', function(req, res, next) {
     return findIngredient;
   }).then(function(ing) {
     let currIndTemp = ing['temperature'].toLowerCase().split(" ")[0];
-    let currAmount = parseFloat(ing['amount']) * weightMapping[ing['package']];
+    let currAmount = parseFloat(ing['amount']);
+    console.log(currAmount);
+    console.log(invDb);
     invDb['current'][currIndTemp]-=currAmount;
+    console.log(invDb);
     return ing;
   }).then(function(ing) {
     let newIndTemp = req.body.temperature.toLowerCase().split(" ")[0];
-    let newAmount = parseFloat(req.body.amount) * weightMapping[req.body.package.toLowerCase()];
+    let newAmount = parseFloat(req.body.amount);
     invDb['current'][newIndTemp]+=newAmount;
     return invDb.save();
   }).catch(function(error) {
