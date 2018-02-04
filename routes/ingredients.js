@@ -136,11 +136,11 @@ router.post('/:name/update', function(req, res, next) {
   let newIndTemp = req.body.temperature.toLowerCase().split(" ")[0];
   let newAmount = parseFloat(req.body.amount) * weightMapping[req.body.package.toLowerCase()];
   invDb['current'][newIndTemp]+=newAmount;
-  invDb.save().catch(function(error)) {
+  invDb.save().catch(function(error) {
     var error = new Error('Couldn\'t update the inventory.');
     error.status = 400;
     next(error);
-  }
+  });
 
 });
 
