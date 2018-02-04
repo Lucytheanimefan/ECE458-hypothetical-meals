@@ -47,7 +47,7 @@ function loadAdminOnlySideBar() {
         // Users
         let tmp = $(this).find('a')[0];
         let category = $($(tmp).find('p')[0]).text();
-        if (category !== 'Vendors') {
+        if (category !== 'Vendors' && category !== 'Inventory' && category !== 'Users') {
           $(this).removeClass('hide');
         }
       }

@@ -22,7 +22,7 @@ var UserSchema = new mongoose.Schema({
   },
   passwordConf: {
     type: String,
-    required: true,
+    required: false,
   },
   isVerified: { 
     type: Boolean, 
