@@ -23,7 +23,7 @@ router.get('/', function(req, res) {
     let roomTemp = limits.room;
     let fridge = limits.refrigerated;
     let frozen = limits.frozen;
-    res.render('inventory', { room: roomTemp, refrigerated: fridge, frozen: frozen });
+    res.render('inventory', { inventory:inv, room: roomTemp, refrigerated: fridge, frozen: frozen });
 
 
   })
