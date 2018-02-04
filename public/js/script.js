@@ -26,6 +26,32 @@ function checkIsAdmin(callback) {
   });
 }
 
+function checkLoggedIn(callback) {
+  $.ajax({
+    type: 'GET',
+    url: '/users/isLoggedIn',
+    contentType: 'application/json; charset=utf-8',
+    dataType: 'json',
+    success: function(response) {
+      console.log('is logged in? ' + response);
+      callback(response);
+    }
+  });
+}
+
+function loadLoggedInContent() {
+  console.log('Load logged in content');
+  checkLoggedIn(function(loggedIn) {
+    if (loggedIn) {
+      loadSideBar();
+    }
+    else{
+      $('#profile').text('Login');
+      $('#logout').addClass('hide');
+    }
+  })
+}
+
 function loadAdminOnlyContent() {
   checkIsAdmin(function(isAdmin) {
     if (!isAdmin) return;
@@ -36,12 +62,12 @@ function loadAdminOnlyContent() {
   });
 }
 
-function loadAdminOnlySideBar() {
-  console.log('loadAdminOnlySideBar');
+function loadSideBar() {
   checkIsAdmin(function(isAdmin) {
     // Is admin
     $('.meal-category').each(function() {
       if (isAdmin) {
+        console.log('loadAdminOnlySideBar');
         $(this).removeClass('hide');
       } else {
         // Users
