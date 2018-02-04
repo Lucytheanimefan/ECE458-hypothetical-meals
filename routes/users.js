@@ -371,10 +371,13 @@ router.post('/add_to_cart', function(req, res, next) {
     var amount = Number(req.body.amount);
 
     if (count > 0) {
-      User.find({ "_id": req.session.userId }, function(err, instance) {
+      User.findOne({ "_id": req.session.userId }, function(err, instance) {
         if (err) return next(err);
 
-        var cart = instance[0].cart[0];
+        console.log('Instance: ' + instance);
+        console.log('Instance.cart: ' + instance.cart);
+        var cart = instance.cart;//[0].cart[0];
+        console.log('Cart: ' + cart);
         /*if (ingredient in cart) {
           quantity += Number(cart[ingredient]);
         }*/
