@@ -348,16 +348,22 @@ router.get('/cart', function(req, res, next) {
         if (err) return next(err);
 
         console.log(user.cart);
-        var cart = user.cart;//["cart"][0];
+        let cart = user.cart[0];//["cart"][0];
         var ingredients = [];
 
-        for (ingredient in cart) {
-          var quantity = cart[ingredient];
-          ingredients.push({ "ingredient": ingredient, "quantity": quantity });
+        console.log('Cart');
+        console.log(cart);
+        for (ingredient in cart){
+          ingredients.push({ "ingredient": ingredient, "quantity": cart[ingredient] });
         }
-
-        ingredients = underscore.sortBy(ingredients, "ingredient");
-        return res.render('cart', { ingredients });
+        // for (ingredient in cart) {
+        //   var quantity = cart[ingredient];
+        //   ingredients.push({ "ingredient": ingredient, "quantity": quantity });
+        // }
+        // console.log('Ingredients: ');
+        // console.log(ingredients);
+        // ingredients = underscore.sortBy(ingredients, "ingredient");
+        return res.render('cart', {ingredients});
       });
     }
   });
