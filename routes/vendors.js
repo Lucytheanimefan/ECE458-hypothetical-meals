@@ -86,6 +86,25 @@ router.post('/:code/add_ingredients', function(req,res,next){
   })
 });
 
+router.post('/:code/update_ingredients', function(req,res,next){
+  Vendor.findOne({code:req.params.code}, function(err,vendor){
+    if (err) {
+      var error = new Error('Couldn\'t find that vendor.');
+      error.status = 400;
+      return next(error);
+    }
+    vendor.catalogue = updateCatalogue(req.body,vendor.catalogue);
+    vendor.save(function(err) {
+      if (err) {
+        var error = new Error('Couldn\'t update that vendor.');
+        error.status = 400;
+        return next(error);
+        }
+      });
+      return res.redirect(req.baseUrl + '/' + req.params.code);
+  })
+});
+
 router.post('/:code/update', async function(req, res, next) {
   Vendor.findOne({code: req.params.code}, function(err, vendor){
   if (err) {
@@ -208,7 +227,7 @@ genLocation = function(data){
 
 genCatalogue = function(data,catalogue){
   var entry = {};
-  let index = searchIngredient(catalogue,data.ingredient,data.size.toLowerCase());
+  let index = searchIngredient(catalogue,data.ingredient);
   if(index==-1){
     entry.ingredient = data.ingredient.toLowerCase();
     entry.temp = data.temperature.toLowerCase();
@@ -225,6 +244,16 @@ genCatalogue = function(data,catalogue){
   }
   return catalogue;
 
+}
+
+updateCatalogue = function(data,catalogue){
+  var entry = {};
+  let index = searchIngredient(catalogue,data.ingredient);
+  if(index>-1){
+    catalogue[index].available = parseFloat(data.quantity);
+    catalogue[index].cost = parseFloat(data.cost);
+  }
+  return catalogue;
 }
 
 createIngredient = async function(data){

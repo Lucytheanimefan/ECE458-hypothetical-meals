@@ -31,8 +31,9 @@ block content
     li.adminOnly.hide
       a(data-toggle='tab', href='#add') Add Ingredient
     li
+      a(data-toggle='tab', href='#updateing') Update Ingredient
+    li
       a(data-toggle='tab', href='#order') Make Order
-
   .tab-content
     #update.tab-pane.fade.in.active
       h1= 'Update vendor'
@@ -66,6 +67,20 @@ block content
         label.control-label Cost
         input.form-control(type='text', name='cost', placeholder = 'Cost/Unit', required='')
         button.btn.btn-primary.pull-right(type='submit', value='ingredient added') add
+
+    #updateing.tab-pane.fade.in.adminOnly.hide
+      h1= 'Update Ingredient'
+      form(action='/vendors/' + vendor.code + '/update_ingredients', method='post')
+        label.control-label Ingredient
+        select.form-control(name='ingredient', placeholder = '', required='')
+          option(disabled="" selected="" value="") Select an option
+          each ing in catalogue
+            option(value=temp)= ing['ingredient']
+        label.control-label Quantity
+        input.form-control(type='text', name='quantity', placeholder = 'Quantity', required='')
+        label.control-label Cost
+        input.form-control(type='text', name='cost', placeholder = 'Cost/Unit', required='')
+        button.btn.btn-primary.pull-right(type='submit', value='ingredient added') update
 
 
     #order.tab-pane.fade.in
