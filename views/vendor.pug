@@ -10,12 +10,26 @@ block content
   h4= 'Code: ' + vendor.code
   h4= vendor.contact
   h4= vendor.location['state'] + ', ' + vendor.location['city']
+  h2= 'Catalogue'
+  #ing-table
+    table.table
+      thead.text-primary
+        th Ingredient
+        th Cost
+        th Available
+      tbody
+      each ing in catalogue
+        tr
+          th
+            a(href='/ingredients/' + ing['ingredient'])= ing.ingredient
+          th= ing.cost
+          th= ing.available
 
   ul.nav.nav-tabs
     li.active.adminOnly.hide
       a(data-toggle='tab', href='#update') Update
     li.adminOnly.hide
-      a(data-toggle='tab', href='#add') Add/Update Ingredient
+      a(data-toggle='tab', href='#add') Add Ingredient
     li
       a(data-toggle='tab', href='#order') Make Order
 
@@ -24,16 +38,16 @@ block content
       h1= 'Update vendor'
       form(action='/vendors/' + vendor.code + '/update', method='post')
         label.control-label Vendor Name
-        input.form-control(type='text', name='name', placeholder = 'Vendor name', required='')
+        input.form-control(type='text', name='name', placeholder = 'Vendor name', required='', value=name)
         label.control-label Contact Info
-        input.form-control(type='text', name='contact', placeholder = 'Contact Info', required='')
+        input.form-control(type='text', name='contact', placeholder = 'Contact Info', required='',value=contact)
         label.control-label City
-        input.form-control(type='text', name='city', placeholder = 'city', required='')
+        input.form-control(type='text', name='city', placeholder = 'city', required='',value=city)
         label.control-label State
-        input.form-control(type='text', name='state', placeholder = 'state', required='')
+        input.form-control(type='text', name='state', placeholder = 'state', required='',value=state)
 
     #add.tab-pane.fade.in.adminOnly.hide
-      h1= 'Add/Update Ingredient'
+      h1= 'Add Ingredient'
       form(action='/vendors/' + vendor.code + '/add_ingredients', method='post')
         label.control-label Ingredient
         input.form-control(type='text', name='ingredient', placeholder = 'Ingredient', required='')

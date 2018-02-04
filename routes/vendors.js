@@ -42,7 +42,12 @@ router.get('/:code', async function(req, res, next) {
       return next(err);
     } else {
       let menu = ing.catalogue;
-      res.render('vendor', { vendor: ing, packages: packageTypes, temps: temperatures, catalogue:menu});
+      let name = ing.name;
+      let contact = ing.contact;
+      let state = ing.location.state;
+      let city = ing.location.city;
+      res.render('vendor', { vendor: ing, packages: packageTypes, temps: temperatures, catalogue:menu, name:name,
+      contact:contact,state:state,city:city});
     }
   })
 })
