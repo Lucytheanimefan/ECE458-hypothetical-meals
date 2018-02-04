@@ -276,8 +276,8 @@ router.post('/update', async function(req, res, next) {
     user.username = req.body.username;
 
     let password = req.body.password;
-    if (password !== null && password !== undefined){
-      if (password.length > 0){
+    if (password !== null && password !== undefined) {
+      if (password.length > 0) {
         user.password = password;
       }
     }
@@ -348,12 +348,12 @@ router.get('/cart', function(req, res, next) {
         if (err) return next(err);
 
         console.log(user.cart);
-        let cart = user.cart[0];//["cart"][0];
+        let cart = user.cart[0]; //["cart"][0];
         var ingredients = [];
 
         console.log('Cart');
         console.log(cart);
-        for (ingredient in cart){
+        for (ingredient in cart) {
           ingredients.push({ "ingredient": ingredient, "quantity": cart[ingredient] });
         }
         // for (ingredient in cart) {
@@ -363,7 +363,7 @@ router.get('/cart', function(req, res, next) {
         // console.log('Ingredients: ');
         // console.log(ingredients);
         // ingredients = underscore.sortBy(ingredients, "ingredient");
-        return res.render('cart', {ingredients});
+        return res.render('cart', { ingredients });
       });
     }
   });
@@ -384,18 +384,19 @@ router.post('/add_to_cart', function(req, res, next) {
 
         console.log('Instance: ' + instance);
         console.log('Instance.cart: ' + instance.cart);
-        cart = instance.cart;//[0].cart[0];
+        cart = instance.cart[0]; //[0].cart[0];
         console.log('Cart: ' + cart);
-        /*if (ingredient in cart) {
+        
+        if (ingredient in cart) {
           quantity += Number(cart[ingredient]);
-        }*/
-
-        if (cart === null | cart === undefined){
-          cart = [];
         }
 
-        cart.push({ingredient: quantity});
-        //cart[ingredient] = quantity;
+        if (cart === null | cart === undefined) {
+          cart = [];
+          cart.push({});
+        }
+
+        cart[ingredient] = quantity;
 
         User.findByIdAndUpdate({
           _id: req.session.userId
