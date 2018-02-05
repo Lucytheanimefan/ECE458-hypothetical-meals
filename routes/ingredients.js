@@ -80,16 +80,25 @@ router.get('/:name/:amt', function(req, res, next) {
 //POST request to delete an existing ingredient
 router.post('/:name/delete', function(req, res, next) {
   var query = Ingredient.findOneAndRemove({ name: req.params.name })
-  query.then(async function(result) {
-    await Inventory.findOne({type:"master"},function(err,inv){
-      if(err){return next(err);}
-      if(result['package']!=="railcar" && result['package']!=="truckload"){
-        inv['current'][result['temperature'].toLowerCase().split(" ")[0]]-=result['amount'];
-      }
-      inv.save();
-    })
+  var inventoryUpdate = function(result) {
+    var temperature = result['temperature'].toLowerCase().split(" ")[0];
+    var decrementObject = {};
+    var field = 'current.' + temperature;
+    decrementObject[field] = -result['amount'];
+    return Inventory.findOneAndUpdate({type: 'master'}, 
+      { $inc: decrementObject }
+    );
+  }
+  query.then(function(result) {
+    if(result['package']!=="railcar" && result['package']!=="truckload"){
+      return inventoryUpdate(result);
+    } else {
+      res.redirect(req.baseUrl);
+    }
+  }).then(function(result) {
     res.redirect(req.baseUrl);
   }).catch(function(error) {
+    console.log(error);
     var err = new Error('Couldn\'t delete that ingredient.');
     err.status = 400;
     next(err);
