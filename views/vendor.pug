@@ -16,6 +16,8 @@ block content
       thead.text-primary
         th Ingredient
         th Cost
+        th Package
+        th Temperature
         th Available
       tbody
       each ing in catalogue
@@ -23,6 +25,8 @@ block content
           th
             a(href='/ingredients/' + ing['ingredient'])= ing.ingredient
           th= ing.cost
+          th= ing.package
+          th= ing.temp
           th= ing.available
 
   ul.nav.nav-tabs
