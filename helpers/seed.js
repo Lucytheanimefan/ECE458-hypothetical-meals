@@ -48,6 +48,11 @@ var inventory = {
     refrigerated:1000,
     frozen:1000,
     room:1000
+  },
+  current: {
+    refrigerated:0,
+    frozen:0,
+    room:0
   }
 }
 

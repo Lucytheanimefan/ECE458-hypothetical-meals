@@ -4,7 +4,6 @@ var Vendor = require('../models/vendor');
 var Inventory = require('../models/inventory');
 var Ingredient = require('../models/ingredient');
 var uniqid = require('uniqid')
-
 let packageTypes = ['sack', 'pail', 'drum', 'supersack', 'truckload', 'railcar'];
 let temperatures = ['frozen', 'refrigerated', 'room temperature'];
 
@@ -277,6 +276,7 @@ checkFridge = async function(name,amount,next){
           if(space<amountInPounds){
             var error = new Error('There is not enough space in inventory for transaction');
             error.status = 400;
+            console.log("you can't do that!!!!");
             return(next(error));
           }
           inv.current[temp]+=diff;
