@@ -80,9 +80,25 @@ router.get('/:name/:amt', function(req, res, next) {
 //POST request to delete an existing ingredient
 router.post('/:name/delete', function(req, res, next) {
   var query = Ingredient.findOneAndRemove({ name: req.params.name })
+  var inventoryUpdate = function(result) {
+    var temperature = result['temperature'].toLowerCase().split(" ")[0];
+    var decrementObject = {};
+    var field = 'current.' + temperature;
+    decrementObject[field] = -result['amount'];
+    return Inventory.findOneAndUpdate({type: 'master'}, 
+      { $inc: decrementObject }
+    );
+  }
   query.then(function(result) {
+    if(result['package']!=="railcar" && result['package']!=="truckload"){
+      return inventoryUpdate(result);
+    } else {
+      res.redirect(req.baseUrl);
+    }
+  }).then(function(result) {
     res.redirect(req.baseUrl);
   }).catch(function(error) {
+    console.log(error);
     var err = new Error('Couldn\'t delete that ingredient.');
     err.status = 400;
     next(err);
@@ -94,6 +110,7 @@ router.post('/:name/update', function(req, res, next) {
   let ingName = req.body.name.toLowerCase();
 
   var invDb;
+  var ingDb;
   var findInventory = Inventory.findOne({type: "master"});
   var findIngredient = Ingredient.findOne({name:req.params.name});
 
@@ -109,14 +126,23 @@ router.post('/:name/update', function(req, res, next) {
     invDb = inv;
     return findIngredient;
   }).then(function(ing) {
+    ingDb = ing;
     let currIndTemp = ing['temperature'].toLowerCase().split(" ")[0];
     let currAmount = parseFloat(ing['amount']);
-    invDb['current'][currIndTemp]-=currAmount;
+    if(ing['package']!=="railcar" && ing['package']!=="truckload"){
+      invDb['current'][currIndTemp]-=currAmount;
+    }
     return invDb;
   }).then(function(db) {
     let newIndTemp = req.body.temperature.toLowerCase().split(" ")[0];
     let newAmount = parseFloat(req.body.amount);
-    invDb['current'][newIndTemp]+=newAmount;
+    if(req.body.package.toLowerCase()!=="railcar" && req.body.package.toLowerCase()!=="truckload"){
+      invDb['current'][newIndTemp]+=newAmount;
+    }
+    if(invDb['current'][newIndTemp]>invDb['limits'][newIndTemp]){
+      invDb['current'][currIndTemp]+=currAmount;
+      invDb['current'][newIndTemp]-=newAmount;
+    }
     return invDb.save();
   }).catch(function(error) {
     var error = new Error('Couldn\'t update the inventory.');
@@ -143,7 +169,19 @@ router.post('/new', function(req, res, next) {
     temperature: req.body.temperature.toLowerCase(),
     amount: req.body.amount
   });
-  promise.then(function(instance) {
+  promise.then(async function(instance) {
+    await Inventory.findOne({type:"master"},function(err,inv){
+      if(err){return next(err);}
+      if(req.body.package.toLowerCase()!== "truckload" && req.body.package.toLowerCase()!== "railcar"){
+        inv['current'][req.body.temperature.toLowerCase().split(" ")[0]]+=parseFloat(req.body.amount);
+      }
+      if(inv['current'][req.body.temperature.toLowerCase().split(" ")[0]] > inv['limits'][req.body.temperature.toLowerCase().split(" ")[0]]){
+        instance['amount']=0;
+        inv['current'][req.body.temperature.toLowerCase().split(" ")[0]]-=parseFloat(req.body.amount);
+      }
+      inv.save();
+      instance.save();
+    })
     res.redirect(req.baseUrl + '/' + ingName);
   }).catch(function(error) {
     next(error);
