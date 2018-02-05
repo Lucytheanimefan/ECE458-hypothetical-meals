@@ -80,7 +80,12 @@ router.get('/:name/:amt', function(req, res, next) {
 //POST request to delete an existing ingredient
 router.post('/:name/delete', function(req, res, next) {
   var query = Ingredient.findOneAndRemove({ name: req.params.name })
-  query.then(function(result) {
+  query.then(async function(result) {
+    await Inventory.findOne({type:"master"},function(err,inv){
+      if(err){return next(err);}
+      inv['current'][result['temperature'].toLowerCase().split(" ")[0]]-=result['amount'];
+      inv.save();
+    })
     res.redirect(req.baseUrl);
   }).catch(function(error) {
     var err = new Error('Couldn\'t delete that ingredient.');
@@ -143,7 +148,12 @@ router.post('/new', function(req, res, next) {
     temperature: req.body.temperature.toLowerCase(),
     amount: req.body.amount
   });
-  promise.then(function(instance) {
+  promise.then(async function(instance) {
+    await Inventory.findOne({type:"master"},function(err,inv){
+      if(err){return next(err);}
+      inv['current'][req.body.temperature.toLowerCase().split(" ")[0]]+=parseFloat(req.body.amount);
+      inv.save();
+    })
     res.redirect(req.baseUrl + '/' + ingName);
   }).catch(function(error) {
     next(error);
