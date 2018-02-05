@@ -83,7 +83,9 @@ router.post('/:name/delete', function(req, res, next) {
   query.then(async function(result) {
     await Inventory.findOne({type:"master"},function(err,inv){
       if(err){return next(err);}
-      inv['current'][result['temperature'].toLowerCase().split(" ")[0]]-=result['amount'];
+      if(result['package']!=="railcar" && result['package']!=="truckload"){
+        inv['current'][result['temperature'].toLowerCase().split(" ")[0]]-=result['amount'];
+      }
       inv.save();
     })
     res.redirect(req.baseUrl);
@@ -116,12 +118,21 @@ router.post('/:name/update', function(req, res, next) {
   }).then(function(ing) {
     let currIndTemp = ing['temperature'].toLowerCase().split(" ")[0];
     let currAmount = parseFloat(ing['amount']);
-    invDb['current'][currIndTemp]-=currAmount;
+    console.log(invDb);
+    console.log(ing['package']);
+    if(ing['package']!=="railcar" && ing['package']!=="truckload"){
+      invDb['current'][currIndTemp]-=currAmount;
+    }
+    console.log(invDb);
     return invDb;
   }).then(function(db) {
     let newIndTemp = req.body.temperature.toLowerCase().split(" ")[0];
     let newAmount = parseFloat(req.body.amount);
-    invDb['current'][newIndTemp]+=newAmount;
+    console.log(invDb);
+    if(req.body.package.toLowerCase()!=="railcar" && req.body.package.toLowerCase()!=="truckload"){
+      invDb['current'][newIndTemp]+=newAmount;
+    }
+    console.log(invDb);
     return invDb.save();
   }).catch(function(error) {
     var error = new Error('Couldn\'t update the inventory.');
@@ -151,7 +162,10 @@ router.post('/new', function(req, res, next) {
   promise.then(async function(instance) {
     await Inventory.findOne({type:"master"},function(err,inv){
       if(err){return next(err);}
-      inv['current'][req.body.temperature.toLowerCase().split(" ")[0]]+=parseFloat(req.body.amount);
+      console.log(req.body.package);
+      if(req.body.package.toLowerCase()!== "truckload" && req.body.package.toLowerCase()!== "railcar"){
+        inv['current'][req.body.temperature.toLowerCase().split(" ")[0]]+=parseFloat(req.body.amount);
+      }
       inv.save();
     })
     res.redirect(req.baseUrl + '/' + ingName);
