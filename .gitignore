@@ -8,3 +8,4 @@ env.json
 /db
 .dbshell
 /uploads/*.csv
+/uploads/*.js
