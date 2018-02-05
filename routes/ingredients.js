@@ -22,14 +22,6 @@ let weightMapping = {
 //GET request to show available ingredients
 router.get('/', function(req, res, next) {
   res.redirect(req.baseUrl + '/search_results/');
-  // var query = Ingredient.find();
-  // query.then(function(ings) {
-  //   res.render('ingredients', { ingredients: ings, packages: packageTypes, temps: temperatures });
-  // }).catch(function(error) {
-  //   var err = new Error('Error searching for ' + req.params.name);
-  //   err.status = 400;
-  //   next(err);
-  // });
 })
 
 router.get('/search_results/:page?/:search?', function(req, res, next) {
@@ -53,8 +45,10 @@ router.get('/search_results/:page?/:search?', function(req, res, next) {
   query.skip((perPage * page) - perPage).limit(perPage);
   
   searchString = queryString.stringify(searchQuery);
-  console.log(searchString);
   query.then(function(ings) {
+    if (ings.length == 0) {
+      page = page - 1;
+    }
     res.render('ingredients', { ingredients: ings, packages: packageTypes, temps: temperatures, searchQuery: searchString, page: page });
   }).catch(function(error) {
     console.log(error);
