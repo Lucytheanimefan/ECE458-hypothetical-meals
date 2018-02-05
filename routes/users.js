@@ -472,22 +472,24 @@ router.post('/checkout_cart', function(req, res, next) {
         var cart = user.cart[0];
         for (ingredient in cart) {
           var ingObj;
-          await Ingredient.findOne({ name: ingredient }, function(err, instance) {
+          /*await Ingredient.findOne({ name: ingredient }, function(err, instance) {
             if (err) { return next(err); }
             ingObj = instance;
-          })
+          })*/
           var quantity = cart[ingredient];
           var amount;
-          console.log("ingObj: " + ingObj);
-          let degrees = ingObj.temperature.split(" ")[0];
+          //console.log("ingObj: " + ingObj);
+          //let degrees = ingObj.temperature.split(" ")[0];
 
-          await Ingredient.find({ "name": ingredient }, function(err, instance) {
+          await Ingredient.find({ name: ingredient }, function(err, instance) {
             if (err) return next(err);
+            console.log("ingredient " + ingredient);
+            console.log("instance " + instance[0]);
             amount = instance[0].amount;
           });
 
           amount = amount - quantity;
-          console.log(invdb.current[degrees]);
+          /*console.log(invdb.current[degrees]);
           invdb.current[degrees] -= amount;
           invdb.save(function(err) {
             if (err) {
@@ -496,7 +498,7 @@ router.post('/checkout_cart', function(req, res, next) {
               error.status = 400;
               return next(error);
             }
-          });
+          });*/
           await Ingredient.findOneAndUpdate({
             name: ingredient
           }, {
