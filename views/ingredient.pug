@@ -12,8 +12,8 @@ block content
     ul.nav.nav-tabs
       li.active
         a(data-toggle='tab', href='#ingredient-info') Ingredient Information
-      li
-        a(data-toggle='tab', href='#vendor-info') Vendors
+      //- li
+      //-   a(data-toggle='tab', href='#vendor-info') Vendors
       li.adminOnly.hide
         a(data-toggle='tab', href='#update-form') Update Ingredient
     .tab-content
@@ -70,20 +70,29 @@ block content
           input.form-control(type='number', name='amount', value = ingredient.amount, required='')
           button.btn.btn-primary.pull-right(type='submit') Update ingredient
 
-      div.card-content.tab-pane.fade#vendor-info
-        table.table
-          thead.text-primary
-            th Vendor
-            th Package
-            th Units Available
-            th Cost Per Unit ($)
-            each vendor in vendors
-              tr
-                th
-                  a(href="/vendors/" + vendor.vendorCode)= vendor.vendorName
-                th= vendor.record.package
-                th= vendor.record.available
-                th= vendor.record.cost
+      div.card#vendor-info
+        div.card-header(data-background-color='purple')
+          h4.title Vendor Information
+        div.card-content.table-responsive
+          table.table
+            thead.text-primary
+              th Vendor
+              th Package
+              th Units Available
+              th Cost Per Unit ($)
+              each vendor in vendors
+                tr
+                  th
+                    a(href="/vendors/" + vendor.vendorCode)= vendor.vendorName
+                  th= vendor.record.package
+                  th= vendor.record.available
+                  th= vendor.record.cost
+          div.previous
+            form(action='/ingredients/' + ingredient.name + '/' + amount + '/' + (parseInt(page)-1).toString(), method='get')
+              button.btn.btn-white.btn-round.btn-just-icon(type='submit') Prev
+          div.next
+            form(action='/ingredients/' + ingredient.name + '/' + amount + '/' + (parseInt(page)+1).toString(), method='get')
+              button.btn.btn-white.btn-round.btn-just-icon(type='submit') Next
 
 block scripts
   script.
