@@ -101,6 +101,7 @@ router.post('/:name/update', function(req, res, next) {
   let ingName = req.body.name.toLowerCase();
 
   var invDb;
+  var ingDb;
   var findInventory = Inventory.findOne({type: "master"});
   var findIngredient = Ingredient.findOne({name:req.params.name});
 
@@ -116,23 +117,23 @@ router.post('/:name/update', function(req, res, next) {
     invDb = inv;
     return findIngredient;
   }).then(function(ing) {
+    ingDb = ing;
     let currIndTemp = ing['temperature'].toLowerCase().split(" ")[0];
     let currAmount = parseFloat(ing['amount']);
-    console.log(invDb);
-    console.log(ing['package']);
     if(ing['package']!=="railcar" && ing['package']!=="truckload"){
       invDb['current'][currIndTemp]-=currAmount;
     }
-    console.log(invDb);
     return invDb;
   }).then(function(db) {
     let newIndTemp = req.body.temperature.toLowerCase().split(" ")[0];
     let newAmount = parseFloat(req.body.amount);
-    console.log(invDb);
     if(req.body.package.toLowerCase()!=="railcar" && req.body.package.toLowerCase()!=="truckload"){
       invDb['current'][newIndTemp]+=newAmount;
     }
-    console.log(invDb);
+    if(invDb['current'][newIndTemp]>invDb['limits'][newIndTemp]){
+      invDb['current'][currIndTemp]+=currAmount;
+      invDb['current'][newIndTemp]-=newAmount;
+    }
     return invDb.save();
   }).catch(function(error) {
     var error = new Error('Couldn\'t update the inventory.');
@@ -162,11 +163,15 @@ router.post('/new', function(req, res, next) {
   promise.then(async function(instance) {
     await Inventory.findOne({type:"master"},function(err,inv){
       if(err){return next(err);}
-      console.log(req.body.package);
       if(req.body.package.toLowerCase()!== "truckload" && req.body.package.toLowerCase()!== "railcar"){
         inv['current'][req.body.temperature.toLowerCase().split(" ")[0]]+=parseFloat(req.body.amount);
       }
+      if(inv['current'][req.body.temperature.toLowerCase().split(" ")[0]] > inv['limits'][req.body.temperature.toLowerCase().split(" ")[0]]){
+        instance['amount']=0;
+        inv['current'][req.body.temperature.toLowerCase().split(" ")[0]]-=parseFloat(req.body.amount);
+      }
       inv.save();
+      instance.save();
     })
     res.redirect(req.baseUrl + '/' + ingName);
   }).catch(function(error) {
