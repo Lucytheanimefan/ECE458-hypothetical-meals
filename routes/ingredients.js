@@ -1,25 +1,33 @@
 var express = require('express');
 var router = express.Router();
 var Ingredient = require('../models/ingredient');
+var Inventory = require('../models/inventory');
 var Vendor = require('../models/vendor');
 var users = require('./users');
 
 
-var packageTypes = ['Sack', 'Pail', 'Drum', 'Supersack', 'Truckload', 'Railcar'];
+var packageTypes = ['sack', 'pail', 'drum', 'supersack', 'truckload', 'railcar'];
 var temperatures = ['frozen', 'refrigerated', 'room temperature'];
+
+let weightMapping = {
+  sack:50,
+  pail:50,
+  drum:500,
+  supersack:2000,
+  truckload:50000,
+  railcar:280000
+}
 
 //GET request to show available ingredients
 router.get('/', function(req, res, next) {
-  // res.render('ingredients', { ingredients: {}, packages: packageTypes, temps: temperatures/*, page: 0 */});
-  Ingredient.find({}, function(error, ings) {
-    if (error) {
-      var err = new Error('Error searching for ' + req.params.name);
-      err.status = 400;
-      return next(err);
-    } else {
-      res.render('ingredients', { ingredients: ings, packages: packageTypes, temps: temperatures });
-    }
-  })
+  var query = Ingredient.find();
+  query.then(function(ings) {
+    res.render('ingredients', { ingredients: ings, packages: packageTypes, temps: temperatures });
+  }).catch(function(error) {
+    var err = new Error('Error searching for ' + req.params.name);
+    err.status = 400;
+    next(err);
+  });
 })
 
 router.get('/search_results/', function(req, res, next) {
@@ -30,10 +38,10 @@ router.get('/search_results/', function(req, res, next) {
     query.where({name: new RegExp(search, 'i')});
   }
   if (req.query.package != null) {
-    query.where('package').in(req.query.package);
+    query.where('package').in(req.query.package.toLowerCase());
   }
   if (req.query.temperature != null) {
-    query.where('temperature').in(req.query.temperature);
+    query.where('temperature').in(req.query.temperature.toLowerCase());
   }
   // TODO: Paginate
   // var currentPage = parseInt(req.params.page);
@@ -48,113 +56,150 @@ router.get('/search_results/', function(req, res, next) {
   //     res.render('ingredients', { ingredients: ings.docs, packages: packageTypes, temps: temperatures, page: currentPage });
   //   }
   // });
-  query.exec(function(error, ings) {
-    if (error) {
-      var err = new Error('Error during search');
-      err.status = 400;
-      return next(err);
-    } else {
-      res.render('ingredients', { ingredients: ings, packages: packageTypes, temps: temperatures });
-    }
+  query.then(function(ings) {
+    res.render('ingredients', { ingredients: ings, packages: packageTypes, temps: temperatures });
+  }).catch(function(error) {
+    var err = new Error('Error during search');
+    err.status = 400;
+    return next(err);
   });
 })
 
 router.get('/:name', function(req, res, next) {
-  Ingredient.findOne({ name: req.params.name }, async function(error, ing) {
-    if (ing == null) {
-      var err = new Error('That ingredient doesn\'t exist!');
-      err.status = 404;
-      return next(err);
-    } else if (error) {
-      var err = new Error('Error searching for ' + req.params.name);
-      err.status = 400;
-      return next(err);
-    } else {
-      var vendors;
-      await Vendor.find({ 'catalogue.ingredient': req.params.name }, function(error, results) {
-        if (error) {
-          var err = new Error('Error searching for ' + req.params.name);
-          err.status = 400;
-          return next(err);
-        } else {
-          vendors = results;
-        }
-      });
-      // console.log(vendors[0]);
-      var catalogue = createCatalogue(vendors, req.params.name);
-      res.render('ingredient', { ingredient: ing, packages: packageTypes, temps: temperatures, vendors: catalogue });
-    }
-  })
+  res.redirect(req.baseUrl + '/' + req.params.name + '/0');
 })
 
 router.get('/:name/:amt', function(req, res, next) {
-  Ingredient.findOne({name: req.params.name}, function(error, ing) {
+  var ingQuery = Ingredient.findOne({ name: req.params.name });
+  var venderQuery = Vendor.find({ 'catalogue.ingredient': req.params.name });
+  var ingredient;
+  ingQuery.then(function(ing) {
     if (ing == null) {
       var err = new Error('That ingredient doesn\'t exist!');
       err.status = 404;
-      return next(err);
-    } else if (error) {
-      var err = new Error('Error searching for ' + req.params.name);
-      err.status = 400;
-      return next(err);
-    } else {
-      res.render('ingredient', { ingredient: ing, packages: packageTypes, temps: temperatures, amount: req.params.amt });
+      throw err;
     }
-  })
+    ingredient = ing;
+    return venderQuery;
+  }).then(function(vendors) {
+    return createCatalogue(vendors, req.params.name);
+  }).then(function(catalogue) {
+    res.render('ingredient', { ingredient: ingredient, packages: packageTypes, temps: temperatures, vendors: catalogue , amount: req.params.amt});
+  }).catch(function(error) {
+    next(error)
+  });
 })
 
 //POST request to delete an existing ingredient
 router.post('/:name/delete', function(req, res, next) {
-  Ingredient.findOneAndRemove({ name: req.params.name }, function(error, result) {
-    if (error) {
-      var err = new Error('Couldn\'t delete that ingredient.');
-      err.status = 400;
-      return next(err);
+  var query = Ingredient.findOneAndRemove({ name: req.params.name })
+  var inventoryUpdate = function(result) {
+    var temperature = result['temperature'].toLowerCase().split(" ")[0];
+    var decrementObject = {};
+    var field = 'current.' + temperature;
+    decrementObject[field] = -result['amount'];
+    return Inventory.findOneAndUpdate({type: 'master'}, 
+      { $inc: decrementObject }
+    );
+  }
+  query.then(function(result) {
+    if(result['package']!=="railcar" && result['package']!=="truckload"){
+      return inventoryUpdate(result);
     } else {
-      //alert user the ingredient has been deleted.
-      return res.redirect(req.baseUrl);
+      res.redirect(req.baseUrl);
     }
+  }).then(function(result) {
+    res.redirect(req.baseUrl);
+  }).catch(function(error) {
+    console.log(error);
+    var err = new Error('Couldn\'t delete that ingredient.');
+    err.status = 400;
+    next(err);
   });
-});
+})
 
 
 router.post('/:name/update', function(req, res, next) {
   let ingName = req.body.name.toLowerCase();
-  Ingredient.findOneAndUpdate({ name: req.params.name }, {
+
+  var invDb;
+  var ingDb;
+  var findInventory = Inventory.findOne({type: "master"});
+  var findIngredient = Ingredient.findOne({name:req.params.name});
+
+  var query = Ingredient.findOneAndUpdate({ name: req.params.name }, {
     $set: {
       name: ingName,
-      package: req.body.package,
-      temperature: req.body.temperature,
+      package: req.body.package.toLowerCase(),
+      temperature: req.body.temperature.toLowerCase(),
       amount: req.body.amount
     }
-  }, function(error, result) {
-    if (error) {
-      var err = new Error('Couldn\'t update that ingredient.');
-      err.status = 400;
-      return next(err);
-    } else {
-      return res.redirect(req.baseUrl + '/' + ingName);
-    }
   });
+  findInventory.then(function(inv) {
+    invDb = inv;
+    return findIngredient;
+  }).then(function(ing) {
+    ingDb = ing;
+    let currIndTemp = ing['temperature'].toLowerCase().split(" ")[0];
+    let currAmount = parseFloat(ing['amount']);
+    if(ing['package']!=="railcar" && ing['package']!=="truckload"){
+      invDb['current'][currIndTemp]-=currAmount;
+    }
+    return invDb;
+  }).then(function(db) {
+    let newIndTemp = req.body.temperature.toLowerCase().split(" ")[0];
+    let newAmount = parseFloat(req.body.amount);
+    if(req.body.package.toLowerCase()!=="railcar" && req.body.package.toLowerCase()!=="truckload"){
+      invDb['current'][newIndTemp]+=newAmount;
+    }
+    if(invDb['current'][newIndTemp]>invDb['limits'][newIndTemp]){
+      invDb['current'][currIndTemp]+=currAmount;
+      invDb['current'][newIndTemp]-=newAmount;
+    }
+    return invDb.save();
+  }).catch(function(error) {
+    var error = new Error('Couldn\'t update the inventory.');
+    error.status = 400;
+    next(error);
+  }).then(function(result) {
+    return query.exec();
+  }).then(function(result) {
+    res.redirect(req.baseUrl + '/' + ingName);
+  }).catch(function(error) {
+    var err = new Error('Couldn\'t update that ingredient.');
+    err.status = 400;
+    next(err);
+  });
+
 });
 
 //POST request to create a new ingredient
 router.post('/new', function(req, res, next) {
   let ingName = req.body.name.toLowerCase();
-  Ingredient.create({
+  var promise = Ingredient.create({
     name: ingName,
-    package: req.body.package,
-    temperature: req.body.temperature,
+    package: req.body.package.toLowerCase(),
+    temperature: req.body.temperature.toLowerCase(),
     amount: req.body.amount
-  }, function(error, newInstance) {
-    if (error) {
-      return next(error);
-    } else {
-      return res.redirect(req.baseUrl + '/' + ingName);
-      //alert user the ingredient has been successfully added.
-    }
   });
-});
+  promise.then(async function(instance) {
+    await Inventory.findOne({type:"master"},function(err,inv){
+      if(err){return next(err);}
+      if(req.body.package.toLowerCase()!== "truckload" && req.body.package.toLowerCase()!== "railcar"){
+        inv['current'][req.body.temperature.toLowerCase().split(" ")[0]]+=parseFloat(req.body.amount);
+      }
+      if(inv['current'][req.body.temperature.toLowerCase().split(" ")[0]] > inv['limits'][req.body.temperature.toLowerCase().split(" ")[0]]){
+        instance['amount']=0;
+        inv['current'][req.body.temperature.toLowerCase().split(" ")[0]]-=parseFloat(req.body.amount);
+      }
+      inv.save();
+      instance.save();
+    })
+    res.redirect(req.baseUrl + '/' + ingName);
+  }).catch(function(error) {
+    next(error);
+  });
+})
 
 createCatalogue = function(vendors, name) {
   var catalogue = [];
@@ -162,16 +207,7 @@ createCatalogue = function(vendors, name) {
     var vendor = vendors[i];
     for (j = 0; j < vendor['catalogue'].length; j++) {
       if (vendor['catalogue'][j]['ingredient'] == name) {
-        var record = vendor['catalogue'][j]['units'];
-        var recordList = [];
-        for (k = 0; k < packageTypes.length; k++) {
-          var type = packageTypes[k].toLowerCase();
-          if (record[type]['cost'] != null) {
-            recordList.push([type, record[type]['cost'], record[type]['available']]);
-          }
-        }
-        catalogue.push({vendorName: vendor['name'], vendorCode: vendor['code'], records: recordList});
-        // catalogue.set(vendor['name'], recordList);
+        catalogue.push({vendorName: vendor['name'], vendorCode: vendor['code'], record: vendor['catalogue'][j]});
       }
     }
   }

@@ -3,7 +3,7 @@ html(lang='en')
   head
     meta(charset='utf-8')
     link(rel='apple-touch-icon', sizes='76x76', href='/img/apple-icon.png')
-    link(rel='icon', type='image/png', href='/img/favicon.png')
+    link(rel='icon', type='image/png', href='/img/hypotheticalmeals.png?v=2')
     meta(http-equiv='X-UA-Compatible', content='IE=edge,chrome=1')
     title Hypothetical Meals
     meta(content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0', name='viewport')
@@ -88,9 +88,9 @@ html(lang='en')
                     //- p.hidden-lg.hidden-md Notifications
                   ul.dropdown-menu
                     li
-                      a(href='/users/profile') Profile
+                      a#profile(href='/users/profile') Profile
                     li
-                      a(href='/users/' + user_status) #{user_status}
+                      a#logout(href='/users/logout') Logout
 
               //- form.navbar-form.navbar-right(role='search')
               //-   .form-group.is-empty
@@ -132,6 +132,6 @@ html(lang='en')
   // Custom js
   script(src='/js/script.js')
   script.
-    loadAdminOnlySideBar();
+    loadLoggedInContent();
 
   block scripts

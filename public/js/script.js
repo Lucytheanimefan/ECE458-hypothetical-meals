@@ -10,7 +10,7 @@ function dropDownInteractivity() {
   }
 }
 
-dropDownInteractivity();
+//dropDownInteractivity();
 
 
 function checkIsAdmin(callback) {
@@ -26,6 +26,32 @@ function checkIsAdmin(callback) {
   });
 }
 
+function checkLoggedIn(callback) {
+  $.ajax({
+    type: 'GET',
+    url: '/users/isLoggedIn',
+    contentType: 'application/json; charset=utf-8',
+    dataType: 'json',
+    success: function(response) {
+      console.log('is logged in? ' + response);
+      callback(response);
+    }
+  });
+}
+
+function loadLoggedInContent() {
+  console.log('Load logged in content');
+  checkLoggedIn(function(loggedIn) {
+    if (loggedIn) {
+      loadSideBar();
+    }
+    else{
+      $('#profile').text('Login');
+      $('#logout').addClass('hide');
+    }
+  })
+}
+
 function loadAdminOnlyContent() {
   checkIsAdmin(function(isAdmin) {
     if (!isAdmin) return;
@@ -36,19 +62,18 @@ function loadAdminOnlyContent() {
   });
 }
 
-function loadAdminOnlySideBar() {
-  console.log('loadAdminOnlySideBar');
+function loadSideBar() {
   checkIsAdmin(function(isAdmin) {
-    if (!isAdmin) return;
-
     // Is admin
     $('.meal-category').each(function() {
       if (isAdmin) {
+        console.log('loadAdminOnlySideBar');
         $(this).removeClass('hide');
       } else {
+        // Users
         let tmp = $(this).find('a')[0];
         let category = $($(tmp).find('p')[0]).text();
-        if (category !== 'Vendors') {
+        if (category !== 'Vendors' && category !== 'Inventory' && category !== 'Users') {
           $(this).removeClass('hide');
         }
       }

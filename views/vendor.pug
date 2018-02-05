@@ -10,6 +10,24 @@ block content
   h4= 'Code: ' + vendor.code
   h4= vendor.contact
   h4= vendor.location['state'] + ', ' + vendor.location['city']
+  h2= 'Catalogue'
+  #ing-table
+    table.table
+      thead.text-primary
+        th Ingredient
+        th Cost
+        th Package
+        th Temperature
+        th Available
+      tbody
+      each ing in catalogue
+        tr
+          th
+            a(href='/ingredients/' + ing['ingredient'])= ing.ingredient
+          th= ing.cost
+          th= ing.package
+          th= ing.temp
+          th= ing.available
 
   ul.nav.nav-tabs
     li.active.adminOnly.hide
@@ -17,42 +35,66 @@ block content
     li.adminOnly.hide
       a(data-toggle='tab', href='#add') Add Ingredient
     li
+      a(data-toggle='tab', href='#updateing') Update Ingredient
+    li
       a(data-toggle='tab', href='#order') Make Order
-
   .tab-content
     #update.tab-pane.fade.in.active
       h1= 'Update vendor'
       form(action='/vendors/' + vendor.code + '/update', method='post')
         label.control-label Vendor Name
-        input.form-control(type='text', name='name', placeholder = 'Vendor name', required='')
+        input.form-control(type='text', name='name', placeholder = 'Vendor name', required='', value=name)
         label.control-label Contact Info
-        input.form-control(type='text', name='contact', placeholder = 'Contact Info', required='')
+        input.form-control(type='text', name='contact', placeholder = 'Contact Info', required='',value=contact)
         label.control-label City
-        input.form-control(type='text', name='city', placeholder = 'city', required='')
+        input.form-control(type='text', name='city', placeholder = 'city', required='',value=city)
         label.control-label State
-        input.form-control(type='text', name='state', placeholder = 'state', required='')
+        input.form-control(type='text', name='state', placeholder = 'state', required='',value=state)
 
     #add.tab-pane.fade.in.adminOnly.hide
       h1= 'Add Ingredient'
       form(action='/vendors/' + vendor.code + '/add_ingredients', method='post')
         label.control-label Ingredient
         input.form-control(type='text', name='ingredient', placeholder = 'Ingredient', required='')
-        label.control-label Size
-        input.form-control(type='text', name='size', placeholder = 'Size', required='')
+        label.control-label Package Type
+        select.form-control(name='size', placeholder = '', required='')
+          option(disabled='' selected='' value='') Select an option
+          each package in packages
+            option(value=package)= package
+        label.control-label Quantity
+        input.form-control(type='text', name='quantity', placeholder = 'Quantity', required='')
+        label.control-label Storage Temperature
+        select.form-control(name='temperature', placeholder = '', required='')
+          option(disabled="" selected="" value="") Select an option
+          each temp in temps
+            option(value=temp)= temp
+        label.control-label Cost
+        input.form-control(type='text', name='cost', placeholder = 'Cost/Unit', required='')
+        button.btn.btn-primary.pull-right(type='submit', value='ingredient added') add
+
+    #updateing.tab-pane.fade.in.adminOnly.hide
+      h1= 'Update Ingredient'
+      form(action='/vendors/' + vendor.code + '/update_ingredients', method='post')
+        label.control-label Ingredient
+        select.form-control(name='ingredient', placeholder = '', required='')
+          option(disabled="" selected="" value="") Select an option
+          each ing in catalogue
+            option(value=temp)= ing['ingredient']
         label.control-label Quantity
         input.form-control(type='text', name='quantity', placeholder = 'Quantity', required='')
         label.control-label Cost
         input.form-control(type='text', name='cost', placeholder = 'Cost/Unit', required='')
-        button.btn.btn-primary.pull-right(type='submit', value='ingredient added') add
+        button.btn.btn-primary.pull-right(type='submit', value='ingredient added') update
 
 
     #order.tab-pane.fade.in
       h1= 'Make Order'
       form(action='/vendors/' + vendor.code + '/order', method='post')
         label.control-label Ingredient
-        input.form-control(type='text', name='ingredient', placeholder = 'Ingredient', required='')
-        label.control-label Size
-        input.form-control(type='text', name='size', placeholder = 'Size', required='')
+        select.form-control(name='ingredient', placeholder = '', required='')
+          option(disabled="" selected="" value="") Select an option
+          each ing in catalogue
+            option(value=temp)= ing['ingredient']
         label.control-label Quantity
         input.form-control(type='text', name='quantity', placeholder = 'Quantity', required='')
         button.btn.btn-primary.pull-right(type='submit', value='order made') order

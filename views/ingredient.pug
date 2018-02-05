@@ -27,7 +27,7 @@ block content
               th Storage Temperature
               td= ingredient.temperature
             tr
-              th Units in Storage
+              th Amount in Storage (Pounds)
               td= ingredient.amount
           div.delete-form
             form(action='/ingredients/' + ingredient.name + '/delete', method='post')
@@ -51,19 +51,23 @@ block content
         h1= 'Update ingredient'
         form(action='/ingredients/' + ingredient.name + '/update', method='post')
           label.control-label Ingredient Name
-          input.form-control(type='text', name='name', placeholder = 'Ingredient name', required='')
+          input.form-control(type='text', name='name', value = ingredient.name, required='')
           label.control-label Package Type
           select.form-control(name='package', placeholder = '', required='')
-            option(disabled='' selected='' value='') Select an option
             each package in packages
-              option(value=package)= package
+              if package == ingredient.package
+                option(selected='' value=package)= package
+              else
+                option(value=package)= package
           label.control-label Storage Temperature
           select.form-control(name='temperature', placeholder = '', required='')
-            option(disabled="" selected="" value="") Select an option
             each temp in temps
-              option(value=temp)= temp
-          label.control-label Amount in storage
-          input.form-control(type='number', name='amount', placeholder = 'Amount in storage', required='')
+              if temp == ingredient.temperature
+                option(selected='' value=temp)= temp
+              else
+                option(value=temp)= temp
+          label.control-label Amount in storage (Pounds)
+          input.form-control(type='number', name='amount', value = ingredient.amount, required='')
           button.btn.btn-primary.pull-right(type='submit') Update ingredient
 
       div.card-content.tab-pane.fade#vendor-info
@@ -77,10 +81,9 @@ block content
               tr
                 th
                   a(href="/vendors/" + vendor.vendorCode)= vendor.vendorName
-                each record in vendor.records
-                  th= record[0]
-                  th= record[1]
-                  th= record[2]
+                th= vendor.record.package
+                th= vendor.record.available
+                th= vendor.record.cost
 
 block scripts
   script.

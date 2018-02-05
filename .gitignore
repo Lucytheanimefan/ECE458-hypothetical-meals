@@ -7,4 +7,5 @@ npm-debug.log
 env.json
 /db
 .dbshell
-uploads/*
+/uploads/*.csv
+/uploads/*.js

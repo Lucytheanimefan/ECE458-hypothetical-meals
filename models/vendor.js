@@ -37,17 +37,29 @@ var VendorSchema = new mongoose.Schema({
       required: true,
       trim: true
     },
-    units:{
-      sack: {cost:Number,available:Number},
-      pail: {cost:Number,available:Number},
-      drum: {cost:Number,available:Number},
-      supersack: {cost:Number,available:Number},
-      truckload: {cost:Number,available:Number},
-      railcar: {cost:Number,available:Number}
+    temp:{
+      type: String,
+      required: true,
+      trim: true
+    },
+    package:{
+      type: String,
+      required: true,
+      trim: true
+    },
+    available:{
+      type: Number,
+      required: true,
+      trim: true
+    },
+    cost:{
+      type: Number,
+      required: true,
+      trim: true
     }
 
   }],
-  history:[{ingredient:String, cost:Number, units:String, number:Number}]
+  history:[{ingredient:String, cost:Number, number:Number}]
 })
 
 var Vendor = mongoose.model('Vendor', VendorSchema);
