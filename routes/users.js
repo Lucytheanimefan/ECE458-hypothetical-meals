@@ -59,24 +59,17 @@ router.post('/', function(req, res, next) {
         return next(error);
       } else {
         console.log('Hash the password');
-        bcrypt.hash(user.password, 10, function(err, hash) {
-          if (err) {
-            return next(err);
-          }
 
-          console.log('Successful hash');
-          user.password = hash;
-          user.save(function(err) {
-            if (err) { return res.status(500).send({ msg: err.message }); }
+        encryptPassword(user, function(err) {
+          if (err) { return res.status(500).send({ msg: err.message }); }
 
-            console.log("Create token");
-            // Create a verification token for this user
+          console.log("Create token");
+          // Create a verification token for this user
 
-            sendEmailVerification(user, req, res, function() {
-              res.status(200).render('index', { title: 'A verification email has been sent to ' + user.email + '.' });
-            });
+          sendEmailVerification(user, req, res, function() {
+            res.status(200).render('index', { title: 'A verification email has been sent to ' + user.email + '.' });
           });
-        });
+        })
       }
     });
 
@@ -103,6 +96,19 @@ router.post('/', function(req, res, next) {
   }
 });
 
+encryptPassword = function(user, callback) {
+  bcrypt.hash(user.password, 10, function(err, hash) {
+    if (err) {
+      return next(err);
+    }
+
+    console.log('Successful hash');
+    user.password = hash;
+    user.save(function(err) {
+      callback(err);
+    });
+  });
+}
 
 sendEmailVerification = function(user, req, res, callback = null) {
   var token = new Token({ _userId: user._id, token: crypto.randomBytes(16).toString('hex') });
@@ -269,14 +275,28 @@ router.post('/update', async function(req, res, next) {
     }
     user.username = req.body.username;
 
-    user.save(function(err) {
+    let password = req.body.password;
+    if (password !== null && password !== undefined) {
+      if (password.length > 0) {
+        user.password = password;
+      }
+    }
+    user.password = req.body.password;
+    encryptPassword(user, function(err) {
       if (err) {
-        var error = new Error('Couldn\'t update that user.');
+        var error = new Error('There were errors updating your password. Try again later.');
         error.status = 400;
         return next(error);
       }
+      user.save(function(err) {
+        if (err) {
+          var error = new Error('Couldn\'t update that user.');
+          error.status = 400;
+          return next(error);
+        }
+        return res.redirect(req.baseUrl + '/profile');
+      });
     });
-    return res.redirect(req.baseUrl + '/profile');
   });
 
 });
@@ -324,18 +344,25 @@ router.get('/cart', function(req, res, next) {
     if (err) return next(err);
 
     if (count > 0) {
-      User.findById(req.session.userId, function(err, instance) {
+      User.findById(req.session.userId, function(err, user) {
         if (err) return next(err);
 
-        var cart = instance["cart"][0];
+        console.log(user.cart);
+        let cart = user.cart[0]; //["cart"][0];
         var ingredients = [];
 
+        console.log('Cart');
+        console.log(cart);
         for (ingredient in cart) {
-          var quantity = cart[ingredient];
-          ingredients.push({ "ingredient": ingredient, "quantity": quantity });
+          ingredients.push({ "ingredient": ingredient, "quantity": cart[ingredient] });
         }
-
-        ingredients = underscore.sortBy(ingredients, "ingredient");
+        // for (ingredient in cart) {
+        //   var quantity = cart[ingredient];
+        //   ingredients.push({ "ingredient": ingredient, "quantity": quantity });
+        // }
+        // console.log('Ingredients: ');
+        // console.log(ingredients);
+        // ingredients = underscore.sortBy(ingredients, "ingredient");
         return res.render('cart', { ingredients });
       });
     }
@@ -351,13 +378,23 @@ router.post('/add_to_cart', function(req, res, next) {
     var amount = Number(req.body.amount);
 
     if (count > 0) {
-      User.find({ "_id": req.session.userId }, function(err, instance) {
+      User.findOne({ "_id": req.session.userId }, function(err, user) {
         if (err) return next(err);
+        var cart;
 
-        var cart = instance[0].cart[0];
-        /*if (ingredient in cart) {
+        console.log('User: ' + user);
+        console.log('user.cart: ' + user.cart);
+        cart = user.cart[0]; //[0].cart[0];
+        console.log('Cart: ' + cart);
+        
+        if (ingredient in cart) {
           quantity += Number(cart[ingredient]);
-        }*/
+        }
+
+        if (cart === null | cart === undefined) {
+          cart = [];
+          cart.push({});
+        }
 
         cart[ingredient] = quantity;
 
@@ -393,10 +430,10 @@ router.post('/remove_ingredient', function(req, res, next) {
     ingredient = req.body.ingredient;
 
     if (count > 0) {
-      User.find({ "_id": req.session.userId }, function(err, instance) {
+      User.findOne({ "_id": req.session.userId }, function(err, user) {
         if (err) return next(err);
 
-        var cart = instance[0].cart[0];
+        var cart = user.cart[0];
         if (ingredient in cart) {
           delete cart[ingredient];
         }
@@ -432,10 +469,10 @@ router.post('/checkout_cart', function(req, res, next) {
     var amount = Number(req.body.amount);
 
     if (count > 0) {
-      await User.find({ "_id": req.session.userId }, async function(err, instance) {
+      await User.findOne({ "_id": req.session.userId }, async function(err, user) {
         if (err) return next(err);
 
-        var cart = instance[0].cart[0];
+        var cart = user.cart[0];
         for (ingredient in cart) {
           var ingObj;
           await Ingredient.findOne({ name: ingredient }, function(err, instance) {
@@ -454,6 +491,7 @@ router.post('/checkout_cart', function(req, res, next) {
           invdb.current[degrees] -= amount;
           invdb.save(function(err) {
             if (err) {
+              console.log(err);
               var error = new Error('Couldn\'t update the inventory.');
               error.status = 400;
               return next(error);

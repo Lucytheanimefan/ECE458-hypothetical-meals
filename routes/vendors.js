@@ -5,6 +5,9 @@ var Inventory = require('../models/inventory');
 var Ingredient = require('../models/ingredient');
 var uniqid = require('uniqid')
 
+let packageTypes = ['sack', 'pail', 'drum', 'supersack', 'truckload', 'railcar'];
+let temperatures = ['frozen', 'refrigerated', 'room temperature'];
+
 let weightMapping = {
   sack:50,
   pail:50,
@@ -23,12 +26,12 @@ router.get('/', function(req, res, next) {
       err.status = 400;
       return next(err);
     } else {
-      res.render('vendors', { vendors: vendors});
+      res.render('vendors', { vendors: vendors, packages: packageTypes, temps: temperatures});
     }
   })
 })
-router.get('/:code', function(req, res, next) {
-  Vendor.findOne({code: req.params.code}, function(error, ing) {
+router.get('/:code', async function(req, res, next) {
+  await Vendor.findOne({code: req.params.code}, function(error, ing) {
     if (ing == null) {
       var err = new Error('That vendor doesn\'t exist!');
       err.status = 404;
@@ -38,7 +41,13 @@ router.get('/:code', function(req, res, next) {
       err.status = 400;
       return next(err);
     } else {
-      res.render('vendor', { vendor: ing });
+      let menu = ing.catalogue;
+      let name = ing.name;
+      let contact = ing.contact;
+      let state = ing.location.state;
+      let city = ing.location.city;
+      res.render('vendor', { vendor: ing, packages: packageTypes, temps: temperatures, catalogue:menu, name:name,
+      contact:contact,state:state,city:city});
     }
   })
 })
@@ -66,6 +75,25 @@ router.post('/:code/add_ingredients', function(req,res,next){
     }
     vendor.catalogue = genCatalogue(req.body,vendor.catalogue);
     createIngredient(req.body);
+    vendor.save(function(err) {
+      if (err) {
+        var error = new Error('Couldn\'t update that vendor.');
+        error.status = 400;
+        return next(error);
+        }
+      });
+      return res.redirect(req.baseUrl + '/' + req.params.code);
+  })
+});
+
+router.post('/:code/update_ingredients', function(req,res,next){
+  Vendor.findOne({code:req.params.code}, function(err,vendor){
+    if (err) {
+      var error = new Error('Couldn\'t find that vendor.');
+      error.status = 400;
+      return next(error);
+    }
+    vendor.catalogue = updateCatalogue(req.body,vendor.catalogue);
     vendor.save(function(err) {
       if (err) {
         var error = new Error('Couldn\'t update that vendor.');
@@ -121,14 +149,13 @@ router.post('/new', function(req, res, next) {
 });
 
 router.post('/:code/order', async function(req,res,next){
-  let size = req.body.size.toLowerCase();
   let ingredient = req.body.ingredient.toLowerCase();
-  let quantity = parseFloat(req.body.quantity)*weightMapping[size];
+  let quantity = parseFloat(req.body.quantity);
   let ing = await queryIngredient(ingredient,next);
-  if(checkFridge(ingredient,quantity,size,next)){
+  if(checkFridge(ingredient,quantity,next)){
     await Vendor.findOne({code: req.params.code}, function(err, vendor){
     if (err) { return next(err); }
-      let ingIndex = searchIngredient(vendor['catalogue'],ingredient,size);
+      let ingIndex = searchIngredient(vendor['catalogue'],ingredient);
       if(ingIndex == -1){
         var err = new Error('Ingredient not found ');
         err.status = 400;
@@ -139,7 +166,6 @@ router.post('/:code/order', async function(req,res,next){
         var entry = {};
         entry['ingredient'] = ingredient.toLowerCase();
         entry['cost'] = vendor['catalogue'][ingIndex]['cost'];
-        entry['units'] = size.toLowerCase();
         entry['number'] = parseFloat(req.body.quantity);
         vendor['history'].push(entry);
       }
@@ -201,7 +227,7 @@ genLocation = function(data){
 
 genCatalogue = function(data,catalogue){
   var entry = {};
-  let index = searchIngredient(catalogue,data.ingredient,data.size.toLowerCase());
+  let index = searchIngredient(catalogue,data.ingredient);
   if(index==-1){
     entry.ingredient = data.ingredient.toLowerCase();
     entry.temp = data.temperature.toLowerCase();
@@ -220,8 +246,18 @@ genCatalogue = function(data,catalogue){
 
 }
 
+updateCatalogue = function(data,catalogue){
+  var entry = {};
+  let index = searchIngredient(catalogue,data.ingredient);
+  if(index>-1){
+    catalogue[index].available = parseFloat(data.quantity);
+    catalogue[index].cost = parseFloat(data.cost);
+  }
+  return catalogue;
+}
+
 createIngredient = async function(data){
-  await Ingredient.find({name:data.ingredient,package:data.size},function(err,ings){
+  await Ingredient.find({name:data.ingredient},function(err,ings){
     if(ings.length==0){
       Ingredient.create({
         name: data.ingredient,
@@ -237,23 +273,25 @@ createIngredient = async function(data){
   });
 }
 
-checkFridge = async function(name,amount,size,next){
-  await Ingredient.findOne({name:name, package:size},async function(err,ing){
+checkFridge = async function(name,amount,next){
+  await Ingredient.findOne({name:name},async function(err,ing){
     if(err){return next(err);}
     else{
       await Inventory.findOne({type:"master"},function(err,inv){
         if(err){return next(err);}
         else{
+          let size = ing['package'].toLowerCase();
           let temp = ing['temperature'].split(" ")[0];
-          let space = inv['limits'][temp]-inv['current'][temp]
-          let diff = space>=amount || size==="truckload" || size==="railcar" ? amount:0;
-          if(space<amount){
+          let space = inv['limits'][temp]-inv['current'][temp];
+          let amountInPounds = amount*weightMapping[size];
+          let diff = space>=amountInPounds || size==="truckload" || size==="railcar" ? amountInPounds:0;
+          if(space<amountInPounds){
             var error = new Error('There is not enough space in inventory for transaction');
             error.status = 400;
             return(next(error));
           }
           inv.current[temp]+=diff;
-          ing.amount+=(diff/weightMapping[size]);
+          ing.amount+=amountInPounds;
           inv.save(function(err) {
             if (err) {
               var error = new Error('Couldn\'t update the inventory.');
@@ -268,19 +306,16 @@ checkFridge = async function(name,amount,size,next){
               return next(error);
             }
           })
-          return space>=amount;
+          return space>=amountInPounds;
         }
       })
     }
   })
 }
 
-searchIngredient = function(list,ing,size){
+searchIngredient = function(list,ing){
   for(var i = 0; i < list.length; i++){
-    console.log(list[i]);
-    console.log(ing);
-    console.log(size);
-    if(list[i]['ingredient']===ing && list[i]['package']===size){
+    if(list[i]['ingredient']===ing){
       return i;
     }
   }

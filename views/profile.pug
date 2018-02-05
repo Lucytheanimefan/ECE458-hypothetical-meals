@@ -4,7 +4,7 @@ block link
 
 block content
   .row
-  .col-md-8
+  .col-md-13
     .card
       .card-header(data-background-color='purple')
         h4.title Edit Profile
@@ -20,50 +20,22 @@ block content
               .form-group.label-floating
                 label.control-label Email address
                 input.form-control(type='email', value=email, name='email', readonly)
-          //- .row
-          //-   .col-md-6
-          //-     .form-group.label-floating
-          //-       label.control-label First Name
-          //-       input.form-control(type='text')
-          //-   .col-md-6
-          //-     .form-group.label-floating
-          //-       label.control-label Last Name
-          //-       input.form-control(type='text')
-          //- .row
-          //-   .col-md-12
-          //-     .form-group.label-floating
-          //-       label.control-label Address
-          //-       input.form-control(type='text')
-          //- .row
-          //-   .col-md-4
-          //-     .form-group.label-floating
-          //-       label.control-label City
-          //-       input.form-control(type='text')
-          //-   .col-md-4
-          //-     .form-group.label-floating
-          //-       label.control-label Country
-          //-       input.form-control(type='text')
-          //-   .col-md-4
-          //-     .form-group.label-floating
-          //-       label.control-label Postal Code
-          //-       input.form-control(type='text')
-          //- .row
-          //-   .col-md-12
-          //-     .form-group
-          //-       label About Me
-          //-       .form-group.label-floating
-          //-         label.control-label
-          //-         textarea.form-control(rows='5')
+          .row
+            .col-md-12
+              .form-group.label-floating
+                label.control-label Password
+                input.form-control(type='password', name='password')
+          
           button.btn.btn-primary.pull-right(type='submit') Update Profile
           .clearfix
-  .col-md-4
-    .card.card-profile
-      //- .card-avatar
-      //-   a(href='#pablo')
-      //-     img.img(src='../assets/img/faces/marc.jpg')
-      .content
-        h6.category.text-gray
-        h4.card-title #{name}
-        p.card-content
-        //- a.btn.btn-primary.btn-round(href='#pablo') 
+  //- .col-md-4
+  //-   .card.card-profile
+  //-     //- .card-avatar
+  //-     //-   a(href='#pablo')
+  //-     //-     img.img(src='../assets/img/faces/marc.jpg')
+  //-     .content
+  //-       h6.category.text-gray
+  //-       h4.card-title #{name}
+  //-       p.card-content
+  //-       //- a.btn.btn-primary.btn-round(href='#pablo') 
     

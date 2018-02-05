@@ -59,7 +59,7 @@ var VendorSchema = new mongoose.Schema({
     }
 
   }],
-  history:[{ingredient:String, cost:Number, units:String, number:Number}]
+  history:[{ingredient:String, cost:Number, number:Number}]
 })
 
 var Vendor = mongoose.model('Vendor', VendorSchema);
