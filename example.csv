@@ -1,7 +1,7 @@
 INGREDIENT,PACKAGE,AMOUNT (LBS),PRICE PER PACKAGE,VENDOR FREIGHT CODE,TEMPERATURE
 "Carrots, pail",pail,89,20.15,14p4hn3u1ym7jd9rqxe8,room temperature
 "Carrots, pail",pail,45,16.89,14p4hn3u1ym7jd9rra3q,room temperature
-Carrots - railcar,railcar,24690,4000,14p4hn3u1ym7jd9rqxe8,room temperature
-Apples - supersack,supersack,60,69.32,14p4hn3u1ym7jd9rqxe8,frozen
+Oranges - railcar,railcar,24690,4000,14p4hn3u1ym7jd9rqxe8,room temperature
+Pineapples - supersack,supersack,60,69.32,14p4hn3u1ym7jd9rqxe8,frozen
 Potatoes - drum,drum,129,32.1,14p4hn3u1ym7jd9rqxe8,refrigerated
 "Potatoes, sack",sack,55,6.01,14p4hn3u1ym7jd9rqxe8,refrigerated

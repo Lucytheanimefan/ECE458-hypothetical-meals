@@ -58,7 +58,12 @@ router.post('/upload', function(req, res, next) {
 
     var file = fs.readFileSync(filepath, 'utf8')
 
-    parseFile(file);
+    parseFile(file).then(function(csvData) {
+      res.redirect(req.baseUrl);
+    }).catch(function(error) {
+      next(error);
+    });
+
   })
   form.on('fileBegin', function(name, file) {
     const [fileName, fileExt] = file.name.split('.');
@@ -128,23 +133,18 @@ CSVtoArray = function(text) {
   return a;
 };
 
-var ingIndex;
-var packageIndex;
-var tempIndex;
-var amountIndex;
-
 addToDatabase = function(index, csvRow, header) {
   return new Promise(function(resolve, reject) {
     console.log(csvRow.length);
     console.log(csvRow);
     console.log('-----------');
 
-    ingIndex = header.indexOf('INGREDIENT');
-    packageIndex = header.indexOf('PACKAGE');
-    tempIndex = header.indexOf('TEMPERATURE');
-    amountIndex = header.indexOf('AMOUNT (LBS)');
-    codeIndex = header.indexOf('VENDOR FREIGHT CODE');
-    costIndex = header.indexOf('PRICE PER PACKAGE');
+    let ingIndex = header.indexOf('INGREDIENT');
+    let packageIndex = header.indexOf('PACKAGE');
+    let tempIndex = header.indexOf('TEMPERATURE');
+    let amountIndex = header.indexOf('AMOUNT (LBS)');
+    let codeIndex = header.indexOf('VENDOR FREIGHT CODE');
+    let costIndex = header.indexOf('PRICE PER PACKAGE');
 
     let validDataRowData = validDataRow(csvRow);
     let isValid = validDataRowData['valid'];
@@ -186,47 +186,32 @@ addToDatabase = function(index, csvRow, header) {
   });
 }
 
-parseFile = function(file) {
-  var headerKeys;
-  var options = {
-    trim: true,
-    columns: function(header) {
-      headerKeys = header;
-      console.log('header: ', header);
-      if (!validHeaders(headerKeys)) {
-        let err = new Error('Error reading CSV. Headers are in invalid format.');
-        err.status = 400;
-        console.log(error);
+parseFile = function(file, next) {
+  return new Promise(function(resolve, reject) {
+    var headerKeys;
+    var options = {
+      trim: true,
+      columns: function(header) {
+        headerKeys = header;
+        console.log('header: ', header);
+        if (!validHeaders(headerKeys)) {
+          let err = new Error('Error reading CSV. Headers are in invalid format.');
+          err.status = 400;
+          reject(err);
+        }
       }
-    }
-  };
+    };
 
-  parse(file, options).then(function(rows) {
-    return Promise.all(rows.map(function(row, index) {
-      return addToDatabase(index, row, headerKeys);
-    }))
-  }).then(function(csvData) {
-    console.log(csvData);
-  }).catch(function(error) {
-    console.log(error);
+    parse(file, options).then(function(rows) {
+      return Promise.all(rows.map(function(row, index) {
+        return addToDatabase(index, row, headerKeys);
+      }))
+    }).then(function(csvData) {
+      resolve(csvData);
+    }).catch(function(error) {
+      reject(error);
+    });
   });
-  // var csvData = [];
-  // var index = 0;
-  // fs.createReadStream(filename)
-  //   .pipe(csvparse({ delimiter: ',' }))
-  //   .on('data', function(csvrow) {
-  //     //console.log(csvrow);
-  //     //do something with csvrow
-  //     callback(index, csvrow);
-
-  //     csvData.push(csvrow);
-
-  //     index += 1;
-  //   })
-  //   .on('end', function() {
-  //     //do something wiht csvData
-  //     console.log(csvData);
-  //   });
 }
 
 module.exports = router;
