@@ -21,7 +21,7 @@ let weightMapping = {
 
 //GET request to show available ingredients
 router.get('/', function(req, res, next) {
-  res.redirect(req.baseUrl + '/search_results/1');
+  res.redirect(req.baseUrl + '/search_results/');
   // var query = Ingredient.find();
   // query.then(function(ings) {
   //   res.render('ingredients', { ingredients: ings, packages: packageTypes, temps: temperatures });
@@ -32,7 +32,7 @@ router.get('/', function(req, res, next) {
   // });
 })
 
-router.get('/search_results/:page/:search?', function(req, res, next) {
+router.get('/search_results/:page?/:search?', function(req, res, next) {
   var query = Ingredient.find();
   var searchString = req.params.search;
   var searchQuery = (searchString == null) ? req.query : queryString.parse(searchString);
@@ -49,6 +49,7 @@ router.get('/search_results/:page/:search?', function(req, res, next) {
   }
   var perPage = 10;
   var page = req.params.page || 1;
+  page = (page < 1) ? 1 : page;
   query.skip((perPage * page) - perPage).limit(perPage);
   
   searchString = queryString.stringify(searchQuery);
@@ -71,6 +72,7 @@ router.get('/:name/:amt/:page?', function(req, res, next) {
   var ingQuery = Ingredient.findOne({ name: req.params.name });
   var perPage = 10;
   var page = req.params.page || 1;
+  page = (page < 1) ? 1 : page;
   var venderQuery = Vendor.find({ 'catalogue.ingredient': req.params.name }).skip((perPage * page) - perPage).limit(perPage);
   var ingredient;
   ingQuery.then(function(ing) {
