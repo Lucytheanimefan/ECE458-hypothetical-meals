@@ -360,9 +360,8 @@ router.get('/cart', function(req, res, next) {
         //   var quantity = cart[ingredient];
         //   ingredients.push({ "ingredient": ingredient, "quantity": quantity });
         // }
-        // console.log('Ingredients: ');
-        // console.log(ingredients);
-        // ingredients = underscore.sortBy(ingredients, "ingredient");
+
+        ingredients = underscore.sortBy(ingredients, "ingredient");
         return res.render('cart', { ingredients });
       });
     }
@@ -382,19 +381,17 @@ router.post('/add_to_cart', function(req, res, next) {
         if (err) return next(err);
         var cart;
 
-        console.log('User: ' + user);
-        console.log('user.cart: ' + user.cart);
-        cart = user.cart[0]; //[0].cart[0];
-        console.log('Cart: ' + cart);
-        
-        if (ingredient in cart) {
-          quantity += Number(cart[ingredient]);
-        }
+        cart = user.cart[0];
 
         if (cart === null | cart === undefined) {
           cart = [];
           cart.push({});
+          cart = cart[0];
         }
+
+        /*if (ingredient in cart) {
+          quantity += Number(cart[ingredient]);
+        }*/
 
         cart[ingredient] = quantity;
 
@@ -461,7 +458,7 @@ router.post('/checkout_cart', function(req, res, next) {
     var invdb;
     await Inventory.findOne({ type: "master" }, async function(err, inv) {
       if (err) { return next(err); }
-      invdb = inv
+      invdb = inv;
     });
 
     var ingredient = req.body.ingredient;
@@ -477,17 +474,20 @@ router.post('/checkout_cart', function(req, res, next) {
           var ingObj;
           await Ingredient.findOne({ name: ingredient }, function(err, instance) {
             if (err) { return next(err); }
-            ingObj = instance
+            ingObj = instance;
           })
           var quantity = cart[ingredient];
           var amount;
-          let degrees = ingObj['temperature'].split(" ")[0];
+          console.log("ingObj: " + ingObj);
+          let degrees = ingObj.temperature.split(" ")[0];
+
           await Ingredient.find({ "name": ingredient }, function(err, instance) {
             if (err) return next(err);
             amount = instance[0].amount;
           });
 
           amount = amount - quantity;
+          console.log(invdb.current[degrees]);
           invdb.current[degrees] -= amount;
           invdb.save(function(err) {
             if (err) {
@@ -497,7 +497,7 @@ router.post('/checkout_cart', function(req, res, next) {
               return next(error);
             }
           });
-          Ingredient.findOneAndUpdate({
+          await Ingredient.findOneAndUpdate({
             name: ingredient
           }, {
             $set: {
@@ -510,7 +510,7 @@ router.post('/checkout_cart', function(req, res, next) {
           delete cart[ingredient];
         }
 
-        User.findByIdAndUpdate({
+        await User.findByIdAndUpdate({
           _id: req.session.userId
         }, {
           $set: {
