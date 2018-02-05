@@ -1,4 +1,5 @@
 var express = require('express');
+var queryString = require('query-string');
 var router = express.Router();
 var Ingredient = require('../models/ingredient');
 var Inventory = require('../models/inventory');
@@ -20,45 +21,42 @@ let weightMapping = {
 
 //GET request to show available ingredients
 router.get('/', function(req, res, next) {
-  var query = Ingredient.find();
-  query.then(function(ings) {
-    res.render('ingredients', { ingredients: ings, packages: packageTypes, temps: temperatures });
-  }).catch(function(error) {
-    var err = new Error('Error searching for ' + req.params.name);
-    err.status = 400;
-    next(err);
-  });
+  res.redirect(req.baseUrl + '/search_results/1');
+  // var query = Ingredient.find();
+  // query.then(function(ings) {
+  //   res.render('ingredients', { ingredients: ings, packages: packageTypes, temps: temperatures });
+  // }).catch(function(error) {
+  //   var err = new Error('Error searching for ' + req.params.name);
+  //   err.status = 400;
+  //   next(err);
+  // });
 })
 
-router.get('/search_results/', function(req, res, next) {
+router.get('/search_results/:page/:search?', function(req, res, next) {
   var query = Ingredient.find();
-  if (req.query.name != null) {
-    var name = req.query.name;
+  var searchString = req.params.search;
+  var searchQuery = (searchString == null) ? req.query : queryString.parse(searchString);
+  if (searchQuery.name != null) {
+    var name = searchQuery.name;
     var search = '.*' + name + '.*'
     query.where({name: new RegExp(search, 'i')});
   }
-  if (req.query.package != null) {
-    query.where('package').in(req.query.package.toLowerCase());
+  if (searchQuery.package != null) {
+    query.where('package').in(searchQuery.package);
   }
-  if (req.query.temperature != null) {
-    query.where('temperature').in(req.query.temperature.toLowerCase());
+  if (searchQuery.temperature != null) {
+    query.where('temperature').in(searchQuery.temperature);
   }
-  // TODO: Paginate
-  // var currentPage = parseInt(req.params.page);
-  // currentPage = currentPage <= 0 ? 1 : currentPage;
-  // Ingredient.paginate(query, { page: currentPage, limit: 10 }, function(error, ings) {
-  //   console.log(ings);
-  //   if (error) {
-  //     var err = new Error('Error during search');
-  //     err.status = 400;
-  //     return next(err);
-  //   } else {
-  //     res.render('ingredients', { ingredients: ings.docs, packages: packageTypes, temps: temperatures, page: currentPage });
-  //   }
-  // });
+  var perPage = 10;
+  var page = req.params.page || 1;
+  query.skip((perPage * page) - perPage).limit(perPage);
+  
+  searchString = queryString.stringify(searchQuery);
+  console.log(searchString);
   query.then(function(ings) {
-    res.render('ingredients', { ingredients: ings, packages: packageTypes, temps: temperatures });
+    res.render('ingredients', { ingredients: ings, packages: packageTypes, temps: temperatures, searchQuery: searchString, page: page });
   }).catch(function(error) {
+    console.log(error);
     var err = new Error('Error during search');
     err.status = 400;
     return next(err);
@@ -69,9 +67,11 @@ router.get('/:name', function(req, res, next) {
   res.redirect(req.baseUrl + '/' + req.params.name + '/0');
 })
 
-router.get('/:name/:amt', function(req, res, next) {
+router.get('/:name/:amt/:page?', function(req, res, next) {
   var ingQuery = Ingredient.findOne({ name: req.params.name });
-  var venderQuery = Vendor.find({ 'catalogue.ingredient': req.params.name });
+  var perPage = 10;
+  var page = req.params.page || 1;
+  var venderQuery = Vendor.find({ 'catalogue.ingredient': req.params.name }).skip((perPage * page) - perPage).limit(perPage);
   var ingredient;
   ingQuery.then(function(ing) {
     if (ing == null) {
@@ -84,7 +84,7 @@ router.get('/:name/:amt', function(req, res, next) {
   }).then(function(vendors) {
     return createCatalogue(vendors, req.params.name);
   }).then(function(catalogue) {
-    res.render('ingredient', { ingredient: ingredient, packages: packageTypes, temps: temperatures, vendors: catalogue , amount: req.params.amt});
+    res.render('ingredient', { ingredient: ingredient, packages: packageTypes, temps: temperatures, vendors: catalogue, page: page, amount: req.params.amt});
   }).catch(function(error) {
     next(error)
   });

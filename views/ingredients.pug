@@ -7,53 +7,57 @@ block link
   -var selected = 'Ingredients';
 
 block content
-  form(action='/ingredients/search_results/' method='get')
-    div.search-bar
-      input.form-control(type='text', name='name', placeholder='Search for Ingredient Name')
-    div.search-button
-      button.btn.btn-white.btn-round.btn-just-icon(type='submit', value='search')
-        i.material-icons search
-    div.package-select
-      label.search-label Package Type
-      each package in packages
-        div
-          input(type='checkbox', name='package', value=package)
-          label.options=package
-    div.temp-select
-      label.search-label Storage Temperature
-      each temp in temps
-        div
-          input(type='checkbox', name='temperature', value=temp)
-          label.options=temp
-
   div#tabs
     ul.nav.nav-tabs
       li.active
         a(data-toggle='tab', href='#ing-table') Ingredients
       li.adminOnly.hide
         a(data-toggle='tab', href='#create_form') Create
+  
     .tab-content
       #ing-table.tab-pane.fade.in.active
-        table.table
-          thead.text-primary
-            th Ingredient
-            th Package
-            th Temperature
-            th Units
-          tbody
-          each ing in ingredients
-            tr
-              th
-                a(href='/ingredients/' + ing.name)= ing.name
-              th= ing.package
-              th= ing.temperature
-              th= ing.amount
-        //- div.previous
-        //-   form(action='/ingredients/search_results/' + (parseInt(page)-1).toString(), method='get')
-        //-     button.btn.btn-white.btn-round.btn-just-icon(type='submit') Prev
-        //- div.next
-        //-   form(action='/ingredients/search_results/' + (parseInt(page)+1).toString(), method='get')
-        //-     button.btn.btn-white.btn-round.btn-just-icon(type='submit') Next
+        form(action='/ingredients/search_results/1' method='get')
+          div.search-bar
+            input.form-control(type='text', name='name', placeholder='Search for Ingredient Name')
+          div.search-button
+            button.btn.btn-white.btn-round.btn-just-icon(type='submit', value='search')
+              i.material-icons search
+          div.package-select
+            label.search-label Package Type
+            each package in packages
+              div
+                input(type='checkbox', name='package', value=package)
+                label.options=package
+          div.temp-select
+            label.search-label Storage Temperature
+            each temp in temps
+              div
+                input(type='checkbox', name='temperature', value=temp)
+                label.options=temp
+        div.card
+          div.card-header(data-background-color='purple')
+            h4.title Ingredients
+          div.card-content.table-response
+            table.table
+              thead.text-primary
+                th Ingredient
+                th Package
+                th Temperature
+                th Units
+              tbody
+              each ing in ingredients
+                tr
+                  th
+                    a(href='/ingredients/' + ing.name)= ing.name
+                  th= ing.package
+                  th= ing.temperature
+                  th= ing.amount
+            div.previous
+              form(action='/ingredients/search_results/' + (parseInt(page)-1).toString() + '/' + searchQuery, method='get')
+                button.btn.btn-white.btn-round.btn-just-icon(type='submit') Prev
+            div.next
+              form(action='/ingredients/search_results/' + (parseInt(page)+1).toString() + '/' + searchQuery, method='get')
+                button.btn.btn-white.btn-round.btn-just-icon(type='submit') Next
 
       .card-content.tab-pane.fade#create_form.adminOnly.hide
         h1= 'Create new ingredient'
