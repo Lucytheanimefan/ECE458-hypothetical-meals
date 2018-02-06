@@ -11,12 +11,12 @@ var packageTypes = ['sack', 'pail', 'drum', 'supersack', 'truckload', 'railcar']
 var temperatures = ['frozen', 'refrigerated', 'room temperature'];
 
 let weightMapping = {
-  sack:50,
-  pail:50,
-  drum:500,
-  supersack:2000,
-  truckload:50000,
-  railcar:280000
+  sack: 50,
+  pail: 50,
+  drum: 500,
+  supersack: 2000,
+  truckload: 50000,
+  railcar: 280000
 }
 
 //GET request to show available ingredients
@@ -31,7 +31,7 @@ router.get('/search_results/:page?/:search?', function(req, res, next) {
   if (searchQuery.name != null) {
     var name = searchQuery.name;
     var search = '.*' + name + '.*'
-    query.where({name: new RegExp(search, 'i')});
+    query.where({ name: new RegExp(search, 'i') });
   }
   if (searchQuery.package != null) {
     query.where('package').in(searchQuery.package);
@@ -43,7 +43,7 @@ router.get('/search_results/:page?/:search?', function(req, res, next) {
   var page = req.params.page || 1;
   page = (page < 1) ? 1 : page;
   query.skip((perPage * page) - perPage).limit(perPage);
-  
+
   searchString = queryString.stringify(searchQuery);
   query.then(function(ings) {
     if (ings.length == 0) {
@@ -80,7 +80,7 @@ router.get('/:name/:amt/:page?', function(req, res, next) {
   }).then(function(vendors) {
     return createCatalogue(vendors, req.params.name);
   }).then(function(catalogue) {
-    res.render('ingredient', { ingredient: ingredient, packages: packageTypes, temps: temperatures, vendors: catalogue, page: page, amount: req.params.amt});
+    res.render('ingredient', { ingredient: ingredient, packages: packageTypes, temps: temperatures, vendors: catalogue, page: page, amount: req.params.amt });
   }).catch(function(error) {
     next(error)
   });
@@ -94,12 +94,10 @@ router.post('/:name/delete', function(req, res, next) {
     var decrementObject = {};
     var field = 'current.' + temperature;
     decrementObject[field] = -result['amount'];
-    return Inventory.findOneAndUpdate({type: 'master'}, 
-      { $inc: decrementObject }
-    );
+    return Inventory.findOneAndUpdate({ type: 'master' }, { $inc: decrementObject });
   }
   query.then(function(result) {
-    if(result['package']!=="railcar" && result['package']!=="truckload"){
+    if (result['package'] !== "railcar" && result['package'] !== "truckload") {
       return inventoryUpdate(result);
     } else {
       res.redirect(req.baseUrl);
@@ -120,8 +118,8 @@ router.post('/:name/update', function(req, res, next) {
 
   var invDb;
   var ingDb;
-  var findInventory = Inventory.findOne({type: "master"});
-  var findIngredient = Ingredient.findOne({name:req.params.name});
+  var findInventory = Inventory.findOne({ type: "master" });
+  var findIngredient = Ingredient.findOne({ name: req.params.name });
 
   var query = Ingredient.findOneAndUpdate({ name: req.params.name }, {
     $set: {
@@ -138,21 +136,27 @@ router.post('/:name/update', function(req, res, next) {
     ingDb = ing;
     let currIndTemp = ing['temperature'].toLowerCase().split(" ")[0];
     let currAmount = parseFloat(ing['amount']);
-    if(ing['package']!=="railcar" && ing['package']!=="truckload"){
-      invDb['current'][currIndTemp]-=currAmount;
+    if (ing['package'] !== "railcar" && ing['package'] !== "truckload") {
+      invDb['current'][currIndTemp] -= currAmount;
     }
     return invDb;
   }).then(function(db) {
     let newIndTemp = req.body.temperature.toLowerCase().split(" ")[0];
     let newAmount = parseFloat(req.body.amount);
-    if(req.body.package.toLowerCase()!=="railcar" && req.body.package.toLowerCase()!=="truckload"){
-      invDb['current'][newIndTemp]+=newAmount;
+    if (req.body.package.toLowerCase() !== "railcar" && req.body.package.toLowerCase() !== "truckload") {
+      invDb['current'][newIndTemp] += newAmount;
     }
-    if(invDb['current'][newIndTemp]>invDb['limits'][newIndTemp]){
-      invDb['current'][currIndTemp]+=currAmount;
-      invDb['current'][newIndTemp]-=newAmount;
+    if (invDb['current'][newIndTemp] > invDb['limits'][newIndTemp]) {
+      invDb['current'][currIndTemp] += currAmount;
+      invDb['current'][newIndTemp] -= newAmount;
     }
-    return invDb.save();
+    return invDb.save(function(err) {
+      if (err) {
+        console.log('UPDATE INGRED: ERROR SAVING INVENTORY: ');
+        console.log(error);
+      }
+      console.log('UPDATE INGRED: SUCCESS SAVING INVENTORY');
+    });
   }).catch(function(error) {
     var error = new Error('Couldn\'t update the inventory.');
     error.status = 400;
@@ -179,23 +183,21 @@ router.post('/new', function(req, res, next) {
     amount: req.body.amount
   });
   promise.then(async function(instance) {
-    await Inventory.findOne({type:"master"},function(err,inv){
-      if(err){return next(err);}
+    await Inventory.findOne({ type: "master" }, function(err, inv) {
+      if (err) { return next(err); }
 
       // console.log('-----------------------------------------------');
       // console.log('req.body.temperature: ' + req.body.temperature);
       let temperature = req.body.temperature.toLowerCase().split(" ")[0];
 
       //console.log('Split temp: ' + temperature);
-      if(req.body.package.toLowerCase()!== "truckload" && req.body.package.toLowerCase()!== "railcar")
-      {
+      if (req.body.package.toLowerCase() !== "truckload" && req.body.package.toLowerCase() !== "railcar") {
         //console.log('Add amount to current temp('+temperature+'): ' + req.body.amount);
-        inv['current'][temperature]+=parseFloat(req.body.amount);
+        inv['current'][temperature] += parseFloat(req.body.amount);
       }
-      if(inv['current'][temperature] > inv['limits'][temperature])
-      {
-        instance['amount']=0;
-        inv['current'][temperature]-=parseFloat(req.body.amount);
+      if (inv['current'][temperature] > inv['limits'][temperature]) {
+        instance['amount'] = 0;
+        inv['current'][temperature] -= parseFloat(req.body.amount);
       }
       inv.save(function(err) {
         if (err) {
@@ -218,7 +220,7 @@ createCatalogue = function(vendors, name) {
     var vendor = vendors[i];
     for (j = 0; j < vendor['catalogue'].length; j++) {
       if (vendor['catalogue'][j]['ingredient'] == name) {
-        catalogue.push({vendorName: vendor['name'], vendorCode: vendor['code'], record: vendor['catalogue'][j]});
+        catalogue.push({ vendorName: vendor['name'], vendorCode: vendor['code'], record: vendor['catalogue'][j] });
       }
     }
   }
