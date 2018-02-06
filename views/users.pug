@@ -1,50 +1,50 @@
 extends layout
 block link
-	-var selected = 'Users';
-	-var roles = ['admin', 'user'];
+  -var selected = 'Users';
+  -var roles = ['admin', 'user'];
 
 block content
-	.row
-		.card-content
-			//- button.btn-primary.btn.accordion
-			h6 Create a user
-			//- .login-form.panel
-			form(action='/users', method='post')
-				.form-group
-					label.control-label Email
-					input.form-control(type='text', name='email', placeholder='', required='')
-				.form-group
-					label.control-label Username
-					input.form-control(type='text', name='username', placeholder='', required='')
-				.form-group
-					label.control-label Password
-					input.form-control(type='password', name='password', placeholder='', required='')
-				//- .form-group
-				//- 	label.control-label Password Confirmation
-				//- 	input.form-control(type='password', name='passwordConf', placeholder='', required='')
-				.form-group
-					label.control-label Role
-					select.form-control(name='role', placeholder = '', required='')
-						option(disabled="" selected="" value="") Select an option
-						each role in roles
-							option(value=role)= role
-				button.btn.btn-primary.pull-right(type='submit', value='Create') Create
-	.row
-		.card-content
-			h6 Resend email verification token
+  .row
+    .card-content
+      //- button.btn-primary.btn.accordion
+      h3 Create a user
+      //- .login-form.panel
+      form(action='/users', method='post')
+        .form-group
+          label.control-label Email
+          input.form-control(type='text', name='email', placeholder='', required='')
+        .form-group
+          label.control-label Username
+          input.form-control(type='text', name='username', placeholder='', required='')
+        .form-group
+          label.control-label Password
+          input.form-control(type='password', name='password', placeholder='', required='')
+        //- .form-group
+        //-   label.control-label Password Confirmation
+        //-   input.form-control(type='password', name='passwordConf', placeholder='', required='')
+        .form-group
+          label.control-label Role
+          select.form-control(name='role', placeholder = '', required='')
+            option(disabled="" selected="" value="") Select an option
+            each role in roles
+              option(value=role)= role
+        button.btn.btn-primary.pull-right(type='submit', value='Create') Create
+  .row
+    .card-content
+      h3 Resend email verification token
 
-			form(action='/users/resendToken', method='post')
-				.form-group
-					label.control-label Email
-					input.form-control(type='text', name='email', placeholder='', required='')
-				button.btn.btn-primary.pull-right(type='submit', value='Create') Resend Token
+      form(action='/users/resendToken', method='post')
+        .form-group
+          label.control-label Email
+          input.form-control(type='text', name='email', placeholder='', required='')
+        button.btn.btn-primary.pull-right(type='submit', value='Create') Resend Token
 
-	.row
-		.card-content
-			h6 Delete a user
+  .row
+    .card-content
+      h3 Delete a user
 
-			form(action='/users/delete', method='post')
-				.form-group
-					label.control-label Email
-					input.form-control(type='text', name='email', placeholder='', required='')
-				button.btn.btn-primary.pull-right(type='submit', value='delete') Delete
+      form(action='/users/delete', method='post')
+        .form-group
+          label.control-label Email
+          input.form-control(type='text', name='email', placeholder='', required='')
+        button.btn.btn-primary.pull-right(type='submit', value='delete') Delete

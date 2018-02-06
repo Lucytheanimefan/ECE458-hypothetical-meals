@@ -181,14 +181,29 @@ router.post('/new', function(req, res, next) {
   promise.then(async function(instance) {
     await Inventory.findOne({type:"master"},function(err,inv){
       if(err){return next(err);}
-      if(req.body.package.toLowerCase()!== "truckload" && req.body.package.toLowerCase()!== "railcar"){
-        inv['current'][req.body.temperature.toLowerCase().split(" ")[0]]+=parseFloat(req.body.amount);
+
+      // console.log('-----------------------------------------------');
+      // console.log('req.body.temperature: ' + req.body.temperature);
+      let temperature = req.body.temperature.toLowerCase().split(" ")[0];
+
+      //console.log('Split temp: ' + temperature);
+      if(req.body.package.toLowerCase()!== "truckload" && req.body.package.toLowerCase()!== "railcar")
+      {
+        //console.log('Add amount to current temp('+temperature+'): ' + req.body.amount);
+        inv['current'][temperature]+=parseFloat(req.body.amount);
       }
-      if(inv['current'][req.body.temperature.toLowerCase().split(" ")[0]] > inv['limits'][req.body.temperature.toLowerCase().split(" ")[0]]){
+      if(inv['current'][temperature] > inv['limits'][temperature])
+      {
         instance['amount']=0;
-        inv['current'][req.body.temperature.toLowerCase().split(" ")[0]]-=parseFloat(req.body.amount);
+        inv['current'][temperature]-=parseFloat(req.body.amount);
       }
-      inv.save();
+      inv.save(function(err) {
+        if (err) {
+          console.log('ERROR SAVING INVENTORY: ');
+          console.log(error);
+        }
+        console.log('SUCCESS SAVING INVENTORY');
+      });
       instance.save();
     })
     res.redirect(req.baseUrl + '/' + ingName);
