@@ -116,7 +116,7 @@ router.post('/:name/delete', function(req, res, next) {
 
 
 router.post('/:name/update', function(req, res, next) {
-  let ingName = req.body.name.toLowerCase();
+  let ingName = req.body.name;
 
   var invDb;
   var ingDb;
@@ -171,7 +171,7 @@ router.post('/:name/update', function(req, res, next) {
 
 //POST request to create a new ingredient
 router.post('/new', function(req, res, next) {
-  let ingName = req.body.name.toLowerCase();
+  let ingName = req.body.name;
   var promise = Ingredient.create({
     name: ingName,
     package: req.body.package.toLowerCase(),
