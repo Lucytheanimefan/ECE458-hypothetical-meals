@@ -34,20 +34,24 @@ html(lang='en')
           a.simple-text(href='/')
             | Hypothetical Meals
 
-        -var menu = { 'Home': '/', 'Users':'/users/admin', 'Ingredients': '/ingredients', 'Vendors':'/vendors', 'Cart':'/users/cart', 'Uploads': '/files','Inventory':'/inventory'};
+        -var menu = { 'Home': '/', 'Users':'/users/admin', 'Ingredients': '/ingredients', 'Vendors':'/vendors', 'Cart':'/users/cart', 'Uploads': '/files','Inventory':'/inventory', 'Reports':'/reports'};
+
+        -var icons = {'Home':'home', 'Users': 'supervisor_account','Uploads': 'publish','Ingredients':'local_pizza','Vendors':'restaurant','Cart':'local_grocery_store','Inventory':'local_shipping', 'Reports':'content_paste'}
+
 
         .sidebar-wrapper
           ul.nav
             each val, key in menu
+              -var icon = icons[key]
               if selected === key
                 li.active.meal-category.hide
                   a(href=val)
-                    i.material-icons dashboard
+                    i.material-icons #{icon}
                     p #{key}
               else
                 li.meal-category.hide
                   a(href=val)
-                    i.material-icons dashboard
+                    i.material-icons #{icon}
                     p #{key}
 
       .main-panel
