@@ -1,0 +1,25 @@
+extends layout
+block link
+  -var selected = 'Report';
+
+block content
+  .row
+    .card
+      .card-header(data-background-color='purple')
+        h2.title Spending Report
+      .card-content
+        .row
+          .col-md-12
+            form(action="/users/report" method="get")
+              input.btn.btn-primary.pull-left(type="submit" name="overall" value="Overall Report" style="padding: 10px; background-color:#66c2ff; display: inline-block; ")
+            form(action="/users/production_report" method="get")
+              input.btn.btn-primary(type="submit" name="production" value="Production Report" style="padding: 10px; background-color:#66c2ff; display: inline-block;")
+        .col-md-12
+          h3(style="padding: 0px 0px 10px; text-decoration: underline") Ingredients
+          p
+            br
+        each ingredient in ingredients
+          .col-md-12
+            p(style="text-align:left;")
+              a(href='/ingredients/' + ingredient.ingredient)= ingredient.ingredient
+              span(style="float:right;") Cost: $#{ingredient.cost}

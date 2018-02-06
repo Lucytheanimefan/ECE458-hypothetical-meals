@@ -29,10 +29,10 @@ block content
             th= vendor.contact
             th= vendor.location.state
       div.previous
-        form(action='/vendors/' + (parseInt(page)-1).toString(), method='get')
+        form(action='/vendors/home/' + (parseInt(page)-1).toString(), method='get')
           button.btn.btn-white.btn-round.btn-just-icon(type='submit') Prev
       div.next
-        form(action='/vendors/' + (parseInt(page)+1).toString(), method='get')
+        form(action='/vendors/home/' + (parseInt(page)+1).toString(), method='get')
           button.btn.btn-white.btn-round.btn-just-icon(type='submit') Next
   ul.nav.nav-tabs
     li.active.adminOnly.hide
@@ -41,7 +41,7 @@ block content
       a(data-toggle='tab', href='#search_vendor') Search
 
   .tab-content
-    .card-content#create_vendor.tab-pane.fade.in.active
+    .card-content#create_vendor.tab-pane.fade.in.adminOnly.hide
       h1= 'Create Vendor'
       form(action='/vendors/new', method='post')
         .form-group
@@ -58,7 +58,7 @@ block content
           input.form-control(type='text', name='state', required='')
         button.btn.btn-primary.pull-right(type='submit', value='add vendor') Add vendor
 
-    .card-content#search_vendor.tab-pane.fade
+    .card-content#search_vendor.tab-pane.fade.in.active
       h1= 'Search for Vendor'
       form(action='/vendors/search', method='get')
         .form-group

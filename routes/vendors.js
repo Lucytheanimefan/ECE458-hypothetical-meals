@@ -185,7 +185,6 @@ router.post('/:code/order', async function(req,res,next){
             }
           }, function(err, cart_instance) {
             if (err) return next(err);
-            return res.redirect(req.baseUrl + '/');
           });
         });
       }
