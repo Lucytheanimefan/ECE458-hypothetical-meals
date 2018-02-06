@@ -306,7 +306,7 @@ checkFridge = function(name,amount) {
       let size = ing['package'].toLowerCase();
       let temp = ing['temperature'].split(" ")[0];
       let space = inv['limits'][temp]-inv['current'][temp];
-      let amountInPounds = amount;
+      let amountInPounds = amount*weightMapping[size];
       let diff = space>=amountInPounds || size==="truckload" || size==="railcar" ? amountInPounds:0;
       if(space<amountInPounds){
         var error = new Error('There is not enough space in inventory for transaction');
