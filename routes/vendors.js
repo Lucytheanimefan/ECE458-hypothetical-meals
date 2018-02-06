@@ -252,62 +252,61 @@ updateCatalogue = function(data,catalogue){
 }
 
 createIngredient = async function(data){
-  var ings;
   await Ingredient.find({name:data.ingredient},function(err,ings){
+    if(ings.length == 0){
+      Ingredient.create({
+        name: data.ingredient,
+        package: data.size,
+        temperature: data.temperature.toLowerCase(),
+        amount: 0
+      }, function (error, newInstance) {
+        if (error) {
+          return error;
+        }
+      });
+    }
   });
-  if(ings.length == 0){
-    Ingredient.create({
-      name: data.ingredient,
-      package: data.size,
-      temperature: data.temperature.toLowerCase(),
-      amount: 0
-    }, function (error, newInstance) {
-      if (error) {
-        return error;
-      }
-    });
-  }
 }
 
 checkFridge = async function(name,amount,next){
-  var ing;
-  var inv;
   await Ingredient.findOne({name:name},async function(err,ing){
     if(err){return next(err);}
-  })
-  await Inventory.findOne({type:"master"},function(err,inv){
-    if(err){return next(err);}
-  });
-  console.log("here");
-  console.log(ing);
-  let size = ing['package'].toLowerCase();
-  let temp = ing['temperature'].split(" ")[0];
-  let space = inv['limits'][temp]-inv['current'][temp];
-  let amountInPounds = amount*weightMapping[size];
-  let diff = space>=amountInPounds || size==="truckload" || size==="railcar" ? amountInPounds:0;
-  if(space<amountInPounds){
-    var error = new Error('There is not enough space in inventory for transaction');
-    error.status = 400;
-    console.log("you can't do that!!!!");
-    return(next(error));
-  }
-  inv.current[temp]+=diff;
-  ing.amount+=amountInPounds;
-  inv.save(function(err) {
-    if (err) {
-      var error = new Error('Couldn\'t update the inventory.');
-      error.status = 400;
-      return next(error);
-      }
-    });
-  ing.save(function(err){
-    if(err){
-      var error = new Error('Couldn\'t update the ingredient quantity');
-      error.status = 400;
-      return next(error);
+    else{
+      await Inventory.findOne({type:"master"},function(err,inv){
+        if(err){return next(err);}
+        else{
+          let size = ing['package'].toLowerCase();
+          let temp = ing['temperature'].split(" ")[0];
+          let space = inv['limits'][temp]-inv['current'][temp];
+          let amountInPounds = amount*weightMapping[size];
+          let diff = space>=amountInPounds || size==="truckload" || size==="railcar" ? amountInPounds:0;
+          if(space<amountInPounds){
+            var error = new Error('There is not enough space in inventory for transaction');
+            error.status = 400;
+            console.log("you can't do that!!!!");
+            return(next(error));
+          }
+          inv.current[temp]+=diff;
+          ing.amount+=amountInPounds;
+          inv.save(function(err) {
+            if (err) {
+              var error = new Error('Couldn\'t update the inventory.');
+              error.status = 400;
+              return next(error);
+              }
+            });
+          ing.save(function(err){
+            if(err){
+              var error = new Error('Couldn\'t update the ingredient quantity');
+              error.status = 400;
+              return next(error);
+            }
+          })
+          return space>=amountInPounds;
+        }
+      })
     }
   })
-  return space>=amountInPounds;
 }
 
 searchIngredient = function(list,ing){
@@ -322,12 +321,12 @@ searchIngredient = function(list,ing){
 addIngredient = function(ingredientInfo, vendorCode) {
   return new Promise(function(resolve, reject) {
     var vendorQuery = Vendor.findOne({code: vendorCode});
-    var vendorRemove = Vendor.update({ code: vendorCode },
+    var vendorRemove = Vendor.update({ code: vendorCode }, 
         { '$pull': {
           'catalogue': {'ingredient': ingredientInfo.ingredient.toLowerCase() }
         }});
     var vendorUpdate = function(newEntry) {
-      return Vendor.findOneAndUpdate({code: vendorCode},
+      return Vendor.findOneAndUpdate({code: vendorCode}, 
         {$push: {catalogue: newEntry}});
     };
     var myEntry;
