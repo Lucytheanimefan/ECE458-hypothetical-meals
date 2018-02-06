@@ -165,7 +165,7 @@ addToDatabase = function(index, csvRow, header) {
 
     var addIngredient = vendors.addIngredient(ingredient, csvRow[codeIndex]);
     var createIngredient = Ingredient.create({
-      name: csvRow[ingIndex].toLowerCase(),
+      name: csvRow[ingIndex],
       package: csvRow[packageIndex].toLowerCase(),
       temperature: csvRow[tempIndex].toLowerCase(),
       amount: 0
