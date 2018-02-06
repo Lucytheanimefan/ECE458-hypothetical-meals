@@ -148,7 +148,8 @@ router.post('/:code/order', async function(req,res,next){
   let quantity = parseFloat(req.body.quantity);
   let ing = await queryIngredient(ingredient,next);
   let findVendor = Vendor.findOne({code: req.params.code});
-  checkFridge(ingredient,quantity,next).then(function(canOrder) {
+  //await checkIfIngredientDeleted(ingredient,req.params.code);
+  checkFridge(ingredient,quantity,req.params.code).then(function(canOrder) {
     return findVendor;
   }).then(function(vendor) {
     let ingIndex = searchIngredient(vendor['catalogue'],ingredient);
@@ -373,6 +374,44 @@ checkFridge = function(name,amount) {
   //     })
   //   }
   // })
+}
+
+checkIfIngredientDeleted = function(name,code){
+  var vendor;
+  var findIngredient = Ingredient.findOne({name:name});
+  var findVendor = Inventory.findOne({code:code});
+  return new Promise(function(resolve, reject) {
+    findVendor.then(function(seller) {
+      vendor = seller;
+      return findIngredient;
+    }).then(function(ing) {
+      if(!ing){
+        console.log("ingredient deleted");
+        let ingIndex = searchIngredient(vendor['catalogue'],name.toLowerCase());
+        let size = vendor['catalogue'][ingIndex]['package'];
+        let temperature = vendor['catalogue'][ingIndex]['temp'];
+        Ingredient.create({
+          name:name,
+          package:size,
+          temperature:temperature,
+          amount:0
+        })
+      }
+      return inv.save();
+    }).catch(function(err) {
+      var error = new Error('Couldn\'t update the inventory.');
+      error.status = 400;
+      reject(error);
+    }).then(function(result) {
+      return ing.save();
+    }).catch(function(err) {
+      var error = new Error('Couldn\'t update the ingredient quantity');
+      error.status = 400;
+      reject(error);
+    }).then(function(result) {
+      resolve(true);
+    })
+  })
 }
 
 searchIngredient = function(list,ing){
