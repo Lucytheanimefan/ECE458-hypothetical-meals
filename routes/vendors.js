@@ -145,61 +145,93 @@ router.post('/new', function(req, res, next) {
 });
 
 router.post('/:code/order', async function(req,res,next){
-  let ingredient = req.body.ingredient.toLowerCase();
+  let ingredient = req.body.ingredient;
   let quantity = parseFloat(req.body.quantity);
   let ing = await queryIngredient(ingredient,next);
-  if(checkFridge(ingredient,quantity,next)){
-    await Vendor.findOne({code: req.params.code}, async function(err, vendor){
-    if (err) { return next(err); }
-      let ingIndex = searchIngredient(vendor['catalogue'],ingredient);
-      if(ingIndex == -1){
-        var err = new Error('Ingredient not found ');
-        err.status = 400;
-        return next(err);
-      }
-      if(vendor['catalogue'][ingIndex]['available'] >= parseFloat(req.body.quantity)){
-        vendor['catalogue'][ingIndex]['available'] -= parseFloat(req.body.quantity);
-        var entry = {};
-        entry['ingredient'] = ingredient.toLowerCase();
-        entry['cost'] = vendor['catalogue'][ingIndex]['cost'];
-        entry['number'] = parseFloat(req.body.quantity);
-        vendor['history'].push(entry);
-        await User.findOne({ "_id": req.session.userId }, function(err, user) {
+  let findVendor = Vendor.findOne({code: req.params.code});
+  checkIfIngredientDeleted(ingredient, req.params.code).then(function(result) {
+    return checkFridge(ingredient,quantity,req.params.code);
+  }).then(function(canOrder) {
+    return findVendor;
+  }).then(async function(vendor) {
+    let ingIndex = searchIngredient(vendor['catalogue'],ingredient);
+    if(ingIndex == -1){
+      var err = new Error('Ingredient not found ');
+      err.status = 400;
+      return next(err);
+    }
+    if(vendor['catalogue'][ingIndex]['available'] >= parseFloat(req.body.quantity)){
+      vendor['catalogue'][ingIndex]['available'] -= parseFloat(req.body.quantity);
+      var entry = {};
+      entry['ingredient'] = ingredient.toLowerCase();
+      entry['cost'] = vendor['catalogue'][ingIndex]['cost'];
+      entry['number'] = parseFloat(req.body.quantity);
+      vendor['history'].push(entry);
+      await User.findOne({ "_id": req.session.userId }, function(err, user) {
+        if (err) return next(err);
+        let report = user.report;
+        if (report === null | report === undefined | Array.isArray(report) & report.length == 0) {
+          report = [];
+          report.push({});
+        }
+        report = report[0];
+        var cost = Number(entry['cost'])*Number(entry['number']);
+        if (ingredient in report) {
+          cost += report[ingredient];
+        }
+        report[ingredient] = cost;
+        User.findByIdAndUpdate({
+          _id: req.session.userId
+        }, {
+          $set: {
+            report: report
+          }
+        }, function(err, cart_instance) {
           if (err) return next(err);
-          let report = user.report;
-          if (report === null | report === undefined | Array.isArray(report) & report.length == 0) {
-            report = [];
-            report.push({});
-          }
-          report = report[0];
-          var cost = Number(entry['cost'])*Number(entry['number']);
-          if (ingredient in report) {
-            cost += report[ingredient];
-          }
-          report[ingredient] = cost;
-          User.findByIdAndUpdate({
-            _id: req.session.userId
-          }, {
-            $set: {
-              report: report
-            }
-          }, function(err, cart_instance) {
-            if (err) return next(err);
-          });
         });
-      }
-      vendor.save(function(err) {
-        if (err) { return next(err); }
       });
+    }else{
+      var err = new Error('Quantity exceeds vendor inventory.');
+      err.status = 400;
+      return next(err);
+    }
+    return vendor.save();
+  }).then(function(result) {
+    res.redirect(req.baseUrl + '/' + req.params.code);
+  }).catch(function(error) {
+    console.log(error);
+    next(error);
+  });
 
-      return res.redirect(req.baseUrl + '/' + req.params.code);
-    });
-  }
-  else{
-    var error = new Error("Exceeds Refrigeration Capacity or Not Enough in Stock");
-    err.status = 400;
-    return next(err);
-  }
+  // {
+  //   await Vendor.findOne({code: req.params.code}, function(err, vendor){
+  //   if (err) { return next(err); }
+  //     let ingIndex = searchIngredient(vendor['catalogue'],ingredient);
+  //     if(ingIndex == -1){
+  //       var err = new Error('Ingredient not found ');
+  //       err.status = 400;
+  //       return next(err);
+  //     }
+  //     if(vendor['catalogue'][ingIndex]['available'] >= parseFloat(req.body.quantity)){
+  //       vendor['catalogue'][ingIndex]['available'] -= parseFloat(req.body.quantity);
+  //       var entry = {};
+  //       entry['ingredient'] = ingredient.toLowerCase();
+  //       entry['cost'] = vendor['catalogue'][ingIndex]['cost'];
+  //       entry['number'] = parseFloat(req.body.quantity);
+  //       vendor['history'].push(entry);
+  //     }
+  //     vendor.save(function(err) {
+  //       if (err) { return next(err); }
+  //     });
+
+  //     return res.redirect(req.baseUrl + '/' + req.params.code);
+  //   });
+  // }
+  // else{
+  //   var error = new Error("Exceeds Refrigeration Capacity or Not Enough in Stock");
+  //   err.status = 400;
+  //   return next(err);
+  // }
 });
 
 router.get('/search', function(req, res, next){
@@ -292,44 +324,113 @@ createIngredient = async function(data){
   });
 }
 
-checkFridge = async function(name,amount,next){
-  await Ingredient.findOne({name:name},async function(err,ing){
-    if(err){return next(err);}
-    else{
-      await Inventory.findOne({type:"master"},function(err,inv){
-        if(err){return next(err);}
-        else{
-          let size = ing['package'].toLowerCase();
-          let temp = ing['temperature'].split(" ")[0];
-          let space = inv['limits'][temp]-inv['current'][temp];
-          let amountInPounds = amount*weightMapping[size];
-          let diff = space>=amountInPounds || size==="truckload" || size==="railcar" ? amountInPounds:0;
-          if(space<amountInPounds){
-            var error = new Error('There is not enough space in inventory for transaction');
-            error.status = 400;
-            console.log("you can't do that!!!!");
-            return(next(error));
-          }
-          inv.current[temp]+=diff;
-          ing.amount+=amountInPounds;
-          inv.save(function(err) {
-            if (err) {
-              var error = new Error('Couldn\'t update the inventory.');
-              error.status = 400;
-              return next(error);
-              }
-            });
-          ing.save(function(err){
-            if(err){
-              var error = new Error('Couldn\'t update the ingredient quantity');
-              error.status = 400;
-              return next(error);
-            }
-          })
-          return space>=amountInPounds;
-        }
-      })
-    }
+checkFridge = function(name,amount) {
+  var findIngredient = Ingredient.findOne({name:name});
+  var findInventory = Inventory.findOne({type:"master"});
+  var ing;
+  var check;
+  return new Promise(function(resolve, reject) {
+    findIngredient.then(function(ingredient) {
+      ing = ingredient;
+      return findInventory;
+    }).then(function(inv) {
+      let size = ing['package'].toLowerCase();
+      let temp = ing['temperature'].split(" ")[0];
+      let space = inv['limits'][temp]-inv['current'][temp];
+      let amountInPounds = amount*weightMapping[size];
+      let diff = space>=amountInPounds || size==="truckload" || size==="railcar" ? amountInPounds:0;
+      if(space < amountInPounds){
+        var error = new Error('There is not enough space in inventory for transaction');
+        error.status = 400;
+        reject(error);
+      }
+      inv.current[temp]+=diff;
+      ing.amount+=amountInPounds;
+      return inv.save();
+    }).catch(function(err) {
+      var error = new Error('Couldn\'t update the inventory.');
+      error.status = 400;
+      reject(error);
+    }).then(function(result) {
+      return ing.save();
+    }).catch(function(err) {
+      var error = new Error('Couldn\'t update the ingredient quantity');
+      error.status = 400;
+      reject(error);
+    }).then(function(result) {
+      resolve(true);
+    })
+  })
+  // await Ingredient.findOne({name:name},async function(err,ing){
+  //   if(err){return next(err);}
+  //   else{
+  //     await Inventory.findOne({type:"master"},function(err,inv){
+  //       if(err){return next(err);}
+  //       else{
+  //         let size = ing['package'].toLowerCase();
+  //         let temp = ing['temperature'].split(" ")[0];
+  //         let space = inv['limits'][temp]-inv['current'][temp];
+  //         let amountInPounds = amount*weightMapping[size];
+  //         let diff = space>=amountInPounds || size==="truckload" || size==="railcar" ? amountInPounds:0;
+  //         if(space<amountInPounds){
+  //           var error = new Error('There is not enough space in inventory for transaction');
+  //           error.status = 400;
+  //           console.log("you can't do that!!!!");
+  //           return(next(error));
+  //         }
+  //         inv.current[temp]+=diff;
+  //         ing.amount+=amountInPounds;
+  //         inv.save(function(err) {
+  //           if (err) {
+  //             var error = new Error('Couldn\'t update the inventory.');
+  //             error.status = 400;
+  //             return next(error);
+  //             }
+  //           });
+  //         ing.save(function(err){
+  //           if(err){
+  //             var error = new Error('Couldn\'t update the ingredient quantity');
+  //             error.status = 400;
+  //             return next(error);
+  //           }
+  //         })
+  //         return space>=amountInPounds;
+  //       }
+  //     })
+  //   }
+  // })
+}
+
+checkIfIngredientDeleted = function(name,code){
+  var vendor;
+  var findIngredient = Ingredient.findOne({name:name});
+  var findVendor = Vendor.findOne({code:code});
+  var createIngredient = function(name, size, temp) {
+    return Ingredient.create({
+      name:name,
+      package:size,
+      temperature:temp,
+      amount:0
+    });
+  }
+  return new Promise(function(resolve, reject) {
+    findVendor.then(function(seller) {
+      vendor = seller;
+      return findIngredient;
+    }).then(function(ing) {
+      if(ing == null){
+        console.log("ingredient deleted");
+        let ingIndex = searchIngredient(vendor['catalogue'],name.toLowerCase());
+        let size = vendor['catalogue'][ingIndex]['package'];
+        let temperature = vendor['catalogue'][ingIndex]['temp'];
+        return createIngredient(name, size, temperature);
+      }
+      resolve(ing);
+    }).then(function(result) {
+      resolve(result);
+    }).catch(function(error) {
+      reject(error);
+    })
   })
 }
 
