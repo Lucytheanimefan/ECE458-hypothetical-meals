@@ -18,14 +18,17 @@ let weightMapping = {
 
 
 //GET request to show available ingredients
-router.get('/', function(req, res, next) {
-  Vendor.find({}, function(error, vendors) {
+router.get('/:page?', function(req, res, next) {
+  var perPage = 10;
+  var page = req.params.page || 1;
+  page = (page < 1) ? 1 : page;
+  Vendor.find({}, null, {skip: (perPage * page) - perPage, limit: perPage}, function(error, vendors) {
     if (error) {
       var err = new Error('Error searching for ' + req.params.name);
       err.status = 400;
       return next(err);
     } else {
-      res.render('vendors', { vendors: vendors, packages: packageTypes, temps: temperatures});
+      res.render('vendors', { vendors: vendors, packages: packageTypes, temps: temperatures, page: page });
     }
   })
 })

@@ -32,3 +32,15 @@
 .delete-form {
   float: left;
 }
+
+.previous {
+  float: left;
+}
+
+.next {
+  float: left;
+}
+
+.card-header {
+  data-background-color: purple;
+}
