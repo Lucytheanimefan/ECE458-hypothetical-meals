@@ -67,7 +67,7 @@ app.use('/', index);
 app.use('/users', users);
 app.use('/ingredients', users.requireLogin(),ingredients); //This is not ideal
 app.post('/ingredients/*', users.requireRole("admin"), ingredients);
-app.use('/vendors', users.requireRole("admin"), vendors);
+app.use('/vendors', users.requireLogin(), vendors);
 
 app.use('/files', files);
 app.use('/inventory',users.requireRole("admin"),inventory);
