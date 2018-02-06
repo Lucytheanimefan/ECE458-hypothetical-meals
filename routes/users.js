@@ -494,9 +494,9 @@ router.post('/checkout_cart', function(req, res, next) {
             if (err) return next(err);
             console.log("ingredient " + ingredient);
             console.log("instance " + instance[0]);
-            amount = instance[0].amount;
+            amount = Number(instance[0].amount);
           });
-
+          console.log(amount);
           amount = amount - quantity;
           /*console.log(invdb.current[degrees]);
           invdb.current[degrees] -= amount;
