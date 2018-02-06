@@ -155,7 +155,7 @@ router.post('/:code/order', async function(req,res,next){
     if(ingIndex == -1){
       var err = new Error('Ingredient not found ');
       err.status = 400;
-      throw err;
+      return next(err);
     }
     if(vendor['catalogue'][ingIndex]['available'] >= parseFloat(req.body.quantity)){
       vendor['catalogue'][ingIndex]['available'] -= parseFloat(req.body.quantity);
@@ -164,6 +164,10 @@ router.post('/:code/order', async function(req,res,next){
       entry['cost'] = vendor['catalogue'][ingIndex]['cost'];
       entry['number'] = parseFloat(req.body.quantity);
       vendor['history'].push(entry);
+    }else{
+      var err = new Error('Quantity exceeds vendor inventory.');
+      err.status = 400;
+      return next(err);
     }
     return vendor.save();
   }).then(function(result) {
@@ -298,6 +302,7 @@ checkFridge = function(name,amount) {
   var findIngredient = Ingredient.findOne({name:name});
   var findInventory = Inventory.findOne({type:"master"});
   var ing;
+  var check;
   return new Promise(function(resolve, reject) {
     findIngredient.then(function(ingredient) {
       ing = ingredient;
@@ -308,10 +313,9 @@ checkFridge = function(name,amount) {
       let space = inv['limits'][temp]-inv['current'][temp];
       let amountInPounds = amount*weightMapping[size];
       let diff = space>=amountInPounds || size==="truckload" || size==="railcar" ? amountInPounds:0;
-      if(space<amountInPounds){
+      if(space < amountInPounds){
         var error = new Error('There is not enough space in inventory for transaction');
         error.status = 400;
-        console.log("you can't do that!!!!");
         reject(error);
       }
       inv.current[temp]+=diff;
@@ -383,12 +387,12 @@ searchIngredient = function(list,ing){
 addIngredient = function(ingredientInfo, vendorCode) {
   return new Promise(function(resolve, reject) {
     var vendorQuery = Vendor.findOne({code: vendorCode});
-    var vendorRemove = Vendor.update({ code: vendorCode }, 
+    var vendorRemove = Vendor.update({ code: vendorCode },
         { '$pull': {
           'catalogue': {'ingredient': ingredientInfo.ingredient.toLowerCase() }
         }});
     var vendorUpdate = function(newEntry) {
-      return Vendor.findOneAndUpdate({code: vendorCode}, 
+      return Vendor.findOneAndUpdate({code: vendorCode},
         {$push: {catalogue: newEntry}});
     };
     var myEntry;
