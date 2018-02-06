@@ -144,12 +144,13 @@ router.post('/new', function(req, res, next) {
 });
 
 router.post('/:code/order', async function(req,res,next){
-  let ingredient = req.body.ingredient.toLowerCase();
+  let ingredient = req.body.ingredient;
   let quantity = parseFloat(req.body.quantity);
   let ing = await queryIngredient(ingredient,next);
   let findVendor = Vendor.findOne({code: req.params.code});
-  //await checkIfIngredientDeleted(ingredient,req.params.code);
-  checkFridge(ingredient,quantity,req.params.code).then(function(canOrder) {
+  checkIfIngredientDeleted(ingredient, req.params.code).then(function(result) {
+    return checkFridge(ingredient,quantity,req.params.code);
+  }).then(function(canOrder) {
     return findVendor;
   }).then(function(vendor) {
     let ingIndex = searchIngredient(vendor['catalogue'],ingredient);
@@ -380,36 +381,31 @@ checkIfIngredientDeleted = function(name,code){
   var vendor;
   var findIngredient = Ingredient.findOne({name:name});
   var findVendor = Inventory.findOne({code:code});
+  var createIngredient = function(name, size, temp) {
+    return Ingredient.create({
+      name:name,
+      package:size,
+      temperature:temperature,
+      amount:0
+    });
+  }
   return new Promise(function(resolve, reject) {
     findVendor.then(function(seller) {
       vendor = seller;
       return findIngredient;
     }).then(function(ing) {
-      if(!ing){
+      if(ing == null){
         console.log("ingredient deleted");
         let ingIndex = searchIngredient(vendor['catalogue'],name.toLowerCase());
         let size = vendor['catalogue'][ingIndex]['package'];
         let temperature = vendor['catalogue'][ingIndex]['temp'];
-        Ingredient.create({
-          name:name,
-          package:size,
-          temperature:temperature,
-          amount:0
-        })
+        return createIngredient(name, size, temperature);
       }
-      return inv.save();
-    }).catch(function(err) {
-      var error = new Error('Couldn\'t update the inventory.');
-      error.status = 400;
-      reject(error);
+      resolve(ing);
     }).then(function(result) {
-      return ing.save();
-    }).catch(function(err) {
-      var error = new Error('Couldn\'t update the ingredient quantity');
-      error.status = 400;
+      resolve(result);
+    }).catch(function(error) {
       reject(error);
-    }).then(function(result) {
-      resolve(true);
     })
   })
 }
