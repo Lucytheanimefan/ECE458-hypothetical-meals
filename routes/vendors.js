@@ -380,12 +380,12 @@ checkFridge = function(name,amount) {
 checkIfIngredientDeleted = function(name,code){
   var vendor;
   var findIngredient = Ingredient.findOne({name:name});
-  var findVendor = Inventory.findOne({code:code});
+  var findVendor = Vendor.findOne({code:code});
   var createIngredient = function(name, size, temp) {
     return Ingredient.create({
       name:name,
       package:size,
-      temperature:temperature,
+      temperature:temp,
       amount:0
     });
   }
