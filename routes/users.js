@@ -1,7 +1,6 @@
 var express = require('express');
 var router = express.Router();
 var User = require('../models/user');
-var Cart = require('../models/cart');
 var Ingredient = require('../models/ingredient');
 var Inventory = require('../models/inventory');
 var Token = require('../models/token');

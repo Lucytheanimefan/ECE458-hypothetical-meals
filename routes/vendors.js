@@ -1,5 +1,6 @@
 var express = require('express');
 var router = express.Router();
+var User = require('../models/user');
 var Vendor = require('../models/vendor');
 var Inventory = require('../models/inventory');
 var Ingredient = require('../models/ingredient');
@@ -148,7 +149,7 @@ router.post('/:code/order', async function(req,res,next){
   let quantity = parseFloat(req.body.quantity);
   let ing = await queryIngredient(ingredient,next);
   if(checkFridge(ingredient,quantity,next)){
-    await Vendor.findOne({code: req.params.code}, function(err, vendor){
+    await Vendor.findOne({code: req.params.code}, async function(err, vendor){
     if (err) { return next(err); }
       let ingIndex = searchIngredient(vendor['catalogue'],ingredient);
       if(ingIndex == -1){
@@ -163,6 +164,30 @@ router.post('/:code/order', async function(req,res,next){
         entry['cost'] = vendor['catalogue'][ingIndex]['cost'];
         entry['number'] = parseFloat(req.body.quantity);
         vendor['history'].push(entry);
+        await User.findOne({ "_id": req.session.userId }, function(err, user) {
+          if (err) return next(err);
+          let report = user.report[0];
+          if (report === null | report === undefined) {
+            report = [];
+            report.push({});
+            report = report[0];
+          }
+          var cost = Number(entry['cost'])*Number(entry['number']);
+          if (ingredient in report) {
+            cost += report[ingredient];
+          }
+          report[ingredient] = cost;
+          User.findByIdAndUpdate({
+            _id: req.session.userId
+          }, {
+            $set: {
+              report: report
+            }
+          }, function(err, cart_instance) {
+            if (err) return next(err);
+            return res.redirect(req.baseUrl + '/');
+          });
+        });
       }
       vendor.save(function(err) {
         if (err) { return next(err); }
@@ -321,12 +346,12 @@ searchIngredient = function(list,ing){
 addIngredient = function(ingredientInfo, vendorCode) {
   return new Promise(function(resolve, reject) {
     var vendorQuery = Vendor.findOne({code: vendorCode});
-    var vendorRemove = Vendor.update({ code: vendorCode }, 
+    var vendorRemove = Vendor.update({ code: vendorCode },
         { '$pull': {
           'catalogue': {'ingredient': ingredientInfo.ingredient.toLowerCase() }
         }});
     var vendorUpdate = function(newEntry) {
-      return Vendor.findOneAndUpdate({code: vendorCode}, 
+      return Vendor.findOneAndUpdate({code: vendorCode},
         {$push: {catalogue: newEntry}});
     };
     var myEntry;

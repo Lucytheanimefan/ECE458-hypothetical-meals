@@ -24,15 +24,18 @@ var UserSchema = new mongoose.Schema({
     type: String,
     required: false,
   },
-  isVerified: { 
-    type: Boolean, 
-    default: false 
+  isVerified: {
+    type: Boolean,
+    default: false
   },
   role: {
     type: String, // "Admin" or "User"
     required: true,
   },
   cart: {
+    type: Array
+  },
+  report: {
     type: Array
   }
 });
