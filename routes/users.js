@@ -525,12 +525,7 @@ router.post('/checkout_cart', function(req, res, next) {
               production_report.push({});
             }
             production_report = production_report[0];
-
-            if (ingredient in report) {
-              production_report[ingredient] = report[ingredient];
-            } else {
-              production_report[ingredient] = 0;
-            }
+            production_report[ingredient] = (ingredient in report) ? report[ingredient] : 0;
           });
 
           delete cart[ingredient];
