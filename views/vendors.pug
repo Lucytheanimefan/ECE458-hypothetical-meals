@@ -1,5 +1,8 @@
 extends layout
 
+block css
+  link(href='/stylesheets/ingredients.css', rel='stylesheet')
+
 block link
   -var selected = 'Vendors';
 
@@ -7,20 +10,30 @@ block link
 
 block content
   #vendor-table
-    table.table
-      thead.text-primary
-        th Vendor
-        th Code
-        th Contact
-        th Location
-      tbody
-      each vendor in vendors
-        tr
-          th
-            a(href='/vendors/' + vendor.code)= vendor.name
-          th= vendor.code
-          th= vendor.contact
-          th= vendor.location.state
+  div.card
+    div.card-header(data-background-color='purple')
+      h4.title Vendors
+    div.card-content.table-response
+      table.table
+        thead.text-primary
+          th Vendor
+          th Code
+          th Contact
+          th Location
+        tbody
+        each vendor in vendors
+          tr
+            th
+              a(href='/vendors/' + vendor.code)= vendor.name
+            th= vendor.code
+            th= vendor.contact
+            th= vendor.location.state
+      div.previous
+        form(action='/vendors/' + (parseInt(page)-1).toString(), method='get')
+          button.btn.btn-white.btn-round.btn-just-icon(type='submit') Prev
+      div.next
+        form(action='/vendors/' + (parseInt(page)+1).toString(), method='get')
+          button.btn.btn-white.btn-round.btn-just-icon(type='submit') Next
   ul.nav.nav-tabs
     li.active.adminOnly.hide
       a(data-toggle='tab', href='#create_vendor') Create
