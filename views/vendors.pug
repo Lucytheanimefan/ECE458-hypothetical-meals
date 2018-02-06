@@ -29,10 +29,10 @@ block content
             th= vendor.contact
             th= vendor.location.state
       div.previous
-        form(action='/vendors/' + (parseInt(page)-1).toString(), method='get')
+        form(action='/vendors/home/' + (parseInt(page)-1).toString(), method='get')
           button.btn.btn-white.btn-round.btn-just-icon(type='submit') Prev
       div.next
-        form(action='/vendors/' + (parseInt(page)+1).toString(), method='get')
+        form(action='/vendors/home/' + (parseInt(page)+1).toString(), method='get')
           button.btn.btn-white.btn-round.btn-just-icon(type='submit') Next
   ul.nav.nav-tabs
     li.active.adminOnly.hide
