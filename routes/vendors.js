@@ -4,7 +4,6 @@ var Vendor = require('../models/vendor');
 var Inventory = require('../models/inventory');
 var Ingredient = require('../models/ingredient');
 var uniqid = require('uniqid')
-
 let packageTypes = ['sack', 'pail', 'drum', 'supersack', 'truckload', 'railcar'];
 let temperatures = ['frozen', 'refrigerated', 'room temperature'];
 
@@ -19,14 +18,17 @@ let weightMapping = {
 
 
 //GET request to show available ingredients
-router.get('/', function(req, res, next) {
-  Vendor.find({}, function(error, vendors) {
+router.get('/:page?', function(req, res, next) {
+  var perPage = 10;
+  var page = req.params.page || 1;
+  page = (page < 1) ? 1 : page;
+  Vendor.find({}, null, {skip: (perPage * page) - perPage, limit: perPage}, function(error, vendors) {
     if (error) {
       var err = new Error('Error searching for ' + req.params.name);
       err.status = 400;
       return next(err);
     } else {
-      res.render('vendors', { vendors: vendors, packages: packageTypes, temps: temperatures});
+      res.render('vendors', { vendors: vendors, packages: packageTypes, temps: temperatures, page: page });
     }
   })
 })
@@ -67,22 +69,11 @@ router.post('/:code/delete', function(req, res, next) {
 });
 
 router.post('/:code/add_ingredients', function(req,res,next){
-  Vendor.findOne({code:req.params.code}, function(err,vendor){
-    if (err) {
-      var error = new Error('Couldn\'t find that vendor.');
-      error.status = 400;
-      return next(error);
-    }
-    vendor.catalogue = genCatalogue(req.body,vendor.catalogue);
-    createIngredient(req.body);
-    vendor.save(function(err) {
-      if (err) {
-        var error = new Error('Couldn\'t update that vendor.');
-        error.status = 400;
-        return next(error);
-        }
-      });
-      return res.redirect(req.baseUrl + '/' + req.params.code);
+  createIngredient(req.body);
+  addIngredient(req.body, req.params.code).then(function(code){
+    res.redirect(req.baseUrl + '/' + req.params.code);
+  }).catch(function(error) {
+    next(error);
   })
 });
 
@@ -228,21 +219,21 @@ genLocation = function(data){
 genCatalogue = function(data,catalogue){
   var entry = {};
   let index = searchIngredient(catalogue,data.ingredient);
+  entry.ingredient = data.ingredient.toLowerCase();
+  entry.package=data.size.toLowerCase();
   if(index==-1){
-    entry.ingredient = data.ingredient.toLowerCase();
     entry.temp = data.temperature.toLowerCase();
     entry.cost=parseFloat(data.cost);
     entry.available=parseFloat(data.quantity);
-    entry.package=data.size.toLowerCase();
-    catalogue.push(entry);
-    return catalogue;
+    // catalogue.push(entry);
+    // return catalogue;
   }
   else{
-    catalogue[index].temp = data.temperature.toLowerCase();
-    catalogue[index].available = parseFloat(data.quantity);
-    catalogue[index].cost = parseFloat(data.cost);
+    entry.temp = data.temperature.toLowerCase();
+    entry.available = parseFloat(data.quantity);
+    entry.cost = parseFloat(data.cost);
   }
-  return catalogue;
+  return entry;
 
 }
 
@@ -258,7 +249,7 @@ updateCatalogue = function(data,catalogue){
 
 createIngredient = async function(data){
   await Ingredient.find({name:data.ingredient},function(err,ings){
-    if(ings.length==0){
+    if(ings.length == 0){
       Ingredient.create({
         name: data.ingredient,
         package: data.size,
@@ -288,6 +279,7 @@ checkFridge = async function(name,amount,next){
           if(space<amountInPounds){
             var error = new Error('There is not enough space in inventory for transaction');
             error.status = 400;
+            console.log("you can't do that!!!!");
             return(next(error));
           }
           inv.current[temp]+=diff;
@@ -322,4 +314,33 @@ searchIngredient = function(list,ing){
   return -1;
 }
 
+addIngredient = function(ingredientInfo, vendorCode) {
+  return new Promise(function(resolve, reject) {
+    var vendorQuery = Vendor.findOne({code: vendorCode});
+    var vendorRemove = Vendor.update({ code: vendorCode }, 
+        { '$pull': {
+          'catalogue': {'ingredient': ingredientInfo.ingredient.toLowerCase() }
+        }});
+    var vendorUpdate = function(newEntry) {
+      return Vendor.findOneAndUpdate({code: vendorCode}, 
+        {$push: {catalogue: newEntry}});
+    };
+    var myEntry;
+    vendorQuery.then(function(vendor) {
+      myEntry = genCatalogue(ingredientInfo,vendor.catalogue);
+      return vendorRemove.exec();
+    }).then(function(result) {
+      return vendorUpdate(myEntry).exec();
+    }).then(function(result) {
+      resolve(vendorCode);
+    }).catch(function(error) {
+      var error = new Error('Couldn\'t update that vendor.');
+      error.status = 400;
+      reject(error);
+    });
+  });
+}
+
+
 module.exports = router;
+module.exports.addIngredient = addIngredient;

@@ -1,4 +1,5 @@
 var express = require('express');
+var queryString = require('query-string');
 var router = express.Router();
 var Ingredient = require('../models/ingredient');
 var Inventory = require('../models/inventory');
@@ -20,32 +21,37 @@ let weightMapping = {
 
 //GET request to show available ingredients
 router.get('/', function(req, res, next) {
-  var query = Ingredient.find();
-  query.then(function(ings) {
-    res.render('ingredients', { ingredients: ings, packages: packageTypes, temps: temperatures });
-  }).catch(function(error) {
-    var err = new Error('Error searching for ' + req.params.name);
-    err.status = 400;
-    next(err);
-  });
+  res.redirect(req.baseUrl + '/search_results/');
 })
 
-router.get('/search_results', function(req, res, next) {
+router.get('/search_results/:page?/:search?', function(req, res, next) {
   var query = Ingredient.find();
-  if (req.query.name != null) {
-    var name = req.query.name;
+  var searchString = req.params.search;
+  var searchQuery = (searchString == null) ? req.query : queryString.parse(searchString);
+  if (searchQuery.name != null) {
+    var name = searchQuery.name;
     var search = '.*' + name + '.*'
-    query.where({name: new RegExp(search, "i")});
+    query.where({name: new RegExp(search, 'i')});
   }
-  if (req.query.package != null) {
-    query.where('package').in(req.query.package.toLowerCase());
+  if (searchQuery.package != null) {
+    query.where('package').in(searchQuery.package);
   }
-  if (req.query.temperature != null) {
-    query.where('temperature').in(req.query.temperature.toLowerCase());
+  if (searchQuery.temperature != null) {
+    query.where('temperature').in(searchQuery.temperature);
   }
+  var perPage = 10;
+  var page = req.params.page || 1;
+  page = (page < 1) ? 1 : page;
+  query.skip((perPage * page) - perPage).limit(perPage);
+  
+  searchString = queryString.stringify(searchQuery);
   query.then(function(ings) {
-    res.render('ingredients', { ingredients: ings, packages: packageTypes, temps: temperatures });
+    if (ings.length == 0) {
+      page = page - 1;
+    }
+    res.render('ingredients', { ingredients: ings, packages: packageTypes, temps: temperatures, searchQuery: searchString, page: page });
   }).catch(function(error) {
+    console.log(error);
     var err = new Error('Error during search');
     err.status = 400;
     return next(err);
@@ -56,9 +62,12 @@ router.get('/:name', function(req, res, next) {
   res.redirect(req.baseUrl + '/' + req.params.name + '/0');
 })
 
-router.get('/:name/:amt', function(req, res, next) {
+router.get('/:name/:amt/:page?', function(req, res, next) {
   var ingQuery = Ingredient.findOne({ name: req.params.name });
-  var venderQuery = Vendor.find({ 'catalogue.ingredient': req.params.name });
+  var perPage = 10;
+  var page = req.params.page || 1;
+  page = (page < 1) ? 1 : page;
+  var venderQuery = Vendor.find({ 'catalogue.ingredient': req.params.name }).skip((perPage * page) - perPage).limit(perPage);
   var ingredient;
   ingQuery.then(function(ing) {
     if (ing == null) {
@@ -71,7 +80,7 @@ router.get('/:name/:amt', function(req, res, next) {
   }).then(function(vendors) {
     return createCatalogue(vendors, req.params.name);
   }).then(function(catalogue) {
-    res.render('ingredient', { ingredient: ingredient, packages: packageTypes, temps: temperatures, vendors: catalogue , amount: req.params.amt});
+    res.render('ingredient', { ingredient: ingredient, packages: packageTypes, temps: temperatures, vendors: catalogue, page: page, amount: req.params.amt});
   }).catch(function(error) {
     next(error)
   });
@@ -80,9 +89,25 @@ router.get('/:name/:amt', function(req, res, next) {
 //POST request to delete an existing ingredient
 router.post('/:name/delete', function(req, res, next) {
   var query = Ingredient.findOneAndRemove({ name: req.params.name })
+  var inventoryUpdate = function(result) {
+    var temperature = result['temperature'].toLowerCase().split(" ")[0];
+    var decrementObject = {};
+    var field = 'current.' + temperature;
+    decrementObject[field] = -result['amount'];
+    return Inventory.findOneAndUpdate({type: 'master'}, 
+      { $inc: decrementObject }
+    );
+  }
   query.then(function(result) {
+    if(result['package']!=="railcar" && result['package']!=="truckload"){
+      return inventoryUpdate(result);
+    } else {
+      res.redirect(req.baseUrl);
+    }
+  }).then(function(result) {
     res.redirect(req.baseUrl);
   }).catch(function(error) {
+    console.log(error);
     var err = new Error('Couldn\'t delete that ingredient.');
     err.status = 400;
     next(err);
@@ -94,6 +119,7 @@ router.post('/:name/update', function(req, res, next) {
   let ingName = req.body.name.toLowerCase();
 
   var invDb;
+  var ingDb;
   var findInventory = Inventory.findOne({type: "master"});
   var findIngredient = Ingredient.findOne({name:req.params.name});
 
@@ -109,14 +135,23 @@ router.post('/:name/update', function(req, res, next) {
     invDb = inv;
     return findIngredient;
   }).then(function(ing) {
+    ingDb = ing;
     let currIndTemp = ing['temperature'].toLowerCase().split(" ")[0];
     let currAmount = parseFloat(ing['amount']);
-    invDb['current'][currIndTemp]-=currAmount;
+    if(ing['package']!=="railcar" && ing['package']!=="truckload"){
+      invDb['current'][currIndTemp]-=currAmount;
+    }
     return invDb;
   }).then(function(db) {
     let newIndTemp = req.body.temperature.toLowerCase().split(" ")[0];
     let newAmount = parseFloat(req.body.amount);
-    invDb['current'][newIndTemp]+=newAmount;
+    if(req.body.package.toLowerCase()!=="railcar" && req.body.package.toLowerCase()!=="truckload"){
+      invDb['current'][newIndTemp]+=newAmount;
+    }
+    if(invDb['current'][newIndTemp]>invDb['limits'][newIndTemp]){
+      invDb['current'][currIndTemp]+=currAmount;
+      invDb['current'][newIndTemp]-=newAmount;
+    }
     return invDb.save();
   }).catch(function(error) {
     var error = new Error('Couldn\'t update the inventory.');
@@ -143,7 +178,19 @@ router.post('/new', function(req, res, next) {
     temperature: req.body.temperature.toLowerCase(),
     amount: req.body.amount
   });
-  promise.then(function(instance) {
+  promise.then(async function(instance) {
+    await Inventory.findOne({type:"master"},function(err,inv){
+      if(err){return next(err);}
+      if(req.body.package.toLowerCase()!== "truckload" && req.body.package.toLowerCase()!== "railcar"){
+        inv['current'][req.body.temperature.toLowerCase().split(" ")[0]]+=parseFloat(req.body.amount);
+      }
+      if(inv['current'][req.body.temperature.toLowerCase().split(" ")[0]] > inv['limits'][req.body.temperature.toLowerCase().split(" ")[0]]){
+        instance['amount']=0;
+        inv['current'][req.body.temperature.toLowerCase().split(" ")[0]]-=parseFloat(req.body.amount);
+      }
+      inv.save();
+      instance.save();
+    })
     res.redirect(req.baseUrl + '/' + ingName);
   }).catch(function(error) {
     next(error);

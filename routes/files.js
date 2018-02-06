@@ -1,13 +1,17 @@
 var express = require('express');
 var router = express.Router();
-var csvparse = require('csv-parse');
+// var csvparse = require('csv-parse');
 var async = require('async');
 var Ingredient = require('../models/ingredient');
+var vendors = require('../routes/vendors');
 
 const fs = require('fs');
 const formidable = require('formidable')
 const path = require('path')
 const uploadDir = path.join(__dirname, '/..', '/uploads/')
+
+var PromiseBlue = require('bluebird');
+var parse = PromiseBlue.promisify(require('csv-parse'));
 
 
 router.get('/', function(req, res) {
@@ -48,92 +52,18 @@ router.post('/upload', function(req, res, next) {
     let filepath = files.file.path;
     console.log('File path: ' + filepath);
 
-    var ingIndex;
-    var packageIndex;
-    var tempIndex;
-    var amountIndex;
-
     if (error) {
       return true;
     }
-    parseFile(filepath, async function(index, csvRow) {
-      //let csvRow = CSVtoArray(line);//line[0].split(',');
 
-      console.log(csvRow.length);
-      console.log(csvRow);
-      console.log('-----------');
+    var file = fs.readFileSync(filepath, 'utf8')
 
-      // Check the headers
-      if (index === 0) {
-        if (!validHeaders(csvRow)) {
-          let err = new Error('Error reading CSV. Headers are in invalid format.');
-          err.status = 400;
-          return next(err);
-        }
-        ingIndex = csvRow.indexOf('INGREDIENT');
-        packageIndex = csvRow.indexOf('PACKAGE');
-        tempIndex = csvRow.indexOf('TEMPERATURE');
-        amountIndex = csvRow.indexOf('AMOUNT (LBS)');
-      } else {
-
-        let validDataRowData = validDataRow(csvRow);
-        let isValid = validDataRowData['valid'];
-        let reason = validDataRowData['reason'];
-        if (!isValid) {
-          let err = new Error('Error reading CSV. Row #' + index + ' contains formatting errors. ' + reason);
-          err.status = 400;
-          return next(err);
-        }
-        // Create/Update the ingredient
-        // var createIngredient;
-        // await Ingredient.findOne({name: csvRow[ingIndex]}, function(error, ing) {
-        //   if (error) {
-        //     var err = new Error('Error searching for ' + csvRow[ingIndex]);
-        //     err.status = 400;
-        //     return next(err);
-        //   } else {
-        //     createIngredient = (ing == null);
-        //   }
-        // });
-        // if (createIngredient) {
-        //   console.log('Creating ingredient');
-        //   await Ingredient.create({
-        //     name: csvRow[ingIndex],
-        //     package: csvRow[packageIndex],
-        //     temperature: csvRow[tempIndex],
-        //     amount: parseInt(csvRow[amountIndex])
-        //   }, function(error, result) {
-        //     if (error) {
-        //       var err = new Error('Error creating ingredient ' + csvRow[ingIndex]);
-        //       err.status = 400;
-        //       return next(err);
-        //     }
-        //   });
-        // } else {
-        //   console.log('Updating ingredient');
-        //   await Ingredient.findOneAndUpdate({ name: csvRow[ingIndex] }, {
-        //       $inc: {
-        //         amount: parseInt(csvRow[amountIndex])
-        //       }
-        //     }, function (error, result) {
-        //       if (error) {
-        //         var err = new Error('Couldn\'t update that ingredient.');
-        //         err.status = 400;
-        //         return next(err);
-        //       }
-        //     });
-        // }
-        // NOTE: Columns may not necessarily be in the same order as specified in validHeaders array below (line 79 ish).
-
-        // TODO: Update the vendor
-
-        console.log('All good!');
-        return next();
-
-
-      }
+    parseFile(file).then(function(csvData) {
+      res.redirect(req.baseUrl);
+    }).catch(function(error) {
+      next(error);
     });
-    //res.status(200).json({ uploaded: true });
+
   })
   form.on('fileBegin', function(name, file) {
     const [fileName, fileExt] = file.name.split('.');
@@ -203,24 +133,85 @@ CSVtoArray = function(text) {
   return a;
 };
 
-parseFile = function(filename, callback) {
-  var csvData = [];
-  var index = 0;
-  fs.createReadStream(filename)
-    .pipe(csvparse({ delimiter: ',' }))
-    .on('data', function(csvrow) {
-      //console.log(csvrow);
-      //do something with csvrow
-      callback(index, csvrow);
+addToDatabase = function(index, csvRow, header) {
+  return new Promise(function(resolve, reject) {
+    console.log(csvRow.length);
+    console.log(csvRow);
+    console.log('-----------');
 
-      csvData.push(csvrow);
+    let ingIndex = header.indexOf('INGREDIENT');
+    let packageIndex = header.indexOf('PACKAGE');
+    let tempIndex = header.indexOf('TEMPERATURE');
+    let amountIndex = header.indexOf('AMOUNT (LBS)');
+    let codeIndex = header.indexOf('VENDOR FREIGHT CODE');
+    let costIndex = header.indexOf('PRICE PER PACKAGE');
 
-      index += 1;
-    })
-    .on('end', function() {
-      //do something wiht csvData
-      console.log(csvData);
+    let validDataRowData = validDataRow(csvRow);
+    let isValid = validDataRowData['valid'];
+    let reason = validDataRowData['reason'];
+    if (!isValid) {
+      let err = new Error('Error reading CSV. Row #' + index + ' contains formatting errors. ' + reason);
+      err.status = 400;
+      reject(err);
+    }
+
+    var ingredient = {};
+    ingredient.ingredient = csvRow[ingIndex];
+    ingredient.size = csvRow[packageIndex];
+    ingredient.temperature = csvRow[tempIndex];
+    ingredient.cost = csvRow[costIndex];
+    ingredient.code = csvRow[codeIndex];
+    ingredient.quantity = csvRow[amountIndex];
+
+    var addIngredient = vendors.addIngredient(ingredient, csvRow[codeIndex]);
+    var createIngredient = Ingredient.create({
+      name: csvRow[ingIndex].toLowerCase(),
+      package: csvRow[packageIndex].toLowerCase(),
+      temperature: csvRow[tempIndex].toLowerCase(),
+      amount: 0
     });
+
+    createIngredient.then(function(ing) {
+      return addIngredient;
+    }).then(function(result) {
+      resolve(csvRow);
+    }).catch(function(error) {
+      if (error.name === 'MongoError' && error.code === 11000) {
+        resolve(csvRow);
+      } else {
+        reject(error);
+      }
+    });
+
+  });
+}
+
+parseFile = function(file, next) {
+  return new Promise(function(resolve, reject) {
+    var headerKeys;
+    var options = {
+      trim: true,
+      columns: function(header) {
+        headerKeys = header;
+        console.log('header: ', header);
+        if (!validHeaders(headerKeys)) {
+          let err = new Error('Error reading CSV. Headers are in invalid format.');
+          err.status = 400;
+          reject(err);
+        }
+      }
+    };
+
+    parse(file, options).then(function(rows) {
+      return Promise.all(rows.map(function(row, index) {
+        return addToDatabase(index, row, headerKeys);
+      }))
+    }).then(function(csvData) {
+      resolve(csvData);
+    }).catch(function(error) {
+      reject(error);
+    });
+  });
 }
 
 module.exports = router;

@@ -1,6 +1,5 @@
 var mongoose = require('mongoose');
 
-
 var IngredientSchema = new mongoose.Schema({
   name: {
     type: String,
@@ -23,7 +22,7 @@ var IngredientSchema = new mongoose.Schema({
     type: Number,
     required: true
   }
-})
+});
 
 
 var Ingredient = mongoose.model('Ingredient', IngredientSchema);
