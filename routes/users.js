@@ -1,7 +1,6 @@
 var express = require('express');
 var router = express.Router();
 var User = require('../models/user');
-var Cart = require('../models/cart');
 var Ingredient = require('../models/ingredient');
 var Inventory = require('../models/inventory');
 var Token = require('../models/token');
@@ -470,6 +469,7 @@ router.post('/checkout_cart', function(req, res, next) {
         if (err) return next(err);
 
         var cart = user.cart[0];
+        var production_report;
         for (ingredient in cart) {
           var ingObj;
           /*await Ingredient.findOne({ name: ingredient }, function(err, instance) {
@@ -509,6 +509,25 @@ router.post('/checkout_cart', function(req, res, next) {
             if (err) return next(err);
           });
 
+          await User.findOne({ "_id": req.session.userId }, function(err, user) {
+            if (err) return next(err);
+
+            let report = user.report[0];
+            if (report === null | report === undefined) {
+              report = [];
+              report.push({});
+              report = report[0];
+            }
+
+            production_report = user.production_report;
+            if (production_report === null | production_report === undefined) {
+              production_report = [];
+              production_report.push({});
+            }
+            production_report = production_report[0];
+            production_report[ingredient] = (ingredient in report) ? report[ingredient] : 0;
+          });
+
           delete cart[ingredient];
         }
 
@@ -516,12 +535,57 @@ router.post('/checkout_cart', function(req, res, next) {
           _id: req.session.userId
         }, {
           $set: {
-            cart: cart
+            cart: cart,
+            production_report: production_report
           }
         }, function(err, cart_instance) {
           if (err) return next(err);
           return res.redirect(req.baseUrl + '/cart');
         });
+      });
+    }
+  });
+});
+
+router.get('/report', function(req, res, next) {
+  User.count({ _id: req.session.userId }, function(err, count) {
+    if (err) return next(err);
+
+    if (count > 0) {
+      User.findById(req.session.userId, function(err, user) {
+        if (err) return next(err);
+
+        let report = user.report[0];
+        var ingredients = [];
+
+        for (ingredient in report) {
+          ingredients.push({ "ingredient": ingredient, "cost": report[ingredient] });
+        }
+
+        ingredients = underscore.sortBy(ingredients, "ingredient");
+        return res.render('report', { ingredients });
+      });
+    }
+  });
+});
+
+router.get('/production_report', function(req, res, next) {
+  User.count({ _id: req.session.userId }, function(err, count) {
+    if (err) return next(err);
+
+    if (count > 0) {
+      User.findById(req.session.userId, function(err, user) {
+        if (err) return next(err);
+
+        let report = user.production_report[0];
+        var ingredients = [];
+
+        for (ingredient in report) {
+          ingredients.push({ "ingredient": ingredient, "cost": report[ingredient] });
+        }
+
+        ingredients = underscore.sortBy(ingredients, "ingredient");
+        return res.render('report', { ingredients });
       });
     }
   });
