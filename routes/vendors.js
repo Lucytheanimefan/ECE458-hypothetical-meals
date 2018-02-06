@@ -17,8 +17,12 @@ let weightMapping = {
 }
 
 
+router.get('/', function(req, res, next) {
+  res.redirect(req.baseUrl + '/home/');
+})
+
 //GET request to show available ingredients
-router.get('/:page?', function(req, res, next) {
+router.get('/home/:page?', function(req, res, next) {
   var perPage = 10;
   var page = req.params.page || 1;
   page = (page < 1) ? 1 : page;
