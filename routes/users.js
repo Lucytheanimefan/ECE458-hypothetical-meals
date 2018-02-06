@@ -343,22 +343,33 @@ router.get('/cart', function(req, res, next) {
     if (err) return next(err);
 
     if (count > 0) {
-      User.findById(req.session.userId, function(err, user) {
+      User.findById(req.session.userId, async function(err, user) {
         if (err) return next(err);
 
         console.log(user.cart);
-        let cart = user.cart[0]; //["cart"][0];
+        let cart = user.cart[0];
         var ingredients = [];
 
-        console.log('Cart');
-        console.log(cart);
         for (ingredient in cart) {
+          await Ingredient.find({ name: ingredient }, function(err, instance) {
+            if (err) return next(err);
+            var amount = instance[0].amount;
+            if (amount < cart[ingredient]) {
+              cart[ingredient] = amount;
+            }
+          });
           ingredients.push({ "ingredient": ingredient, "quantity": cart[ingredient] });
         }
-        // for (ingredient in cart) {
-        //   var quantity = cart[ingredient];
-        //   ingredients.push({ "ingredient": ingredient, "quantity": quantity });
-        // }
+
+        await User.findByIdAndUpdate({
+          _id: req.session.userId
+        }, {
+          $set: {
+            cart: cart
+          }
+        }, function(err, cart_instance) {
+          if (err) return next(err);
+        });
 
         ingredients = underscore.sortBy(ingredients, "ingredient");
         return res.render('cart', { ingredients });
