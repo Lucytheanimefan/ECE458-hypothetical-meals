@@ -391,14 +391,12 @@ router.post('/add_to_cart', function(req, res, next) {
         if (err) return next(err);
         var cart;
 
-        cart = user.cart[0];
-
-        if (cart === null | cart === undefined) {
+        cart = user.cart;
+        if (cart === null | cart === undefined | Array.isArray(cart) & cart.length == 0) {
           cart = [];
           cart.push({});
-          cart = cart[0];
         }
-
+        cart = cart[0];
         /*if (ingredient in cart) {
           quantity += Number(cart[ingredient]);
         }*/
@@ -523,15 +521,15 @@ router.post('/checkout_cart', function(req, res, next) {
           await User.findOne({ "_id": req.session.userId }, function(err, user) {
             if (err) return next(err);
 
-            let report = user.report[0];
-            if (report === null | report === undefined) {
+            let report = user.report;
+            if (report === null | report === undefined | Array.isArray(report) & report.length == 0) {
               report = [];
               report.push({});
-              report = report[0];
             }
+            report = report[0];
 
             production_report = user.production_report;
-            if (production_report === null | production_report === undefined) {
+            if (production_report === null | production_report === undefined | Array.isArray(production_report) & production_report.length == 0) {
               production_report = [];
               production_report.push({});
             }

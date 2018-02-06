@@ -166,12 +166,12 @@ router.post('/:code/order', async function(req,res,next){
         vendor['history'].push(entry);
         await User.findOne({ "_id": req.session.userId }, function(err, user) {
           if (err) return next(err);
-          let report = user.report[0];
-          if (report === null | report === undefined) {
+          let report = user.report;
+          if (report === null | report === undefined | Array.isArray(report) & report.length == 0) {
             report = [];
             report.push({});
-            report = report[0];
           }
+          report = report[0];
           var cost = Number(entry['cost'])*Number(entry['number']);
           if (ingredient in report) {
             cost += report[ingredient];
