@@ -252,20 +252,21 @@ updateCatalogue = function(data,catalogue){
 }
 
 createIngredient = async function(data){
+  var ings;
   await Ingredient.find({name:data.ingredient},function(err,ings){
-    if(ings.length == 0){
-      Ingredient.create({
-        name: data.ingredient,
-        package: data.size,
-        temperature: data.temperature.toLowerCase(),
-        amount: 0
-      }, function (error, newInstance) {
-        if (error) {
-          return error;
-        }
-      });
-    }
   });
+  if(ings.length == 0){
+    Ingredient.create({
+      name: data.ingredient,
+      package: data.size,
+      temperature: data.temperature.toLowerCase(),
+      amount: 0
+    }, function (error, newInstance) {
+      if (error) {
+        return error;
+      }
+    });
+  }
 }
 
 checkFridge = async function(name,amount,next){
