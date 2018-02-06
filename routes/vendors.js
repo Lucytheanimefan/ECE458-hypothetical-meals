@@ -1,5 +1,6 @@
 var express = require('express');
 var router = express.Router();
+var User = require('../models/user');
 var Vendor = require('../models/vendor');
 var Inventory = require('../models/inventory');
 var Ingredient = require('../models/ingredient');
@@ -152,7 +153,7 @@ router.post('/:code/order', async function(req,res,next){
     return checkFridge(ingredient,quantity,req.params.code);
   }).then(function(canOrder) {
     return findVendor;
-  }).then(function(vendor) {
+  }).then(async function(vendor) {
     let ingIndex = searchIngredient(vendor['catalogue'],ingredient);
     if(ingIndex == -1){
       var err = new Error('Ingredient not found ');
@@ -166,6 +167,29 @@ router.post('/:code/order', async function(req,res,next){
       entry['cost'] = vendor['catalogue'][ingIndex]['cost'];
       entry['number'] = parseFloat(req.body.quantity);
       vendor['history'].push(entry);
+      await User.findOne({ "_id": req.session.userId }, function(err, user) {
+        if (err) return next(err);
+        let report = user.report;
+        if (report === null | report === undefined | Array.isArray(report) & report.length == 0) {
+          report = [];
+          report.push({});
+        }
+        report = report[0];
+        var cost = Number(entry['cost'])*Number(entry['number']);
+        if (ingredient in report) {
+          cost += report[ingredient];
+        }
+        report[ingredient] = cost;
+        User.findByIdAndUpdate({
+          _id: req.session.userId
+        }, {
+          $set: {
+            report: report
+          }
+        }, function(err, cart_instance) {
+          if (err) return next(err);
+        });
+      });
     }else{
       var err = new Error('Quantity exceeds vendor inventory.');
       err.status = 400;

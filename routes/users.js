@@ -1,7 +1,6 @@
 var express = require('express');
 var router = express.Router();
 var User = require('../models/user');
-var Cart = require('../models/cart');
 var Ingredient = require('../models/ingredient');
 var Inventory = require('../models/inventory');
 var Token = require('../models/token');
@@ -344,22 +343,33 @@ router.get('/cart', function(req, res, next) {
     if (err) return next(err);
 
     if (count > 0) {
-      User.findById(req.session.userId, function(err, user) {
+      User.findById(req.session.userId, async function(err, user) {
         if (err) return next(err);
 
         console.log(user.cart);
-        let cart = user.cart[0]; //["cart"][0];
+        let cart = user.cart[0];
         var ingredients = [];
 
-        console.log('Cart');
-        console.log(cart);
         for (ingredient in cart) {
+          await Ingredient.find({ name: ingredient }, function(err, instance) {
+            if (err) return next(err);
+            var amount = instance[0].amount;
+            if (amount < cart[ingredient]) {
+              cart[ingredient] = amount;
+            }
+          });
           ingredients.push({ "ingredient": ingredient, "quantity": cart[ingredient] });
         }
-        // for (ingredient in cart) {
-        //   var quantity = cart[ingredient];
-        //   ingredients.push({ "ingredient": ingredient, "quantity": quantity });
-        // }
+
+        await User.findByIdAndUpdate({
+          _id: req.session.userId
+        }, {
+          $set: {
+            cart: cart
+          }
+        }, function(err, cart_instance) {
+          if (err) return next(err);
+        });
 
         ingredients = underscore.sortBy(ingredients, "ingredient");
         return res.render('cart', { ingredients });
@@ -381,14 +391,12 @@ router.post('/add_to_cart', function(req, res, next) {
         if (err) return next(err);
         var cart;
 
-        cart = user.cart[0];
-
-        if (cart === null | cart === undefined) {
+        cart = user.cart;
+        if (cart === null | cart === undefined | Array.isArray(cart) & cart.length == 0) {
           cart = [];
           cart.push({});
-          cart = cart[0];
         }
-
+        cart = cart[0];
         /*if (ingredient in cart) {
           quantity += Number(cart[ingredient]);
         }*/
@@ -470,6 +478,7 @@ router.post('/checkout_cart', function(req, res, next) {
         if (err) return next(err);
 
         var cart = user.cart[0];
+        var production_report;
         for (ingredient in cart) {
           var ingObj;
           /*await Ingredient.findOne({ name: ingredient }, function(err, instance) {
@@ -509,6 +518,25 @@ router.post('/checkout_cart', function(req, res, next) {
             if (err) return next(err);
           });
 
+          await User.findOne({ "_id": req.session.userId }, function(err, user) {
+            if (err) return next(err);
+
+            let report = user.report;
+            if (report === null | report === undefined | Array.isArray(report) & report.length == 0) {
+              report = [];
+              report.push({});
+            }
+            report = report[0];
+
+            production_report = user.production_report;
+            if (production_report === null | production_report === undefined | Array.isArray(production_report) & production_report.length == 0) {
+              production_report = [];
+              production_report.push({});
+            }
+            production_report = production_report[0];
+            production_report[ingredient] = (ingredient in report) ? report[ingredient] : 0;
+          });
+
           delete cart[ingredient];
         }
 
@@ -516,12 +544,57 @@ router.post('/checkout_cart', function(req, res, next) {
           _id: req.session.userId
         }, {
           $set: {
-            cart: cart
+            cart: cart,
+            production_report: production_report
           }
         }, function(err, cart_instance) {
           if (err) return next(err);
           return res.redirect(req.baseUrl + '/cart');
         });
+      });
+    }
+  });
+});
+
+router.get('/report', function(req, res, next) {
+  User.count({ _id: req.session.userId }, function(err, count) {
+    if (err) return next(err);
+
+    if (count > 0) {
+      User.findById(req.session.userId, function(err, user) {
+        if (err) return next(err);
+
+        let report = user.report[0];
+        var ingredients = [];
+
+        for (ingredient in report) {
+          ingredients.push({ "ingredient": ingredient, "cost": report[ingredient] });
+        }
+
+        ingredients = underscore.sortBy(ingredients, "ingredient");
+        return res.render('report', { ingredients });
+      });
+    }
+  });
+});
+
+router.get('/production_report', function(req, res, next) {
+  User.count({ _id: req.session.userId }, function(err, count) {
+    if (err) return next(err);
+
+    if (count > 0) {
+      User.findById(req.session.userId, function(err, user) {
+        if (err) return next(err);
+
+        let report = user.production_report[0];
+        var ingredients = [];
+
+        for (ingredient in report) {
+          ingredients.push({ "ingredient": ingredient, "cost": report[ingredient] });
+        }
+
+        ingredients = underscore.sortBy(ingredients, "ingredient");
+        return res.render('report', { ingredients });
       });
     }
   });

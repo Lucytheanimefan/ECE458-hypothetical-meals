@@ -161,11 +161,11 @@ addToDatabase = function(index, csvRow, header) {
     ingredient.temperature = csvRow[tempIndex];
     ingredient.cost = csvRow[costIndex];
     ingredient.code = csvRow[codeIndex];
-    ingredient.quantity = csvRow[amountIndex];
+    ingredient.quantity = 0;
 
     var addIngredient = vendors.addIngredient(ingredient, csvRow[codeIndex]);
     var createIngredient = Ingredient.create({
-      name: csvRow[ingIndex].toLowerCase(),
+      name: csvRow[ingIndex],
       package: csvRow[packageIndex].toLowerCase(),
       temperature: csvRow[tempIndex].toLowerCase(),
       amount: 0
