@@ -558,8 +558,9 @@ router.post('/checkout_cart', function(req, res, next) {
           }
         }, function(err, cart_instance) {
           if (err) return next(err);
-          return res.redirect(req.baseUrl + '/report');
         });
+
+        return res.redirect(req.baseUrl + '/report');
       });
     }
   });
