@@ -37,6 +37,7 @@
     "pug": "2.0.0-beta11",
     "query-string": "^5.1.0",
     "serve-favicon": "~2.4.5",
+    "simple-oauth2": "^1.5.0",
     "underscore": "^1.8.3",
     "uniqid": "^4.1.1"
   },
