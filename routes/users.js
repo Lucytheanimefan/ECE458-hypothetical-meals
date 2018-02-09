@@ -484,6 +484,18 @@ router.post('/checkout_cart', function(req, res, next) {
 
         var cart = user.cart[0];
         var production_report;
+
+        await User.findOne({ "_id": req.session.userId }, function(err, user) {
+          if (err) return next(err);
+
+          production_report = user.production_report;
+          if (production_report === null | production_report === undefined | production_report == []) {
+            production_report = [];
+            production_report.push({});
+          }
+          production_report = production_report[0];
+        });
+
         for (ingredient in cart) {
           var ingObj;
 
@@ -524,20 +536,13 @@ router.post('/checkout_cart', function(req, res, next) {
               report.push({});
             }
             report = report[0];
-            production_report = user.production_report;
-            if (production_report === null | production_report === undefined | production_report == []) {
-              production_report = [];
-              production_report.push({});
-            }
-            production_report = production_report[0];
+
             var new_cost = (ingredient in report) ? report[ingredient] : 0;
             production_report[ingredient] = new_cost;
-            console.log(production_report);
           });
           delete cart[ingredient];
         }
-        console.log("again")
-        console.log(production_report);
+
         await inventories.save(function(err){
           if (err) return next(err);
         });
@@ -551,7 +556,7 @@ router.post('/checkout_cart', function(req, res, next) {
           }
         }, function(err, cart_instance) {
           if (err) return next(err);
-          return res.redirect(req.baseUrl + '/');
+          res.redirect(req.baseUrl + '/');
         });
       });
     }
