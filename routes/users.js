@@ -543,9 +543,11 @@ router.post('/checkout_cart', function(req, res, next) {
           delete cart[ingredient];
         }
 
-        await inventories.save(function(err){
-          if (err) return next(err);
-        });
+        if (inventories != undefined) {
+          await inventories.save(function(err){
+            if (err) return next(err);
+          });
+        }
 
         await User.findByIdAndUpdate({
           _id: req.session.userId
@@ -556,7 +558,7 @@ router.post('/checkout_cart', function(req, res, next) {
           }
         }, function(err, cart_instance) {
           if (err) return next(err);
-          res.redirect(req.baseUrl + '/');
+          return res.redirect(req.baseUrl + '/report');
         });
       });
     }
@@ -564,7 +566,7 @@ router.post('/checkout_cart', function(req, res, next) {
 });
 
 router.get('/report/:page?', function(req, res, next) {
-  var perPage = 5;
+  var perPage = 10;
   var page = req.params.page || 1;
   page = (page < 1) ? 1 : page;
 
@@ -602,7 +604,7 @@ router.get('/report/:page?', function(req, res, next) {
 });
 
 router.get('/production_report/:page?', function(req, res, next) {
-  var perPage = 5;
+  var perPage = 10;
   var page = req.params.page || 1;
   page = (page < 1) ? 1 : page;
 
