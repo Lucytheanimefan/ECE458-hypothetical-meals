@@ -481,22 +481,31 @@ router.post('/checkout_cart', function(req, res, next) {
         var production_report;
         for (ingredient in cart) {
           var ingObj;
-          /*await Ingredient.findOne({ name: ingredient }, function(err, instance) {
-            if (err) { return next(err); }
-            ingObj = instance;
-          })*/
+
           var quantity = cart[ingredient];
           var amount;
+          var inventories;
+          var ingQuery = Ingredient.findOne({ name: ingredient });
+          var invQuery = Inventory.findOne({ type:"master" });
+          invQuery.then(function(invs){
+            inventories = invs;
+            return ingQuery;
+          }).then(function(ings,invs){
+            let temp = ings['temperature'].split(" ")[0];
+            inventories['current'][temp]-=parseInt(quantity);
+            console.log(ings['name']);
+            console.log(quantity);
+          });
           //console.log("ingObj: " + ingObj);
           //let degrees = ingObj.temperature.split(" ")[0];
 
           await Ingredient.find({ name: ingredient }, function(err, instance) {
             if (err) return next(err);
-            console.log("ingredient " + ingredient);
-            console.log("instance " + instance[0]);
+            //console.log("ingredient " + ingredient);
+            //console.log("instance " + instance[0]);
             amount = Number(instance[0].amount);
           });
-          console.log(amount);
+          //console.log(amount);
           amount = amount - quantity;
           /*console.log(invdb.current[degrees]);
           invdb.current[degrees] -= amount;
@@ -529,7 +538,7 @@ router.post('/checkout_cart', function(req, res, next) {
             report = report[0];
 
             production_report = user.production_report;
-            if (production_report === null | production_report === undefined | Array.isArray(production_report) & production_report.length == 0) {
+            if (production_report === null | production_report === undefined | production_report == []) {
               production_report = [];
               production_report.push({});
             }
@@ -539,6 +548,9 @@ router.post('/checkout_cart', function(req, res, next) {
 
           delete cart[ingredient];
         }
+        inventories.save(function(err){
+          return next(err);
+        });
 
         await User.findByIdAndUpdate({
           _id: req.session.userId
@@ -551,6 +563,7 @@ router.post('/checkout_cart', function(req, res, next) {
           if (err) return next(err);
           return res.redirect(req.baseUrl + '/cart');
         });
+
       });
     }
   });
