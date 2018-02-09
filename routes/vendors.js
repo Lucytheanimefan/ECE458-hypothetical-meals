@@ -7,6 +7,7 @@ var Ingredient = require('../models/ingredient');
 var uniqid = require('uniqid')
 let packageTypes = ['sack', 'pail', 'drum', 'supersack', 'truckload', 'railcar'];
 let temperatures = ['frozen', 'refrigerated', 'room temperature'];
+let pageSize = 10;
 
 let weightMapping = {
   sack:50,
@@ -37,7 +38,7 @@ router.get('/home/:page?', function(req, res, next) {
     }
   })
 })
-router.get('/:code', async function(req, res, next) {
+router.get('/:code/:page?', async function(req, res, next) {
   await Vendor.findOne({code: req.params.code}, function(error, ing) {
     if (ing == null) {
       var err = new Error('That vendor doesn\'t exist!');
@@ -48,13 +49,17 @@ router.get('/:code', async function(req, res, next) {
       err.status = 400;
       return next(err);
     } else {
-      let menu = ing.catalogue;
+      var page = req.params.page || 1;
+      page = (page < 1) ? 1 : page;
+      let fullMenu = ing.catalogue;
       let name = ing.name;
       let contact = ing.contact;
       let state = ing.location.state;
       let city = ing.location.city;
+      let menu = fullMenu.splice((page-1)*pageSize,page*pageSize)
+
       res.render('vendor', { vendor: ing, packages: packageTypes, temps: temperatures, catalogue:menu, name:name,
-      contact:contact,state:state,city:city});
+      contact:contact,state:state,city:city, page:page});
     }
   })
 })

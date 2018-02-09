@@ -11,6 +11,7 @@ block content
   h4= vendor.contact
   h4= vendor.location['state'] + ', ' + vendor.location['city']
   h2= 'Catalogue'
+  
   #ing-table
     table.table
       thead.text-primary
@@ -28,6 +29,12 @@ block content
           th= ing.package
           th= ing.temp
           th= ing.available
+    div.previous
+      form(action='/vendors/'+vendor.code + '/' + (parseInt(page)-1).toString() method='get')
+        button.btn.btn-white.btn-round.btn-just-icon(type='submit') Prev
+    div.next
+      form(action='/vendors/'+vendor.code + '/' + (parseInt(page)+1).toString() method='get')
+        button.btn.btn-white.btn-round.btn-just-icon(type='submit') Next
 
   ul.nav.nav-tabs
     li.active.adminOnly.hide
