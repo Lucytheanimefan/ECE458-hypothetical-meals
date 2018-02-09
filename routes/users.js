@@ -338,7 +338,11 @@ router.get('/logout', function(req, res, next) {
 });
 
 // GET route after registering
-router.get('/cart', function(req, res, next) {
+router.get('/cart/:page?', function(req, res, next) {
+  var perPage = 5;
+  var page = req.params.page || 1;
+  page = (page < 1) ? 1 : page;
+
   User.count({ _id: req.session.userId }, function(err, count) {
     if (err) return next(err);
 
@@ -346,10 +350,10 @@ router.get('/cart', function(req, res, next) {
       User.findById(req.session.userId, async function(err, user) {
         if (err) return next(err);
 
-        console.log(user.cart);
         let cart = user.cart[0];
         var ingredients = [];
 
+        var numbered_cart = [];
         for (ingredient in cart) {
           await Ingredient.find({ name: ingredient }, function(err, instance) {
             if (err) return next(err);
@@ -358,10 +362,19 @@ router.get('/cart', function(req, res, next) {
               cart[ingredient] = amount;
             }
           });
+          numbered_cart.push(ingredient);
+        }
+
+        var start = perPage*(page-1);
+        for (i = start; i < start + perPage; i++) {
+          var ingredient = numbered_cart[i];
+          if (ingredient == undefined) {
+            break;
+          }
           ingredients.push({ "ingredient": ingredient, "quantity": cart[ingredient] });
         }
 
-        await User.findByIdAndUpdate({
+        /*await User.findByIdAndUpdate({
           _id: req.session.userId
         }, {
           $set: {
@@ -369,10 +382,10 @@ router.get('/cart', function(req, res, next) {
           }
         }, function(err, cart_instance) {
           if (err) return next(err);
-        });
+        });*/
 
         ingredients = underscore.sortBy(ingredients, "ingredient");
-        return res.render('cart', { ingredients });
+        return res.render('cart', { ingredients: ingredients, page: page });
       });
     }
   });
