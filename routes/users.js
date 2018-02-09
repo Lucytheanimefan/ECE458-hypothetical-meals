@@ -339,7 +339,7 @@ router.get('/logout', function(req, res, next) {
 
 // GET route after registering
 router.get('/cart/:page?', function(req, res, next) {
-  var perPage = 5;
+  var perPage = 10;
   var page = req.params.page || 1;
   page = (page < 1) ? 1 : page;
 
@@ -365,6 +365,8 @@ router.get('/cart/:page?', function(req, res, next) {
           numbered_cart.push(ingredient);
         }
 
+        numbered_cart.sort();
+
         var start = perPage*(page-1);
         for (i = start; i < start + perPage; i++) {
           var ingredient = numbered_cart[i];
@@ -374,17 +376,7 @@ router.get('/cart/:page?', function(req, res, next) {
           ingredients.push({ "ingredient": ingredient, "quantity": cart[ingredient] });
         }
 
-        /*await User.findByIdAndUpdate({
-          _id: req.session.userId
-        }, {
-          $set: {
-            cart: cart
-          }
-        }, function(err, cart_instance) {
-          if (err) return next(err);
-        });*/
-
-        ingredients = underscore.sortBy(ingredients, "ingredient");
+        //ingredients = underscore.sortBy(ingredients, "ingredient");
         return res.render('cart', { ingredients: ingredients, page: page });
       });
     }
@@ -405,7 +397,7 @@ router.post('/add_to_cart', function(req, res, next) {
         var cart;
 
         cart = user.cart;
-        if (cart === null | cart === undefined | Array.isArray(cart) & cart.length == 0) {
+        if (cart === null | cart === undefined | cart == []) {
           cart = [];
           cart.push({});
         }
@@ -506,30 +498,13 @@ router.post('/checkout_cart', function(req, res, next) {
           }).then(function(ings,invs){
             let temp = ings['temperature'].split(" ")[0];
             inventories['current'][temp]-=parseInt(quantity);
-            console.log(ings['name']);
-            console.log(quantity);
           });
-          //console.log("ingObj: " + ingObj);
-          //let degrees = ingObj.temperature.split(" ")[0];
 
           await Ingredient.find({ name: ingredient }, function(err, instance) {
             if (err) return next(err);
-            //console.log("ingredient " + ingredient);
-            //console.log("instance " + instance[0]);
             amount = Number(instance[0].amount);
           });
-          //console.log(amount);
           amount = amount - quantity;
-          /*console.log(invdb.current[degrees]);
-          invdb.current[degrees] -= amount;
-          invdb.save(function(err) {
-            if (err) {
-              console.log(err);
-              var error = new Error('Couldn\'t update the inventory.');
-              error.status = 400;
-              return next(error);
-            }
-          });*/
           await Ingredient.findOneAndUpdate({
             name: ingredient
           }, {
@@ -544,25 +519,27 @@ router.post('/checkout_cart', function(req, res, next) {
             if (err) return next(err);
 
             let report = user.report;
-            if (report === null | report === undefined | Array.isArray(report) & report.length == 0) {
+            if (report === null | report === undefined | report == []) {
               report = [];
               report.push({});
             }
             report = report[0];
-
             production_report = user.production_report;
             if (production_report === null | production_report === undefined | production_report == []) {
               production_report = [];
               production_report.push({});
             }
             production_report = production_report[0];
-            production_report[ingredient] = (ingredient in report) ? report[ingredient] : 0;
+            var new_cost = (ingredient in report) ? report[ingredient] : 0;
+            production_report[ingredient] = new_cost;
+            console.log(production_report);
           });
-
           delete cart[ingredient];
         }
-        inventories.save(function(err){
-          return next(err);
+        console.log("again")
+        console.log(production_report);
+        await inventories.save(function(err){
+          if (err) return next(err);
         });
 
         await User.findByIdAndUpdate({
@@ -574,15 +551,18 @@ router.post('/checkout_cart', function(req, res, next) {
           }
         }, function(err, cart_instance) {
           if (err) return next(err);
-          return res.redirect(req.baseUrl + '/cart');
+          return res.redirect(req.baseUrl + '/');
         });
-
       });
     }
   });
 });
 
-router.get('/report', function(req, res, next) {
+router.get('/report/:page?', function(req, res, next) {
+  var perPage = 5;
+  var page = req.params.page || 1;
+  page = (page < 1) ? 1 : page;
+
   User.count({ _id: req.session.userId }, function(err, count) {
     if (err) return next(err);
 
@@ -593,18 +573,34 @@ router.get('/report', function(req, res, next) {
         let report = user.report[0];
         var ingredients = [];
 
+        var numbered_report = [];
         for (ingredient in report) {
+          numbered_report.push(ingredient);
+        }
+
+        numbered_report.sort();
+
+        var start = perPage*(page-1);
+        for (i = start; i < start + perPage; i++) {
+          var ingredient = numbered_report[i];
+          if (ingredient == undefined) {
+            break;
+          }
           ingredients.push({ "ingredient": ingredient, "cost": report[ingredient] });
         }
 
-        ingredients = underscore.sortBy(ingredients, "ingredient");
-        return res.render('report', { ingredients });
+        //ingredients = underscore.sortBy(ingredients, "ingredient");
+        return res.render('report', { ingredients: ingredients, page: page });
       });
     }
   });
 });
 
-router.get('/production_report', function(req, res, next) {
+router.get('/production_report/:page?', function(req, res, next) {
+  var perPage = 5;
+  var page = req.params.page || 1;
+  page = (page < 1) ? 1 : page;
+
   User.count({ _id: req.session.userId }, function(err, count) {
     if (err) return next(err);
 
@@ -615,12 +611,24 @@ router.get('/production_report', function(req, res, next) {
         let report = user.production_report[0];
         var ingredients = [];
 
+        var numbered_report = [];
         for (ingredient in report) {
+          numbered_report.push(ingredient);
+        }
+
+        numbered_report.sort();
+
+        var start = perPage*(page-1);
+        for (i = start; i < start + perPage; i++) {
+          var ingredient = numbered_report[i];
+          if (ingredient == undefined) {
+            break;
+          }
           ingredients.push({ "ingredient": ingredient, "cost": report[ingredient] });
         }
 
-        ingredients = underscore.sortBy(ingredients, "ingredient");
-        return res.render('report', { ingredients });
+        //ingredients = underscore.sortBy(ingredients, "ingredient");
+        return res.render('production_report', { ingredients: ingredients, page: page });
       });
     }
   });

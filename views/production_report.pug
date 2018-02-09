@@ -24,8 +24,8 @@ block content
                 a(href='/ingredients/' + ingredient.ingredient)= ingredient.ingredient
                 span(style="float:right;") Cost: $#{ingredient.cost}
           div.previous
-            form(action="/users/report/" + (parseInt(page)-1).toString(), method="get")
+            form(action="/users/production_report/" + (parseInt(page)-1).toString(), method="get")
               button.btn.btn-white.btn-round.btn-just-icon.pull-left(type="submit" style="display: inline-block;") Prev
           div.next
-            form(action="/users/report/" + (parseInt(page)+1).toString(), method="get")
+            form(action="/users/production_report/" + (parseInt(page)+1).toString(), method="get")
               button.btn.btn-white.btn-round.btn-just-icon.pull-right(type="submit" style="display: inline-block;") Next
