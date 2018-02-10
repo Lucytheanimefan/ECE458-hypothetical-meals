@@ -62,5 +62,7 @@ var VendorSchema = new mongoose.Schema({
   history:[{ingredient:String, cost:Number, number:Number}]
 })
 
+queryVendor = function
+
 var Vendor = mongoose.model('Vendor', VendorSchema);
 module.exports = Vendor;
