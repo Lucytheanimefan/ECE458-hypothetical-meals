@@ -12,19 +12,26 @@ block content
           h3(style="padding: 0px 0px 10px; text-decoration: underline") Ingredients
           p
             br
-        each ingredient in ingredients
-          .col-md-12
-            p(style="text-align:left;")
-              a(href='/ingredients/' + ingredient.ingredient)= ingredient.ingredient
-              form(action="/users/remove_ingredient" method="post")
-                span(style="float:right;")
-                  | Pounds: #{ingredient.quantity} &nbsp &nbsp
-                  a(href='/ingredients/' + ingredient.ingredient + '/' + ingredient.quantity)
-                    button(class="btn btn-secondary" type="button" style="margin-right: 10px; padding: 5px; background-color:#66c2ff; color: white; display:inline;") Edit
-                  input(type="hidden" name="ingredient" value=ingredient.ingredient)
-                  input(type="hidden" name="quantity" value=ingredient.quantity)
-                  input.btn.btn-secondary(type="submit" value="Remove" style="padding: 5px; background-color:#66c2ff; color: white; display:inline;")
-
+          each ingredient in ingredients
+            .col-md-12
+              p(style="text-align:left;")
+                a(href='/ingredients/' + ingredient.ingredient)= ingredient.ingredient
+                form(action="/users/remove_ingredient" method="post")
+                  span(style="float:right;")
+                    | Pounds: #{ingredient.quantity} &nbsp &nbsp
+                    a(href='/ingredients/' + ingredient.ingredient + '/' + ingredient.quantity)
+                      button(class="btn btn-secondary" type="button" style="margin-right: 10px; padding: 5px; background-color:#66c2ff; color: white; display:inline;") Edit
+                    input(type="hidden" name="ingredient" value=ingredient.ingredient)
+                    input(type="hidden" name="quantity" value=ingredient.quantity)
+                    input.btn.btn-secondary(type="submit" value="Remove" style="padding: 5px; background-color:#66c2ff; color: white; display:inline;")
+          p
+            br
+          div.previous
+            form(action="/users/cart/" + (parseInt(page)-1).toString(), method="get")
+              button.btn.btn-white.btn-round.btn-just-icon.pull-left(type="submit" style="display: inline-block;") Prev
+          div.next
+            form(action="/users/cart/" + (parseInt(page)+1).toString(), method="get")
+              button.btn.btn-white.btn-round.btn-just-icon.pull-right(type="submit" style="display: inline-block;") Next
         .row
           .col-md-12
             p
