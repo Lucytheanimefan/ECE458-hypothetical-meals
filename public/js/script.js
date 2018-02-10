@@ -94,12 +94,13 @@ function getAccessTokenHash() {
 
 function getDukeIdentity(parameters) {
   $.ajax({
-    url: "https://api.colab.duke.edu/meta/v1/apis/identity/v1",
-    headers: {'x-api-key' : 'hypotheticalmeals', 'Authorization' : 'Bearer ' + parameters['access_token']},
+    url: "https://api.colab.duke.edu/identity/v1/",
+    headers: {'x-api-key' : 'hypotheticalmeals', 'Authorization' : 'Bearer ' + parameters['access_token'], 'Accept': 'application/json'},
     type: "GET",
     success: function(result) { 
-      console.log('Success!! ' + result);
+      console.log('Successfully called duke identity api');
       console.log(result);
+      alert('For debugging only: ' + JSON.stringify(result));
     }
   });
 }
