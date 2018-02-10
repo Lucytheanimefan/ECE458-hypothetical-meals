@@ -34,9 +34,9 @@ html(lang='en')
           a.simple-text(href='/')
             | Hypothetical Meals
 
-        -var menu = { 'Home': '/', 'Users':'/users/admin', 'Ingredients': '/ingredients', 'Vendors':'/vendors', 'Cart':'/users/cart', 'Uploads': '/files','Inventory':'/inventory', 'Report':'/users/report'};
+        -var menu = { 'Home': '/', 'Profile': '/users/profile','Users':'/users/admin', 'Ingredients': '/ingredients', 'Vendors':'/vendors', 'Cart':'/users/cart', 'Uploads': '/files','Inventory':'/inventory', 'Report':'/users/report'};
 
-        -var icons = {'Home':'home', 'Users': 'supervisor_account','Uploads': 'publish','Ingredients':'local_pizza','Vendors':'restaurant','Cart':'local_grocery_store','Inventory':'local_shipping', 'Report':'content_paste'}
+        -var icons = {'Home':'home', 'Profile': 'account_circle','Users': 'supervisor_account','Uploads': 'publish','Ingredients':'local_pizza','Vendors':'restaurant','Cart':'local_grocery_store','Inventory':'local_shipping', 'Report':'content_paste'}
 
 
         .sidebar-wrapper
@@ -96,10 +96,10 @@ html(lang='en')
                     li
                       a#logout(href='/users/logout') Logout
 
-              form.navbar-form.navbar-right
-                //- .form-group.is-empty
-                a#profile(href='/users/profile') Profile
-                a#logout(href='/users/logout') Logout
+              //- form.navbar-form.navbar-right
+              //-   //- .form-group.is-empty
+              //-   a#profile(href='/users/profile') Profile
+              //-   a#logout(href='/users/logout') Logout
         .content
           .container-fluid
             block content
