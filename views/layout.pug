@@ -96,28 +96,25 @@ html(lang='en')
                     li
                       a#logout(href='/users/logout') Logout
 
-              //- form.navbar-form.navbar-right(role='search')
-              //-   .form-group.is-empty
-              //-     input.form-control(type='text', placeholder='Search')
-              //-     span.material-input
-              //-   button.btn.btn-white.btn-round.btn-just-icon(type='submit')
-              //-     i.material-icons search
-              //-     .ripple-container
+              form.navbar-form.navbar-right
+                //- .form-group.is-empty
+                a#profile(href='/users/profile') Profile
+                a#logout(href='/users/logout') Logout
         .content
           .container-fluid
             block content
 
-        footer.footer
-          .container-fluid
-            nav.pull-left
-              ul
-                li
-                  a(href='/')
-                    | Home
-            p.copyright.pull-right
-              | ©
-              script.
-                document.write(new Date().getFullYear())
+        //- footer.footer
+        //-   .container-fluid
+        //-     nav.pull-left
+        //-       ul
+        //-         li
+        //-           a(href='/')
+        //-             | Home
+        //-     p.copyright.pull-right
+        //-       | ©
+        //-       script.
+        //-         document.write(new Date().getFullYear())
 
   // Core JS Files
   script(src='/js/jquery-3.2.1.min.js', type='text/javascript')
