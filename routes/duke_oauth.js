@@ -47,45 +47,8 @@ router.get('/callback', (req, res, next) => {
 	res.redirect('/users/profile');
 });
 
-
-router.get('/success', (req, res) => {
-  res.send('');
-});
-
 router.get('/', (req, res) => {
 	res.redirect('/users/profile');
-  //res.send('Hello<br><a href="/duke_oauth/auth">Log in with Duke</a>');
 });
 
 module.exports = router;
-
-
-module.exports.oauth_login = function(email, password) {
-  return function(req, res, next) {
-    // Get the access token object.
-    const tokenConfig = {
-      username: email,
-      password: password
-    };
-
-    // Callbacks
-    // Save the access token
-    oauth2.ownerPassword.getToken(tokenConfig, (error, result) => {
-      if (error) {
-        return console.log('Access Token Error', error.message);
-      }
-
-      const accessToken = oauth2.accessToken.create(result);
-    });
-
-    // Promises
-    // Save the access token
-    oauth2.ownerPassword
-      .getToken(tokenConfig)
-      .then((result) => {
-        const accessToken = oauth2.accessToken.create(result);
-
-        return accessToken;
-      });
-  }
-}
