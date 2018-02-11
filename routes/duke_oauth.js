@@ -3,14 +3,14 @@ var router = express.Router();
 var crypto = require('crypto');
 const querystring = require('querystring');
 
-// var CLIENTID = process.env.clientID; //MY_ENV['clientID'];
-// var CLIENTSECRET = process.env.clientSecret;//MY_ENV['clientSecret'];
-// var TOKEN_URL = process.env.tokenHost;//MY_ENV['tokenHost'];
+var CLIENTID = process.env.clientID; //MY_ENV['clientID'];
+var CLIENTSECRET = process.env.clientSecret;//MY_ENV['clientSecret'];
+var TOKEN_URL = process.env.tokenHost;//MY_ENV['tokenHost'];
 
-var MY_ENV = require('../env.json');
-var CLIENTID = MY_ENV['clientID'];
-var CLIENTSECRET = MY_ENV['clientSecret'];
-var TOKEN_URL = MY_ENV['tokenHost'];
+// var MY_ENV = require('../env.json');
+// var CLIENTID = MY_ENV['clientID'];
+// var CLIENTSECRET = MY_ENV['clientSecret'];
+// var TOKEN_URL = MY_ENV['tokenHost'];
 
 
 // Set the configuration settings
