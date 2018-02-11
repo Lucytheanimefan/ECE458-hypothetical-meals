@@ -376,7 +376,6 @@ router.get('/cart/:page?', function(req, res, next) {
           ingredients.push({ "ingredient": ingredient, "quantity": cart[ingredient] });
         }
 
-        //ingredients = underscore.sortBy(ingredients, "ingredient");
         return res.render('cart', { ingredients: ingredients, page: page });
       });
     }
@@ -468,15 +467,12 @@ router.post('/remove_ingredient', function(req, res, next) {
 router.post('/checkout_cart', function(req, res, next) {
   User.count({ _id: req.session.userId }, async function(err, count) {
     if (err) return next(err);
+
     var invdb;
-    await Inventory.findOne({ type: "master" }, async function(err, inv) {
+    await Inventory.findOne({ type: "master" }, function(err, inv) {
       if (err) { return next(err); }
       invdb = inv;
     });
-
-    var ingredient = req.body.ingredient;
-    var quantity = Number(req.body.quantity);
-    var amount = Number(req.body.amount);
 
     if (count > 0) {
       await User.findOne({ "_id": req.session.userId }, async function(err, user) {
@@ -498,7 +494,6 @@ router.post('/checkout_cart', function(req, res, next) {
 
         for (ingredient in cart) {
           var ingObj;
-
           var quantity = cart[ingredient];
           var amount;
           var inventories;
