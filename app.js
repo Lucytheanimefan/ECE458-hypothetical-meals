@@ -16,6 +16,8 @@ var files = require('./routes/files');
 var inventory = require('./routes/inventory_routes');
 var MongoStore = require('connect-mongo')(session);
 
+var oauth = require('./routes/duke_oauth');
+
 //var seed = require('./helpers/seed.js');
 
 var app = express();
@@ -63,7 +65,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/', index);
+app.use('/',index);
 app.use('/users', users);
 app.use('/ingredients', users.requireLogin(),ingredients); //This is not ideal
 app.post('/ingredients/*', users.requireRole("admin"), ingredients);
@@ -71,6 +73,8 @@ app.use('/vendors', users.requireLogin(), vendors);
 
 app.use('/files', files);
 app.use('/inventory',users.requireRole("admin"),inventory);
+
+app.use('/duke_oauth', oauth);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
