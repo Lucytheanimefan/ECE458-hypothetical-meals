@@ -57,6 +57,25 @@ module.exports.deleteIngredient = function(name, package, temp, amount) {
   })
 }
 
+module.exports.searchIngredients = function(searchQuery, currentPage) {
+  var query = Ingredient.searchIngredients();
+  return new Promise(function(resolve, reject) {
+    if (searchQuery.name != null) {
+      var search = '.*' + searchQuery.name + '.*'
+      query.where({ name: new RegExp(search, 'i') });
+    }
+    if (searchQuery.package != null) {
+      query.where('package').in(searchQuery.package);
+    }
+    if (searchQuery.temperature != null) {
+      query.where('temperature').in(searchQuery.temperature);
+    }
+    var perPage = 10;
+    query.skip((perPage * currentPage) - perPage).limit(perPage);
+    resolve(query.exec());
+  })
+}
+
 module.exports.addVendor = function(name, vendorId) {
   let vendorObjectId = mongoose.Types.ObjectId(vendorId);
   return new Promise(function(resolve, reject) {
