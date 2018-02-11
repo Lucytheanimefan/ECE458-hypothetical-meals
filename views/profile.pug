@@ -12,14 +12,19 @@ block content
       .card-content
         form(action='/users/update', method='post')
           .row
-            .col-md-6
+            .col-md-4
               .form-group.label-floating
                 label.control-label Username
                 input.form-control(type='text',name='username', value=username)
-            .col-md-6
+            .col-md-4
               .form-group.label-floating
                 label.control-label Email address
                 input.form-control(type='email', value=email, name='email', readonly)
+            if (netid!==null)
+              .col-md-4
+                .form-group.label-floating
+                  label.control-label Netid
+                  input.form-control(type='text', value=netid, name='netid', readonly)
           .row
             .col-md-12
               .form-group.label-floating

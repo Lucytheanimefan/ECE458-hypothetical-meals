@@ -41,6 +41,8 @@ router.get('/', function(req, res, next) {
 router.post('/', function(req, res, next) {
   // Create a user
 
+  console.log('Request body: ');
+  console.log(req.body);
   if (req.body.email &&
     req.body.username &&
     req.body.password &&
@@ -63,12 +65,8 @@ router.post('/', function(req, res, next) {
         encryptPassword(user, function(err) {
           if (err) { return res.status(500).send({ msg: err.message }); }
 
-          console.log("Create token");
-          // Create a verification token for this user
+          res.status(200).render('login');
 
-          sendEmailVerification(user, req, res, function() {
-            res.status(200).render('index', { title: 'A verification email has been sent to ' + user.email + '.' });
-          });
         })
       }
     });
@@ -81,12 +79,22 @@ router.post('/', function(req, res, next) {
         let err = new Error('Wrong email or password.');
         err.status = 401;
         return next(err);
-      } else if (!user.isVerified) {
-        return res.status(401).render('index', { title: 'Your account has not been verified.' });
       } else {
         req.session.userId = user._id;
-        console.log("Successfully set user ID, redirecting to profile")
         return res.redirect(req.baseUrl + '/profile');
+      }
+    });
+  } else if (req.body.netid) {
+    console.log('netid!');
+    User.authenticate_netid(req.body.netid, function(error, user) {
+      if (error || !user) {
+        res.send({ 'success': false, 'error': error });
+        //return next(error);
+      } else {
+        req.session.userId = user._id;
+        res.send({ 'success': true, 'netid': user.netid });
+        //res.render('profile', {'netid': user.netid})
+        //return res.redirect(req.baseUrl + '/profile');
       }
     });
   } else {
@@ -95,6 +103,7 @@ router.post('/', function(req, res, next) {
     return next(err);
   }
 });
+
 
 encryptPassword = function(user, callback) {
   bcrypt.hash(user.password, 10, function(err, hash) {
@@ -152,68 +161,64 @@ sendEmailVerification = function(user, req, res, callback = null) {
   });
 }
 
-router.get('/confirmation', function(req, res, next) {
+// router.get('/confirmation', function(req, res, next) {
 
-  console.log("****Confirmation GET went through!!!");
+//   console.log("****Confirmation GET went through!!!");
 
-  // Find a matching token
-  Token.findOne({ token: req.query.id }, function(err, token) {
-    if (!token) return res.status(400).send({ type: 'not-verified', msg: 'We were unable to find a valid token. Your token my have expired.' });
+//   // Find a matching token
+//   Token.findOne({ token: req.query.id }, function(err, token) {
+//     if (!token) return res.status(400).send({ type: 'not-verified', msg: 'We were unable to find a valid token. Your token my have expired.' });
 
-    // If we found a token, find a matching user
-    User.findOne({ _id: token._userId }, function(err, user) {
-      if (!user) return res.status(400).send({ msg: 'We were unable to find a user for this token.' });
-      if (user.isVerified) return res.status(400).render('index', { title: 'This user has already been verified.' });
+//     // If we found a token, find a matching user
+//     User.findOne({ _id: token._userId }, function(err, user) {
+//       if (!user) return res.status(400).send({ msg: 'We were unable to find a user for this token.' });
+//       if (user.isVerified) return res.status(400).render('index', { title: 'This user has already been verified.' });
 
-      // Verify and save the user
-      user.isVerified = true;
-      user.save(function(err) {
-        if (err) { return res.status(500).send({ msg: err.message }); }
-        res.status(200).render('index', { title: 'The account has been verified. Please log in.' });
-      });
-    });
-  });
-});
+//       // Verify and save the user
+//       user.isVerified = true;
+//       user.save(function(err) {
+//         if (err) { return res.status(500).send({ msg: err.message }); }
+//         res.status(200).render('index', { title: 'The account has been verified. Please log in.' });
+//       });
+//     });
+//   });
+// });
 
 // TODO: hook up UI to resend token
-router.post('/resendToken', function(req, res, next) {
-  //req.assert('email', 'Email is not valid').isEmail();
-  //req.assert('email', 'Email cannot be blank').notEmpty();
-  //req.sanitize('email').normalizeEmail({ remove_dots: false });
-  //if (errors) return res.status(400).send(errors);
+// router.post('/resendToken', function(req, res, next) {
 
-  User.findOne({ email: req.body.email }, function(err, user) {
-    if (!user) return res.status(400).send({ msg: 'We were unable to find a user with that email.' });
-    if (user.isVerified) return res.status(400).render('index', { title: 'This user has already been verified.' });
-    // Create a verification token, save it, and send email
-    var token = new Token({ _userId: user._id, token: crypto.randomBytes(16).toString('hex') });
+//   User.findOne({ email: req.body.email }, function(err, user) {
+//     if (!user) return res.status(400).send({ msg: 'We were unable to find a user with that email.' });
+//     if (user.isVerified) return res.status(400).render('index', { title: 'This user has already been verified.' });
+//     // Create a verification token, save it, and send email
+//     var token = new Token({ _userId: user._id, token: crypto.randomBytes(16).toString('hex') });
 
-    // Save the token
-    token.save(function(err) {
-      if (err) { return res.status(500).send({ msg: err.message }); }
+//     // Save the token
+//     token.save(function(err) {
+//       if (err) { return res.status(500).send({ msg: err.message }); }
 
-      // Send the email
-      var transporter = nodemailer.createTransport({
-        host: 'smtp.gmail.com',
-        port: 465,
-        auth: {
-          user: EMAIL,
-          pass: PASSWORD
-        }
-      });
-      var mailOptions = { from: EMAIL, to: user.email, subject: 'Account Verification Token', text: 'Hello,\n\n' + 'Please verify your account by clicking the link: \nhttp:\/\/' + req.headers.host + '/users/confirmation?id=' + token.token + '.\n' };
+//       // Send the email
+//       var transporter = nodemailer.createTransport({
+//         host: 'smtp.gmail.com',
+//         port: 465,
+//         auth: {
+//           user: EMAIL,
+//           pass: PASSWORD
+//         }
+//       });
+//       var mailOptions = { from: EMAIL, to: user.email, subject: 'Account Verification Token', text: 'Hello,\n\n' + 'Please verify your account by clicking the link: \nhttp:\/\/' + req.headers.host + '/users/confirmation?id=' + token.token + '.\n' };
 
-      transporter.sendMail(mailOptions, function(err) {
-        if (err) {
-          return res.status(500).send({ msg: err.message });
-        }
-        res.status(200).render('index', { title: 'A verification email has been sent to ' + user.email + '.' });
+//       transporter.sendMail(mailOptions, function(err) {
+//         if (err) {
+//           return res.status(500).send({ msg: err.message });
+//         }
+//         res.status(200).render('index', { title: 'A verification email has been sent to ' + user.email + '.' });
 
-      });
-    });
+//       });
+//     });
 
-  });
-});
+//   });
+// });
 
 // GET route after registering
 router.get('/profile', function(req, res, next) {
@@ -225,7 +230,7 @@ router.get('/profile', function(req, res, next) {
         if (user === null) {
           return res.redirect(req.baseUrl + '/');
         } else {
-          res.render('profile', { title: 'Profile', username: user.username, email: user.email });
+          res.render('profile', { title: 'Profile', username: user.username, email: user.email, netid: user.netid });
         }
       }
     });
@@ -267,37 +272,53 @@ router.post('/delete', function(req, res, next) {
 });
 
 router.post('/update', async function(req, res, next) {
-  User.findOne({ email: req.body.email }, function(err, user) {
-    if (err) {
-      var error = new Error('Couldn\'t find that user.');
-      error.status = 400;
-      return next(error);
-    }
-    user.username = req.body.username;
+  var userdata = null;
+  if (req.body.email !== null && req.body.email.length > 0) {
+    userdata = { 'email': req.body.email };
+  } else if (req.body.netid !== null) {
+    userdata = { 'netid': req.body.netid };
+  }
+  if (userdata === null){
+    return
+  }
 
-    let password = req.body.password;
-    if (password !== null && password !== undefined) {
-      if (password.length > 0) {
-        user.password = password;
-      }
+  User.update(userdata, req.body.username, function(err, user) {
+    if (err) {
+      return next(err);
     }
-    user.password = req.body.password;
-    encryptPassword(user, function(err) {
-      if (err) {
-        var error = new Error('There were errors updating your password. Try again later.');
-        error.status = 400;
-        return next(error);
-      }
-      user.save(function(err) {
-        if (err) {
-          var error = new Error('Couldn\'t update that user.');
-          error.status = 400;
-          return next(error);
-        }
-        return res.redirect(req.baseUrl + '/profile');
-      });
-    });
-  });
+    return res.redirect(req.baseUrl + '/profile');
+  })
+  // User.findOne({ email: req.body.email }, function(err, user) {
+  //   if (err) {
+  //     var error = new Error('Couldn\'t find that user.');
+  //     error.status = 400;
+  //     return next(error);
+  //   }
+  //   user.username = req.body.username;
+
+  //   let password = req.body.password;
+  //   if (password !== null && password !== undefined) {
+  //     if (password.length > 0) {
+  //       user.password = password;
+  //     }
+  //   }
+  //   user.password = req.body.password;
+  //   encryptPassword(user, function(err) {
+  //     if (err) {
+  //       var error = new Error('There were errors updating your password. Try again later.');
+  //       error.status = 400;
+  //       return next(error);
+  //     }
+  //     user.save(function(err) {
+  //       if (err) {
+  //         var error = new Error('Couldn\'t update that user.');
+  //         error.status = 400;
+  //         return next(error);
+  //       }
+  //       return res.redirect(req.baseUrl + '/profile');
+  //     });
+  //   });
+  // });
 
 });
 
@@ -366,7 +387,7 @@ router.get('/cart/:page?', function(req, res, next) {
           numbered_cart.push(ingredient);
         }
 
-        var start = perPage*(page-1);
+        var start = perPage * (page - 1);
         for (i = start; i < start + perPage; i++) {
           var ingredient = numbered_cart[i];
           if (ingredient == undefined) {

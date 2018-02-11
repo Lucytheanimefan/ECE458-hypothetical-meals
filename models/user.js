@@ -7,29 +7,35 @@ var UserSchema = new mongoose.Schema({
   email: {
     type: String,
     unique: true,
-    required: true,
+    required: false,
     trim: true
   },
   username: {
     type: String,
     unique: true,
-    required: true,
+    required: false,
     trim: true
   },
   password: {
     type: String,
-    required: true,
+    required: false,
   },
   passwordConf: {
     type: String,
     required: false,
   },
-  isVerified: {
-    type: Boolean,
-    default: false
+  netid: {
+    type: String,
+    required: false,
+    unique: true,
   },
+  // isVerified: {
+  //   type: Boolean,
+  //   default: false
+  // },
   role: {
     type: String, // "Admin" or "User"
+    default: 'User',
     required: true,
   },
   cart: {
@@ -67,17 +73,79 @@ UserSchema.statics.authenticate = function(email, password, callback) {
     });
 }
 
+UserSchema.statics.authenticate_netid = function(netid, callback) {
+  findUserByNetid(netid, function(err, user) {
+    if (err) {
+      console.log('Err: ' + err);
+      return callback(err);
+    } else if (!user) {
+      // User not found, create an account associated with netid
+      User.create(user_data, function(error, user) {
+        if (error) {
+          console.log("Error creating user: ");
+          console.log(error);
+          return callback(error);
+        }
+        // Try logging in again
+        findUserByNetid(netid, function(err, user) {
+          if (err) {
+            return callback(err);
+          }
+          return callback(user);
+        });
+      })
+    } else {
+      console.log('Found the user!');
+      console.log(user);
+      return callback(null, user);
+    }
+  })
+}
+
+UserSchema.statics.update = function(userdata, new_username, callback) {
+  console.log(userdata);
+  
+  User.findOne(userdata, function(err, user) {
+    console.log(user);
+    if (err) {
+      console.log(err);
+      let error = new Error('Couldn\'t find that user.');
+      error.status = 400;
+      return callback(error);
+    }
+    user.username = new_username;
+
+    user.save(function(err) {
+      if (err) {
+        let error = new Error('Couldn\'t update that user.');
+        error.status = 400;
+        return callback(error);
+      }
+      return callback(null, user);
+    });
+  })
+}
+
+
+findUserByNetid = function(netid, callback) {
+  let user_data = { netid: netid };
+  User.findOne(user_data)
+    .exec(function(err, user) {
+      callback(err, user);
+    })
+}
+
 //hashing a password before saving it to the database
 //UserSchema.pre('save', function(next) {
-  // console.log('HASH THE PASSWORD');
-  // var user = this;
-  // bcrypt.hash(user.password, 10, function(err, hash) {
-  //   if (err) {
-  //     return next(err);
-  //   }
-  //   user.password = hash;
-  //   next();
-  // })
+// console.log('HASH THE PASSWORD');
+// var user = this;
+// bcrypt.hash(user.password, 10, function(err, hash) {
+//   if (err) {
+//     return next(err);
+//   }
+//   user.password = hash;
+//   next();
+// })
 //});
 
 
