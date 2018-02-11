@@ -32,7 +32,7 @@ module.exports.createIngredient = function(name, package, temp, amount) {
     'name': name,
     'package': package.toLowerCase(),
     'temperature': temp.toLowerCase(),
-    'amount': parseInt(amount)
+    'amount': parseFloat(amount)
   });
 }
 
@@ -50,7 +50,7 @@ module.exports.updateIngredient = function(name, newName, package, temp, amount)
       'name': newName,
       'package': package.toLowerCase(),
       'temperature': temp.toLowerCase(),
-      'amount': parseInt(amount)
+      'amount': parseFloat(amount)
     }
   }).exec();
 }

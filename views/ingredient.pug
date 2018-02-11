@@ -67,7 +67,7 @@ block content
               else
                 option(value=temp)= temp
           label.control-label Amount in storage (Pounds)
-          input.form-control(type='number', name='amount', value = ingredient.amount, required='')
+          input.form-control(type='number', step="any", name='amount', value = ingredient.amount, required='')
           button.btn.btn-primary.pull-right(type='submit') Update ingredient
 
       div.card#vendor-info

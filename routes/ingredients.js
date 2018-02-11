@@ -64,7 +64,7 @@ router.get('/:name', function(req, res, next) {
 })
 
 router.get('/:name/:amt/:page?', function(req, res, next) {
-  var ingQuery = Ingredient.getIngredient({ name: req.params.name });
+  var ingQuery = Ingredient.getIngredient(req.params.name);
   var perPage = 10;
   var page = req.params.page || 1;
   page = (page < 1) ? 1 : page;
@@ -94,7 +94,7 @@ router.post('/:name/delete', function(req, res, next) {
       ing['name'],
       ing['package'],
       ing['temperature'],
-      parseInt(ing['amount'])
+      parseFloat(ing['amount'])
     );
   }).then(function() {
     res.redirect(req.baseUrl + '/');
@@ -112,7 +112,7 @@ router.post('/:name/update', function(req, res, next) {
     req.body.name,
     req.body.package,
     req.body.temperature,
-    parseInt(req.body.amount)
+    parseFloat(req.body.amount)
   );
   updatePromise.then(function() {
     res.redirect(req.baseUrl + '/' + ingName);

@@ -11,7 +11,7 @@ module.exports.checkInventory = function(package, temp, amount) {
       if (package.toLowerCase() === "truckload" || package.toLowerCase() === "railcar") {
         canUpdate = true;
       } else {
-        canUpdate = (parseInt(inv['current'][temperature]) + amount <= parseInt(inv['limits'][temperature]));
+        canUpdate = (parseFloat(inv['current'][temperature]) + amount <= parseFloat(inv['limits'][temperature]));
       }
       resolve(canUpdate);
     }).catch(function(error) {

@@ -37,8 +37,13 @@ module.exports.updateIngredient = function(name, newName, package, temp, amount)
       error.status = 400;
       reject(error);
     } else {
-      var update = Ingredient.updateIngredient(name, newName, package, temp, amount);
-      resolve(checkAndUpdate(update, package, temp, amount));
+      Ingredient.getIngredient(name).then(function(ing) {
+        let incAmount = amount - parseFloat(ing['amount']);
+        var update = Ingredient.updateIngredient(name, newName, package, temp, amount);
+        resolve(checkAndUpdate(update, package, temp, incAmount));
+      }).catch(function(error) {
+        reject(error);
+      });
     }
   });
 }
