@@ -10,12 +10,12 @@ var underscore = require('underscore');
 var dialog = require('dialog');
 var bcrypt = require('bcrypt');
 
-var EMAIL = (process.env.EMAIL);
-var PASSWORD = (process.env.PASSWORD);
+// var EMAIL = (process.env.EMAIL);
+// var PASSWORD = (process.env.PASSWORD);
 
 
-// var EMAIL = (process.env.EMAIL) ? process.env.EMAIL : require('../env.json')['email'];
-// var PASSWORD = (process.env.PASSWORD) ? process.env.PASSWORD : require('../env.json')['password'];
+var EMAIL = (process.env.EMAIL) ? process.env.EMAIL : require('../env.json')['email'];
+var PASSWORD = (process.env.PASSWORD) ? process.env.PASSWORD : require('../env.json')['password'];
 
 
 
@@ -85,7 +85,9 @@ router.post('/', function(req, res, next) {
   } else if (req.body.netid) {
     console.log('netid!');
     User.authenticate_netid(req.body.netid, function(error, user) {
-      if (error || !user) {
+      if ((error != null) || user == null) {
+        console.log('Error after auth: ' + error);
+        console.log('Auth user: ' + user);
         res.send({ 'success': false, 'error': error });
         //return next(error);
       } else {
@@ -159,15 +161,14 @@ router.post('/update', async function(req, res, next) {
   var userdata = null;
   if (req.body.netid !== null) {
     userdata = { 'netid': req.body.netid };
-  }
-  else if (req.body.email !== null && req.body.email.length > 0) {
+  } else if (req.body.email !== null && req.body.email.length > 0) {
     userdata = { 'email': req.body.email };
   }
-  if (userdata === null){
+  if (userdata === null) {
     return
   }
 
-  User.update(userdata, {'username':req.body.username, 'password':req.body.password, 'email': req.body.email}, function(err, user) {
+  User.update(userdata, { 'username': req.body.username, 'password': req.body.password, 'email': req.body.email }, function(err, user) {
     if (err) {
       return next(err);
     }

@@ -78,6 +78,7 @@ UserSchema.statics.authenticate_netid = function(netid, callback) {
       console.log('Err: ' + err);
       return callback(err);
     } else if (!user) {
+      let user_data = { 'netid': netid };
       // User not found, create an account associated with netid
       User.create(user_data, function(error, user) {
         if (error) {
@@ -90,7 +91,7 @@ UserSchema.statics.authenticate_netid = function(netid, callback) {
           if (err) {
             return callback(err);
           }
-          return callback(user);
+          return callback(null, user);
         });
       })
     } else {
@@ -151,16 +152,21 @@ findUserByNetid = function(netid, callback) {
 UserSchema.pre('save', function(next) {
   console.log('HASH THE PASSWORD');
   var user = this;
-  if (user.password === null && user.netid !== null) {
-    next();
-  }
-  bcrypt.hash(user.password, 10, function(err, hash) {
-    if (err) {
-      return next(err);
+  if (user.password !== null && user.password !== undefined) {
+    if (user.password.length > 0) {
+      console.log('Trying to hash');
+      bcrypt.hash(user.password, 10, function(err, hash) {
+        if (err !== null && err !== undefined) {
+          console.log('Error after save: ' + err);
+          return next(err);
+        }
+        user.password = hash;
+        next(null, user);
+      });
     }
-    user.password = hash;
-    next();
-  })
+  } else if (user.netid !== null) {
+    return next(null, user);
+  }
 });
 
 
