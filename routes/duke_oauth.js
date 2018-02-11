@@ -3,7 +3,7 @@ var router = express.Router();
 var crypto = require('crypto');
 const querystring = require('querystring');
 
-var MY_ENV = require('../env.json');
+//var MY_ENV = require('../env.json');
 
 var CLIENTID = process.env.clientID; //MY_ENV['clientID'];
 var CLIENTSECRET = process.env.clientSecret;//MY_ENV['clientSecret'];
