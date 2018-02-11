@@ -175,7 +175,7 @@ router.post('/:code/order', async function(req,res,next){
       await User.findOne({ "_id": req.session.userId }, function(err, user) {
         if (err) return next(err);
         let report = user.report;
-        if (report === null | report === undefined | Array.isArray(report) & report.length == 0) {
+        if (report === null | report === undefined | report == []) {
           report = [];
           report.push({});
         }
