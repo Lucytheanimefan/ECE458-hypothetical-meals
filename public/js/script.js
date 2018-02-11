@@ -44,8 +44,7 @@ function loadLoggedInContent() {
   checkLoggedIn(function(loggedIn) {
     if (loggedIn) {
       loadSideBar();
-    }
-    else{
+    } else {
       $('#profile').text('Login');
       $('#logout').addClass('hide');
     }
@@ -80,4 +79,28 @@ function loadSideBar() {
     });
 
   })
+}
+
+
+function getAccessTokenHash() {
+  let hash = window.location.hash;
+  let access_token = hash.substring(1);
+  console.log(access_token);
+  let paramsObject = JSON.parse('{"' + decodeURI(access_token).replace(/"/g, '\\"').replace(/&/g, '","').replace(/=/g, '":"') + '"}');
+  console.log(paramsObject);
+  getDukeIdentity(paramsObject);
+
+}
+
+function getDukeIdentity(parameters) {
+  $.ajax({
+    url: "https://api.colab.duke.edu/identity/v1/",
+    headers: {'x-api-key' : 'hypotheticalmeals', 'Authorization' : 'Bearer ' + parameters['access_token'], 'Accept': 'application/json'},
+    type: "GET",
+    success: function(result) { 
+      console.log('Successfully called duke identity api');
+      console.log(result);
+      alert('For debugging only: ' + JSON.stringify(result));
+    }
+  });
 }
