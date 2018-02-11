@@ -44,8 +44,7 @@ function loadLoggedInContent() {
   checkLoggedIn(function(loggedIn) {
     if (loggedIn) {
       loadSideBar();
-    }
-    else{
+    } else {
       $('#profile').text('Login');
       $('#logout').addClass('hide');
     }
@@ -80,4 +79,52 @@ function loadSideBar() {
     });
 
   })
+}
+
+
+function getAccessTokenHash() {
+  let hash = window.location.hash;
+  let access_token = hash.substring(1);
+  console.log(access_token);
+  let paramsObject = JSON.parse('{"' + decodeURI(access_token).replace(/"/g, '\\"').replace(/&/g, '","').replace(/=/g, '":"') + '"}');
+  console.log(paramsObject);
+  getDukeIdentity(paramsObject);
+
+}
+
+function getDukeIdentity(parameters) {
+  $.ajax({
+    url: "https://api.colab.duke.edu/identity/v1/",
+    headers: { 'x-api-key': 'hypotheticalmeals', 'Authorization': 'Bearer ' + parameters['access_token'], 'Accept': 'application/json' },
+    type: "GET",
+    success: function(result) {
+      console.log('Successfully called duke identity api');
+      //alert(JSON.stringify(result));
+      console.log(result);
+      //alert('For debugging only: ' + JSON.stringify(result));
+      let netid = result['netid'];
+      let email = result['mail'];
+      // Create the identity
+      createOrLoginAccountNetID({'netid':netid, 'email':email});
+
+    }
+  });
+}
+
+function createOrLoginAccountNetID(userdata) {
+  $.ajax({
+    url: "/users",
+    type: "POST",
+    data: userdata,
+    success: function(result) {
+      console.log('createOrLoginAccount returned');
+      console.log(result);
+      if (result['success']){
+        window.location.href = '/users';
+      }
+      //console.log(result);
+      // TODO: trigger success UI
+
+    }
+  });
 }

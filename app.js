@@ -16,13 +16,16 @@ var files = require('./routes/files');
 var inventory = require('./routes/inventory_routes');
 var MongoStore = require('connect-mongo')(session);
 
+var oauth = require('./routes/duke_oauth');
+var variables = require('./helpers/variables');
+
 //var seed = require('./helpers/seed.js');
 
 var app = express();
 
 
-
-var MONGO_URI = (process.env.MONGODB_URI) ? process.env.MONGODB_URI : require('./env.json')[process.env.NODE_ENV || 'development']['MONGO_URI'];
+//var MONGO_URI = (process.env.MONGODB_URI); 
+//var MONGO_URI = (process.env.MONGODB_URI) ? process.env.MONGODB_URI : require('./env.json')[process.env.NODE_ENV || 'development']['MONGO_URI'];
 
 
 
@@ -30,7 +33,7 @@ var MONGO_URI = (process.env.MONGODB_URI) ? process.env.MONGODB_URI : require('.
 // connect to mongoDB
 // TODO: use env variables, either way this is a throwaway database URI
 
-mongoose.connect(MONGO_URI, {useMongoClient: true});
+mongoose.connect(variables.MONGO_URI, {useMongoClient: true});
 mongoose.Promise = global.Promise;
 var db = mongoose.connection;
 
@@ -63,7 +66,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/', index);
+app.use('/',index);
 app.use('/users', users);
 app.use('/ingredients', users.requireLogin(),ingredients); //This is not ideal
 app.post('/ingredients/*', users.requireRole("admin"), ingredients);
@@ -71,6 +74,8 @@ app.use('/vendors', users.requireLogin(), vendors);
 
 app.use('/files', files);
 app.use('/inventory',users.requireRole("admin"),inventory);
+
+app.use('/duke_oauth', oauth);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
