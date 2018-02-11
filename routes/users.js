@@ -61,13 +61,11 @@ router.post('/', function(req, res, next) {
         return next(error);
       } else {
         console.log('Hash the password');
-
-        encryptPassword(user, function(err) {
-          if (err) { return res.status(500).send({ msg: err.message }); }
-
-          res.status(200).render('login');
-
-        })
+        res.status(200).render('login');
+        // encryptPassword(user, function(err) {
+        //   if (err) { return res.status(500).send({ msg: err.message }); }
+        //   res.status(200).render('login');
+        // })
       }
     });
 
@@ -105,19 +103,19 @@ router.post('/', function(req, res, next) {
 });
 
 
-encryptPassword = function(user, callback) {
-  bcrypt.hash(user.password, 10, function(err, hash) {
-    if (err) {
-      return next(err);
-    }
+// encryptPassword = function(user, callback) {
+//   bcrypt.hash(user.password, 10, function(err, hash) {
+//     if (err) {
+//       return next(err);
+//     }
 
-    console.log('Successful hash');
-    user.password = hash;
-    user.save(function(err) {
-      callback(err);
-    });
-  });
-}
+//     console.log('Successful hash');
+//     user.password = hash;
+//     user.save(function(err) {
+//       callback(err);
+//     });
+//   });
+// }
 
 sendEmailVerification = function(user, req, res, callback = null) {
   var token = new Token({ _userId: user._id, token: crypto.randomBytes(16).toString('hex') });
@@ -273,16 +271,17 @@ router.post('/delete', function(req, res, next) {
 
 router.post('/update', async function(req, res, next) {
   var userdata = null;
-  if (req.body.email !== null && req.body.email.length > 0) {
-    userdata = { 'email': req.body.email };
-  } else if (req.body.netid !== null) {
+  if (req.body.netid !== null) {
     userdata = { 'netid': req.body.netid };
+  }
+  else if (req.body.email !== null && req.body.email.length > 0) {
+    userdata = { 'email': req.body.email };
   }
   if (userdata === null){
     return
   }
 
-  User.update(userdata, req.body.username, function(err, user) {
+  User.update(userdata, {'username':req.body.username, 'password':req.body.password, 'email': req.body.email}, function(err, user) {
     if (err) {
       return next(err);
     }

@@ -2,7 +2,6 @@ var mongoose = require('mongoose');
 var bcrypt = require('bcrypt');
 
 
-
 var UserSchema = new mongoose.Schema({
   email: {
     type: String,
@@ -102,9 +101,9 @@ UserSchema.statics.authenticate_netid = function(netid, callback) {
   })
 }
 
-UserSchema.statics.update = function(userdata, new_username, callback) {
+UserSchema.statics.update = function(userdata, newdata, callback) {
   console.log(userdata);
-  
+
   User.findOne(userdata, function(err, user) {
     console.log(user);
     if (err) {
@@ -113,7 +112,19 @@ UserSchema.statics.update = function(userdata, new_username, callback) {
       error.status = 400;
       return callback(error);
     }
-    user.username = new_username;
+
+    if (newdata['username'] !== null) {
+      user.username = newdata['username'];
+    }
+    if (newdata['password'] !== null) {
+      if (newdata['password'].length > 0) {
+        user.password = newdata['password'];
+      }
+    }
+
+    if (newdata['email'] !== null) {
+      user.email = newdata['email'];
+    }
 
     user.save(function(err) {
       if (err) {
@@ -135,18 +146,22 @@ findUserByNetid = function(netid, callback) {
     })
 }
 
+
 //hashing a password before saving it to the database
-//UserSchema.pre('save', function(next) {
-// console.log('HASH THE PASSWORD');
-// var user = this;
-// bcrypt.hash(user.password, 10, function(err, hash) {
-//   if (err) {
-//     return next(err);
-//   }
-//   user.password = hash;
-//   next();
-// })
-//});
+UserSchema.pre('save', function(next) {
+  console.log('HASH THE PASSWORD');
+  var user = this;
+  if (user.password === null && user.netid !== null) {
+    next();
+  }
+  bcrypt.hash(user.password, 10, function(err, hash) {
+    if (err) {
+      return next(err);
+    }
+    user.password = hash;
+    next();
+  })
+});
 
 
 var User = mongoose.model('User', UserSchema);
