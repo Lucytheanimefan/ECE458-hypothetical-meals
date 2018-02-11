@@ -17,13 +17,14 @@ var inventory = require('./routes/inventory_routes');
 var MongoStore = require('connect-mongo')(session);
 
 var oauth = require('./routes/duke_oauth');
+var variables = require('./helpers/variables');
 
 //var seed = require('./helpers/seed.js');
 
 var app = express();
 
 
-var MONGO_URI = (process.env.MONGODB_URI); 
+//var MONGO_URI = (process.env.MONGODB_URI); 
 //var MONGO_URI = (process.env.MONGODB_URI) ? process.env.MONGODB_URI : require('./env.json')[process.env.NODE_ENV || 'development']['MONGO_URI'];
 
 
@@ -32,7 +33,7 @@ var MONGO_URI = (process.env.MONGODB_URI);
 // connect to mongoDB
 // TODO: use env variables, either way this is a throwaway database URI
 
-mongoose.connect(MONGO_URI, {useMongoClient: true});
+mongoose.connect(variables.MONGO_URI, {useMongoClient: true});
 mongoose.Promise = global.Promise;
 var db = mongoose.connection;
 

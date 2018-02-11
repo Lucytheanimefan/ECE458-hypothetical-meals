@@ -10,12 +10,7 @@ var underscore = require('underscore');
 var dialog = require('dialog');
 var bcrypt = require('bcrypt');
 
-var EMAIL = (process.env.EMAIL);
-var PASSWORD = (process.env.PASSWORD);
-
-
-// var EMAIL = (process.env.EMAIL) ? process.env.EMAIL : require('../env.json')['email'];
-// var PASSWORD = (process.env.PASSWORD) ? process.env.PASSWORD : require('../env.json')['password'];
+var variables = require('../helpers/variables');
 
 
 

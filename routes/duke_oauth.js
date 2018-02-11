@@ -1,11 +1,12 @@
 var express = require('express');
 var router = express.Router();
 var crypto = require('crypto');
+var variables = require('../helpers/variables');
 const querystring = require('querystring');
 
-var CLIENTID = process.env.clientID; //MY_ENV['clientID'];
-var CLIENTSECRET = process.env.clientSecret;//MY_ENV['clientSecret'];
-var TOKEN_URL = process.env.tokenHost;//MY_ENV['tokenHost'];
+// var CLIENTID = process.env.clientID; //MY_ENV['clientID'];
+// var CLIENTSECRET = process.env.clientSecret;//MY_ENV['clientSecret'];
+// var TOKEN_URL = process.env.tokenHost;//MY_ENV['tokenHost'];
 
 // var MY_ENV = require('../env.json');
 // var CLIENTID = MY_ENV['clientID'];
@@ -16,11 +17,11 @@ var TOKEN_URL = process.env.tokenHost;//MY_ENV['tokenHost'];
 // Set the configuration settings
 const credentials = {
   client: {
-    id: CLIENTID,
-    secret: CLIENTSECRET
+    id: variables.CLIENTID,
+    secret: variables.CLIENTSECRET
   },
   auth: {
-    tokenHost: TOKEN_URL,
+    tokenHost: variables.TOKEN_URL,
     tokenPath: '/token.php',
     authorizePath: '/oauth/authorize.php'
   }
