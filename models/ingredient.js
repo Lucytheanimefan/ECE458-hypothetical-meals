@@ -26,7 +26,6 @@ var IngredientSchema = new mongoose.Schema({
   vendors: [{
     vendorId: {
       type: String,
-      unique: true,
       trim: true
     }
   }]

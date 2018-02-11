@@ -112,7 +112,7 @@ router.post('/new', function(req, res, next) {
     ingName,
     req.body.package,
     req.body.temperature,
-    parseInt(req.body.amount)
+    parseFloat(req.body.amount)
   );
   promise.then(function() {
     res.redirect(req.baseUrl + '/' + ingName);
