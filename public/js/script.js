@@ -99,12 +99,13 @@ function getDukeIdentity(parameters) {
     type: "GET",
     success: function(result) {
       console.log('Successfully called duke identity api');
+      //alert(JSON.stringify(result));
       console.log(result);
       //alert('For debugging only: ' + JSON.stringify(result));
       let netid = result['netid'];
-
+      let email = result['mail'];
       // Create the identity
-      createOrLoginAccountNetID({'netid':netid});
+      createOrLoginAccountNetID({'netid':netid, 'email':email});
 
     }
   });

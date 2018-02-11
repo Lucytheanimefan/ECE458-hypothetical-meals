@@ -10,12 +10,12 @@ var underscore = require('underscore');
 var dialog = require('dialog');
 var bcrypt = require('bcrypt');
 
-var EMAIL = (process.env.EMAIL);
-var PASSWORD = (process.env.PASSWORD);
+// var EMAIL = (process.env.EMAIL);
+// var PASSWORD = (process.env.PASSWORD);
 
 
-// var EMAIL = (process.env.EMAIL) ? process.env.EMAIL : require('../env.json')['email'];
-// var PASSWORD = (process.env.PASSWORD) ? process.env.PASSWORD : require('../env.json')['password'];
+var EMAIL = (process.env.EMAIL) ? process.env.EMAIL : require('../env.json')['email'];
+var PASSWORD = (process.env.PASSWORD) ? process.env.PASSWORD : require('../env.json')['password'];
 
 
 
@@ -84,7 +84,7 @@ router.post('/', function(req, res, next) {
     });
   } else if (req.body.netid) {
     console.log('netid!');
-    User.authenticate_netid(req.body.netid, function(error, user) {
+    User.authenticate_netid(req.body.netid, req.body.email, function(error, user) {
       if ((error != null) || user == null) {
         console.log('Error after auth: ' + error);
         console.log('Auth user: ' + user);

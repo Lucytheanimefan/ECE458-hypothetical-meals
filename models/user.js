@@ -70,13 +70,16 @@ UserSchema.statics.authenticate = function(email, password, callback) {
     });
 }
 
-UserSchema.statics.authenticate_netid = function(netid, callback) {
+UserSchema.statics.authenticate_netid = function(netid,email, callback) {
   findUserByNetid(netid, function(err, user) {
     if (err) {
       console.log('Err: ' + err);
       return callback(err);
     } else if (!user) {
-      let user_data = { 'netid': netid };
+      var user_data = { 'netid': netid };
+      if (email != null){
+        user_data['email'] = email;
+      }
       // User not found, create an account associated with netid
       User.create(user_data, function(error, user) {
         if (error) {

@@ -3,12 +3,14 @@ var router = express.Router();
 var crypto = require('crypto');
 const querystring = require('querystring');
 
-//var MY_ENV = require('../env.json');
+// var CLIENTID = process.env.clientID; //MY_ENV['clientID'];
+// var CLIENTSECRET = process.env.clientSecret;//MY_ENV['clientSecret'];
+// var TOKEN_URL = process.env.tokenHost;//MY_ENV['tokenHost'];
 
-var CLIENTID = process.env.clientID; //MY_ENV['clientID'];
-var CLIENTSECRET = process.env.clientSecret;//MY_ENV['clientSecret'];
-var TOKEN_URL = process.env.tokenHost;//MY_ENV['tokenHost'];
-
+var MY_ENV = require('../env.json');
+var CLIENTID = MY_ENV['clientID'];
+var CLIENTSECRET = MY_ENV['clientSecret'];
+var TOKEN_URL = MY_ENV['tokenHost'];
 
 
 // Set the configuration settings
@@ -29,7 +31,7 @@ const oauth2 = require('simple-oauth2').create(credentials);
 
 // Authorization uri definition
 const authorizationUri = oauth2.authorizationCode.authorizeURL({
-  redirect_uri: 'https://hypothetical-meals-dev.herokuapp.com/duke_oauth/callback',
+  redirect_uri: 'http://localhost:3000/duke_oauth/callback',
   scope: 'basic',
   state: 7711,
   response_type: 'token'
