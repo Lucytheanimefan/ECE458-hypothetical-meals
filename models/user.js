@@ -76,7 +76,7 @@ UserSchema.statics.authenticate_netid = function(netid,email, callback) {
       console.log('Err: ' + err);
       return callback(err);
     } else if (!user) {
-      var user_data = { 'netid': netid };
+      var user_data = { 'netid': netid, 'username': netid };
       if (email != null){
         user_data['email'] = email;
       }
@@ -90,6 +90,8 @@ UserSchema.statics.authenticate_netid = function(netid,email, callback) {
         // Try logging in again
         findUserByNetid(netid, function(err, user) {
           if (err) {
+            console.log('Error finding user by netid: ');
+            console.log(err);
             return callback(err);
           }
           return callback(null, user);
