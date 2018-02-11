@@ -2,6 +2,7 @@ var express = require('express');
 var queryString = require('query-string');
 var router = express.Router();
 var Ingredient = require('../models/ingredient');
+var IngredientHelper = require('../helpers/ingredients');
 var Inventory = require('../models/inventory');
 var Vendor = require('../models/vendor');
 var users = require('./users');
@@ -25,7 +26,7 @@ router.get('/', function(req, res, next) {
 })
 
 router.get('/search_results/:page?/:search?', function(req, res, next) {
-  var query = Ingredient.find();
+  var query = Ingredient.model.find();
   var searchString = req.params.search;
   var searchQuery = (searchString == null) ? req.query : queryString.parse(searchString);
   if (searchQuery.name != null) {
@@ -63,7 +64,7 @@ router.get('/:name', function(req, res, next) {
 })
 
 router.get('/:name/:amt/:page?', function(req, res, next) {
-  var ingQuery = Ingredient.findOne({ name: req.params.name });
+  var ingQuery = Ingredient.getIngredient({ name: req.params.name });
   var perPage = 10;
   var page = req.params.page || 1;
   page = (page < 1) ? 1 : page;
@@ -88,27 +89,17 @@ router.get('/:name/:amt/:page?', function(req, res, next) {
 
 //POST request to delete an existing ingredient
 router.post('/:name/delete', function(req, res, next) {
-  var query = Ingredient.findOneAndRemove({ name: req.params.name })
-  var inventoryUpdate = function(result) {
-    var temperature = result['temperature'].toLowerCase().split(" ")[0];
-    var decrementObject = {};
-    var field = 'current.' + temperature;
-    decrementObject[field] = -result['amount'];
-    return Inventory.findOneAndUpdate({ type: 'master' }, { $inc: decrementObject });
-  }
-  query.then(function(result) {
-    if (result['package'] !== "railcar" && result['package'] !== "truckload") {
-      return inventoryUpdate(result);
-    } else {
-      res.redirect(req.baseUrl);
-    }
-  }).then(function(result) {
-    res.redirect(req.baseUrl);
+  Ingredient.getIngredient(req.params.name).then(function(ing) {
+    return IngredientHelper.deleteIngredient(
+      ing['name'],
+      ing['package'],
+      ing['temperature'],
+      parseInt(ing['amount'])
+    );
+  }).then(function() {
+    res.redirect(req.baseUrl + '/');
   }).catch(function(error) {
-    console.log(error);
-    var err = new Error('Couldn\'t delete that ingredient.');
-    err.status = 400;
-    next(err);
+    next(error);
   });
 })
 
@@ -116,102 +107,36 @@ router.post('/:name/delete', function(req, res, next) {
 router.post('/:name/update', function(req, res, next) {
   let ingName = req.body.name;
 
-  var invDb;
-  var ingDb;
-  var findInventory = Inventory.findOne({ type: "master" });
-  var findIngredient = Ingredient.findOne({ name: req.params.name });
-
-  var query = Ingredient.findOneAndUpdate({ name: req.params.name }, {
-    $set: {
-      name: ingName,
-      package: req.body.package.toLowerCase(),
-      temperature: req.body.temperature.toLowerCase(),
-      amount: req.body.amount
-    }
-  });
-  findInventory.then(function(inv) {
-    invDb = inv;
-    return findIngredient;
-  }).then(function(ing) {
-    ingDb = ing;
-    let currIndTemp = ing['temperature'].toLowerCase().split(" ")[0];
-    let currAmount = parseFloat(ing['amount']);
-    if (ing['package'] !== "railcar" && ing['package'] !== "truckload") {
-      invDb['current'][currIndTemp] -= currAmount;
-    }
-    return invDb;
-  }).then(function(db) {
-    let newIndTemp = req.body.temperature.toLowerCase().split(" ")[0];
-    let newAmount = parseFloat(req.body.amount);
-    if (req.body.package.toLowerCase() !== "railcar" && req.body.package.toLowerCase() !== "truckload") {
-      invDb['current'][newIndTemp] += newAmount;
-    }
-    if (invDb['current'][newIndTemp] > invDb['limits'][newIndTemp]) {
-      invDb['current'][currIndTemp] += currAmount;
-      invDb['current'][newIndTemp] -= newAmount;
-    }
-    return invDb.save(function(err) {
-      if (err) {
-        console.log('UPDATE INGRED: ERROR SAVING INVENTORY: ');
-        console.log(error);
-      }
-      console.log('UPDATE INGRED: SUCCESS SAVING INVENTORY');
-    });
-  }).catch(function(error) {
-    var error = new Error('Couldn\'t update the inventory.');
-    error.status = 400;
-    next(error);
-  }).then(function(result) {
-    return query.exec();
-  }).then(function(result) {
+  var updatePromise = IngredientHelper.updateIngredient(
+    req.params.name,
+    req.body.name,
+    req.body.package,
+    req.body.temperature,
+    parseInt(req.body.amount)
+  );
+  updatePromise.then(function() {
     res.redirect(req.baseUrl + '/' + ingName);
   }).catch(function(error) {
-    var err = new Error('Couldn\'t update that ingredient.');
-    err.status = 400;
-    next(err);
+    next(error);
   });
 
 });
 
-//POST request to create a new ingredient
 router.post('/new', function(req, res, next) {
   let ingName = req.body.name;
-  var promise = Ingredient.create({
-    name: ingName,
-    package: req.body.package.toLowerCase(),
-    temperature: req.body.temperature.toLowerCase(),
-    amount: req.body.amount
-  });
-  promise.then(async function(instance) {
-    await Inventory.findOne({ type: "master" }, function(err, inv) {
-      if (err) { return next(err); }
 
-      // console.log('-----------------------------------------------');
-      // console.log('req.body.temperature: ' + req.body.temperature);
-      let temperature = req.body.temperature.toLowerCase().split(" ")[0];
-
-      //console.log('Split temp: ' + temperature);
-      if (req.body.package.toLowerCase() !== "truckload" && req.body.package.toLowerCase() !== "railcar") {
-        //console.log('Add amount to current temp('+temperature+'): ' + req.body.amount);
-        inv['current'][temperature] += parseFloat(req.body.amount);
-      }
-      if (inv['current'][temperature] > inv['limits'][temperature]) {
-        instance['amount'] = 0;
-        inv['current'][temperature] -= parseFloat(req.body.amount);
-      }
-      inv.save(function(err) {
-        if (err) {
-          console.log('ERROR SAVING INVENTORY: ');
-          console.log(error);
-        }
-        console.log('SUCCESS SAVING INVENTORY');
-      });
-      instance.save();
-    })
+  var promise = IngredientHelper.createIngredient(
+    ingName,
+    req.body.package,
+    req.body.temperature,
+    parseInt(req.body.amount)
+  );
+  promise.then(function() {
     res.redirect(req.baseUrl + '/' + ingName);
   }).catch(function(error) {
     next(error);
   });
+
 })
 
 createCatalogue = function(vendors, name) {
