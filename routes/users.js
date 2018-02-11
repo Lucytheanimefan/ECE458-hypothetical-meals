@@ -543,7 +543,7 @@ router.post('/checkout_cart', function(req, res, next) {
             report = report[0];
 
             production_report = user.production_report;
-            if (production_report === null | production_report === undefined | Array.isArray(production_report) & production_report.length == 0) {
+            if (production_report === null | production_report === undefined /*| Array.isArray(production_report) & production_report.length == 0*/) {
               production_report = [];
               production_report.push({});
             }
