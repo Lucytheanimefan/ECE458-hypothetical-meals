@@ -11,15 +11,6 @@ var users = require('./users');
 var packageTypes = ['sack', 'pail', 'drum', 'supersack', 'truckload', 'railcar'];
 var temperatures = ['frozen', 'refrigerated', 'room temperature'];
 
-let weightMapping = {
-  sack: 50,
-  pail: 50,
-  drum: 500,
-  supersack: 2000,
-  truckload: 50000,
-  railcar: 280000
-}
-
 //GET request to show available ingredients
 router.get('/', function(req, res, next) {
   res.redirect(req.baseUrl + '/search_results/');
