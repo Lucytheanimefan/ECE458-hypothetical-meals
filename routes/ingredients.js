@@ -11,15 +11,6 @@ var users = require('./users');
 var packageTypes = ['sack', 'pail', 'drum', 'supersack', 'truckload', 'railcar'];
 var temperatures = ['frozen', 'refrigerated', 'room temperature'];
 
-let weightMapping = {
-  sack: 50,
-  pail: 50,
-  drum: 500,
-  supersack: 2000,
-  truckload: 50000,
-  railcar: 280000
-}
-
 //GET request to show available ingredients
 router.get('/', function(req, res, next) {
   res.redirect(req.baseUrl + '/search_results/');
@@ -29,27 +20,11 @@ router.get('/search_results/:page?/:search?', function(req, res, next) {
   var query = Ingredient.model.find();
   var searchString = req.params.search;
   var searchQuery = (searchString == null) ? req.query : queryString.parse(searchString);
-  if (searchQuery.name != null) {
-    var name = searchQuery.name;
-    var search = '.*' + name + '.*'
-    query.where({ name: new RegExp(search, 'i') });
-  }
-  if (searchQuery.package != null) {
-    query.where('package').in(searchQuery.package);
-  }
-  if (searchQuery.temperature != null) {
-    query.where('temperature').in(searchQuery.temperature);
-  }
-  var perPage = 10;
   var page = req.params.page || 1;
   page = (page < 1) ? 1 : page;
-  query.skip((perPage * page) - perPage).limit(perPage);
 
   searchString = queryString.stringify(searchQuery);
-  query.then(function(ings) {
-    if (ings.length == 0) {
-      page = page - 1;
-    }
+  IngredientHelper.searchIngredients(searchQuery, page).then(function(ings) {
     res.render('ingredients', { ingredients: ings, packages: packageTypes, temps: temperatures, searchQuery: searchString, page: page });
   }).catch(function(error) {
     console.log(error);
@@ -63,11 +38,13 @@ router.get('/:name', function(req, res, next) {
   res.redirect(req.baseUrl + '/' + req.params.name + '/0');
 })
 
+//TODO: Refactor once vendor is ready
 router.get('/:name/:amt/:page?', function(req, res, next) {
   var ingQuery = Ingredient.getIngredient(req.params.name);
   var perPage = 10;
   var page = req.params.page || 1;
   page = (page < 1) ? 1 : page;
+
   var vendorQuery = Vendor.find({ 'catalogue.ingredient': req.params.name }).skip((perPage * page) - perPage).limit(perPage);
   // should be from Vendor model
   var findAllVendors = Vendor.find().exec();
@@ -85,9 +62,6 @@ router.get('/:name/:amt/:page?', function(req, res, next) {
     ingredient = ing;
     return vendorQuery;
   }).then(function(vendors) {
-    vendorObjects.filter(function(n) {
-      return vendors.indexOf(n) === -1;
-    });
     return createCatalogue(vendors, req.params.name);
   }).then(function(catalogue) {
     res.render('ingredient', { ingredient: ingredient, packages: packageTypes, temps: temperatures, vendors: catalogue, page: page, amount: req.params.amt, existingVendors: vendorObjects });
@@ -138,7 +112,7 @@ router.post('/new', function(req, res, next) {
     ingName,
     req.body.package,
     req.body.temperature,
-    parseInt(req.body.amount)
+    parseFloat(req.body.amount)
   );
   promise.then(function() {
     res.redirect(req.baseUrl + '/' + ingName);
