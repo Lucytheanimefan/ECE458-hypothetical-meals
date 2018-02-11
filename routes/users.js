@@ -19,6 +19,7 @@ var PASSWORD = (process.env.PASSWORD) ? process.env.PASSWORD : require('../env.j
 
 
 
+
 /* GET users listing. */
 router.get('/', function(req, res, next) {
   User.findById(req.session.userId)
