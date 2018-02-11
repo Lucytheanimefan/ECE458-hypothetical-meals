@@ -22,7 +22,14 @@ var IngredientSchema = new mongoose.Schema({
   amount: {
     type: Number,
     required: true
-  }
+  },
+  vendors: [{
+    vendorId: {
+      type: String,
+      unique: true,
+      trim: true
+    }
+  }]
 });
 
 var Ingredient = mongoose.model('Ingredient', IngredientSchema);
@@ -44,6 +51,11 @@ module.exports.getAllIngredients = function() {
   return Ingredient.find().exec();
 }
 
+//this returns a query for searching
+module.exports.searchIngredients = function() {
+  return Ingredient.find();
+}
+
 module.exports.updateIngredient = function(name, newName, package, temp, amount) {
   return Ingredient.findOneAndUpdate({ 'name':  name }, {
     '$set': {
@@ -59,5 +71,10 @@ module.exports.deleteIngredient = function(name) {
   return Ingredient.findOneAndRemove({ 'name': name }).exec();
 }
 
+module.exports.addVendor = function(name, vendorId) {
+  return Ingredient.findOneAndUpdate({ 'name': name }, {
+    '$push': {'vendors': vendorId}
+  }).exec();
+}
 
 module.exports.model = Ingredient;

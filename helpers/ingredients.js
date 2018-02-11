@@ -1,5 +1,8 @@
 var Ingredient = require('../models/ingredient');
 var InventoryHelper = require('./inventory');
+var Vendor = require('../models/vendor');
+var mongoose = require('mongoose');
+mongoose.Promise = global.Promise;
 
 var checkAndUpdate = function(promise, package, temp, amount) {
   return new Promise(function(resolve, reject) {
@@ -51,5 +54,25 @@ module.exports.updateIngredient = function(name, newName, package, temp, amount)
 module.exports.deleteIngredient = function(name, package, temp, amount) {
   return new Promise(function(resolve, reject) {
     resolve(Promise.all([InventoryHelper.updateInventory(package, temp, -amount), Ingredient.deleteIngredient(name)]));
+  })
+}
+
+module.exports.addVendor = function(name, vendorId) {
+  let vendorObjectId = mongoose.Types.ObjectId(vendorId);
+  return new Promise(function(resolve, reject) {
+    var vendorQuery = Vendor.findById(vendorObjectId);
+    vendorQuery.exec().then(function(vendor) {
+      if (vendor == null) {
+        var error = new Error('The specified vendor doesn\'t exist!');
+        error.status = 400;
+        throw error;
+      } else {
+        return Ingredient.addVendor(name, vendorObjectId);
+      }
+    }).then(function(result) {
+      resolve();
+    }).catch(function(error) {
+      reject(error);
+    })
   })
 }

@@ -70,6 +70,14 @@ block content
           input.form-control(type='number', step="any", name='amount', value = ingredient.amount, required='')
           button.btn.btn-primary.pull-right(type='submit') Update ingredient
 
+        form(action='/ingredients/' + ingredient.name + '/add-vendor', method='post')
+          label.control-label Vendor
+          select.form-control(name='vendor', placeholder = '', required='')
+            option(disabled='' selected='' value='') Select an option
+            each vendor in existingVendors
+              option(value=vendor._id)= vendor.code
+          button.btn.btn-primary.pull-right(type='submit') Add vendor
+
       div.card#vendor-info
         div.card-header(data-background-color='purple')
           h4.title Vendor Information

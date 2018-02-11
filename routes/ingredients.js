@@ -68,20 +68,29 @@ router.get('/:name/:amt/:page?', function(req, res, next) {
   var perPage = 10;
   var page = req.params.page || 1;
   page = (page < 1) ? 1 : page;
-  var venderQuery = Vendor.find({ 'catalogue.ingredient': req.params.name }).skip((perPage * page) - perPage).limit(perPage);
+  var vendorQuery = Vendor.find({ 'catalogue.ingredient': req.params.name }).skip((perPage * page) - perPage).limit(perPage);
+  // should be from Vendor model
+  var findAllVendors = Vendor.find().exec();
   var ingredient;
-  ingQuery.then(function(ing) {
+  var vendorObjects;
+  findAllVendors.then(function(vendors) {
+    vendorObjects = vendors;
+    return ingQuery;
+  }).then(function(ing) {
     if (ing == null) {
       var err = new Error('That ingredient doesn\'t exist!');
       err.status = 404;
       throw err;
     }
     ingredient = ing;
-    return venderQuery;
+    return vendorQuery;
   }).then(function(vendors) {
+    vendorObjects.filter(function(n) {
+      return vendors.indexOf(n) === -1;
+    });
     return createCatalogue(vendors, req.params.name);
   }).then(function(catalogue) {
-    res.render('ingredient', { ingredient: ingredient, packages: packageTypes, temps: temperatures, vendors: catalogue, page: page, amount: req.params.amt });
+    res.render('ingredient', { ingredient: ingredient, packages: packageTypes, temps: temperatures, vendors: catalogue, page: page, amount: req.params.amt, existingVendors: vendorObjects });
   }).catch(function(error) {
     next(error)
   });
@@ -137,6 +146,17 @@ router.post('/new', function(req, res, next) {
     next(error);
   });
 
+})
+
+
+router.post('/:name/add-vendor', function(req, res, next) {
+  let ingName = req.params.name;
+
+  IngredientHelper.addVendor(ingName, req.body.vendor).then(function() {
+    res.redirect(req.baseUrl + '/' + ingName);
+  }).catch(function(error) {
+    next(error);
+  })
 })
 
 createCatalogue = function(vendors, name) {
