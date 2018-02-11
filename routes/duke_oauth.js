@@ -29,7 +29,7 @@ const oauth2 = require('simple-oauth2').create(credentials);
 
 // Authorization uri definition
 const authorizationUri = oauth2.authorizationCode.authorizeURL({
-  redirect_uri: 'http://localhost:3000/duke_oauth/callback',
+  redirect_uri: '/duke_oauth/callback',
   scope: 'basic',
   state: 7711,
   response_type: 'token'
