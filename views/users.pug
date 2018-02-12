@@ -14,7 +14,8 @@ block content
     .card-content.tab-pane.fade.in.active#users_table
       div.card
         div.card-content.table-response
-          table.table
+          input.form-control#userInput(type='text',onkeyup='filterUsers(\'user\')', placeholder='Search for users..', title='Type in some search text')
+          table.table#userTable
             thead.text-primary
               th Email
               th Username
@@ -23,11 +24,11 @@ block content
             tbody
             each user in users
               tr
-                th
-                  a(href='#')= user.email
-                th= user.username
-                th= user.role
-                th= user.netid
+                td
+                  a(href='mailto:'+user.email)= user.email
+                td= user.username
+                td= user.role
+                td= user.netid
             //- div.previous
             //-   form(action='/ingredients/search_results/' + (parseInt(page)-1).toString() + '/' + searchQuery, method='get')
             //-     button.btn.btn-white.btn-round.btn-just-icon(type='submit') Prev
@@ -56,12 +57,3 @@ block content
               option(value=role)= role
         button.btn.btn-primary.pull-right(type='submit', value='Create') Create
 
-  //- .row
-  //-   .card-content
-  //-     h3 Delete a user
-
-  //-     form(action='/users/delete', method='post')
-  //-       .form-group
-  //-         label.control-label Email
-  //-         input.form-control(type='text', name='email', placeholder='', required='')
-  //-       button.btn.btn-primary.pull-right(type='submit', value='delete') Delete

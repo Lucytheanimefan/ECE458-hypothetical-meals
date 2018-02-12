@@ -10,8 +10,34 @@ function dropDownInteractivity() {
   }
 }
 
-//dropDownInteractivity();
+function filterUsers(type) {
+  console.log('Filter users!');
+  var input, filter, table, tr, td, i;
+  input = document.getElementById(type + "Input");
+  filter = input.value.toUpperCase();
+  table = document.getElementById(type + "Table");
+  tr = table.getElementsByTagName("tr");
+  for (i = 0; i < tr.length; i++) {
+    let trElement = tr[i].getElementsByTagName("td");
+    td0 = trElement[0];
+    td1 = trElement[1];
+    td2 = trElement[2];
+    td3 = trElement[3];
+    console.log(trElement);
+    if (td0 || td1 || td2 || td3) {
+      if (tdContainsFilteredText(td0, filter) || tdContainsFilteredText(td1, filter) 
+        || tdContainsFilteredText(td2, filter) || tdContainsFilteredText(td3, filter)) {
+        tr[i].style.display = "";
+      } else {
+        tr[i].style.display = "none";
+      }
+    }       
+  }
+}
 
+function tdContainsFilteredText(td, filter){
+  return td.innerHTML.toUpperCase().indexOf(filter) > -1;
+}
 
 function checkIsAdmin(callback) {
   $.ajax({
