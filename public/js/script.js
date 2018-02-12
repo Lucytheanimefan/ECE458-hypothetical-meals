@@ -95,12 +95,36 @@ function getAccessTokenHash() {
 function getDukeIdentity(parameters) {
   $.ajax({
     url: "https://api.colab.duke.edu/identity/v1/",
-    headers: {'x-api-key' : 'hypotheticalmeals', 'Authorization' : 'Bearer ' + parameters['access_token'], 'Accept': 'application/json'},
+    headers: { 'x-api-key': 'hypotheticalmeals', 'Authorization': 'Bearer ' + parameters['access_token'], 'Accept': 'application/json' },
     type: "GET",
-    success: function(result) { 
+    success: function(result) {
       console.log('Successfully called duke identity api');
+      //alert(JSON.stringify(result));
       console.log(result);
-      alert('For debugging only: ' + JSON.stringify(result));
+      //alert('For debugging only: ' + JSON.stringify(result));
+      let netid = result['netid'];
+      let email = result['mail'];
+      // Create the identity
+      createOrLoginAccountNetID({'netid':netid, 'email':email});
+
+    }
+  });
+}
+
+function createOrLoginAccountNetID(userdata) {
+  $.ajax({
+    url: "/users",
+    type: "POST",
+    data: userdata,
+    success: function(result) {
+      console.log('createOrLoginAccount returned');
+      console.log(result);
+      if (result['success']){
+        window.location.href = '/users';
+      }
+      //console.log(result);
+      // TODO: trigger success UI
+
     }
   });
 }
