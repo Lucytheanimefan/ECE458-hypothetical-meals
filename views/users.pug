@@ -1,12 +1,41 @@
 extends layout
 block link
   -var selected = 'Users';
-  -var roles = ['admin', 'user'];
+  -var roles = ['admin', 'user', 'manager'];
 
 block content
-  .row
-    .card-content
-      //- button.btn-primary.btn.accordion
+  div#tabs
+    ul.nav.nav-tabs
+      li.active
+        a(data-toggle='tab', href='#users_table') Users
+      li
+        a(data-toggle='tab', href='#create_user') Create
+  .tab-content
+    .card-content.tab-pane.fade.in.active#users_table
+      div.card
+        div.card-content.table-response
+          table.table
+            thead.text-primary
+              th Email
+              th Username
+              th Role
+              th Netid
+            tbody
+            each user in users
+              tr
+                th
+                  a(href='#')= user.email
+                th= user.username
+                th= user.role
+                th= user.netid
+            //- div.previous
+            //-   form(action='/ingredients/search_results/' + (parseInt(page)-1).toString() + '/' + searchQuery, method='get')
+            //-     button.btn.btn-white.btn-round.btn-just-icon(type='submit') Prev
+            //- div.next
+            //-   form(action='/ingredients/search_results/' + (parseInt(page)+1).toString() + '/' + searchQuery, method='get')
+            //-     button.btn.btn-white.btn-round.btn-just-icon(type='submit') Next
+
+    .card-content.tab-pane.fade.in#create_user
       h3 Create a user
       //- .login-form.panel
       form(action='/users', method='post')
@@ -19,9 +48,6 @@ block content
         .form-group
           label.control-label Password
           input.form-control(type='password', name='password', placeholder='', required='')
-        //- .form-group
-        //-   label.control-label Password Confirmation
-        //-   input.form-control(type='password', name='passwordConf', placeholder='', required='')
         .form-group
           label.control-label Role
           select.form-control(name='role', placeholder = '', required='')
@@ -29,22 +55,13 @@ block content
             each role in roles
               option(value=role)= role
         button.btn.btn-primary.pull-right(type='submit', value='Create') Create
-  .row
-    .card-content
-      h3 Resend email verification token
 
-      form(action='/users/resendToken', method='post')
-        .form-group
-          label.control-label Email
-          input.form-control(type='text', name='email', placeholder='', required='')
-        button.btn.btn-primary.pull-right(type='submit', value='Create') Resend Token
+  //- .row
+  //-   .card-content
+  //-     h3 Delete a user
 
-  .row
-    .card-content
-      h3 Delete a user
-
-      form(action='/users/delete', method='post')
-        .form-group
-          label.control-label Email
-          input.form-control(type='text', name='email', placeholder='', required='')
-        button.btn.btn-primary.pull-right(type='submit', value='delete') Delete
+  //-     form(action='/users/delete', method='post')
+  //-       .form-group
+  //-         label.control-label Email
+  //-         input.form-control(type='text', name='email', placeholder='', required='')
+  //-       button.btn.btn-primary.pull-right(type='submit', value='delete') Delete
