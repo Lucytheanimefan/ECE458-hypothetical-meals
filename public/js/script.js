@@ -10,7 +10,7 @@ function dropDownInteractivity() {
   }
 }
 
-function filterUsers(type) {
+function filterTable(type) {
   console.log('Filter users!');
   var input, filter, table, tr, td, i;
   input = document.getElementById(type + "Input");
