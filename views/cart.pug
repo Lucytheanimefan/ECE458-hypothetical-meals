@@ -6,12 +6,10 @@ block content
   .row
     .card
       .card-header(data-background-color='purple')
-        h2.title Cart
+        h4.title Cart
       .card-content
         .col-md-12
-          h3(style="padding: 0px 0px 10px; text-decoration: underline") Ingredients
-          p
-            br
+          h5(style="padding: 0px 0px 10px; text-decoration: underline") Ingredients
           each ingredient in ingredients
             .col-md-12
               p(style="text-align:left;")
@@ -26,12 +24,14 @@ block content
                     input.btn.btn-secondary(type="submit" value="Remove" style="padding: 5px; background-color:#66c2ff; color: white; display:inline;")
           p
             br
-          div.previous
-            form(action="/users/cart/" + (parseInt(page)-1).toString(), method="get")
-              button.btn.btn-white.btn-round.btn-just-icon.pull-left(type="submit" style="display: inline-block;") Prev
-          div.next
-            form(action="/users/cart/" + (parseInt(page)+1).toString(), method="get")
-              button.btn.btn-white.btn-round.btn-just-icon.pull-right(type="submit" style="display: inline-block;") Next
+            Page #{parseInt(page)}
+        .row
+          .col-md-12
+            div.pages(style="text-align:center;")
+              form(action="/users/cart/" + (parseInt(page)-1).toString(), method="get")
+                button.btn.btn-white(type="submit" style="padding: 5px; text-align: center; display: inline-block;") <
+              form(action="/users/cart/" + (parseInt(page)+1).toString(), method="get")
+                button.btn.btn-white(type="submit" style="padding: 5px; display: inline-block;") >
         .row
           .col-md-12
             p

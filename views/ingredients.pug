@@ -17,11 +17,8 @@ block content
     .tab-content
       #ing-table.tab-pane.fade.in.active
         form(action='/ingredients/search_results/1' method='get')
-          div.search-bar
-            input.form-control(type='text', name='name', placeholder='Search for Ingredient Name')
-          div.search-button
-            button.btn.btn-white.btn-round.btn-just-icon(type='submit', value='search')
-              i.material-icons search
+          //- div.search-bar
+          //-   input.form-control(type='text', name='name', placeholder='Search for Ingredient Name')
           div.package-select
             label.search-label Package Type
             each package in packages
@@ -34,24 +31,28 @@ block content
               div
                 input(type='checkbox', name='temperature', value=temp)
                 label.options=temp
+            div.search-button
+              button.btn.btn-white.btn-round.btn-just-icon(type='submit', value='search')
+                i.material-icons search
         div.card
           div.card-header(data-background-color='purple')
             h4.title Ingredients
           div.card-content.table-response
-            table.table
+            input.form-control#ingredientInput(type='text',onkeyup='filterTable(\'ingredient\')', placeholder='Search for ingredients..', title='Type in some search text')
+            table.table#ingredientTable
               thead.text-primary
-                th Ingredient
-                th Package
-                th Temperature
-                th Amount (pounds)
+                th(onclick='sortTable(0, \'ingredient\')') Ingredient
+                th(onclick='sortTable(1, \'ingredient\')') Package
+                th(onclick='sortTable(2, \'ingredient\')') Temperature
+                th(onclick='sortTable(3, \'ingredient\')') Units
               tbody
               each ing in ingredients
                 tr
-                  th
+                  td
                     a(href='/ingredients/' + ing.name)= ing.name
-                  th= ing.package
-                  th= ing.temperature
-                  th= ing.amount
+                  td= ing.package
+                  td= ing.temperature
+                  td= ing.amount
             div.previous
               form(action='/ingredients/search_results/' + (parseInt(page)-1).toString() + '/' + searchQuery, method='get')
                 button.btn.btn-white.btn-round.btn-just-icon(type='submit') Prev

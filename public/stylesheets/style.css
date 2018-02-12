@@ -11,6 +11,8 @@ a {
   display: none;
 }
 
+th { cursor: pointer; }
+
 .div-dropdown {
   position: relative;
   display: inline-block;
