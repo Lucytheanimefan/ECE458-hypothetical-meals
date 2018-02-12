@@ -41,10 +41,10 @@ block content
             input.form-control#ingredientInput(type='text',onkeyup='filterTable(\'ingredient\')', placeholder='Search for ingredients..', title='Type in some search text')
             table.table#ingredientTable
               thead.text-primary
-                th Ingredient
-                th Package
-                th Temperature
-                th Units
+                th(onclick='sortTable(0, \'ingredient\')') Ingredient
+                th(onclick='sortTable(1, \'ingredient\')') Package
+                th(onclick='sortTable(2, \'ingredient\')') Temperature
+                th(onclick='sortTable(3, \'ingredient\')') Units
               tbody
               each ing in ingredients
                 tr
