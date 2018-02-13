@@ -4,22 +4,6 @@ var Vendor = require('../models/vendor');
 var mongoose = require('mongoose');
 mongoose.Promise = global.Promise;
 
-var checkAndUpdate = function(promise, package, temp, amount) {
-  return new Promise(function(resolve, reject) {
-    InventoryHelper.checkInventory(package, temp, amount).then(function(update) {
-      if (update) {
-        resolve(Promise.all([InventoryHelper.updateInventory(package, temp, amount), promise]));
-      } else {
-        var error = new Error('Not enough space in inventory!');
-        error.status = 400;
-        reject(error);
-      }
-    }).catch(function(error) {
-      reject(error);
-    });
-  });
-}
-
 module.exports.createIngredient = function(name, package, temp, amount=0) {
   return new Promise(function(resolve, reject) {
     if (amount < 0) {
@@ -27,8 +11,20 @@ module.exports.createIngredient = function(name, package, temp, amount=0) {
       error.status = 400;
       reject(error);
     } else {
-      var create = Ingredient.createIngredient(name, package, temp, amount)
-      resolve(checkAndUpdate(create, package, temp, amount));
+      // var create = Ingredient.createIngredient(name, package, temp, amount)
+      InventoryHelper.checkInventory(package, temp, amount).then(function(update) {
+        if (update) {
+          return Promise.all([InventoryHelper.updateInventory(package, temp, amount), Inventory.createIngredient(name, package, temp, amount)]);
+        } else {
+          var error = new Error('Not enough space in inventory!');
+          error.status = 400;
+          throw error;
+        }
+      }).then(function(result) {
+        resolve(result);
+      }).catch(function(error) {
+        reject(error);
+      });
     }
   });
 }
@@ -42,8 +38,17 @@ module.exports.updateIngredient = function(name, newName, package, temp, amount)
     } else {
       Ingredient.getIngredient(name).then(function(ing) {
         let incAmount = amount - parseFloat(ing['amount']);
-        var update = Ingredient.updateIngredient(name, newName, package, temp, amount);
-        resolve(checkAndUpdate(update, package, temp, incAmount));
+        InventoryHelper.checkInventory(package, temp, incAmount).then(function(update) {
+          if (update) {
+            return Promise.all([InventoryHelper.updateInventory(package, temp, amount), Inventory.updateIngredient(name, package, temp, amount)]);
+          } else {
+            var error = new Error('Not enough space in inventory!');
+            error.status = 400;
+            throw error;
+          }
+        })
+      }).then(function(result) {
+        resolve(result);
       }).catch(function(error) {
         reject(error);
       });
