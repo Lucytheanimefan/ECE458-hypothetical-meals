@@ -18,4 +18,15 @@ var InventorySchema = new mongoose.Schema({
 
 
 var Inventory = mongoose.model('Inventory', InventorySchema);
-module.exports = Inventory;
+
+module.exports.getInventory = function() {
+  return Inventory.findOne( {'type': 'master'} ).exec();
+}
+
+module.exports.updateInventory = function(updateObject) {
+  return Inventory.findOneAndUpdate({'type': 'master'}, {
+        '$inc': updateObject
+      });
+}
+
+module.exports.model = Inventory;

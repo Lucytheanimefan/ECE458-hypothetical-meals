@@ -1,10 +1,8 @@
 var Inventory = require('../models/inventory');
 
-var query = Inventory.findOne( {'type': 'master'} ).exec();
-
 module.exports.checkInventory = function(package, temp, amount) {
   return new Promise(function(resolve, reject) {
-    query.then(function(inv) {
+    Inventory.getInventory().then(function(inv) {
       let temperature = temp.toLowerCase().split(" ")[0];
       let canUpdate = false;
 
@@ -28,10 +26,36 @@ module.exports.updateInventory = function(package, temp, amount) {
     if (package.toLowerCase() === "truckload" || package.toLowerCase() === "railcar") {
       resolve('nada');
     } else {
-      resolve(Inventory.findOneAndUpdate({'type': 'master'}, {
-        '$inc': updateObject
-      }));
+      resolve(Inventory.updateInventory(updateObject));
     }
+  })
+}
+
+module.exports.updateLimits = function(frozen, room, refrigerated) {
+  return new Promise(function(resolve, reject) {
+    Inventory.getInventory().then(function(inv) {
+      if (parseInt(frozen) >= parseInt(inv.current.frozen)) {
+        inv.limits.frozen = frozen;
+      } else {
+        var error = new Error('Can\'t set frozen limit to under current capacity');
+        throw error;
+      }
+      if (parseInt(room) >= parseInt(inv.current.room)) {
+        inv.limits.room = room;
+      } else {
+        var error = new Error('Can\'t set room temperature limit to under current capacity');
+        throw error;
+      }
+      if (parseInt(refrigerated) >= parseInt(inv.current.refrigerated)) {
+        inv.limits.refrigerated = refrigerated;
+      } else {
+        var error = new Error('Can\'t set refrigerated limit to under current capacity');
+        throw error;
+      }
+      resolve(inv.save());
+    }).catch(function(error) {
+      reject(error);
+    });
   })
 }
 
