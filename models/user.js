@@ -106,7 +106,11 @@ UserSchema.statics.authenticate_netid = function(netid, email, callback) {
 }
 
 UserSchema.statics.update = function(userdata, newdata, callback) {
-  console.log(userdata);
+
+  //console.log(userdata);
+
+  console.log('NEW DATA: ');
+  console.log(newdata)
 
   User.findOne(userdata, function(err, user) {
     console.log(user);
@@ -128,6 +132,10 @@ UserSchema.statics.update = function(userdata, newdata, callback) {
 
     if (newdata['email'] != null) {
       user.email = newdata['email'];
+    }
+
+    if (newdata['role'] != null){
+      user.role = newdata['role'];
     }
 
     user.save(function(err) {

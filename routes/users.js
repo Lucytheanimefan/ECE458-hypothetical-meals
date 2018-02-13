@@ -155,6 +155,7 @@ router.post('/delete', function(req, res, next) {
   });
 });
 
+// Any user can update their own account
 router.post('/update', async function(req, res, next) {
   var userdata = null;
   if (req.body.netid !== null) {
@@ -172,8 +173,32 @@ router.post('/update', async function(req, res, next) {
     }
     return res.redirect(req.baseUrl + '/profile');
   })
-
 });
+
+// Admin can update the user through username 
+router.post('/update/:username', async function(req, res, next) {
+  console.log('Update user by username ' + req.params.username);
+  let userdata = {'username' : req.params.username}
+
+  User.update(userdata, { 'username': req.body.username, 'password': req.body.password, 'email': req.body.email, 'role': req.body.role }, function(err, user) {
+    if (err) {
+      return next(err);
+    }
+    return res.redirect(req.baseUrl + '/admin');
+  })
+});
+
+router.get('/:username', function(req, res, next) {
+  var user = User.findOne({ username: req.params.username })
+    .exec(function(error, user) {
+      if (error){
+        next(error);
+      }
+      console.log('Update the user: ');
+      console.log(user);
+      res.render('user', { title: 'Update User', user: user });
+    });
+})
 
 /**
  * This route is primarily used on the client side to determine whether or not you're an admin

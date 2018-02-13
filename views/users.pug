@@ -26,7 +26,8 @@ block content
               tr
                 td
                   a(href='mailto:'+user.email)= user.email
-                td= user.username
+                td
+                  a(href='/users/'+user.username)=user.username
                 td= user.role
                 td= user.netid
             //- div.previous
