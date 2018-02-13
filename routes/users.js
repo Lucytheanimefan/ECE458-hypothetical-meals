@@ -9,7 +9,6 @@ var nodemailer = require('nodemailer');
 var underscore = require('underscore');
 var dialog = require('dialog');
 var bcrypt = require('bcrypt');
-
 var variables = require('../helpers/variables');
 
 
@@ -88,8 +87,6 @@ router.post('/', function(req, res, next) {
       } else {
         req.session.userId = user._id;
         res.send({ 'success': true, 'netid': user.netid });
-        //res.render('profile', {'netid': user.netid})
-        //return res.redirect(req.baseUrl + '/profile');
       }
     });
   } else {

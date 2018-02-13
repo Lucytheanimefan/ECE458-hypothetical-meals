@@ -117,16 +117,16 @@ UserSchema.statics.update = function(userdata, newdata, callback) {
       return callback(error);
     }
 
-    if (newdata['username'] !== null) {
+    if (newdata['username'] != null) {
       user.username = newdata['username'];
     }
-    if (newdata['password'] !== null) {
+    if (newdata['password'] != null) {
       if (newdata['password'].length > 0) {
         user.password = newdata['password'];
       }
     }
 
-    if (newdata['email'] !== null) {
+    if (newdata['email'] != null) {
       user.email = newdata['email'];
     }
 
