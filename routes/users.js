@@ -52,16 +52,12 @@ router.post('/', function(req, res, next) {
 
     User.create(userData, function(error, user) {
       if (error) {
-        console.log("Error creating user");
+        console.log("Error creating user: ");
         console.log(error);
         return next(error);
       } else {
         console.log('Hash the password');
-        res.status(200).render('login');
-        // encryptPassword(user, function(err) {
-        //   if (err) { return res.status(500).send({ msg: err.message }); }
-        //   res.status(200).render('login');
-        // })
+        res.redirect(req.baseUrl + '/admin');
       }
     });
 
@@ -70,6 +66,7 @@ router.post('/', function(req, res, next) {
     console.log('Authenticate!');
     User.authenticate(req.body.logemail, req.body.logpassword, function(error, user) {
       if (error || !user) {
+        console.log(error);
         let err = new Error('Wrong email or password.');
         err.status = 401;
         return next(err);

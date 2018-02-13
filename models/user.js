@@ -23,7 +23,6 @@ var UserSchema = new mongoose.Schema({
   },
   netid: {
     type: String,
-    required: false,
     required: function() {
       return this.isDukePerson ? true : false
     }
