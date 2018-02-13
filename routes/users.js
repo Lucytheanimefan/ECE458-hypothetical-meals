@@ -202,19 +202,13 @@ router.get('/user/:username', function(req, res, next) {
     });
 })
 
-/**
- * This route is primarily used on the client side to determine whether or not you're an admin
- * @param  {[type]} req   [description]
- * @param  {[type]} res   [description]
- * @param  {[type]} next) The callback that contains the dictionary information of whether you are an admin
- * @return {null}
- */
-router.get('/isAdmin', function(req, res, next) {
+
+router.get('/role', function(req, res, next) {
   User.findById(req.session.userId)
     .exec(function(error, user) {
-      var isAdmin = (!error && user !== null && user.role.toUpperCase() === "ADMIN");
-      console.log('isAdmin: ' + isAdmin);
-      res.send({ 'isAdmin': isAdmin });
+      // var isAdmin = (!error && user !== null && user.role.toUpperCase() === "ADMIN");
+      // console.log('isAdmin: ' + isAdmin);
+      res.send({ 'role': user.role });
     });
 });
 

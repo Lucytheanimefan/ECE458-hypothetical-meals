@@ -100,18 +100,25 @@ function tdContainsFilteredText(td, filter){
   return td.innerHTML.toUpperCase().indexOf(filter) > -1;
 }
 
-function checkIsAdmin(callback) {
+function getUserRole(callback){
   $.ajax({
     type: 'GET',
-    url: '/users/isAdmin',
+    url: '/users/role',
     contentType: 'application/json; charset=utf-8',
     dataType: 'json',
     success: function(response) {
       console.log(response);
-      callback(response['isAdmin']);
+      callback(response['role']);
     }
   });
 }
+
+function checkIsAdmin(callback) {
+  getUserRole(function(role){
+    callback(role.toUpperCase() === "ADMIN");
+  })
+}
+
 
 function checkLoggedIn(callback) {
   $.ajax({

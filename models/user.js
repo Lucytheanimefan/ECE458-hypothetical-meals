@@ -140,6 +140,7 @@ UserSchema.statics.update = function(userdata, newdata, callback) {
 
     user.save(function(err) {
       if (err) {
+        console.log(err);
         let error = new Error('Couldn\'t update that user.');
         error.status = 400;
         return callback(error);
