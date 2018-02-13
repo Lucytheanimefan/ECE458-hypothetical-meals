@@ -178,6 +178,8 @@ router.post('/update', async function(req, res, next) {
 // Admin can update the user through username 
 router.post('/update/:username', async function(req, res, next) {
   console.log('Update user by username ' + req.params.username);
+  console.log('Update user body request: ')
+  //console.log(req.body);
   let userdata = {'username' : req.params.username}
 
   User.update(userdata, { 'username': req.body.username, 'password': req.body.password, 'email': req.body.email, 'role': req.body.role }, function(err, user) {
@@ -188,7 +190,7 @@ router.post('/update/:username', async function(req, res, next) {
   })
 });
 
-router.get('/:username', function(req, res, next) {
+router.get('/user/:username', function(req, res, next) {
   var user = User.findOne({ username: req.params.username })
     .exec(function(error, user) {
       if (error){
