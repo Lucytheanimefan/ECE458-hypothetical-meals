@@ -47,11 +47,13 @@ router.post('/', function(req, res, next) {
       username: req.body.username,
       password: req.body.password,
       role: req.body.role,
+      netid: req.body.netid,
     }
 
     User.create(userData, function(error, user) {
       if (error) {
         console.log("Error creating user");
+        console.log(error);
         return next(error);
       } else {
         console.log('Hash the password');
@@ -129,9 +131,9 @@ router.get('/admin', function(req, res, next) {
           err.status = 403;
           return next(err);
         } else {
-          User.all(function(err, users){
+          User.all(function(err, users) {
             console.log('Get all the users');
-            if (err){
+            if (err) {
               console.log('Error getting all the users: \n' + err);
               return next(err);
             }
@@ -180,7 +182,7 @@ router.post('/update/:username', async function(req, res, next) {
   console.log('Update user by username ' + req.params.username);
   console.log('Update user body request: ')
   //console.log(req.body);
-  let userdata = {'username' : req.params.username}
+  let userdata = { 'username': req.params.username }
 
   User.update(userdata, { 'username': req.body.username, 'password': req.body.password, 'email': req.body.email, 'role': req.body.role }, function(err, user) {
     if (err) {
@@ -193,7 +195,7 @@ router.post('/update/:username', async function(req, res, next) {
 router.get('/user/:username', function(req, res, next) {
   var user = User.findOne({ username: req.params.username })
     .exec(function(error, user) {
-      if (error){
+      if (error) {
         next(error);
       }
       console.log('Update the user: ');
@@ -206,9 +208,11 @@ router.get('/user/:username', function(req, res, next) {
 router.get('/role', function(req, res, next) {
   User.findById(req.session.userId)
     .exec(function(error, user) {
-      // var isAdmin = (!error && user !== null && user.role.toUpperCase() === "ADMIN");
-      // console.log('isAdmin: ' + isAdmin);
-      res.send({ 'role': user.role });
+      if (error || user == null) {
+        res.send({ 'role': 'none' });
+      } else {
+        res.send({ 'role': user.role });
+      }
     });
 });
 
@@ -263,7 +267,7 @@ router.get('/cart/:page?', function(req, res, next) {
 
         numbered_cart.sort();
 
-        var start = perPage*(page-1);
+        var start = perPage * (page - 1);
 
         for (i = start; i < start + perPage; i++) {
           var ingredient = numbered_cart[i];
@@ -395,13 +399,13 @@ router.post('/checkout_cart', function(req, res, next) {
           var amount;
           var inventories;
           var ingQuery = Ingredient.findOne({ name: ingredient });
-          var invQuery = Inventory.findOne({ type:"master" });
-          invQuery.then(function(invs){
+          var invQuery = Inventory.findOne({ type: "master" });
+          invQuery.then(function(invs) {
             inventories = invs;
             return ingQuery;
-          }).then(function(ings,invs){
+          }).then(function(ings, invs) {
             let temp = ings['temperature'].split(" ")[0];
-            inventories['current'][temp]-=parseInt(quantity);
+            inventories['current'][temp] -= parseInt(quantity);
           });
 
           await Ingredient.find({ name: ingredient }, function(err, instance) {
@@ -436,7 +440,7 @@ router.post('/checkout_cart', function(req, res, next) {
         }
 
         if (inventories != undefined) {
-          await inventories.save(function(err){
+          await inventories.save(function(err) {
             if (err) return next(err);
           });
         }
@@ -480,7 +484,7 @@ router.get('/report/:page?', function(req, res, next) {
 
         numbered_report.sort();
 
-        var start = perPage*(page-1);
+        var start = perPage * (page - 1);
         for (i = start; i < start + perPage; i++) {
           var ingredient = numbered_report[i];
           if (ingredient == undefined) {
@@ -518,7 +522,7 @@ router.get('/production_report/:page?', function(req, res, next) {
 
         numbered_report.sort();
 
-        var start = perPage*(page-1);
+        var start = perPage * (page - 1);
         for (i = start; i < start + perPage; i++) {
           var ingredient = numbered_report[i];
           if (ingredient == undefined) {

@@ -24,15 +24,17 @@ var UserSchema = new mongoose.Schema({
   netid: {
     type: String,
     required: false,
-    unique: true,
+    required: function() {
+      return this.isDukePerson ? true : false
+    }
   },
-  // isVerified: {
-  //   type: Boolean,
-  //   default: false
-  // },
+  isDukePerson: {
+    type: Boolean,
+    default: false
+  },
   role: {
     type: String, // "Admin" or "User" or "Manager"
-    default: 'User',
+    default: 'user',
     required: true,
   },
   cart: {
@@ -76,7 +78,7 @@ UserSchema.statics.authenticate_netid = function(netid, email, callback) {
       console.log('Err: ' + err);
       return callback(err);
     } else if (!user) {
-      var user_data = { 'netid': netid, 'username': netid };
+      var user_data = { 'netid': netid, 'username': netid, 'isDukePerson':true };
       if (email != null) {
         user_data['email'] = email;
       }
@@ -134,7 +136,7 @@ UserSchema.statics.update = function(userdata, newdata, callback) {
       user.email = newdata['email'];
     }
 
-    if (newdata['role'] != null){
+    if (newdata['role'] != null) {
       user.role = newdata['role'];
     }
 
