@@ -24,16 +24,17 @@ var UserSchema = new mongoose.Schema({
   },
   netid: {
     type: String,
-    required: false,
-    unique: true,
+    required: function() {
+      return this.isDukePerson ? true : false
+    }
   },
-  // isVerified: {
-  //   type: Boolean,
-  //   default: false
-  // },
+  isDukePerson: {
+    type: Boolean,
+    default: false
+  },
   role: {
     type: String, // "Admin" or "User" or "Manager"
-    default: 'User',
+    default: 'user',
     required: true,
   },
   cart: {
@@ -77,7 +78,7 @@ UserSchema.statics.authenticate_netid = function(netid, email, callback) {
       console.log('Err: ' + err);
       return callback(err);
     } else if (!user) {
-      var user_data = { 'netid': netid, 'username': netid };
+      var user_data = { 'netid': netid, 'username': netid, 'isDukePerson':true };
       if (email != null) {
         user_data['email'] = email;
       }
@@ -107,7 +108,11 @@ UserSchema.statics.authenticate_netid = function(netid, email, callback) {
 }
 
 UserSchema.statics.update = function(userdata, newdata, callback) {
-  console.log(userdata);
+
+  //console.log(userdata);
+
+  console.log('NEW DATA: ');
+  console.log(newdata)
 
   User.findOne(userdata, function(err, user) {
     console.log(user);
@@ -118,21 +123,26 @@ UserSchema.statics.update = function(userdata, newdata, callback) {
       return callback(error);
     }
 
-    if (newdata['username'] !== null) {
+    if (newdata['username'] != null) {
       user.username = newdata['username'];
     }
-    if (newdata['password'] !== null) {
+    if (newdata['password'] != null) {
       if (newdata['password'].length > 0) {
         user.password = newdata['password'];
       }
     }
 
-    if (newdata['email'] !== null) {
+    if (newdata['email'] != null) {
       user.email = newdata['email'];
+    }
+
+    if (newdata['role'] != null) {
+      user.role = newdata['role'];
     }
 
     user.save(function(err) {
       if (err) {
+        console.log(err);
         let error = new Error('Couldn\'t update that user.');
         error.status = 400;
         return callback(error);
