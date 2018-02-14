@@ -31,7 +31,7 @@ var UserSchema = new mongoose.Schema({
   //   default: false
   // },
   role: {
-    type: String, // "Admin" or "User"
+    type: String, // "Admin" or "User" or "Manager"
     default: 'User',
     required: true,
   },
@@ -70,14 +70,14 @@ UserSchema.statics.authenticate = function(email, password, callback) {
     });
 }
 
-UserSchema.statics.authenticate_netid = function(netid,email, callback) {
+UserSchema.statics.authenticate_netid = function(netid, email, callback) {
   findUserByNetid(netid, function(err, user) {
     if (err) {
       console.log('Err: ' + err);
       return callback(err);
     } else if (!user) {
       var user_data = { 'netid': netid, 'username': netid };
-      if (email != null){
+      if (email != null) {
         user_data['email'] = email;
       }
       // User not found, create an account associated with netid
@@ -138,6 +138,15 @@ UserSchema.statics.update = function(userdata, newdata, callback) {
       }
       return callback(null, user);
     });
+  })
+}
+
+UserSchema.statics.all = function(callback) {
+  User.find({}, function(err, users) {
+    if (err) {
+      callback(err);
+    }
+    callback(null, users);
   })
 }
 

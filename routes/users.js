@@ -124,16 +124,22 @@ router.get('/admin', function(req, res, next) {
         return next(error);
       } else {
         if (user === null) {
-          var err = new Error('Not authorized. Please ask your admin to gain administrator privileges.');
+          let err = new Error('Not authorized. Please ask your admin to gain administrator privileges.');
           err.status = 400;
           return next(err);
         } else if (user.role.toUpperCase() !== "ADMIN") {
-          var err = new Error('Not an admin! Go back!');
+          let err = new Error('Not an admin! Go back!');
           err.status = 403;
           return next(err);
         } else {
-          // TODO: will probably update this later and render a different view
-          res.render('users', { title: 'Users', name: user.username, mail: user.email });
+          User.all(function(err, users){
+            console.log('Get all the users');
+            if (err){
+              console.log('Error getting all the users: \n' + err);
+              return next(err);
+            }
+            res.render('users', { title: 'Users', name: user.username, mail: user.email, users: users });
+          })
         }
       }
     });
@@ -237,13 +243,10 @@ router.get('/cart/:page?', function(req, res, next) {
           numbered_cart.push(ingredient);
         }
 
-<<<<<<< HEAD
         numbered_cart.sort();
 
         var start = perPage*(page-1);
-=======
-        var start = perPage * (page - 1);
->>>>>>> master
+
         for (i = start; i < start + perPage; i++) {
           var ingredient = numbered_cart[i];
           if (ingredient == undefined) {

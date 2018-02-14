@@ -14,20 +14,21 @@ block content
     div.card-header(data-background-color='purple')
       h4.title Vendors
     div.card-content.table-response
-      table.table
+      input.form-control#vendorInput(type='text',onkeyup='filterTable(\'vendor\')', placeholder='Search for vendors..', title='Type in some search text')
+      table.table#vendorTable
         thead.text-primary
-          th Vendor
-          th Code
-          th Contact
-          th Location
+          th(onclick='sortTable(0, \'vendor\')') Vendor
+          th(onclick='sortTable(1, \'vendor\')') Code
+          th(onclick='sortTable(2, \'vendor\')') Contact
+          th(onclick='sortTable(3, \'vendor\')') Location
         tbody
         each vendor in vendors
           tr
-            th
+            td
               a(href='/vendors/' + vendor.code)= vendor.name
-            th= vendor.code
-            th= vendor.contact
-            th= vendor.location.state
+            td= vendor.code
+            td= vendor.contact
+            td= vendor.location.state
       div.previous
         form(action='/vendors/home/' + (parseInt(page)-1).toString(), method='get')
           button.btn.btn-white.btn-round.btn-just-icon(type='submit') Prev
@@ -37,11 +38,11 @@ block content
   ul.nav.nav-tabs
     li.active.adminOnly.hide
       a(data-toggle='tab', href='#create_vendor') Create
-    li
-      a(data-toggle='tab', href='#search_vendor') Search
+    //- li
+    //-   a(data-toggle='tab', href='#search_vendor') Search
 
   .tab-content
-    .card-content#create_vendor.tab-pane.fade.in.adminOnly.hide
+    .card-content#create_vendor.tab-pane.fade.in.adminOnly.active
       h1= 'Create Vendor'
       form(action='/vendors/new', method='post')
         .form-group
@@ -58,22 +59,22 @@ block content
           input.form-control(type='text', name='state', required='')
         button.btn.btn-primary.pull-right(type='submit', value='add vendor') Add vendor
 
-    .card-content#search_vendor.tab-pane.fade.in.active
-      h1= 'Search for Vendor'
-      form(action='/vendors/search', method='get')
-        .form-group
-          label.control-label Name
-          input.form-control(type='text', name='name', )
-        .form-group
-          label.control-label Ingredient
-          input.form-control(type='text', name='ingredient')
-        .form-group
-          label.control-label Location
-          input.form-control(type='text', name='location')
-        .form-group
-          label.control-label Vendor Code
-          input.form-control(type='text', name='code')
-        button.btn.btn-primary.pull-right(type='submit', value='search') Search
+    //- .card-content#search_vendor.tab-pane.fade.in.active
+    //-   h1= 'Search for Vendor'
+    //-   form(action='/vendors/search', method='get')
+    //-     .form-group
+    //-       label.control-label Name
+    //-       input.form-control(type='text', name='name', )
+    //-     .form-group
+    //-       label.control-label Ingredient
+    //-       input.form-control(type='text', name='ingredient')
+    //-     .form-group
+    //-       label.control-label Location
+    //-       input.form-control(type='text', name='location')
+    //-     .form-group
+    //-       label.control-label Vendor Code
+    //-       input.form-control(type='text', name='code')
+    //-     button.btn.btn-primary.pull-right(type='submit', value='search') Search
 
 
 
