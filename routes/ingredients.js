@@ -45,9 +45,9 @@ router.get('/:name/:amt/:page?', function(req, res, next) {
   var page = req.params.page || 1;
   page = (page < 1) ? 1 : page;
 
-  var vendorQuery = Vendor.find({ 'catalogue.ingredient': req.params.name }).skip((perPage * page) - perPage).limit(perPage);
+  var vendorQuery = Vendor.model.find({ 'catalogue.ingredient': req.params.name }).skip((perPage * page) - perPage).limit(perPage);
   // should be from Vendor model
-  var findAllVendors = Vendor.find().exec();
+  var findAllVendors = Vendor.model.find().exec();
   var ingredient;
   var vendorObjects;
   findAllVendors.then(function(vendors) {
