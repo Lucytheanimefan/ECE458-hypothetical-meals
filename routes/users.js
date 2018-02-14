@@ -99,18 +99,25 @@ router.post('/', function(req, res, next) {
 
 // GET route after registering
 router.get('/profile', function(req, res, next) {
-  User.findById(req.session.userId)
-    .exec(function(error, user) {
-      if (error) {
-        return next(error);
-      } else {
-        if (user === null) {
-          return res.redirect(req.baseUrl + '/');
-        } else {
-          res.render('profile', { title: 'Profile', username: user.username, email: user.email, netid: user.netid });
-        }
-      }
-    });
+  User.current_user(req, function(error, user) {
+    if (error) {
+      return next(error);
+    } else {
+      res.render('profile', { title: 'Profile', username: user.username, email: user.email, netid: user.netid });
+    }
+  })
+  // User.findById(req.session.userId)
+  //   .exec(function(error, user) {
+  //     if (error) {
+  //       return next(error);
+  //     } else {
+  //       if (user === null) {
+  //         return res.redirect(req.baseUrl + '/');
+  //       } else {
+  //         res.render('profile', { title: 'Profile', username: user.username, email: user.email, netid: user.netid });
+  //       }
+  //     }
+  //   });
 });
 
 router.get('/admin', function(req, res, next) {
