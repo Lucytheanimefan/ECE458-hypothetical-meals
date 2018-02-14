@@ -13,7 +13,6 @@ var variables = require('../helpers/variables');
 
 
 
-
 /* GET users listing. */
 router.get('/', function(req, res, next) {
   User.findById(req.session.userId)
@@ -34,9 +33,9 @@ router.get('/', function(req, res, next) {
 //POST route for updating data
 router.post('/', function(req, res, next) {
   // Create a user
-
   console.log('Request body: ');
   console.log(req.body);
+
   if (req.body.email &&
     req.body.username &&
     req.body.password &&
@@ -48,6 +47,7 @@ router.post('/', function(req, res, next) {
       password: req.body.password,
       role: req.body.role,
       netid: req.body.netid,
+      initiating_user: req.session.userId
     }
 
     User.create(userData, function(error, user) {
@@ -63,9 +63,9 @@ router.post('/', function(req, res, next) {
 
   } else if (req.body.logemail && req.body.logpassword) {
     // Login
-    console.log('Authenticate!');
+    console.log('-----Authenticate!');
     User.authenticate(req.body.logemail, req.body.logpassword, function(error, user) {
-      if (error || !user) {
+      if (error) {
         console.log(error);
         let err = new Error('Wrong email or password.');
         err.status = 401;
@@ -76,13 +76,37 @@ router.post('/', function(req, res, next) {
       }
     });
   } else if (req.body.netid) {
-    console.log('netid!');
+    console.log('-------netid authenticate!');
     User.authenticate_netid(req.body.netid, req.body.email, function(error, user) {
-      if ((error != null) || user == null) {
+      if (error != null) {
         console.log('Error after auth: ' + error);
-        console.log('Auth user: ' + user);
         res.send({ 'success': false, 'error': error });
-        //return next(error);
+      } else if (user == null) {
+
+        let user_data = {
+          email: req.body.email,
+          username: req.body.username,
+          password: req.body.password,
+          role: req.body.role,
+          netid: req.body.netid,
+          initiating_user: req.session.userId
+        }
+        User.create(user_data, function(error, user) {
+          if (error) {
+            console.log("Error creating user: ");
+            console.log(error);
+            return next(error);
+          }
+          // Try logging in again
+          findUserByNetid(netid, function(err, user) {
+            if (err) {
+              console.log('Error finding user by netid: ' + err);
+              res.send({ 'success': false, 'error': err });;
+            }
+            return res.send({ 'success': true, 'netid': user.netid });
+          });
+
+        })
       } else {
         req.session.userId = user._id;
         res.send({ 'success': true, 'netid': user.netid });
@@ -96,13 +120,23 @@ router.post('/', function(req, res, next) {
 });
 
 
+findUserByNetid = function(netid, callback) {
+  let user_data = { netid: netid };
+  User.findOne(user_data)
+    .exec(function(err, user) {
+      callback(err, user);
+    })
+}
+
 
 // GET route after registering
 router.get('/profile', function(req, res, next) {
   User.current_user(req, function(error, user) {
     if (error) {
+      console.log(error);
       return next(error);
     } else {
+      let name = (user.username != null) ? user.username : user.email;
       res.render('profile', { title: 'Profile', username: user.username, email: user.email, netid: user.netid });
     }
   })
@@ -173,7 +207,7 @@ router.post('/update', async function(req, res, next) {
     return
   }
 
-  User.update(userdata, { 'username': req.body.username, 'password': req.body.password, 'email': req.body.email }, function(err, user) {
+  User.update(userdata, { 'username': req.body.username, 'password': req.body.password, 'email': req.body.email, 'initiating_user':req.session.userId }, function(err, user) {
     if (err) {
       return next(err);
     }
@@ -188,7 +222,7 @@ router.post('/update/:username', async function(req, res, next) {
   //console.log(req.body);
   let userdata = { 'username': req.params.username }
 
-  User.update(userdata, { 'username': req.body.username, 'password': req.body.password, 'email': req.body.email, 'role': req.body.role }, function(err, user) {
+  User.update(userdata, { 'username': req.body.username, 'password': req.body.password, 'email': req.body.email, 'role': req.body.role, 'initiating_user':req.session.userId }, function(err, user) {
     if (err) {
       return next(err);
     }

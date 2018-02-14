@@ -2,8 +2,10 @@ var mongoose = require('mongoose');
 var bcrypt = require('bcrypt');
 var path = require('path');
 var Log = require(path.resolve(__dirname, "./log.js"));
+var LoggableSchema = require(path.resolve(__dirname, "./loggable.js"));
+var mongoHelpers = require('../helpers/mongo_helpers');
 
-var UserSchema = new mongoose.Schema({
+var UserSchema = mongoHelpers.extendSchema(LoggableSchema, {
   email: {
     type: String,
     required: false,
@@ -48,6 +50,51 @@ var UserSchema = new mongoose.Schema({
   }
 });
 
+// mongoose.Schema({
+//   email: {
+//     type: String,
+//     required: false,
+//     trim: true
+//   },
+//   username: {
+//     type: String,
+//     required: false,
+//     trim: true
+//   },
+//   password: {
+//     type: String,
+//     required: false,
+//   },
+//   passwordConf: {
+//     type: String,
+//     required: false,
+//   },
+//   netid: {
+//     type: String,
+//     required: function() {
+//       return this.isDukePerson ? true : false
+//     }
+//   },
+//   isDukePerson: {
+//     type: Boolean,
+//     default: false
+//   },
+//   role: {
+//     type: String, // "Admin" or "User" or "Manager"
+//     default: 'user',
+//     required: true,
+//   },
+//   cart: {
+//     type: Array
+//   },
+//   report: {
+//     type: Array
+//   },
+//   production_report: {
+//     type: Array
+//   }
+// });
+
 //authenticate input against database
 UserSchema.statics.authenticate = function(email, password, callback) {
   User.findOne({ email: email })
@@ -78,27 +125,28 @@ UserSchema.statics.authenticate_netid = function(netid, email, callback) {
       console.log('Err: ' + err);
       return callback(err);
     } else if (!user) {
-      var user_data = { 'netid': netid, 'username': netid, 'isDukePerson': true };
-      if (email != null) {
-        user_data['email'] = email;
-      }
+      //var user_data = { 'netid': netid, 'username': netid, 'isDukePerson': true};
+      // if (email != null) {
+      //   user_data['email'] = email;
+      // }
       // User not found, create an account associated with netid
-      User.create(user_data, function(error, user) {
-        if (error) {
-          console.log("Error creating user: ");
-          console.log(error);
-          return callback(error);
-        }
-        // Try logging in again
-        findUserByNetid(netid, function(err, user) {
-          if (err) {
-            console.log('Error finding user by netid: ');
-            console.log(err);
-            return callback(err);
-          }
-          return callback(null, user);
-        });
-      })
+      callback(null, null);
+      // User.create(user_data, function(error, user) {
+      //   if (error) {
+      //     console.log("Error creating user: ");
+      //     console.log(error);
+      //     return callback(error);
+      //   }
+      //   // Try logging in again
+      //   findUserByNetid(netid, function(err, user) {
+      //     if (err) {
+      //       console.log('Error finding user by netid: ');
+      //       console.log(err);
+      //       return callback(err);
+      //     }
+      //     return callback(null, user);
+      //   });
+      // })
     } else {
       console.log('Found the user!');
       console.log(user);
@@ -162,9 +210,27 @@ UserSchema.statics.all = function(callback) {
 }
 
 UserSchema.statics.current_user = function(req, callback) {
+  currentUser(req, callback);
+  // User.findById(req.session.userId)
+  //   .exec(function(error, user) {
+  //     if (error) {
+  //       return callback(error);
+  //     } else {
+  //       if (user == null) {
+  //         let err = new Error('No user for that id');
+  //         return callback(err);
+  //       } else {
+  //         callback(null, user);
+  //       }
+  //     }
+  //   });
+}
+
+currentUser = function(req, callback) {
   User.findById(req.session.userId)
     .exec(function(error, user) {
       if (error) {
+        console.log(error);
         return callback(error);
       } else {
         if (user == null) {
@@ -177,22 +243,20 @@ UserSchema.statics.current_user = function(req, callback) {
     });
 }
 
-
-findUserByNetid = function(netid, callback) {
-  let user_data = { netid: netid };
-  User.findOne(user_data)
-    .exec(function(err, user) {
-      callback(err, user);
-    })
-}
+// findUserByNetid = function(netid, callback) {
+//   let user_data = { netid: netid };
+//   User.findOne(user_data)
+//     .exec(function(err, user) {
+//       callback(err, user);
+//     })
+// }
 
 makeUserLog = function(user) {
   let log_data = {
     'title': 'User created',
     'description': user.username + ', ' + user.email + ', ' + user.role,
-    'entities': 'user'
-    /*,
-        'user': user.username + ', ' + user.role*/
+    'entities': 'user',
+    'user_id': user.initiating_user
   }
   Log.create(log_data, function(error, log) {
     if (error) {
@@ -233,8 +297,9 @@ UserSchema.pre('update', function(next) {
   let log_data = {
     'title': 'User updated',
     'description': user.username + ', ' + user.email + ', ' + user.role,
-    'entities': 'user'/*,
-    'user': user.username + ', ' + user.role*/
+    'entities': 'user'
+    /*,
+        'user': user.username + ', ' + user.role*/
   }
   Log.create(log_data, function(error, user) {
     if (error) {
