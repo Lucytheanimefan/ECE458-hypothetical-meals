@@ -167,8 +167,10 @@ router.post('/update', async function(req, res, next) {
 
   User.update(userdata, { 'username': req.body.username, 'password': req.body.password, 'email': req.body.email }, function(err, user) {
     if (err) {
+      //logs.makeUserLog('Update error', user, 'user', req.session.userId);
       return next(err);
     }
+    logs.makeUserLog('Update', user, 'user', req.session.userId);
     return res.redirect(req.baseUrl + '/profile');
   })
 });
@@ -184,6 +186,7 @@ router.post('/update/:username', async function(req, res, next) {
     if (err) {
       return next(err);
     }
+    logs.makeUserLog('Update', user, 'user', req.session.userId);
     return res.redirect(req.baseUrl + '/admin');
   })
 });

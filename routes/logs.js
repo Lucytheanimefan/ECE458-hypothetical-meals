@@ -2,8 +2,8 @@ var Log = require('../models/log');
 
 
 
-module.exports.makeIngredientLog = function(ingredient, entities = 'ingredient', initiating_user) {
-  makeLog('Ingredient Action', ingredient.name + ', ' + ingredient.package + ', ' + ingredient.temperature + ', ' + ingredient.amount, entities, initiating_user);
+module.exports.makeIngredientLog = function(title, ingredient, entities = 'ingredient', initiating_user) {
+  makeLog('Ingredient Action: ' + title, ingredient.name + ', ' + ingredient.package + ', ' + ingredient.temperature + ', ' + ingredient.amount, entities, initiating_user);
 }
 
 module.exports.makeUserLog = function(title, user, entities = 'user', initiating_user) {
