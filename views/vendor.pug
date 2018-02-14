@@ -9,9 +9,8 @@ block content
   h1= vendor.name
   h4= 'Code: ' + vendor.code
   h4= vendor.contact
-  h4= vendor.location['state'] + ', ' + vendor.location['city']
   h2= 'Catalogue'
-  
+
   #ing-table
     table.table
       thead.text-primary
@@ -51,30 +50,18 @@ block content
       form(action='/vendors/' + vendor.code + '/update', method='post')
         label.control-label Vendor Name
         input.form-control(type='text', name='name', placeholder = 'Vendor name', required='', value=name)
+        label.control-label Freight Code
+        input.form-control(type='text', name='code', placeholder = 'Freight Code', required='',value=code)
         label.control-label Contact Info
         input.form-control(type='text', name='contact', placeholder = 'Contact Info', required='',value=contact)
-        label.control-label City
-        input.form-control(type='text', name='city', placeholder = 'city', required='',value=city)
-        label.control-label State
-        input.form-control(type='text', name='state', placeholder = 'state', required='',value=state)
-
+        label.control-label Location
+        input.form-control(type='text', name='location', placeholder = 'Location',value=location)
+        button.btn.btn-primary.pull-right(type='submit', value='Vendor Updated') update
     #add.tab-pane.fade.in.adminOnly.hide
       h1= 'Add Ingredient'
       form(action='/vendors/' + vendor.code + '/add_ingredients', method='post')
         label.control-label Ingredient
         input.form-control(type='text', name='ingredient', placeholder = 'Ingredient', required='')
-        label.control-label Package Type
-        select.form-control(name='size', placeholder = '', required='')
-          option(disabled='' selected='' value='') Select an option
-          each package in packages
-            option(value=package)= package
-        label.control-label Quantity
-        input.form-control(type='text', name='quantity', placeholder = 'Quantity', required='')
-        label.control-label Storage Temperature
-        select.form-control(name='temperature', placeholder = '', required='')
-          option(disabled="" selected="" value="") Select an option
-          each temp in temps
-            option(value=temp)= temp
         label.control-label Cost
         input.form-control(type='text', name='cost', placeholder = 'Cost/Unit', required='')
         button.btn.btn-primary.pull-right(type='submit', value='ingredient added') add
@@ -87,8 +74,6 @@ block content
           option(disabled="" selected="" value="") Select an option
           each ing in catalogue
             option(value=temp)= ing['ingredient']
-        label.control-label Quantity
-        input.form-control(type='text', name='quantity', placeholder = 'Quantity', required='')
         label.control-label Cost
         input.form-control(type='text', name='cost', placeholder = 'Cost/Unit', required='')
         button.btn.btn-primary.pull-right(type='submit', value='ingredient added') update
