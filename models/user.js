@@ -83,24 +83,27 @@ UserSchema.statics.authenticate_netid = function(netid, email, callback) {
       if (email != null) {
         user_data['email'] = email;
       }
+
       // TODO this should happen in the route, not here
       // User not found, create an account associated with netid
-      User.create(user_data, function(error, user) {
-        if (error) {
-          console.log("Error creating user: ");
-          console.log(error);
-          return callback(error);
-        }
-        // Try logging in again
-        findUserByNetid(netid, function(err, user) {
-          if (err) {
-            console.log('Error finding user by netid: ');
-            console.log(err);
-            return callback(err);
-          }
-          return callback(null, user);
-        });
-      })
+    
+      // User.create(user_data, function(error, user) {
+      //   if (error) {
+      //     console.log("Error creating user: ");
+      //     console.log(error);
+      //     return callback(error);
+      //   }
+      //   // Try logging in again
+      //   findUserByNetid(netid, function(err, user) {
+      //     if (err) {
+      //       console.log('Error finding user by netid: ');
+      //       console.log(err);
+      //       return callback(err);
+      //     }
+      //     return callback(null, user);
+      //   });
+      // })
+
     } else {
       console.log('Found the user!');
       console.log(user);
@@ -179,6 +182,9 @@ UserSchema.statics.current_user = function(req, callback) {
     });
 }
 
+UserSchema.statics.user_by_netid = function(netid, callback){
+  findUserByNetid(netid, callback);
+}
 
 findUserByNetid = function(netid, callback) {
   let user_data = { netid: netid };

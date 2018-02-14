@@ -19,7 +19,7 @@ var LogSchema = new mongoose.Schema({
     required: true
   },
   entities: {
-    type: String,
+    type: Array, //an array of strings (the entities involved)
     required: true
   },
   initiating_user: { //the initiating user

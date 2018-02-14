@@ -2,13 +2,23 @@ var Log = require('../models/log');
 
 
 
-module.exports.makeIngredientLog = function(title, ingredient, entities = 'ingredient', initiating_user) {
-  makeLog('Ingredient Action: ' + title, ingredient.name + ', ' + ingredient.package + ', ' + ingredient.temperature + ', ' + ingredient.amount, entities, initiating_user);
+module.exports.makeIngredientLog = function(title, ingredient, entities = ['ingredient'], initiating_user) {
+  makeLog('Ingredient Action: ' + title, JSON.stringify(ingredient), entities, initiating_user);
 }
 
-module.exports.makeUserLog = function(title, user, entities = 'user', initiating_user) {
-  makeLog('User Action: ' + title, user.username + ', ' + user.email + ', ' + user.role, entities, initiating_user);
+module.exports.makeUserLog = function(title, user, entities = ['user'], initiating_user) {
+  delete user['password'];
+  makeLog('User Action: ' + title, JSON.stringify(user), entities, initiating_user);
 }
+
+module.exports.makeVendorLog = function(title, vendor, entities = ['vendor'], initiating_user){
+  makeLog('Vendor Action: ' + title, JSON.stringify(vendor), entities, initiating_user);
+}
+
+module.exports.makeLog = function(title, description, entities = [], initiating_user){
+  makeLog(title, description, entities, initiating_user);
+}
+
 
 makeLog = function(title, description, entities, initiating_user) {
   let log_data = {
@@ -16,8 +26,6 @@ makeLog = function(title, description, entities, initiating_user) {
     'description': description,
     'entities': entities,
     'initiating_user': initiating_user
-    /*,
-        'user': user.username + ', ' + user.role*/
   }
   Log.create(log_data, function(error, log) {
     if (error) {
