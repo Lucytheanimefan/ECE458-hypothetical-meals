@@ -186,24 +186,25 @@ findUserByNetid = function(netid, callback) {
     })
 }
 
-makeUserLog = function(user) {
-  let log_data = {
-    'title': 'User created',
-    'description': user.username + ', ' + user.email + ', ' + user.role,
-    'entities': 'user'
-    /*,
-        'user': user.username + ', ' + user.role*/
-  }
-  Log.create(log_data, function(error, log) {
-    if (error) {
-      console.log('Error logging user data: ');
-      console.log(error);
-      //return next();
-    }
-    console.log('Logged user: ' + log);
-    //return next();
-  })
-}
+// makeUserLog = function(user) {
+//   let log_data = {
+//     'title': 'User created',
+//     'description': user.username + ', ' + user.email + ', ' + user.role,
+//     'entities': 'user',
+//     'initiating_user' : ''
+//     ,
+//         'user': user.username + ', ' + user.role
+//   }
+//   Log.create(log_data, function(error, log) {
+//     if (error) {
+//       console.log('Error logging user data: ');
+//       console.log(error);
+//       //return next();
+//     }
+//     console.log('Logged user: ' + log);
+//     //return next();
+//   })
+// }
 
 //hashing a password before saving it to the database
 UserSchema.pre('save', function(next) {
@@ -218,7 +219,7 @@ UserSchema.pre('save', function(next) {
           return next(err);
         }
         user.password = hash;
-        makeUserLog(user);
+        //makeUserLog(user);
         next(null, user);
       });
     }
@@ -227,25 +228,6 @@ UserSchema.pre('save', function(next) {
   }
 });
 
-UserSchema.pre('update', function(next) {
-  console.log('Updating user, need to log!');
-  var user = this;
-  let log_data = {
-    'title': 'User updated',
-    'description': user.username + ', ' + user.email + ', ' + user.role,
-    'entities': 'user'/*,
-    'user': user.username + ', ' + user.role*/
-  }
-  Log.create(log_data, function(error, user) {
-    if (error) {
-      console.log('Error logging user data: ');
-      console.log(error);
-      return next();
-    }
-    console.log('Logged user update: ' + log);
-    return next();
-  })
-});
 
 
 var User = mongoose.model('User', UserSchema);
