@@ -14,9 +14,7 @@ var user = {
   username: 'Admin User',
   email: 'admin@admin.com',
   role: 'Admin',
-  password: 'admin',
-  passwordConf: 'admin',
-  isVerified: true
+  password: 'admin'
 }
 
 User.create(user, function(error, user) {
@@ -24,42 +22,43 @@ User.create(user, function(error, user) {
     console.log('Error creating user: ' + error);
     return;
   } else {
-    console.log('Hash the password');
-    bcrypt.hash(user.password, 10, function(err, hash) {
-      if (err) {
-        return;
-      }
+    console.log("done");
+    //console.log('Hash the password');
+    // bcrypt.hash(user.password, 10, function(err, hash) {
+    //   if (err) {
+    //     return;
+    //   }
 
-      console.log('Successful hash');
-      user.password = hash;
-      user.save(function(err) {
-        if (err) { return res.status(500).send({ msg: err.message }); }
+    //   console.log('Successful hash');
+    //   user.password = hash;
+    //   user.save(function(err) {
+    //     if (err) { return res.status(500).send({ msg: err.message }); }
 
-        console.log('Done');
+    //     console.log('Done');
 
-      });
-    });
+    //   });
+    // });
   };
 })
 
-var inventory = { 
-  type:'master',
-  limits: {
-    refrigerated:1000,
-    frozen:1000,
-    room:1000
-  },
-  current: {
-    refrigerated:0,
-    frozen:0,
-    room:0
-  }
-}
+// var inventory = { 
+//   type:'master',
+//   limits: {
+//     refrigerated:1000,
+//     frozen:1000,
+//     room:1000
+//   },
+//   current: {
+//     refrigerated:0,
+//     frozen:0,
+//     room:0
+//   }
+// }
 
-Inventory.create(inventory, function(error, inventory) {
-  if (error) {
-    console.log('Error creating inventory: ' + error);
-  } else {
-    console.log('Success creating inventory');
-  }
-})
+// Inventory.create(inventory, function(error, inventory) {
+//   if (error) {
+//     console.log('Error creating inventory: ' + error);
+//   } else {
+//     console.log('Success creating inventory');
+//   }
+// })

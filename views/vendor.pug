@@ -4,7 +4,7 @@ block link
   -var selected = 'Vendors';
 
 block content
-  form(action='/vendors/' + vendor.code + '/delete', method='post')
+  form.adminOnly.hide(action='/vendors/' + vendor.code + '/delete', method='post')
     button.btn.btn-primary.pull-right(type='submit', value = 'Delete vendor') Delete
   h1= vendor.name
   h4= 'Code: ' + vendor.code
@@ -41,12 +41,12 @@ block content
       a(data-toggle='tab', href='#update') Update
     li.adminOnly.hide
       a(data-toggle='tab', href='#add') Add Ingredient
-    li
+    li.adminOnly.hide
       a(data-toggle='tab', href='#updateing') Update Ingredient
-    li
+    li.manager.hide
       a(data-toggle='tab', href='#order') Make Order
   .tab-content
-    #update.tab-pane.fade.in.active
+    #update.tab-pane.fade.in.active.adminOnly.hide
       h1= 'Update vendor'
       form(action='/vendors/' + vendor.code + '/update', method='post')
         label.control-label Vendor Name
@@ -94,7 +94,7 @@ block content
         button.btn.btn-primary.pull-right(type='submit', value='ingredient added') update
 
 
-    #order.tab-pane.fade.in
+    #order.tab-pane.manager.fade.in
       h1= 'Make Order'
       form(action='/vendors/' + vendor.code + '/order', method='post')
         label.control-label Ingredient
@@ -106,6 +106,6 @@ block content
         input.form-control(type='text', name='quantity', placeholder = 'Quantity', required='')
         button.btn.btn-primary.pull-right(type='submit', value='order made') order
 
-block scripts
-  script.
-    loadAdminOnlyContent();
+//- block scripts
+//-   script.
+//-     loadAdminOnlyContent();
