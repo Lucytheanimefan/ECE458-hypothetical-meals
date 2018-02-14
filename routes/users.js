@@ -11,7 +11,7 @@ var dialog = require('dialog');
 var bcrypt = require('bcrypt');
 var variables = require('../helpers/variables');
 var path = require('path');
-var los = require(path.resolve(__dirname, "./logs.js"));
+var logs = require(path.resolve(__dirname, "./logs.js"));
 
 
 
@@ -57,6 +57,8 @@ router.post('/', function(req, res, next) {
         console.log(error);
         return next(error);
       } else {
+        logs.makeUserLog('Creation', user, 'user', req.session.userId);
+        
         console.log('Hash the password');
         res.redirect(req.baseUrl + '/admin');
       }

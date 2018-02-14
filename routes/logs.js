@@ -6,8 +6,8 @@ module.exports.makeIngredientLog = function(ingredient, entities = 'ingredient',
   makeLog('Ingredient Action', ingredient.name + ', ' + ingredient.package + ', ' + ingredient.temperature + ', ' + ingredient.amount, entities, initiating_user);
 }
 
-module.exports.makeUserLog = function(ingredient, entities = 'user', initiating_user) {
-  makeLog('User Action', user.username + ', ' + user.email + ', ' + user.role, entities, initiating_user);
+module.exports.makeUserLog = function(title, user, entities = 'user', initiating_user) {
+  makeLog('User Action: ' + title, user.username + ', ' + user.email + ', ' + user.role, entities, initiating_user);
 }
 
 makeLog = function(title, description, entities, initiating_user) {
