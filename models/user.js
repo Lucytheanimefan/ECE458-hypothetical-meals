@@ -73,6 +73,7 @@ UserSchema.statics.authenticate = function(email, password, callback) {
 }
 
 UserSchema.statics.authenticate_netid = function(netid, email, callback) {
+  console.log('authenticate_netid');
   findUserByNetid(netid, function(err, user) {
     if (err) {
       console.log('Err: ' + err);

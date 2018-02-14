@@ -10,7 +10,8 @@ var underscore = require('underscore');
 var dialog = require('dialog');
 var bcrypt = require('bcrypt');
 var variables = require('../helpers/variables');
-
+var path = require('path');
+var los = require(path.resolve(__dirname, "./logs.js"));
 
 
 
@@ -99,6 +100,7 @@ router.post('/', function(req, res, next) {
 
 // GET route after registering
 router.get('/profile', function(req, res, next) {
+  console.log('Get profile!');
   User.current_user(req, function(error, user) {
     if (error) {
       return next(error);
@@ -106,18 +108,6 @@ router.get('/profile', function(req, res, next) {
       res.render('profile', { title: 'Profile', username: user.username, email: user.email, netid: user.netid });
     }
   })
-  // User.findById(req.session.userId)
-  //   .exec(function(error, user) {
-  //     if (error) {
-  //       return next(error);
-  //     } else {
-  //       if (user === null) {
-  //         return res.redirect(req.baseUrl + '/');
-  //       } else {
-  //         res.render('profile', { title: 'Profile', username: user.username, email: user.email, netid: user.netid });
-  //       }
-  //     }
-  //   });
 });
 
 router.get('/admin', function(req, res, next) {
