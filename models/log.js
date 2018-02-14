@@ -30,5 +30,14 @@ var LogSchema = new mongoose.Schema({
 });
 
 
+LogSchema.statics.all = function(callback) {
+  Log.find({}, function(err, logs) {
+    if (err) {
+      callback(err);
+    }
+    callback(null, logs);
+  })
+}
+
 var Log = mongoose.model('Log', LogSchema);
 module.exports = Log;
