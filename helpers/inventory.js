@@ -11,8 +11,6 @@ module.exports.checkInventory = function(package, temp, amount) {
       } else {
         canUpdate = (parseFloat(inv['current'][temperature]) + amount <= parseFloat(inv['limits'][temperature]));
       }
-      console.log(canUpdate);
-      console.log("dab on this");
       resolve(canUpdate);
     }).catch(function(error) {
       console.log(error);
@@ -24,8 +22,6 @@ module.exports.updateInventory = function(package, temp, amount) {
   return new Promise(function(resolve, reject) {
     let temperature = temp.toLowerCase().split(" ")[0];
     var updateObject = {};
-    console.log(amount);
-    console.log("gimme a dab");
     updateObject['current.' + temperature.toLowerCase()] = amount;
     if (package.toLowerCase() === "truckload" || package.toLowerCase() === "railcar") {
       resolve('nada');
