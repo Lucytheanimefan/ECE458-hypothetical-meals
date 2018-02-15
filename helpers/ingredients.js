@@ -1,4 +1,5 @@
 var Ingredient = require('../models/ingredient');
+var Inventory = require('../models/inventory');
 var InventoryHelper = require('./inventory');
 var Vendor = require('../models/vendor');
 var mongoose = require('mongoose');
@@ -39,6 +40,7 @@ module.exports.updateIngredient = function(name, newName, package, temp, amount)
       Ingredient.getIngredient(name).then(function(ing) {
         let incAmount = amount - parseFloat(ing['amount']);
         InventoryHelper.checkInventory(package, temp, incAmount).then(function(update) {
+          console.log(update);
           if (update) {
             return Promise.all([InventoryHelper.updateInventory(package, temp, incAmount), Ingredient.updateIngredient(name, newName, package, temp, amount)]);
           } else {

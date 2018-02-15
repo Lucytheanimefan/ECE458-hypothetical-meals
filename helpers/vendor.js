@@ -1,25 +1,10 @@
 var Vendor = require('../models/vendor');
 var Ingredient = require('../models/ingredient');
+var IngredientHelper = require('./ingredients');
 var InventoryHelper = require('./inventory');
 var Inventory = require('../models/inventory');
 var mongoose = require('mongoose');
 mongoose.promise = global.Promise;
-
-var checkAndUpdate = function(package, temp, amount) {
-  return new Promise(function(resolve, reject) {
-    InventoryHelper.checkInventory(package, temp, amount).then(function(update) {
-      if (update) {
-        resolve(Promise.all([InventoryHelper.updateInventory(package, temp, amount), promise]));
-      } else {
-        var error = new Error('Not enough space in inventory!');
-        error.status = 400;
-        reject(error);
-      }
-    }).catch(function(error) {
-      reject(error);
-    });
-  });
-}
 
 module.exports.makeOrder = function(ingredientId,vendorId,numUnits){
   let ingId = mongoose.Types.ObjectId(ingredientId);
@@ -48,8 +33,8 @@ module.exports.makeOrder = function(ingredientId,vendorId,numUnits){
         let name = ing['name'];
         let newName = ing['name'];
         //TODO make amount on package volume
-        let amount = numUnits+ing['amount'];
-        result =  Ingredient.updateIngredient(name, newName, package, temp, amount);
+        let amount = numUnits+parseFloat(ing['amount']);
+        var result =  IngredientHelper.updateIngredient(name, newName, package, temp, amount);
       }
     }).then(function(result){
       resolve(result);
@@ -72,7 +57,6 @@ module.exports.updateVendor = function(code, name, newCode, contact, location){
     var vendQuery = Vendor.findVendorByCode(code);
     vendQuery.then(function(vend){
       if(vend==null){
-        console.log("error");
         var error = new Error('Specified vendor doesn\'t exist');
         error.status = 400;
         throw(error);
@@ -117,6 +101,11 @@ module.exports.addIngredient = function(code, ingredientId, cost){
         error.status = 400;
         throw(error);
       }
+      if(parseFloat(cost) < 0){
+        var error = new Error('Invalid cost: ${cost}. Please enter a valid cost');
+        error.status = 400;
+        throw(error);
+      }
       else{
         return Vendor.addIngredient(code,ingId,cost);
       }
@@ -135,6 +124,11 @@ module.exports.updateIngredient = function(code, ingredientId, cost){
     ingQuery.exec().then(function(ing){
       if(ing==null){
         var error = new Error('Specified ingredient doesn\'t exist');
+        error.status = 400;
+        throw(error);
+      }
+      if(parseFloat(cost) < 0){
+        var error = new Error('Invalid cost: ${cost}. Please enter a valid cost');
         error.status = 400;
         throw(error);
       }
