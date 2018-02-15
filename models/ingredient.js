@@ -46,49 +46,26 @@ IngredientSchema.pre('save', function(next, req, callback) {
     return next();
   })
 
-  // User.current_user(req, function(error, user) {
-  //   if (error) {
-  //     console.log(error);
-  //     return next(error);
-  //   } else {
-  //     let log_data = {
-  //       'title': 'Ingredient Log',
-  //       'description': ingredient.name + ', ' + ingredient.package + ', ' + ingredient.temperature + ', ' + ingredient.amount,
-  //       'entities': 'ingredient',
-  //       'user': user.username + ', ' + user.role
-  //     }
-  //     Log.create(log_data, function(error, user) {
-  //       if (error) {
-  //         console.log('Error logging ingredient data: ');
-  //         console.log(error);
-  //         return next();
-  //       }
-  //       return next();
-  //     })
-  //   }
-  // })
-
-
 });
 
-IngredientSchema.pre('update', function(next) {
-  console.log('Updating ingredient, need to log!');
-  var ingredient = this;
-  let log_data = {
-    'title': 'Ingredient updated',
-    'description': ingredient.name + ', ' + ingredient.package + ', ' + ingredient.temperature + ', ' + ingredient.amount,
-    'entities': 'ingredient'/*,
-    'user': user.username + ', ' + user.role*/
-  }
-  Log.create(log_data, function(error, user) {
-    if (error) {
-      console.log('Error logging ingredient data: ');
-      console.log(error);
-      return next();
-    }
-    return next();
-  })
-});
+// IngredientSchema.pre('update', function(next) {
+//   console.log('Updating ingredient, need to log!');
+//   var ingredient = this;
+//   let log_data = {
+//     'title': 'Ingredient updated',
+//     'description': ingredient.name + ', ' + ingredient.package + ', ' + ingredient.temperature + ', ' + ingredient.amount,
+//     'entities': 'ingredient'/*,
+//     'user': user.username + ', ' + user.role*/
+//   }
+//   Log.create(log_data, function(error, user) {
+//     if (error) {
+//       console.log('Error logging ingredient data: ');
+//       console.log(error);
+//       return next();
+//     }
+//     return next();
+//   })
+// });
 
 
 var Ingredient = mongoose.model('Ingredient', IngredientSchema);

@@ -57,6 +57,7 @@ block content
         input.form-control(type='text', name='city', placeholder = 'city', required='',value=city)
         label.control-label State
         input.form-control(type='text', name='state', placeholder = 'state', required='',value=state)
+        button.btn.btn-primary.pull-right(type='submit', value='update vendor') Update Vendor
 
     #add.tab-pane.fade.in.adminOnly.hide
       h1= 'Add Ingredient'
@@ -77,7 +78,7 @@ block content
             option(value=temp)= temp
         label.control-label Cost
         input.form-control(type='text', name='cost', placeholder = 'Cost/Unit', required='')
-        button.btn.btn-primary.pull-right(type='submit', value='ingredient added') add
+        button.btn.btn-primary.pull-right(type='submit', value='ingredient added') Add
 
     #updateing.tab-pane.fade.in.adminOnly.hide
       h1= 'Update Ingredient'
@@ -91,7 +92,7 @@ block content
         input.form-control(type='text', name='quantity', placeholder = 'Quantity', required='')
         label.control-label Cost
         input.form-control(type='text', name='cost', placeholder = 'Cost/Unit', required='')
-        button.btn.btn-primary.pull-right(type='submit', value='ingredient added') update
+        button.btn.btn-primary.pull-right(type='submit', value='ingredient added') Update
 
 
     #order.tab-pane.manager.fade.in
@@ -104,7 +105,7 @@ block content
             option(value=temp)= ing['ingredient']
         label.control-label Quantity
         input.form-control(type='text', name='quantity', placeholder = 'Quantity', required='')
-        button.btn.btn-primary.pull-right(type='submit', value='order made') order
+        button.btn.btn-primary.pull-right(type='submit', value='order made') Order
 
 //- block scripts
 //-   script.
