@@ -10,15 +10,15 @@ var spaceMapping = {
   railcar:0
 }
 
-calculateNewSpace = function(package, unitsPerPackage, newAmount, currentAmount) {
-  var current = Math.ceil(currentAmount/unitsPerPackage);
+calculateNewSpace = function(package, currentUnitsPerPackage, unitsPerPackage, newAmount, currentAmount) {
+  var current = Math.ceil(currentAmount/currentUnitsPerPackage);
   console.log("hi:" + current);
   var newNumberOfPackages = Math.ceil((currentAmount + newAmount)/unitsPerPackage)
   console.log("hi:" + newNumberOfPackages);
   return parseFloat((newNumberOfPackages - current) * spaceMapping[package]);
 }
 
-module.exports.checkInventory = function(package, temp, unitsPerPackage, newAmount, currentAmount) {
+module.exports.checkInventory = function(package, temp, currentUnitsPerPackage, unitsPerPackage, newAmount, currentAmount) {
   return new Promise(function(resolve, reject) {
     Inventory.getInventory().then(function(inv) {
       let temperature = temp.toLowerCase().split(" ")[0];
@@ -27,7 +27,7 @@ module.exports.checkInventory = function(package, temp, unitsPerPackage, newAmou
       if (package.toLowerCase() === "truckload" || package.toLowerCase() === "railcar") {
         resolve(true);
       } else {
-        var newSpace = calculateNewSpace(package, unitsPerPackage, newAmount, currentAmount)
+        var newSpace = calculateNewSpace(package, currentUnitsPerPackage, unitsPerPackage, newAmount, currentAmount)
         resolve(parseFloat(inv['current'][temperature]) + newSpace <= parseFloat(inv['limits'][temperature]));
       }
     }).catch(function(error) {
@@ -36,12 +36,12 @@ module.exports.checkInventory = function(package, temp, unitsPerPackage, newAmou
   })
 }
 
-module.exports.updateInventory = function(package, temp, unitsPerPackage, newAmount, currentAmount) {
+module.exports.updateInventory = function(package, temp, currentUnitsPerPackage, unitsPerPackage, newAmount, currentAmount) {
   return new Promise(function(resolve, reject) {
     let temperature = temp.toLowerCase().split(" ")[0];
     var updateObject = {};
-    var newSpace = calculateNewSpace(package, unitsPerPackage, newAmount, currentAmount)
-    updateObject['current.' + temperature.toLowerCase()] = newSpace;
+    var newSpace = calculateNewSpace(package, currentUnitsPerPackage, unitsPerPackage, newAmount, currentAmount)
+    updateObject['current.' + temperature] = newSpace;
     if (package.toLowerCase() === "truckload" || package.toLowerCase() === "railcar") {
       resolve('nada');
     } else {

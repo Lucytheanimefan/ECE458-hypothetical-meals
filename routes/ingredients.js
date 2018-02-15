@@ -76,7 +76,7 @@ router.post('/:name/delete', function(req, res, next) {
       ing['name'],
       ing['package'],
       ing['temperature'],
-      parseFloat(ing['units_per_package']),
+      parseFloat(ing['unitsPerPackage']),
       parseFloat(ing['amount'])
     );
   }).then(function() {

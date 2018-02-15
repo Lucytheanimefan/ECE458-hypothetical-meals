@@ -11,9 +11,9 @@ module.exports.createIngredient = function(name, package, temp, nativeUnit, unit
       error.status = 400;
       reject(error);
     } else {
-      InventoryHelper.checkInventory(package, temp, unitsPerPackage, amount, 0).then(function(update) {
+      InventoryHelper.checkInventory(package, temp, unitsPerPackage, unitsPerPackage, amount, 0).then(function(update) {
         if (update) {
-          return Promise.all([InventoryHelper.updateInventory(package, temp, unitsPerPackage, amount, 0),
+          return Promise.all([InventoryHelper.updateInventory(package, temp, unitsPerPackage, unitsPerPackage, amount, 0),
             Ingredient.createIngredient(name, package, temp, nativeUnit, unitsPerPackage, amount)]);
         } else {
           var error = new Error('Not enough space in inventory!');
@@ -38,13 +38,15 @@ module.exports.updateIngredient = function(name, newName, package, temp, nativeU
     } else {
       var incAmount;
       var currentAmount;
+      var oldUnitsPerPackage;
       Ingredient.getIngredient(name).then(function(ing) {
         incAmount = amount - parseFloat(ing['amount']);
         currentAmount = parseFloat(ing['amount']);
-        return InventoryHelper.checkInventory(package, temp, unitsPerPackage, incAmount, currentAmount);
+        oldUnitsPerPackage = parseFloat(ing['units_per_package']);
+        return InventoryHelper.checkInventory(package, temp, oldUnitsPerPackage, unitsPerPackage, incAmount, currentAmount);
       }).then(function(update) {
         if (update) {
-          return Promise.all([InventoryHelper.updateInventory(package, temp, unitsPerPackage, incAmount, currentAmount),
+          return Promise.all([InventoryHelper.updateInventory(package, temp, oldUnitsPerPackage, unitsPerPackage, incAmount, currentAmount),
             Ingredient.updateIngredient(name, newName, package, temp, nativeUnit, unitsPerPackage, amount)]);
         } else {
           var error = new Error('Not enough space in inventory!');
@@ -62,7 +64,7 @@ module.exports.updateIngredient = function(name, newName, package, temp, nativeU
 
 module.exports.deleteIngredient = function(name, package, temp, unitsPerPackage, amount) {
   return new Promise(function(resolve, reject) {
-    resolve(Promise.all([InventoryHelper.updateInventory(package, temp, unitsPerPackage, -amount, amount), Ingredient.deleteIngredient(name)]));
+    resolve(Promise.all([InventoryHelper.updateInventory(package, temp, unitsPerPackage, unitsPerPackage, -amount, amount), Ingredient.deleteIngredient(name)]));
   })
 }
 
