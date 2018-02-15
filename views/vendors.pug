@@ -35,14 +35,14 @@ block content
       div.next
         form(action='/vendors/home/' + (parseInt(page)+1).toString(), method='get')
           button.btn.btn-white.btn-round.btn-just-icon(type='submit') Next
+
+
   ul.nav.nav-tabs
     li.active.adminOnly.hide
       a(data-toggle='tab', href='#create_vendor') Create
-    //- li
-    //-   a(data-toggle='tab', href='#search_vendor') Search
 
   .tab-content
-    .card-content#create_vendor.tab-pane.fade.in.adminOnly.active
+    .card-content#create_vendor.tab-pane.fade.in.adminOnly.hide.active
       h1= 'Create Vendor'
       form(action='/vendors/new', method='post')
         .form-group
@@ -78,6 +78,6 @@ block content
 
 
 
-block scripts
-  script.
-    loadAdminOnlyContent();
+//- block scripts
+//-   script.
+//-     loadAdminOnlyContent();

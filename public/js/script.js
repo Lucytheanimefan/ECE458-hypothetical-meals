@@ -25,13 +25,13 @@ function filterTable(type) {
     td3 = trElement[3];
     console.log(trElement);
     if (td0 || td1 || td2 || td3) {
-      if (tdContainsFilteredText(td0, filter) || tdContainsFilteredText(td1, filter) 
-        || tdContainsFilteredText(td2, filter) || tdContainsFilteredText(td3, filter)) {
+      if (tdContainsFilteredText(td0, filter) || tdContainsFilteredText(td1, filter) ||
+        tdContainsFilteredText(td2, filter) || tdContainsFilteredText(td3, filter)) {
         tr[i].style.display = "";
       } else {
         tr[i].style.display = "none";
       }
-    }       
+    }
   }
 }
 
@@ -46,7 +46,7 @@ function sortTable(n, type) {
   table = document.getElementById(type + "Table");
   switching = true;
   //Set the sorting direction to ascending:
-  dir = "asc"; 
+  dir = "asc";
   /*Make a loop that will continue until
   no switching has been done:*/
   while (switching) {
@@ -67,13 +67,13 @@ function sortTable(n, type) {
       if (dir == "asc") {
         if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
           //if so, mark as a switch and break the loop:
-          shouldSwitch= true;
+          shouldSwitch = true;
           break;
         }
       } else if (dir == "desc") {
         if (x.innerHTML.toLowerCase() < y.innerHTML.toLowerCase()) {
           //if so, mark as a switch and break the loop:
-          shouldSwitch= true;
+          shouldSwitch = true;
           break;
         }
       }
@@ -84,7 +84,7 @@ function sortTable(n, type) {
       rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
       switching = true;
       //Each time a switch is done, increase this count by 1:
-      switchcount ++;      
+      switchcount++;
     } else {
       /*If no switching has been done AND the direction is "asc",
       set the direction to "desc" and run the while loop again.*/
@@ -96,22 +96,29 @@ function sortTable(n, type) {
   }
 }
 
-function tdContainsFilteredText(td, filter){
+function tdContainsFilteredText(td, filter) {
   return td.innerHTML.toUpperCase().indexOf(filter) > -1;
 }
 
-function checkIsAdmin(callback) {
+function getUserRole(callback) {
   $.ajax({
     type: 'GET',
-    url: '/users/isAdmin',
+    url: '/users/role',
     contentType: 'application/json; charset=utf-8',
     dataType: 'json',
     success: function(response) {
       console.log(response);
-      callback(response['isAdmin']);
+      callback(response['role']);
     }
   });
 }
+
+function checkIsAdmin(callback) {
+  getUserRole(function(role) {
+    callback(role.toUpperCase() === "ADMIN");
+  })
+}
+
 
 function checkLoggedIn(callback) {
   $.ajax({
@@ -138,13 +145,26 @@ function loadLoggedInContent() {
   })
 }
 
-function loadAdminOnlyContent() {
+function loadRelevantContent() {
+  getUserRole(function(role) {
+    let my_role = role.toLowerCase();
+    console.log('Role: ' + my_role);
+    if (my_role === 'admin') {
+      $('.manager').removeClass('hide');
+      $('.adminOnly').removeClass('hide');
+    } else if (my_role === 'manager') {
+      $('.manager').removeClass('hide');
+    }
+  })
+
+}
+
+function loadAdminContent() {
   checkIsAdmin(function(isAdmin) {
     if (!isAdmin) return;
-
+    $('.manager').removeClass('hide');
     // Is admin
     $('.adminOnly').removeClass('hide');
-
   });
 }
 
@@ -192,7 +212,7 @@ function getDukeIdentity(parameters) {
       let netid = result['netid'];
       let email = result['mail'];
       // Create the identity
-      createOrLoginAccountNetID({'netid':netid, 'email':email});
+      createOrLoginAccountNetID({ 'netid': netid, 'email': email });
 
     }
   });
@@ -206,7 +226,7 @@ function createOrLoginAccountNetID(userdata) {
     success: function(result) {
       console.log('createOrLoginAccount returned');
       console.log(result);
-      if (result['success']){
+      if (result['success']) {
         window.location.href = '/users';
       }
       //console.log(result);

@@ -32,7 +32,7 @@ const oauth2 = require('simple-oauth2').create(credentials);
 
 // Authorization uri definition
 const authorizationUri = oauth2.authorizationCode.authorizeURL({
-  redirect_uri: 'https://hypothetical-meals-dev.herokuapp.com/duke_oauth/callback',
+  redirect_uri: variables.redirectURI,
   scope: 'basic',
   state: 7711,
   response_type: 'token'
@@ -47,7 +47,7 @@ router.get('/auth', (req, res) => {
 // Callback service parsing the authorization token and asking for the access token
 router.get('/callback', (req, res, next) => {
 	console.log('----------In callback!!!');
-	res.redirect('/users/profile');
+	res.redirect('/users');
 });
 
 router.get('/', (req, res) => {

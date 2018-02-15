@@ -36,9 +36,9 @@ html(lang='en')
           a.simple-text(href='/')
             | Hypothetical Meals
 
-        -var menu = { 'Home': '/', 'Profile': '/users/profile','Users':'/users/admin', 'Ingredients': '/ingredients', 'Vendors':'/vendors', 'Cart':'/users/cart', 'Uploads': '/files','Inventory':'/inventory', 'Report':'/users/report'};
+        -var menu = { 'Home': '/', 'Profile': '/users/profile','Users':'/users/admin', 'Ingredients': '/ingredients', 'Vendors':'/vendors', 'Cart':'/users/cart', 'Uploads': '/files','Inventory':'/inventory', 'Report':'/users/report', 'Logs': '/logs'};
 
-        -var icons = {'Home':'home', 'Profile': 'account_circle','Users': 'supervisor_account','Uploads': 'publish','Ingredients':'local_pizza','Vendors':'restaurant','Cart':'local_grocery_store','Inventory':'local_shipping', 'Report':'content_paste'}
+        -var icons = {'Home':'home', 'Profile': 'account_circle','Users': 'supervisor_account','Uploads': 'publish','Ingredients':'local_pizza','Vendors':'restaurant','Cart':'local_grocery_store','Inventory':'local_shipping', 'Report':'content_paste', 'Logs': 'library_books'}
 
 
         .sidebar-wrapper
@@ -109,7 +109,7 @@ html(lang='en')
   script.
     loadLoggedInContent();
     $('tbody').sortable();
-    //$('table').tablesorter(); 
+    loadRelevantContent();
 
   block scripts
 

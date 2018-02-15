@@ -20,16 +20,18 @@ block content
               .form-group.label-floating
                 label.control-label Email address
                 input.form-control(type='email', value=email, name='email')
-            if (netid!==null)
+            if (netid != null)
               .col-md-4
                 .form-group.label-floating
                   label.control-label Netid
                   input.form-control(type='text', value=netid, name='netid', readonly)
-          .row
-            .col-md-12
-              .form-group.label-floating
-                label.control-label Password
-                input.form-control(type='password', name='password', value=password)
+          //- Is a local user if no netid
+          if (netid == null) 
+            .row
+              .col-md-12
+                .form-group.label-floating
+                  label.control-label Password
+                  input.form-control(type='password', name='password', value=password)
           
           button.btn.btn-primary.pull-right(type='submit') Update Profile
           .clearfix

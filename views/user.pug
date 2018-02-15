@@ -1,0 +1,31 @@
+extends layout
+block link
+  -var selected = 'Users';
+  -var roles = ['admin', 'user', 'manager'];
+
+block content
+  .row
+    h3 Update the user
+      form(action='/users/update/'+user.username, method='post')
+        .form-group
+          label.control-label Email
+          input.form-control(type='text', name='email', placeholder=user.email, value=user.email)
+        .form-group
+          label.control-label Username
+          input.form-control(type='text', name='username', placeholder=user.username, value=user.username, readonly)
+        .form-group
+          label.control-label Net ID
+          input.form-control(type='text', name='netid', placeholder=user.netid, value=user.netid, readonly)
+        if (user.netid == null)
+          .form-group
+            label.control-label Password
+            input.form-control(type='password', name='password', placeholder=user.password, required='')
+        .form-group
+          label.control-label Role
+          select.form-control(name='role', required='', value=user.role)
+            option(disabled="" selected="") Select an option
+            each role in roles
+              option(value=role)= role
+        button.btn.btn-primary.pull-right(type='submit', value='Update') Update
+      form(action='/users/delete/'+user.username, method='post')
+        button.btn.btn-primary.pull-left(type='submit', value='Delete') Delete

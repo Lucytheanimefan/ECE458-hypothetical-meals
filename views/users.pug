@@ -4,56 +4,58 @@ block link
   -var roles = ['admin', 'user', 'manager'];
 
 block content
-  div#tabs
-    ul.nav.nav-tabs
-      li.active
-        a(data-toggle='tab', href='#users_table') Users
-      li
-        a(data-toggle='tab', href='#create_user') Create
-  .tab-content
-    .card-content.tab-pane.fade.in.active#users_table
-      div.card
-        div.card-content.table-response
-          input.form-control#userInput(type='text',onkeyup='filterTable(\'user\')', placeholder='Search for users..', title='Type in some search text')
-          table.table#userTable
-            thead.text-primary
-              th(onclick='sortTable(0, \'user\')') Email
-              th(onclick='sortTable(0, \'user\')') Username
-              th(onclick='sortTable(0, \'user\')') Role
-              th(onclick='sortTable(0, \'user\')') Netid
-            tbody
-            each user in users
-              tr
-                td
-                  a(href='mailto:'+user.email)= user.email
-                td= user.username
-                td= user.role
-                td= user.netid
-            //- div.previous
-            //-   form(action='/ingredients/search_results/' + (parseInt(page)-1).toString() + '/' + searchQuery, method='get')
-            //-     button.btn.btn-white.btn-round.btn-just-icon(type='submit') Prev
-            //- div.next
-            //-   form(action='/ingredients/search_results/' + (parseInt(page)+1).toString() + '/' + searchQuery, method='get')
-            //-     button.btn.btn-white.btn-round.btn-just-icon(type='submit') Next
+  .row
+    div#tabs
+      ul.nav.nav-tabs
+        li.active
+          a(data-toggle='tab', href='#users_table') Users
+        li
+          a(data-toggle='tab', href='#create_user') Create
+    .tab-content
+      .card-content.tab-pane.fade.in.active#users_table
+        div.card
+          div.card-content.table-response
+            input.form-control#userInput(type='text',onkeyup='filterTable(\'user\')', placeholder='Search for users..', title='Type in some search text')
+            table.table#userTable
+              thead.text-primary
+                th(onclick='sortTable(0, \'user\')') Username
+                th(onclick='sortTable(0, \'user\')') Email
+                th(onclick='sortTable(0, \'user\')') Role
+                th(onclick='sortTable(0, \'user\')') Netid
+              tbody
+              each user in users
+                tr
+                  td
+                    a(href='/users/user/'+user.username)=user.username
+                  td
+                    a(href='mailto:'+user.email)= user.email
+                  td= user.role
+                  td= user.netid
+              //- div.previous
+              //-   form(action='/ingredients/search_results/' + (parseInt(page)-1).toString() + '/' + searchQuery, method='get')
+              //-     button.btn.btn-white.btn-round.btn-just-icon(type='submit') Prev
+              //- div.next
+              //-   form(action='/ingredients/search_results/' + (parseInt(page)+1).toString() + '/' + searchQuery, method='get')
+              //-     button.btn.btn-white.btn-round.btn-just-icon(type='submit') Next
 
-    .card-content.tab-pane.fade.in#create_user
-      h3 Create a user
-      //- .login-form.panel
-      form(action='/users', method='post')
-        .form-group
-          label.control-label Email
-          input.form-control(type='text', name='email', placeholder='', required='')
-        .form-group
-          label.control-label Username
-          input.form-control(type='text', name='username', placeholder='', required='')
-        .form-group
-          label.control-label Password
-          input.form-control(type='password', name='password', placeholder='', required='')
-        .form-group
-          label.control-label Role
-          select.form-control(name='role', placeholder = '', required='')
-            option(disabled="" selected="" value="") Select an option
-            each role in roles
-              option(value=role)= role
-        button.btn.btn-primary.pull-right(type='submit', value='Create') Create
+      .card-content.tab-pane.fade.in#create_user
+        h3 Create a user
+        //- .login-form.panel
+        form(action='/users', method='post')
+          .form-group
+            label.control-label Email
+            input.form-control(type='text', name='email', placeholder='', required='')
+          .form-group
+            label.control-label Username
+            input.form-control(type='text', name='username', placeholder='', required='')
+          .form-group
+            label.control-label Password
+            input.form-control(type='password', name='password', placeholder='', required='')
+          .form-group
+            label.control-label Role
+            select.form-control(name='role', placeholder = '', required='')
+              option(disabled="" selected="" value="") Select an option
+              each role in roles
+                option(value=role)= role
+          button.btn.btn-primary.pull-right(type='submit', value='Create') Create
 
