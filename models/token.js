@@ -1,4 +1,6 @@
 var mongoose = require('mongoose');
+mongoose.Promise = global.Promise;
+
 
 
 //create a verification token within Mongo.

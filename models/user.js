@@ -1,4 +1,5 @@
 var mongoose = require('mongoose');
+mongoose.Promise = global.Promise;
 var bcrypt = require('bcrypt');
 var path = require('path');
 var Log = require(path.resolve(__dirname, "./log.js"));
