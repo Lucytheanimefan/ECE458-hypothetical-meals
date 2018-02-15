@@ -5,7 +5,8 @@ var Ingredient = require('../models/ingredient');
 var IngredientHelper = require('../helpers/ingredients');
 var Vendor = require('../models/vendor');
 var users = require('./users');
-
+var path = require('path');
+var logs = require(path.resolve(__dirname, "./logs.js"));
 
 var packageTypes = ['sack', 'pail', 'drum', 'supersack', 'truckload', 'railcar'];
 var temperatures = ['frozen', 'refrigerated', 'room temperature'];

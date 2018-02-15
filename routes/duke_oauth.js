@@ -47,7 +47,7 @@ router.get('/auth', (req, res) => {
 // Callback service parsing the authorization token and asking for the access token
 router.get('/callback', (req, res, next) => {
 	console.log('----------In callback!!!');
-	res.redirect('/users/profile');
+	res.redirect('/users');
 });
 
 router.get('/', (req, res) => {

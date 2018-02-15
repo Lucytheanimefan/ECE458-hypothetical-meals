@@ -10,7 +10,8 @@ var underscore = require('underscore');
 var dialog = require('dialog');
 var bcrypt = require('bcrypt');
 var variables = require('../helpers/variables');
-
+var path = require('path');
+var logs = require(path.resolve(__dirname, "./logs.js"));
 
 
 
@@ -56,6 +57,8 @@ router.post('/', function(req, res, next) {
         console.log(error);
         return next(error);
       } else {
+        logs.makeUserLog('Creation', user, 'user', req.session.userId);
+
         console.log('Hash the password');
         res.redirect(req.baseUrl + '/admin');
       }
@@ -78,11 +81,33 @@ router.post('/', function(req, res, next) {
   } else if (req.body.netid) {
     console.log('netid!');
     User.authenticate_netid(req.body.netid, req.body.email, function(error, user) {
-      if ((error != null) || user == null) {
+      if (error != null) {
         console.log('Error after auth: ' + error);
         console.log('Auth user: ' + user);
         res.send({ 'success': false, 'error': error });
         //return next(error);
+      } else if (user == null) {
+
+        // Create a user if it doesn't exist
+        let user_data = { 'netid': req.body.netid, 'username': req.body.netid, 'isDukePerson': true };
+        User.create(user_data, function(error, user) {
+          if (error) {
+            console.log("Error creating user: " + error);
+            res.send({ 'success': false, 'error': error });
+          }
+
+          logs.makeUserLog('Created user', user, ['user'], req.session.userId);
+
+          // Try logging in again
+          User.user_by_netid(netid, function(err, user) {
+            if (err) {
+              console.log('Error finding user by netid: ');
+              res.send({ 'success': false, 'error': error });
+            }
+            res.send({ 'success': true, 'netid': user.netid });
+          });
+        })
+
       } else {
         req.session.userId = user._id;
         res.send({ 'success': true, 'netid': user.netid });
@@ -99,18 +124,14 @@ router.post('/', function(req, res, next) {
 
 // GET route after registering
 router.get('/profile', function(req, res, next) {
-  User.findById(req.session.userId)
-    .exec(function(error, user) {
-      if (error) {
-        return next(error);
-      } else {
-        if (user === null) {
-          return res.redirect(req.baseUrl + '/');
-        } else {
-          res.render('profile', { title: 'Profile', username: user.username, email: user.email, netid: user.netid });
-        }
-      }
-    });
+  console.log('Get profile!');
+  User.current_user(req, function(error, user) {
+    if (error) {
+      return next(error);
+    } else {
+      res.render('profile', { title: 'Profile', username: user.username, email: user.email, netid: user.netid });
+    }
+  })
 });
 
 router.get('/admin', function(req, res, next) {
@@ -141,15 +162,16 @@ router.get('/admin', function(req, res, next) {
     });
 });
 
-router.post('/delete', function(req, res, next) {
-  User.findOneAndRemove({ email: req.body.email }, function(error, result) {
+router.post('/delete/:username', function(req, res, next) {
+  User.findOneAndRemove({ username: req.params.username }, function(error, result) {
     if (error) {
       var err = new Error('Couldn\'t delete that user.');
       err.status = 400;
       return next(err);
     } else {
+      logs.makeUserLog('Deleted user', result, ['user'], req.session.userId);
       //alert user the ingredient has been deleted.
-      return res.redirect(req.baseUrl);
+      return res.redirect(req.baseUrl + '/admin');
     }
   });
 });
@@ -168,8 +190,10 @@ router.post('/update', async function(req, res, next) {
 
   User.update(userdata, { 'username': req.body.username, 'password': req.body.password, 'email': req.body.email }, function(err, user) {
     if (err) {
+      //logs.makeUserLog('Update error', user, 'user', req.session.userId);
       return next(err);
     }
+    logs.makeUserLog('Updated user', user, ['user'], req.session.userId);
     return res.redirect(req.baseUrl + '/profile');
   })
 });
@@ -185,6 +209,7 @@ router.post('/update/:username', async function(req, res, next) {
     if (err) {
       return next(err);
     }
+    logs.makeUserLog('Updated user', user, ['user'], req.session.userId);
     return res.redirect(req.baseUrl + '/admin');
   })
 });
