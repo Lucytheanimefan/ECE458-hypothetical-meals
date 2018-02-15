@@ -1,28 +1,47 @@
 var Inventory = require('../models/inventory');
+var Ingredient = require('../models/ingredient');
 
-module.exports.checkInventory = function(package, temp, amount) {
+var spaceMapping = {
+  sack:0.5,
+  pail:1,
+  drum:3,
+  supersack:16,
+  truckload:0,
+  railcar:0
+}
+
+calculateNewSpace = function(package, unitsPerPackage, newAmount, currentAmount) {
+  var current = Math.ceil(currentAmount/unitsPerPackage);
+  console.log("hi:" + current);
+  var newNumberOfPackages = Math.ceil((currentAmount + newAmount)/unitsPerPackage)
+  console.log("hi:" + newNumberOfPackages);
+  return parseFloat((newNumberOfPackages - current) * spaceMapping[package]);
+}
+
+module.exports.checkInventory = function(package, temp, unitsPerPackage, newAmount, currentAmount) {
   return new Promise(function(resolve, reject) {
     Inventory.getInventory().then(function(inv) {
       let temperature = temp.toLowerCase().split(" ")[0];
       let canUpdate = false;
 
       if (package.toLowerCase() === "truckload" || package.toLowerCase() === "railcar") {
-        canUpdate = true;
+        resolve(true);
       } else {
-        canUpdate = (parseFloat(inv['current'][temperature]) + amount <= parseFloat(inv['limits'][temperature]));
+        var newSpace = calculateNewSpace(package, unitsPerPackage, newAmount, currentAmount)
+        resolve(parseFloat(inv['current'][temperature]) + newSpace <= parseFloat(inv['limits'][temperature]));
       }
-      resolve(canUpdate);
     }).catch(function(error) {
       console.log(error);
     })
   })
 }
 
-module.exports.updateInventory = function(package, temp, amount) {
+module.exports.updateInventory = function(package, temp, unitsPerPackage, newAmount, currentAmount) {
   return new Promise(function(resolve, reject) {
     let temperature = temp.toLowerCase().split(" ")[0];
     var updateObject = {};
-    updateObject['current.' + temperature.toLowerCase()] = amount;
+    var newSpace = calculateNewSpace(package, unitsPerPackage, newAmount, currentAmount)
+    updateObject['current.' + temperature.toLowerCase()] = newSpace;
     if (package.toLowerCase() === "truckload" || package.toLowerCase() === "railcar") {
       resolve('nada');
     } else {

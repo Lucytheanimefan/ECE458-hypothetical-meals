@@ -75,8 +75,12 @@ block content
             option(disabled='' selected='' value='') Select an option
             each temp in temps
               option(value=temp)= temp
-          label.control-label Amount in Storage
-          input.form-control(type='number', step="any", name='amount', placeholder = 'Amount in storage', required='')
+          label.control-label Native Unit
+          input.form-control(type='text', name='nativeUnit', placeholder = 'Native Unit', required='')
+          label.control-label Units Per Package
+          input.form-control(type='number', step='any', name='unitsPerPackage', placeholder = 'Units Per Package', required='')
+          label.control-label Units in Storage
+          input.form-control(type='number', step="any", name='amount', placeholder = 'Units in storage', required='')
           button.btn.btn-primary.pull-right(type='submit', value='add ingredient') Create ingredient
 
 //- block scripts

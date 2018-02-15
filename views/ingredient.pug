@@ -66,6 +66,10 @@ block content
                 option(selected='' value=temp)= temp
               else
                 option(value=temp)= temp
+          label.control-label Native Unit
+          input.form-control(type='text', name='nativeUnit', value = ingredient.native_unit, required='')
+          label.control-label Units Per Package
+          input.form-control(type='number', step='any', name='unitsPerPackage', value = ingredient.units_per_package, required='')
           label.control-label Amount in storage (Pounds)
           input.form-control(type='number', step="any", name='amount', value = ingredient.amount, required='')
           button.btn.btn-primary.pull-right(type='submit') Update ingredient

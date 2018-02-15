@@ -4,17 +4,17 @@ var Vendor = require('../models/vendor');
 var mongoose = require('mongoose');
 mongoose.Promise = global.Promise;
 
-module.exports.createIngredient = function(name, package, temp, amount=0) {
+module.exports.createIngredient = function(name, package, temp, nativeUnit, unitsPerPackage, amount=0) {
   return new Promise(function(resolve, reject) {
     if (amount < 0) {
       var error = new Error('Storage amount must be a non-negative number');
       error.status = 400;
       reject(error);
     } else {
-      // var create = Ingredient.createIngredient(name, package, temp, amount)
-      InventoryHelper.checkInventory(package, temp, amount).then(function(update) {
+      InventoryHelper.checkInventory(package, temp, unitsPerPackage, amount, 0).then(function(update) {
         if (update) {
-          return Promise.all([InventoryHelper.updateInventory(package, temp, amount), Ingredient.createIngredient(name, package, temp, amount)]);
+          return Promise.all([InventoryHelper.updateInventory(package, temp, unitsPerPackage, amount, 0),
+            Ingredient.createIngredient(name, package, temp, nativeUnit, unitsPerPackage, amount)]);
         } else {
           var error = new Error('Not enough space in inventory!');
           error.status = 400;
@@ -29,24 +29,28 @@ module.exports.createIngredient = function(name, package, temp, amount=0) {
   });
 }
 
-module.exports.updateIngredient = function(name, newName, package, temp, amount) {
+module.exports.updateIngredient = function(name, newName, package, temp, nativeUnit, unitsPerPackage, amount) {
   return new Promise(function(resolve, reject) {
     if (amount < 0) {
       var error = new Error('Storage amount must be a non-negative number');
       error.status = 400;
       reject(error);
     } else {
+      var incAmount;
+      var currentAmount;
       Ingredient.getIngredient(name).then(function(ing) {
-        let incAmount = amount - parseFloat(ing['amount']);
-        InventoryHelper.checkInventory(package, temp, incAmount).then(function(update) {
-          if (update) {
-            return Promise.all([InventoryHelper.updateInventory(package, temp, incAmount), Ingredient.updateIngredient(name, package, temp, amount)]);
-          } else {
-            var error = new Error('Not enough space in inventory!');
-            error.status = 400;
-            throw error;
-          }
-        })
+        incAmount = amount - parseFloat(ing['amount']);
+        currentAmount = parseFloat(ing['amount']);
+        return InventoryHelper.checkInventory(package, temp, unitsPerPackage, incAmount, currentAmount);
+      }).then(function(update) {
+        if (update) {
+          return Promise.all([InventoryHelper.updateInventory(package, temp, unitsPerPackage, incAmount, currentAmount),
+            Ingredient.updateIngredient(name, newName, package, temp, nativeUnit, unitsPerPackage, amount)]);
+        } else {
+          var error = new Error('Not enough space in inventory!');
+          error.status = 400;
+          throw error;
+        }
       }).then(function(result) {
         resolve(result);
       }).catch(function(error) {
@@ -56,9 +60,9 @@ module.exports.updateIngredient = function(name, newName, package, temp, amount)
   });
 }
 
-module.exports.deleteIngredient = function(name, package, temp, amount) {
+module.exports.deleteIngredient = function(name, package, temp, unitsPerPackage, amount) {
   return new Promise(function(resolve, reject) {
-    resolve(Promise.all([InventoryHelper.updateInventory(package, temp, -amount), Ingredient.deleteIngredient(name)]));
+    resolve(Promise.all([InventoryHelper.updateInventory(package, temp, unitsPerPackage, -amount, amount), Ingredient.deleteIngredient(name)]));
   })
 }
 
