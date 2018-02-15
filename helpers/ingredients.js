@@ -14,7 +14,7 @@ module.exports.createIngredient = function(name, package, temp, amount=0) {
       // var create = Ingredient.createIngredient(name, package, temp, amount)
       InventoryHelper.checkInventory(package, temp, amount).then(function(update) {
         if (update) {
-          return Promise.all([InventoryHelper.updateInventory(package, temp, amount), Inventory.createIngredient(name, package, temp, amount)]);
+          return Promise.all([InventoryHelper.updateInventory(package, temp, amount), Ingredient.createIngredient(name, package, temp, amount)]);
         } else {
           var error = new Error('Not enough space in inventory!');
           error.status = 400;
@@ -40,7 +40,7 @@ module.exports.updateIngredient = function(name, newName, package, temp, amount)
         let incAmount = amount - parseFloat(ing['amount']);
         InventoryHelper.checkInventory(package, temp, incAmount).then(function(update) {
           if (update) {
-            return Promise.all([InventoryHelper.updateInventory(package, temp, amount), Inventory.updateIngredient(name, package, temp, amount)]);
+            return Promise.all([InventoryHelper.updateInventory(package, temp, incAmount), Ingredient.updateIngredient(name, newName, package, temp, amount)]);
           } else {
             var error = new Error('Not enough space in inventory!');
             error.status = 400;
