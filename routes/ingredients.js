@@ -5,7 +5,8 @@ var Ingredient = require('../models/ingredient');
 var Inventory = require('../models/inventory');
 var Vendor = require('../models/vendor');
 var users = require('./users');
-
+var path = require('path');
+var logs = require(path.resolve(__dirname, "./logs.js"));
 
 var packageTypes = ['sack', 'pail', 'drum', 'supersack', 'truckload', 'railcar'];
 var temperatures = ['frozen', 'refrigerated', 'room temperature'];
@@ -103,6 +104,8 @@ router.post('/:name/delete', function(req, res, next) {
       res.redirect(req.baseUrl);
     }
   }).then(function(result) {
+    logs.makeIngredientLog('Deleted ingredient', result, ['ingredient'], req.session.userId);
+
     res.redirect(req.baseUrl);
   }).catch(function(error) {
     console.log(error);
@@ -133,6 +136,8 @@ router.post('/:name/update', function(req, res, next) {
     invDb = inv;
     return findIngredient;
   }).then(function(ing) {
+    logs.makeIngredientLog('Updated ingredient', ing, ['ingredient'], req.session.userId);
+
     ingDb = ing;
     let currIndTemp = ing['temperature'].toLowerCase().split(" ")[0];
     let currAmount = parseFloat(ing['amount']);
@@ -155,6 +160,8 @@ router.post('/:name/update', function(req, res, next) {
         console.log('UPDATE INGRED: ERROR SAVING INVENTORY: ');
         console.log(error);
       }
+      logs.makeIngredientLog('Updated inventory', invDb, ['ingredient','inventory'], req.session.userId);
+
       console.log('UPDATE INGRED: SUCCESS SAVING INVENTORY');
     });
   }).catch(function(error) {
@@ -183,6 +190,9 @@ router.post('/new', function(req, res, next) {
     amount: req.body.amount
   });
   promise.then(async function(instance) {
+
+    logs.makeIngredientLog('Creation', instance, ['ingredient'], req.session.userId);
+
     await Inventory.findOne({ type: "master" }, function(err, inv) {
       if (err) { return next(err); }
 
@@ -205,6 +215,7 @@ router.post('/new', function(req, res, next) {
           console.log(error);
         }
         console.log('SUCCESS SAVING INVENTORY');
+        logs.makeIngredientLog('Updated inventory', inv, ['ingredient','inventory'], req.session.userId);
       });
       instance.save();
     })
