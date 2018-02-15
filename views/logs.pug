@@ -4,6 +4,8 @@ block link
 
 block content
   .row
+    form(action='/logs/delete/', method='post')
+      button.btn.btn-primary.pull-right(type='submit', value='Delete') Clear all
     div.card
       div.card-header(data-background-color='purple')
         h4.title Logs

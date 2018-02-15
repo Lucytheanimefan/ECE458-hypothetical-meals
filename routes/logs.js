@@ -39,6 +39,17 @@ router.get('/log/:userid', (req, res, next) => {
     });
 })
 
+router.post('/delete', (req, res, next) => {
+  console.log('Delete logs!');
+  Log.remove({}, function(err){
+    if (err){
+      console.log(err);
+      next(err);
+    }
+    res.redirect(req.baseUrl);
+  })
+})
+
 module.exports = router;
 
 module.exports.makeIngredientLog = function(title, ingredient, entities = ['ingredient'], initiating_user) {
