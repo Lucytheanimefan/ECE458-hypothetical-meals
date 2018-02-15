@@ -459,6 +459,7 @@ router.post('/checkout_cart', function(req, res, next) {
             production_report[ingredient] = new_cost;
           });
           delete cart[ingredient];
+
         }
 
         if (inventories != undefined) {
@@ -478,6 +479,7 @@ router.post('/checkout_cart', function(req, res, next) {
           if (err) return next(err);
         });
 
+        logs.makeLog('Checked out cart and updated report', {cart: cart_instance, inventory: inventories, production_report: production_report}, ['cart', 'inventory'], req.session.userId);
         return res.redirect(req.baseUrl + '/report');
       });
     }
