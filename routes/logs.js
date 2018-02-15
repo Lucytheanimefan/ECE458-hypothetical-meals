@@ -24,6 +24,21 @@ router.get('/', (req, res, next) => {
   });
 });
 
+router.get('/log/:userid', (req, res, next) => {
+  console.log(req.query)
+  let title = req.query.title
+  User.findById(req.params.userid)
+    .exec(function(error, user) {
+      res.render('log', {
+        title: req.query.title,
+        time: req.query.time,
+        description: req.query.description,
+        entities: req.query.entities,
+        user:user.username
+      })
+    });
+})
+
 module.exports = router;
 
 module.exports.makeIngredientLog = function(title, ingredient, entities = ['ingredient'], initiating_user) {

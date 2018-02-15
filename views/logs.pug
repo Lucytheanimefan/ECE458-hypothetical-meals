@@ -19,7 +19,8 @@ block content
           tbody
           each log in logs
             tr
-              td= log.title
+              td
+                a(href='/logs/log/'+log.initiating_user+'?title='+log.title+'&description=' + log.description + '&time='+log.time+'&entities=' + log.entities)= log.title
               td= log.time
               td= log.description
               td= log.initiating_user
