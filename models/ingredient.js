@@ -19,6 +19,16 @@ var IngredientSchema = new mongoose.Schema({
     required: true,
     trim: true
   },
+  native_unit: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  units_per_package: {
+    type: Number,
+    required: true,
+    trim: true
+  },
   amount: {
     type: Number,
     required: true
@@ -33,11 +43,13 @@ var IngredientSchema = new mongoose.Schema({
 
 var Ingredient = mongoose.model('Ingredient', IngredientSchema);
 
-module.exports.createIngredient = function(name, package, temp, amount) {
+module.exports.createIngredient = function(name, package, temp, nativeUnit, unitsPerPackage, amount) {
   return Ingredient.create({
     'name': name,
     'package': package.toLowerCase(),
     'temperature': temp.toLowerCase(),
+    'native_unit': nativeUnit,
+    'units_per_package': parseFloat(unitsPerPackage),
     'amount': parseFloat(amount)
   });
 }
@@ -55,12 +67,14 @@ module.exports.searchIngredients = function() {
   return Ingredient.find();
 }
 
-module.exports.updateIngredient = function(name, newName, package, temp, amount) {
+module.exports.updateIngredient = function(name, newName, package, temp, nativeUnit, unitsPerPackage, amount) {
   return Ingredient.findOneAndUpdate({ 'name':  name }, {
     '$set': {
       'name': newName,
       'package': package.toLowerCase(),
       'temperature': temp.toLowerCase(),
+      'native_unit': nativeUnit,
+      'units_per_package': parseFloat(unitsPerPackage),
       'amount': parseFloat(amount)
     }
   }).exec();
