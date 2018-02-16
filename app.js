@@ -14,6 +14,7 @@ var ingredients = require('./routes/ingredients');
 var vendors = require('./routes/vendors');
 var files = require('./routes/files');
 var inventory = require('./routes/inventory_routes');
+var formulas = require('./routes/formulas');
 var logs = require('./routes/logs');
 var MongoStore = require('connect-mongo')(session);
 
@@ -25,7 +26,7 @@ var variables = require('./helpers/variables');
 var app = express();
 
 
-//var MONGO_URI = (process.env.MONGODB_URI); 
+//var MONGO_URI = (process.env.MONGODB_URI);
 //var MONGO_URI = (process.env.MONGODB_URI) ? process.env.MONGODB_URI : require('./env.json')[process.env.NODE_ENV || 'development']['MONGO_URI'];
 
 
@@ -72,6 +73,7 @@ app.use('/users', users);
 app.use('/ingredients', users.requireLogin(),ingredients); //This is not ideal
 app.post('/ingredients/*', users.requireRole("admin"), ingredients);
 app.use('/vendors', users.requireLogin(), vendors);
+app.use('/formulas', formulas);
 
 app.use('/files', files);
 app.use('/inventory',users.requireRole("admin"),inventory);

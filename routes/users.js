@@ -209,7 +209,7 @@ router.post('/update', async function(req, res, next) {
   })
 });
 
-// Admin can update the user through username 
+// Admin can update the user through username
 router.post('/update/:username', async function(req, res, next) {
   if (req.session.role != 'admin'){
     let err = new Error('You must be an admin to delete a user');
@@ -321,6 +321,8 @@ router.get('/cart/:page?', function(req, res, next) {
 });
 
 router.post('/add_to_cart', function(req, res, next) {
+  req.params.
+
   User.count({ _id: req.session.userId }, function(err, count) {
     if (err) return next(err);
 
@@ -579,7 +581,7 @@ router.get('/production_report/:page?', function(req, res, next) {
 
 module.exports = router;
 module.exports.requireRole = function(role) {
-  console.log("----Call user requireRole");
+  console.log("----Call user requireRole: for " + role);
   return function(req, res, next) {
     console.log('In require role callback function');
     User.findById(req.session.userId).exec(function(error, user) {

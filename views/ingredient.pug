@@ -27,7 +27,13 @@ block content
               th Storage Temperature
               td= ingredient.temperature
             tr
-              th Amount in Storage (Pounds)
+              th Native Unit
+              td= ingredient.nativeUnit
+            tr
+              th Units per Package
+              td= ingredient.unitsPerPackage
+            tr
+              th Units in Storage
               td= ingredient.amount
           div.delete-form
             form(action='/ingredients/' + ingredient.name + '/delete', method='post')
@@ -50,6 +56,7 @@ block content
       .adminOnly.hide.card-content.tab-pane.fade#update-form
         h1= 'Update ingredient'
         form(action='/ingredients/' + ingredient.name + '/update', method='post')
+
           .form-group
             label.control-label Ingredient Name
             input.form-control(type='text', name='name', value = ingredient.name, required='')
@@ -72,6 +79,17 @@ block content
           .form-group
             label.control-label Amount in storage (Pounds)
             input.form-control(type='number', step="any", name='amount', value = ingredient.amount, required='')
+
+          .form-group
+            label.control-label Native Unit
+            input.form-control(type='text', name='nativeUnit', value = ingredient.nativeUnit, required='')
+          .form-group
+            label.control-label Units per Package
+            input.form-control(type='number', step='any', name='unitsPerPackage', value = ingredient.unitsPerPackage, required='')
+          .form-group
+            label.control-label Units in Storage
+            input.form-control(type='number', step="any", name='amount', value = ingredient.amount, required='')
+
           button.btn.btn-primary.pull-right(type='submit') Update ingredient
 
         form(action='/ingredients/' + ingredient.name + '/add-vendor', method='post')
