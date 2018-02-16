@@ -27,7 +27,13 @@ block content
               th Storage Temperature
               td= ingredient.temperature
             tr
-              th Amount in Storage (Pounds)
+              th Native Unit
+              td= ingredient.nativeUnit
+            tr
+              th Units per Package
+              td= ingredient.unitsPerPackage
+            tr
+              th Units in Storage
               td= ingredient.amount
           div.delete-form
             form(action='/ingredients/' + ingredient.name + '/delete', method='post')
@@ -68,9 +74,9 @@ block content
                 option(value=temp)= temp
           label.control-label Native Unit
           input.form-control(type='text', name='nativeUnit', value = ingredient.nativeUnit, required='')
-          label.control-label Units Per Package
+          label.control-label Units per Package
           input.form-control(type='number', step='any', name='unitsPerPackage', value = ingredient.unitsPerPackage, required='')
-          label.control-label Amount in storage (Pounds)
+          label.control-label Units in Storage
           input.form-control(type='number', step="any", name='amount', value = ingredient.amount, required='')
           button.btn.btn-primary.pull-right(type='submit') Update ingredient
 

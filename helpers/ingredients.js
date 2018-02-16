@@ -10,18 +10,22 @@ module.exports.createIngredient = function(name, package, temp, nativeUnit, unit
       var error = new Error('Storage amount must be a non-negative number');
       error.status = 400;
       reject(error);
+    } else if (unitsPerPackage <= 0) {
+      var error = new Error('Units per package must be a positive number');
+      error.status = 400;
+      reject(error);
     } else {
-      InventoryHelper.checkInventory(package, temp, unitsPerPackage, unitsPerPackage, amount, 0).then(function(update) {
+      InventoryHelper.checkInventory(name, package, temp, unitsPerPackage, amount).then(function(update) {
         if (update) {
-          return Promise.all([InventoryHelper.updateInventory(package, temp, unitsPerPackage, unitsPerPackage, amount, 0),
-            Ingredient.createIngredient(name, package, temp, nativeUnit, unitsPerPackage, amount)]);
+          return Promise.all([InventoryHelper.updateInventory(name, package, temp, unitsPerPackage, amount), 
+            Ingredient.createIngredient(name, package, temp, nativeUnit, unitsPerPackage, amount)])
         } else {
-          var error = new Error('Not enough space in inventory!');
+          var error = new Error('Not enough room in inventory!');
           error.status = 400;
           throw error;
         }
-      }).then(function(result) {
-        resolve(result);
+      }).then(function(results) {
+        resolve("created ingredient!");
       }).catch(function(error) {
         reject(error);
       });
@@ -35,26 +39,22 @@ module.exports.updateIngredient = function(name, newName, package, temp, nativeU
       var error = new Error('Storage amount must be a non-negative number');
       error.status = 400;
       reject(error);
+    } else if (unitsPerPackage <= 0) {
+      var error = new Error('Units per package must be a positive number');
+      error.status = 400;
+      reject(error);
     } else {
-      var incAmount;
-      var currentAmount;
-      var oldUnitsPerPackage;
-      Ingredient.getIngredient(name).then(function(ing) {
-        incAmount = amount - parseFloat(ing['amount']);
-        currentAmount = parseFloat(ing['amount']);
-        oldUnitsPerPackage = parseFloat(ing['units_per_package']);
-        return InventoryHelper.checkInventory(package, temp, oldUnitsPerPackage, unitsPerPackage, incAmount, currentAmount);
-      }).then(function(update) {
+      InventoryHelper.checkInventory(name, package, temp, unitsPerPackage, amount).then(function(update) {
         if (update) {
-          return Promise.all([InventoryHelper.updateInventory(package, temp, oldUnitsPerPackage, unitsPerPackage, incAmount, currentAmount),
-            Ingredient.updateIngredient(name, newName, package, temp, nativeUnit, unitsPerPackage, amount)]);
+          return Promise.all([InventoryHelper.updateInventory(name, package, temp, unitsPerPackage, amount), 
+            Ingredient.updateIngredient(name, newName, package, temp, nativeUnit, unitsPerPackage, amount)])
         } else {
-          var error = new Error('Not enough space in inventory!');
+          var error = new Error('Not enough room in inventory!');
           error.status = 400;
           throw error;
         }
-      }).then(function(result) {
-        resolve(result);
+      }).then(function(results) {
+        resolve("updated ingredient!");
       }).catch(function(error) {
         reject(error);
       });
@@ -64,7 +64,7 @@ module.exports.updateIngredient = function(name, newName, package, temp, nativeU
 
 module.exports.deleteIngredient = function(name, package, temp, unitsPerPackage, amount) {
   return new Promise(function(resolve, reject) {
-    resolve(Promise.all([InventoryHelper.updateInventory(package, temp, unitsPerPackage, unitsPerPackage, -amount, amount), Ingredient.deleteIngredient(name)]));
+    resolve(Promise.all([InventoryHelper.updateInventory(name, package, temp, unitsPerPackage, 0), Ingredient.deleteIngredient(name)]));
   })
 }
 

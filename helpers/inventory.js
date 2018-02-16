@@ -10,43 +10,57 @@ var spaceMapping = {
   railcar:0
 }
 
-calculateNewSpace = function(package, currentUnitsPerPackage, unitsPerPackage, newAmount, currentAmount) {
-  var current = Math.ceil(currentAmount/currentUnitsPerPackage);
-  console.log("hi:" + current);
-  var newNumberOfPackages = Math.ceil((currentAmount + newAmount)/unitsPerPackage)
-  console.log("hi:" + newNumberOfPackages);
-  return parseFloat((newNumberOfPackages - current) * spaceMapping[package]);
+calculateSpace = function(package, unitsPerPackage, amount) {
+  if (package.toLowerCase() === 'truckload' || package.toLowerCase() === 'railcar') {
+    return 0;
+  }
+  var numberOfPackages = Math.ceil(parseFloat(amount)/parseFloat(unitsPerPackage));
+  return parseFloat(numberOfPackages * spaceMapping[package]);
 }
 
-module.exports.checkInventory = function(package, temp, currentUnitsPerPackage, unitsPerPackage, newAmount, currentAmount) {
-  return new Promise(function(resolve, reject) {
-    Inventory.getInventory().then(function(inv) {
-      let temperature = temp.toLowerCase().split(" ")[0];
-      let canUpdate = false;
+//this checks and updates the inventory
 
-      if (package.toLowerCase() === "truckload" || package.toLowerCase() === "railcar") {
-        resolve(true);
-      } else {
-        var newSpace = calculateNewSpace(package, currentUnitsPerPackage, unitsPerPackage, newAmount, currentAmount)
-        resolve(parseFloat(inv['current'][temperature]) + newSpace <= parseFloat(inv['limits'][temperature]));
+module.exports.checkInventory = function(name, package, temp, unitsPerPackage, amount) {
+  return new Promise(function(resolve, reject) {
+    Promise.all([Inventory.getInventory(), Ingredient.getIngredient(name)]).then(function(results) {
+      let inv = results[0];
+      let ing = results[1];
+      let temperature = temp.toLowerCase().split(" ")[0];
+      var newSpace = calculateSpace(package, unitsPerPackage, amount)
+      var oldSpace = 0;
+      if (ing != null) {
+        let ingTemperature = ing.temperature.toLowerCase().split(" ")[0]
+        oldSpace = calculateSpace(ing['package'], ing['unitsPerPackage'], ing['amount']);
+        inv['current'][ingTemperature] = parseFloat(inv['current'][ingTemperature]) - oldSpace;
       }
+      inv['current'][temperature] = parseFloat(inv['current'][temperature]) + newSpace;
+      var update = (parseFloat(inv['current'][temperature]) <= parseFloat(inv['limits'][temperature]));
+      resolve(update);
     }).catch(function(error) {
-      console.log(error);
+      reject(error)
     })
   })
 }
-
-module.exports.updateInventory = function(package, temp, currentUnitsPerPackage, unitsPerPackage, newAmount, currentAmount) {
+module.exports.updateInventory = function(name, package, temp, unitsPerPackage, amount) {
   return new Promise(function(resolve, reject) {
-    let temperature = temp.toLowerCase().split(" ")[0];
-    var updateObject = {};
-    var newSpace = calculateNewSpace(package, currentUnitsPerPackage, unitsPerPackage, newAmount, currentAmount)
-    updateObject['current.' + temperature] = newSpace;
-    if (package.toLowerCase() === "truckload" || package.toLowerCase() === "railcar") {
-      resolve('nada');
-    } else {
-      resolve(Inventory.updateInventory(updateObject));
-    }
+    Promise.all([Inventory.getInventory(), Ingredient.getIngredient(name)]).then(function(results) {
+      let inv = results[0];
+      let ing = results[1];
+      let temperature = temp.toLowerCase().split(" ")[0];
+      var newSpace = calculateSpace(package, unitsPerPackage, amount)
+      var oldSpace = 0;
+      if (ing != null) {
+        let ingTemperature = ing.temperature.toLowerCase().split(" ")[0]
+        oldSpace = calculateSpace(ing['package'], ing['unitsPerPackage'], ing['amount']);
+        inv['current'][ingTemperature] = parseFloat(inv['current'][ingTemperature]) - oldSpace;
+      }
+      inv['current'][temperature] = parseFloat(inv['current'][temperature]) + newSpace;
+      return inv.save();
+    }).then(function(inv) {
+      resolve(inv);
+    }).catch(function(error) {
+      reject(error)
+    })
   })
 }
 
