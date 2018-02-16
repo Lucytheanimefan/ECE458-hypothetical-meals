@@ -9,9 +9,9 @@ var nodemailer = require('nodemailer');
 var underscore = require('underscore');
 var dialog = require('dialog');
 var bcrypt = require('bcrypt');
-
 var variables = require('../helpers/variables');
-
+var path = require('path');
+var logs = require(path.resolve(__dirname, "./logs.js"));
 
 
 
@@ -48,19 +48,19 @@ router.post('/', function(req, res, next) {
       username: req.body.username,
       password: req.body.password,
       role: req.body.role,
+      netid: req.body.netid,
     }
 
     User.create(userData, function(error, user) {
       if (error) {
-        console.log("Error creating user");
+        console.log("Error creating user: ");
+        console.log(error);
         return next(error);
       } else {
+        logs.makeUserLog('Creation', user, 'user', req.session.userId);
+
         console.log('Hash the password');
-        res.status(200).render('login');
-        // encryptPassword(user, function(err) {
-        //   if (err) { return res.status(500).send({ msg: err.message }); }
-        //   res.status(200).render('login');
-        // })
+        res.redirect(req.baseUrl + '/admin');
       }
     });
 
@@ -69,6 +69,7 @@ router.post('/', function(req, res, next) {
     console.log('Authenticate!');
     User.authenticate(req.body.logemail, req.body.logpassword, function(error, user) {
       if (error || !user) {
+        console.log(error);
         let err = new Error('Wrong email or password.');
         err.status = 401;
         return next(err);
@@ -80,16 +81,36 @@ router.post('/', function(req, res, next) {
   } else if (req.body.netid) {
     console.log('netid!');
     User.authenticate_netid(req.body.netid, req.body.email, function(error, user) {
-      if ((error != null) || user == null) {
+      if (error != null) {
         console.log('Error after auth: ' + error);
         console.log('Auth user: ' + user);
         res.send({ 'success': false, 'error': error });
         //return next(error);
+      } else if (user == null) {
+
+        // Create a user if it doesn't exist
+        let user_data = { 'netid': req.body.netid, 'username': req.body.netid, 'isDukePerson': true };
+        User.create(user_data, function(error, user) {
+          if (error) {
+            console.log("Error creating user: " + error);
+            res.send({ 'success': false, 'error': error });
+          }
+
+          logs.makeUserLog('Created user', user, ['user'], req.session.userId);
+
+          // Try logging in again
+          User.user_by_netid(netid, function(err, user) {
+            if (err) {
+              console.log('Error finding user by netid: ');
+              res.send({ 'success': false, 'error': error });
+            }
+            res.send({ 'success': true, 'netid': user.netid });
+          });
+        })
+
       } else {
         req.session.userId = user._id;
         res.send({ 'success': true, 'netid': user.netid });
-        //res.render('profile', {'netid': user.netid})
-        //return res.redirect(req.baseUrl + '/profile');
       }
     });
   } else {
@@ -103,18 +124,14 @@ router.post('/', function(req, res, next) {
 
 // GET route after registering
 router.get('/profile', function(req, res, next) {
-  User.findById(req.session.userId)
-    .exec(function(error, user) {
-      if (error) {
-        return next(error);
-      } else {
-        if (user === null) {
-          return res.redirect(req.baseUrl + '/');
-        } else {
-          res.render('profile', { title: 'Profile', username: user.username, email: user.email, netid: user.netid });
-        }
-      }
-    });
+  console.log('Get profile!');
+  User.current_user(req, function(error, user) {
+    if (error) {
+      return next(error);
+    } else {
+      res.render('profile', { title: 'Profile', username: user.username, email: user.email, netid: user.netid });
+    }
+  })
 });
 
 router.get('/admin', function(req, res, next) {
@@ -132,9 +149,9 @@ router.get('/admin', function(req, res, next) {
           err.status = 403;
           return next(err);
         } else {
-          User.all(function(err, users){
+          User.all(function(err, users) {
             console.log('Get all the users');
-            if (err){
+            if (err) {
               console.log('Error getting all the users: \n' + err);
               return next(err);
             }
@@ -145,19 +162,21 @@ router.get('/admin', function(req, res, next) {
     });
 });
 
-router.post('/delete', function(req, res, next) {
-  User.findOneAndRemove({ email: req.body.email }, function(error, result) {
+router.post('/delete/:username', function(req, res, next) {
+  User.findOneAndRemove({ username: req.params.username }, function(error, result) {
     if (error) {
       var err = new Error('Couldn\'t delete that user.');
       err.status = 400;
       return next(err);
     } else {
+      logs.makeUserLog('Deleted user', result, ['user'], req.session.userId);
       //alert user the ingredient has been deleted.
-      return res.redirect(req.baseUrl);
+      return res.redirect(req.baseUrl + '/admin');
     }
   });
 });
 
+// Any user can update their own account
 router.post('/update', async function(req, res, next) {
   var userdata = null;
   if (req.body.netid !== null) {
@@ -171,26 +190,51 @@ router.post('/update', async function(req, res, next) {
 
   User.update(userdata, { 'username': req.body.username, 'password': req.body.password, 'email': req.body.email }, function(err, user) {
     if (err) {
+      //logs.makeUserLog('Update error', user, 'user', req.session.userId);
       return next(err);
     }
+    logs.makeUserLog('Updated user', user, ['user'], req.session.userId);
     return res.redirect(req.baseUrl + '/profile');
   })
-
 });
 
-/**
- * This route is primarily used on the client side to determine whether or not you're an admin
- * @param  {[type]} req   [description]
- * @param  {[type]} res   [description]
- * @param  {[type]} next) The callback that contains the dictionary information of whether you are an admin
- * @return {null}
- */
-router.get('/isAdmin', function(req, res, next) {
+// Admin can update the user through username
+router.post('/update/:username', async function(req, res, next) {
+  console.log('Update user by username ' + req.params.username);
+  console.log('Update user body request: ')
+  //console.log(req.body);
+  let userdata = { 'username': req.params.username }
+
+  User.update(userdata, { 'username': req.body.username, 'password': req.body.password, 'email': req.body.email, 'role': req.body.role }, function(err, user) {
+    if (err) {
+      return next(err);
+    }
+    logs.makeUserLog('Updated user', user, ['user'], req.session.userId);
+    return res.redirect(req.baseUrl + '/admin');
+  })
+});
+
+router.get('/user/:username', function(req, res, next) {
+  var user = User.findOne({ username: req.params.username })
+    .exec(function(error, user) {
+      if (error) {
+        next(error);
+      }
+      console.log('Update the user: ');
+      console.log(user);
+      res.render('user', { title: 'Update User', user: user });
+    });
+})
+
+
+router.get('/role', function(req, res, next) {
   User.findById(req.session.userId)
     .exec(function(error, user) {
-      var isAdmin = (!error && user !== null && user.role.toUpperCase() === "ADMIN");
-      console.log('isAdmin: ' + isAdmin);
-      res.send({ 'isAdmin': isAdmin });
+      if (error || user == null) {
+        res.send({ 'role': 'none' });
+      } else {
+        res.send({ 'role': user.role });
+      }
     });
 });
 
@@ -245,7 +289,7 @@ router.get('/cart/:page?', function(req, res, next) {
 
         numbered_cart.sort();
 
-        var start = perPage*(page-1);
+        var start = perPage * (page - 1);
 
         for (i = start; i < start + perPage; i++) {
           var ingredient = numbered_cart[i];
@@ -262,6 +306,8 @@ router.get('/cart/:page?', function(req, res, next) {
 });
 
 router.post('/add_to_cart', function(req, res, next) {
+  req.params.
+
   User.count({ _id: req.session.userId }, function(err, count) {
     if (err) return next(err);
 
@@ -377,13 +423,13 @@ router.post('/checkout_cart', function(req, res, next) {
           var amount;
           var inventories;
           var ingQuery = Ingredient.findOne({ name: ingredient });
-          var invQuery = Inventory.findOne({ type:"master" });
-          invQuery.then(function(invs){
+          var invQuery = Inventory.findOne({ type: "master" });
+          invQuery.then(function(invs) {
             inventories = invs;
             return ingQuery;
-          }).then(function(ings,invs){
+          }).then(function(ings, invs) {
             let temp = ings['temperature'].split(" ")[0];
-            inventories['current'][temp]-=parseInt(quantity);
+            inventories['current'][temp] -= parseInt(quantity);
           });
 
           await Ingredient.find({ name: ingredient }, function(err, instance) {
@@ -418,7 +464,7 @@ router.post('/checkout_cart', function(req, res, next) {
         }
 
         if (inventories != undefined) {
-          await inventories.save(function(err){
+          await inventories.save(function(err) {
             if (err) return next(err);
           });
         }
@@ -462,7 +508,7 @@ router.get('/report/:page?', function(req, res, next) {
 
         numbered_report.sort();
 
-        var start = perPage*(page-1);
+        var start = perPage * (page - 1);
         for (i = start; i < start + perPage; i++) {
           var ingredient = numbered_report[i];
           if (ingredient == undefined) {
@@ -500,7 +546,7 @@ router.get('/production_report/:page?', function(req, res, next) {
 
         numbered_report.sort();
 
-        var start = perPage*(page-1);
+        var start = perPage * (page - 1);
         for (i = start; i < start + perPage; i++) {
           var ingredient = numbered_report[i];
           if (ingredient == undefined) {

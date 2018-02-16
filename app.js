@@ -15,6 +15,7 @@ var vendors = require('./routes/vendors');
 var files = require('./routes/files');
 var inventory = require('./routes/inventory_routes');
 var formulas = require('./routes/formulas');
+var logs = require('./routes/logs');
 var MongoStore = require('connect-mongo')(session);
 
 var oauth = require('./routes/duke_oauth');
@@ -78,6 +79,7 @@ app.use('/files', files);
 app.use('/inventory',users.requireRole("admin"),inventory);
 
 app.use('/duke_oauth', oauth);
+app.use('/logs', logs);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
