@@ -44,7 +44,9 @@ block content
                 th(onclick='sortTable(0, \'ingredient\')') Ingredient
                 th(onclick='sortTable(1, \'ingredient\')') Package
                 th(onclick='sortTable(2, \'ingredient\')') Temperature
-                th(onclick='sortTable(3, \'ingredient\')') Units
+                th(onclick='sortTable(3, \'ingredient\')') Native Unit
+                th(onclick='sortTable(4, \'ingredient\')') Units per Package
+                th(onclick='sortTable(5, \'ingredient\')') Units in Storage
               tbody
               each ing in ingredients
                 tr
@@ -52,6 +54,8 @@ block content
                     a(href='/ingredients/' + ing.name)= ing.name
                   td= ing.package
                   td= ing.temperature
+                  td= ing.nativeUnit
+                  td= ing.unitsPerPackage
                   td= ing.amount
             div.previous
               form(action='/ingredients/search_results/' + (parseInt(page)-1).toString() + '/' + searchQuery, method='get')
@@ -75,8 +79,12 @@ block content
             option(disabled='' selected='' value='') Select an option
             each temp in temps
               option(value=temp)= temp
-          label.control-label Amount in Storage
-          input.form-control(type='number', step="any", name='amount', placeholder = 'Amount in storage', required='')
+          label.control-label Native Unit
+          input.form-control(type='text', name='nativeUnit', placeholder = 'Native Unit', required='')
+          label.control-label Units per Package
+          input.form-control(type='number', step='any', name='unitsPerPackage', placeholder = 'Units Per Package', required='')
+          label.control-label Units in Storage
+          input.form-control(type='number', step="any", name='amount', placeholder = 'Units in storage', required='')
           button.btn.btn-primary.pull-right(type='submit', value='add ingredient') Create ingredient
 
 //- block scripts

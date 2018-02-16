@@ -77,6 +77,7 @@ router.post('/:name/delete', function(req, res, next) {
       ing['name'],
       ing['package'],
       ing['temperature'],
+      parseFloat(ing['unitsPerPackage']),
       parseFloat(ing['amount'])
     );
   }).then(function() {
@@ -95,6 +96,8 @@ router.post('/:name/update', function(req, res, next) {
     req.body.name,
     req.body.package,
     req.body.temperature,
+    req.body.nativeUnit,
+    parseFloat(req.body.unitsPerPackage),
     parseFloat(req.body.amount)
   );
   updatePromise.then(function() {
@@ -112,6 +115,8 @@ router.post('/new', function(req, res, next) {
     ingName,
     req.body.package,
     req.body.temperature,
+    req.body.nativeUnit,
+    parseFloat(req.body.unitsPerPackage),
     parseFloat(req.body.amount)
   );
   promise.then(function() {
