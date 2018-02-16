@@ -146,17 +146,29 @@ function loadLoggedInContent() {
 }
 
 function loadRelevantContent() {
-  getUserRole(function(role) {
-    let my_role = role.toLowerCase();
-    console.log('Role: ' + my_role);
-    if (my_role === 'admin') {
-      $('.manager').removeClass('hide');
-      $('.adminOnly').removeClass('hide');
-    } else if (my_role === 'manager') {
-      $('.manager').removeClass('hide');
-    }
-  })
+  let role = sessionStorage.getItem("role");
+  if (role != null) {
+    console.log('Load cached content!');
+    loadContent(role);
+  } else {
+    getUserRole(function(role) {
+      let my_role = role.toLowerCase();
+      //console.log('Role: ' + my_role);
 
+      // Cache the role
+      sessionStorage.setItem("role", my_role);
+      loadContent(my_role)
+    })
+  }
+}
+
+function loadContent(my_role) {
+  if (my_role === 'admin') {
+    $('.manager').removeClass('hide');
+    $('.adminOnly').removeClass('hide');
+  } else if (my_role === 'manager') {
+    $('.manager').removeClass('hide');
+  }
 }
 
 function loadAdminContent() {

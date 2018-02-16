@@ -67,24 +67,31 @@ block content
       .card-content.tab-pane.fade#create_form.adminOnly.hide
         h1= 'Create new ingredient'
         form(action='/ingredients/new', method='post')
-          label.control-label Ingredient Name
-          input.form-control(type='text', name='name', placeholder = 'Ingredient name', required='')
-          label.control-label Package Type
-          select.form-control(name='package', placeholder = '', required='')
-            option(disabled='' selected='' value='') Select an option
-            each package in packages
-              option(value=package)= package
-          label.control-label Storage Temperature
-          select.form-control(name='temperature', placeholder = '', required='')
-            option(disabled='' selected='' value='') Select an option
-            each temp in temps
-              option(value=temp)= temp
-          label.control-label Native Unit
-          input.form-control(type='text', name='nativeUnit', placeholder = 'Native Unit', required='')
-          label.control-label Units per Package
-          input.form-control(type='number', step='any', name='unitsPerPackage', placeholder = 'Units Per Package', required='')
-          label.control-label Units in Storage
-          input.form-control(type='number', step="any", name='amount', placeholder = 'Units in storage', required='')
+          .form-group
+            label.control-label Ingredient Name
+            input.form-control(type='text', name='name', required='')
+          .form-group
+            label.control-label Package Type
+            select.form-control(name='package', placeholder = '', required='')
+              option(disabled='' selected='' value='') Select an option
+              each package in packages
+                option(value=package)= package
+          .form-group
+            label.control-label Storage Temperature
+            select.form-control(name='temperature', placeholder = '', required='')
+              option(disabled='' selected='' value='') Select an option
+              each temp in temps
+                option(value=temp)= temp
+          .form-group
+            label.control-label Native Unit
+            input.form-control(type='text', name='nativeUnit', placeholder = '', required='')
+          .form-group
+            label.control-label Units per Package
+            input.form-control(type='number', step='any', name='unitsPerPackage', required='')
+          .form-group
+            label.control-label Units in Storage
+            input.form-control(type='number', step="any", name='amount', placeholder = 'Units in storage', required='')
+
           button.btn.btn-primary.pull-right(type='submit', value='add ingredient') Create ingredient
 
 //- block scripts

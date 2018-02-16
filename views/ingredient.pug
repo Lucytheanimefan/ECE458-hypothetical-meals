@@ -56,36 +56,49 @@ block content
       .adminOnly.hide.card-content.tab-pane.fade#update-form
         h1= 'Update ingredient'
         form(action='/ingredients/' + ingredient.name + '/update', method='post')
-          label.control-label Ingredient Name
-          input.form-control(type='text', name='name', value = ingredient.name, required='')
-          label.control-label Package Type
-          select.form-control(name='package', placeholder = '', required='')
-            each package in packages
-              if package == ingredient.package
-                option(selected='' value=package)= package
-              else
-                option(value=package)= package
-          label.control-label Storage Temperature
-          select.form-control(name='temperature', placeholder = '', required='')
-            each temp in temps
-              if temp == ingredient.temperature
-                option(selected='' value=temp)= temp
-              else
-                option(value=temp)= temp
-          label.control-label Native Unit
-          input.form-control(type='text', name='nativeUnit', value = ingredient.nativeUnit, required='')
-          label.control-label Units per Package
-          input.form-control(type='number', step='any', name='unitsPerPackage', value = ingredient.unitsPerPackage, required='')
-          label.control-label Units in Storage
-          input.form-control(type='number', step="any", name='amount', value = ingredient.amount, required='')
+
+          .form-group
+            label.control-label Ingredient Name
+            input.form-control(type='text', name='name', value = ingredient.name, required='')
+          .form-group
+            label.control-label Package Type
+            select.form-control(name='package', placeholder = '', required='')
+              each package in packages
+                if package == ingredient.package
+                  option(selected='' value=package)= package
+                else
+                  option(value=package)= package
+          .form-group
+            label.control-label Storage Temperature
+            select.form-control(name='temperature', placeholder = '', required='')
+              each temp in temps
+                if temp == ingredient.temperature
+                  option(selected='' value=temp)= temp
+                else
+                  option(value=temp)= temp
+          .form-group
+            label.control-label Amount in storage (Pounds)
+            input.form-control(type='number', step="any", name='amount', value = ingredient.amount, required='')
+
+          .form-group
+            label.control-label Native Unit
+            input.form-control(type='text', name='nativeUnit', value = ingredient.nativeUnit, required='')
+          .form-group
+            label.control-label Units per Package
+            input.form-control(type='number', step='any', name='unitsPerPackage', value = ingredient.unitsPerPackage, required='')
+          .form-group
+            label.control-label Units in Storage
+            input.form-control(type='number', step="any", name='amount', value = ingredient.amount, required='')
+
           button.btn.btn-primary.pull-right(type='submit') Update ingredient
 
         form(action='/ingredients/' + ingredient.name + '/add-vendor', method='post')
-          label.control-label Vendor
-          select.form-control(name='vendor', placeholder = '', required='')
-            option(disabled='' selected='' value='') Select an option
-            each vendor in existingVendors
-              option(value=vendor._id)= vendor.code
+          .form-group
+            label.control-label Vendor
+            select.form-control(name='vendor', placeholder = '', required='')
+              option(disabled='' selected='' value='') Select an option
+              each vendor in existingVendors
+                option(value=vendor._id)= vendor.code
           button.btn.btn-primary.pull-right(type='submit') Add vendor
 
       div.card#vendor-info
