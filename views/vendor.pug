@@ -81,7 +81,7 @@ block content
           select.form-control(name='ingredient', placeholder = '', required='')
             option(disabled="" selected="" value="") Select an option
             each ing in catalogue
-              option(value=temp)= ing['ingredient']
+              option(value=ing.id)= ing['ingredient']
         .form-group
           label.control-label Cost (per unit)
           input.form-control(type='text', name='cost',  required='')
@@ -96,7 +96,7 @@ block content
           select.form-control(name='ingredient', placeholder = '', required='')
             option(disabled="" selected="" value="") Select an option
             each ing in catalogue
-              option(value=temp)= ing['ingredient']
+              option(value=ing.id)= ing['ingredient']
         .form-group
           label.control-label Quantity
           input.form-control(type='text', name='quantity', required='')
