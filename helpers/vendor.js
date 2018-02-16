@@ -32,9 +32,11 @@ module.exports.makeOrder = function(ingredientId,vendorId,numUnits){
         let temp = ing['temperature'];
         let name = ing['name'];
         let newName = ing['name'];
+        let nativeUnit = ing['nativeUnit'];
+        let unitsPerPackage = ing['unitsPerPackage'];
         //TODO make amount on package volume
         let amount = numUnits+parseFloat(ing['amount']);
-        var result =  IngredientHelper.updateIngredient(name, newName, package, temp, amount);
+        return IngredientHelper.updateIngredient(name, newName, package, temp, nativeUnit, unitsPerPackage, amount);
       }
     }).then(function(result){
       resolve(result);
