@@ -2,21 +2,16 @@ var express = require('express');
 var router = express.Router();
 var User = require('../models/user');
 var Ingredient = require('../models/ingredient');
-var Inventory = require('../models/inventory');
+var Inventory = require('../models/inventory').model;
 var Token = require('../models/token');
 var crypto = require('crypto');
 var nodemailer = require('nodemailer');
 var underscore = require('underscore');
 var dialog = require('dialog');
 var bcrypt = require('bcrypt');
-
-// var EMAIL = (process.env.EMAIL);
-// var PASSWORD = (process.env.PASSWORD);
-
-
-var EMAIL = (process.env.EMAIL) ? process.env.EMAIL : require('../env.json')['email'];
-var PASSWORD = (process.env.PASSWORD) ? process.env.PASSWORD : require('../env.json')['password'];
-
+var variables = require('../helpers/variables');
+var path = require('path');
+var logs = require(path.resolve(__dirname, "./logs.js"));
 
 
 
@@ -41,6 +36,8 @@ router.get('/', function(req, res, next) {
 router.post('/', function(req, res, next) {
   // Create a user
 
+  console.log('Request body: ');
+  console.log(req.body);
   if (req.body.email &&
     req.body.username &&
     req.body.password &&
@@ -51,25 +48,19 @@ router.post('/', function(req, res, next) {
       username: req.body.username,
       password: req.body.password,
       role: req.body.role,
+      netid: req.body.netid,
     }
 
     User.create(userData, function(error, user) {
       if (error) {
-        console.log("Error creating user");
+        console.log("Error creating user: ");
+        console.log(error);
         return next(error);
       } else {
+        logs.makeUserLog('Creation', user, 'user', req.session.userId);
+
         console.log('Hash the password');
-
-        encryptPassword(user, function(err) {
-          if (err) { return res.status(500).send({ msg: err.message }); }
-
-          console.log("Create token");
-          // Create a verification token for this user
-
-          sendEmailVerification(user, req, res, function() {
-            res.status(200).render('index', { title: 'A verification email has been sent to ' + user.email + '.' });
-          });
-        })
+        res.redirect(req.baseUrl + '/admin');
       }
     });
 
@@ -78,15 +69,48 @@ router.post('/', function(req, res, next) {
     console.log('Authenticate!');
     User.authenticate(req.body.logemail, req.body.logpassword, function(error, user) {
       if (error || !user) {
+        console.log(error);
         let err = new Error('Wrong email or password.');
         err.status = 401;
         return next(err);
-      } else if (!user.isVerified) {
-        return res.status(401).render('index', { title: 'Your account has not been verified.' });
       } else {
         req.session.userId = user._id;
-        console.log("Successfully set user ID, redirecting to profile")
         return res.redirect(req.baseUrl + '/profile');
+      }
+    });
+  } else if (req.body.netid) {
+    console.log('netid!');
+    User.authenticate_netid(req.body.netid, req.body.email, function(error, user) {
+      if (error != null) {
+        console.log('Error after auth: ' + error);
+        console.log('Auth user: ' + user);
+        res.send({ 'success': false, 'error': error });
+        //return next(error);
+      } else if (user == null) {
+
+        // Create a user if it doesn't exist
+        let user_data = { 'netid': req.body.netid, 'username': req.body.netid, 'isDukePerson': true };
+        User.create(user_data, function(error, user) {
+          if (error) {
+            console.log("Error creating user: " + error);
+            res.send({ 'success': false, 'error': error });
+          }
+
+          logs.makeUserLog('Created user', user, ['user'], req.session.userId);
+
+          // Try logging in again
+          User.user_by_netid(netid, function(err, user) {
+            if (err) {
+              console.log('Error finding user by netid: ');
+              res.send({ 'success': false, 'error': error });
+            }
+            res.send({ 'success': true, 'netid': user.netid });
+          });
+        })
+
+      } else {
+        req.session.userId = user._id;
+        res.send({ 'success': true, 'netid': user.netid });
       }
     });
   } else {
@@ -96,139 +120,18 @@ router.post('/', function(req, res, next) {
   }
 });
 
-encryptPassword = function(user, callback) {
-  bcrypt.hash(user.password, 10, function(err, hash) {
-    if (err) {
-      return next(err);
-    }
 
-    console.log('Successful hash');
-    user.password = hash;
-    user.save(function(err) {
-      callback(err);
-    });
-  });
-}
-
-sendEmailVerification = function(user, req, res, callback = null) {
-  var token = new Token({ _userId: user._id, token: crypto.randomBytes(16).toString('hex') });
-
-  // Save the verification token
-
-  token.save(function(err) {
-    if (err) {
-      console.log("Error saving token");
-      return res.status(500).send({ msg: err.message });
-    }
-
-    console.log("Send the email for account confirmation");
-    // Send the email
-    var transporter = nodemailer.createTransport({
-      host: 'smtp.gmail.com',
-      port: 465,
-      auth: {
-        user: EMAIL,
-        pass: PASSWORD
-      }
-    });
-    var mailOptions = {
-      from: 'spothorse9.lucy@gmail.com',
-      to: user.email,
-      subject: 'Account Verification Token',
-      text: 'Hello,\n\n' + 'Please verify your account by clicking the link: \nhttp:\/\/' +
-        req.headers.host + '\/users\/confirmation?id=' + token.token + '.\n'
-    };
-
-    transporter.sendMail(mailOptions, function(err) {
-      if (err) {
-        console.log("Error sending email");
-        return res.status(500).send({ msg: err.message });
-      }
-      res.status(200).render('index', { title: 'A verification email has been sent to ' + user.email + '.' });
-    });
-    if (callback !== null) {
-      callback();
-    }
-  });
-}
-
-router.get('/confirmation', function(req, res, next) {
-
-  console.log("****Confirmation GET went through!!!");
-
-  // Find a matching token
-  Token.findOne({ token: req.query.id }, function(err, token) {
-    if (!token) return res.status(400).send({ type: 'not-verified', msg: 'We were unable to find a valid token. Your token my have expired.' });
-
-    // If we found a token, find a matching user
-    User.findOne({ _id: token._userId }, function(err, user) {
-      if (!user) return res.status(400).send({ msg: 'We were unable to find a user for this token.' });
-      if (user.isVerified) return res.status(400).render('index', { title: 'This user has already been verified.' });
-
-      // Verify and save the user
-      user.isVerified = true;
-      user.save(function(err) {
-        if (err) { return res.status(500).send({ msg: err.message }); }
-        res.status(200).render('index', { title: 'The account has been verified. Please log in.' });
-      });
-    });
-  });
-});
-
-// TODO: hook up UI to resend token
-router.post('/resendToken', function(req, res, next) {
-  //req.assert('email', 'Email is not valid').isEmail();
-  //req.assert('email', 'Email cannot be blank').notEmpty();
-  //req.sanitize('email').normalizeEmail({ remove_dots: false });
-  //if (errors) return res.status(400).send(errors);
-
-  User.findOne({ email: req.body.email }, function(err, user) {
-    if (!user) return res.status(400).send({ msg: 'We were unable to find a user with that email.' });
-    if (user.isVerified) return res.status(400).render('index', { title: 'This user has already been verified.' });
-    // Create a verification token, save it, and send email
-    var token = new Token({ _userId: user._id, token: crypto.randomBytes(16).toString('hex') });
-
-    // Save the token
-    token.save(function(err) {
-      if (err) { return res.status(500).send({ msg: err.message }); }
-
-      // Send the email
-      var transporter = nodemailer.createTransport({
-        host: 'smtp.gmail.com',
-        port: 465,
-        auth: {
-          user: EMAIL,
-          pass: PASSWORD
-        }
-      });
-      var mailOptions = { from: EMAIL, to: user.email, subject: 'Account Verification Token', text: 'Hello,\n\n' + 'Please verify your account by clicking the link: \nhttp:\/\/' + req.headers.host + '/users/confirmation?id=' + token.token + '.\n' };
-
-      transporter.sendMail(mailOptions, function(err) {
-        if (err) {
-          return res.status(500).send({ msg: err.message });
-        }
-        res.status(200).render('index', { title: 'A verification email has been sent to ' + user.email + '.' });
-
-      });
-    });
-
-  });
-});
 
 // GET route after registering
 router.get('/profile', function(req, res, next) {
-  User.findById(req.session.userId)
-    .exec(function(error, user) {
-      if (error) {
-        return next(error);
-      } else {
-        if (user === null) {
-          return res.redirect(req.baseUrl + '/');
-        } else {
-          res.render('profile', { title: 'Profile', username: user.username, email: user.email });
-        }
-      }
-    });
+  console.log('Get profile!');
+  User.current_user(req, function(error, user) {
+    if (error) {
+      return next(error);
+    } else {
+      res.render('profile', { title: 'Profile', username: user.username, email: user.email, netid: user.netid });
+    }
+  })
 });
 
 router.get('/admin', function(req, res, next) {
@@ -238,82 +141,100 @@ router.get('/admin', function(req, res, next) {
         return next(error);
       } else {
         if (user === null) {
-          var err = new Error('Not authorized. Please ask your admin to gain administrator privileges.');
+          let err = new Error('Not authorized. Please ask your admin to gain administrator privileges.');
           err.status = 400;
           return next(err);
         } else if (user.role.toUpperCase() !== "ADMIN") {
-          var err = new Error('Not an admin! Go back!');
+          let err = new Error('Not an admin! Go back!');
           err.status = 403;
           return next(err);
         } else {
-          // TODO: will probably update this later and render a different view
-          res.render('users', { title: 'Users', name: user.username, mail: user.email });
+          User.all(function(err, users) {
+            console.log('Get all the users');
+            if (err) {
+              console.log('Error getting all the users: \n' + err);
+              return next(err);
+            }
+            res.render('users', { title: 'Users', name: user.username, mail: user.email, users: users });
+          })
         }
       }
     });
 });
 
-router.post('/delete', function(req, res, next) {
-  User.findOneAndRemove({ email: req.body.email }, function(error, result) {
+router.post('/delete/:username', function(req, res, next) {
+  User.findOneAndRemove({ username: req.params.username }, function(error, result) {
     if (error) {
       var err = new Error('Couldn\'t delete that user.');
       err.status = 400;
       return next(err);
     } else {
+      logs.makeUserLog('Deleted user', result, ['user'], req.session.userId);
       //alert user the ingredient has been deleted.
-      return res.redirect(req.baseUrl);
+      return res.redirect(req.baseUrl + '/admin');
     }
   });
 });
 
+// Any user can update their own account
 router.post('/update', async function(req, res, next) {
-  User.findOne({ email: req.body.email }, function(err, user) {
+  var userdata = null;
+  if (req.body.netid !== null) {
+    userdata = { 'netid': req.body.netid };
+  } else if (req.body.email !== null && req.body.email.length > 0) {
+    userdata = { 'email': req.body.email };
+  }
+  if (userdata === null) {
+    return
+  }
+
+  User.update(userdata, { 'username': req.body.username, 'password': req.body.password, 'email': req.body.email }, function(err, user) {
     if (err) {
-      var error = new Error('Couldn\'t find that user.');
-      error.status = 400;
-      return next(error);
+      //logs.makeUserLog('Update error', user, 'user', req.session.userId);
+      return next(err);
     }
-    user.username = req.body.username;
-
-    let password = req.body.password;
-    if (password !== null && password !== undefined) {
-      if (password.length > 0) {
-        user.password = password;
-      }
-    }
-    user.password = req.body.password;
-    encryptPassword(user, function(err) {
-      if (err) {
-        var error = new Error('There were errors updating your password. Try again later.');
-        error.status = 400;
-        return next(error);
-      }
-      user.save(function(err) {
-        if (err) {
-          var error = new Error('Couldn\'t update that user.');
-          error.status = 400;
-          return next(error);
-        }
-        return res.redirect(req.baseUrl + '/profile');
-      });
-    });
-  });
-
+    logs.makeUserLog('Updated user', user, ['user'], req.session.userId);
+    return res.redirect(req.baseUrl + '/profile');
+  })
 });
 
-/**
- * This route is primarily used on the client side to determine whether or not you're an admin
- * @param  {[type]} req   [description]
- * @param  {[type]} res   [description]
- * @param  {[type]} next) The callback that contains the dictionary information of whether you are an admin
- * @return {null}
- */
-router.get('/isAdmin', function(req, res, next) {
+// Admin can update the user through username
+router.post('/update/:username', async function(req, res, next) {
+  console.log('Update user by username ' + req.params.username);
+  console.log('Update user body request: ')
+  //console.log(req.body);
+  let userdata = { 'username': req.params.username }
+
+  User.update(userdata, { 'username': req.body.username, 'password': req.body.password, 'email': req.body.email, 'role': req.body.role }, function(err, user) {
+    if (err) {
+      return next(err);
+    }
+    logs.makeUserLog('Updated user', user, ['user'], req.session.userId);
+    return res.redirect(req.baseUrl + '/admin');
+  })
+});
+
+router.get('/user/:username', function(req, res, next) {
+  var user = User.findOne({ username: req.params.username })
+    .exec(function(error, user) {
+      if (error) {
+        next(error);
+      }
+      console.log('Update the user: ');
+      console.log(user);
+      res.render('user', { title: 'Update User', user: user });
+    });
+})
+
+
+router.get('/role', function(req, res, next) {
   User.findById(req.session.userId)
     .exec(function(error, user) {
-      var isAdmin = (!error && user !== null && user.role.toUpperCase() === "ADMIN");
-      console.log('isAdmin: ' + isAdmin);
-      res.send({ 'isAdmin': isAdmin });
+      if (error || user == null) {
+        res.send({ 'role': 'none' });
+      } else {
+        res.send({ 'role': user.role });
+      }
     });
 });
 
@@ -340,7 +261,7 @@ router.get('/logout', function(req, res, next) {
 
 // GET route after registering
 router.get('/cart/:page?', function(req, res, next) {
-  var perPage = 5;
+  var perPage = 10;
   var page = req.params.page || 1;
   page = (page < 1) ? 1 : page;
 
@@ -366,7 +287,10 @@ router.get('/cart/:page?', function(req, res, next) {
           numbered_cart.push(ingredient);
         }
 
-        var start = perPage*(page-1);
+        numbered_cart.sort();
+
+        var start = perPage * (page - 1);
+
         for (i = start; i < start + perPage; i++) {
           var ingredient = numbered_cart[i];
           if (ingredient == undefined) {
@@ -375,17 +299,6 @@ router.get('/cart/:page?', function(req, res, next) {
           ingredients.push({ "ingredient": ingredient, "quantity": cart[ingredient] });
         }
 
-        /*await User.findByIdAndUpdate({
-          _id: req.session.userId
-        }, {
-          $set: {
-            cart: cart
-          }
-        }, function(err, cart_instance) {
-          if (err) return next(err);
-        });*/
-
-        ingredients = underscore.sortBy(ingredients, "ingredient");
         return res.render('cart', { ingredients: ingredients, page: page });
       });
     }
@@ -393,6 +306,8 @@ router.get('/cart/:page?', function(req, res, next) {
 });
 
 router.post('/add_to_cart', function(req, res, next) {
+  req.params.
+
   User.count({ _id: req.session.userId }, function(err, count) {
     if (err) return next(err);
 
@@ -406,7 +321,7 @@ router.post('/add_to_cart', function(req, res, next) {
         var cart;
 
         cart = user.cart;
-        if (cart === null | cart === undefined | Array.isArray(cart) & cart.length == 0) {
+        if (cart === null | cart === undefined | cart == []) {
           cart = [];
           cart.push({});
         }
@@ -477,15 +392,12 @@ router.post('/remove_ingredient', function(req, res, next) {
 router.post('/checkout_cart', function(req, res, next) {
   User.count({ _id: req.session.userId }, async function(err, count) {
     if (err) return next(err);
+
     var invdb;
-    await Inventory.findOne({ type: "master" }, async function(err, inv) {
+    await Inventory.findOne({ type: "master" }, function(err, inv) {
       if (err) { return next(err); }
       invdb = inv;
     });
-
-    var ingredient = req.body.ingredient;
-    var quantity = Number(req.body.quantity);
-    var amount = Number(req.body.amount);
 
     if (count > 0) {
       await User.findOne({ "_id": req.session.userId }, async function(err, user) {
@@ -493,35 +405,38 @@ router.post('/checkout_cart', function(req, res, next) {
 
         var cart = user.cart[0];
         var production_report;
+
+        await User.findOne({ "_id": req.session.userId }, function(err, user) {
+          if (err) return next(err);
+
+          production_report = user.production_report;
+          if (production_report === null | production_report === undefined | production_report == []) {
+            production_report = [];
+            production_report.push({});
+          }
+          production_report = production_report[0];
+        });
+
         for (ingredient in cart) {
           var ingObj;
-          /*await Ingredient.findOne({ name: ingredient }, function(err, instance) {
-            if (err) { return next(err); }
-            ingObj = instance;
-          })*/
           var quantity = cart[ingredient];
           var amount;
-          //console.log("ingObj: " + ingObj);
-          //let degrees = ingObj.temperature.split(" ")[0];
+          var inventories;
+          var ingQuery = Ingredient.findOne({ name: ingredient });
+          var invQuery = Inventory.findOne({ type: "master" });
+          invQuery.then(function(invs) {
+            inventories = invs;
+            return ingQuery;
+          }).then(function(ings, invs) {
+            let temp = ings['temperature'].split(" ")[0];
+            inventories['current'][temp] -= parseInt(quantity);
+          });
 
           await Ingredient.find({ name: ingredient }, function(err, instance) {
             if (err) return next(err);
-            console.log("ingredient " + ingredient);
-            console.log("instance " + instance[0]);
             amount = Number(instance[0].amount);
           });
-          console.log(amount);
           amount = amount - quantity;
-          /*console.log(invdb.current[degrees]);
-          invdb.current[degrees] -= amount;
-          invdb.save(function(err) {
-            if (err) {
-              console.log(err);
-              var error = new Error('Couldn\'t update the inventory.');
-              error.status = 400;
-              return next(error);
-            }
-          });*/
           await Ingredient.findOneAndUpdate({
             name: ingredient
           }, {
@@ -536,22 +451,22 @@ router.post('/checkout_cart', function(req, res, next) {
             if (err) return next(err);
 
             let report = user.report;
-            if (report === null | report === undefined | Array.isArray(report) & report.length == 0) {
+            if (report === null | report === undefined | report == []) {
               report = [];
               report.push({});
             }
             report = report[0];
 
-            production_report = user.production_report;
-            if (production_report === null | production_report === undefined | Array.isArray(production_report) & production_report.length == 0) {
-              production_report = [];
-              production_report.push({});
-            }
-            production_report = production_report[0];
-            production_report[ingredient] = (ingredient in report) ? report[ingredient] : 0;
+            var new_cost = (ingredient in report) ? report[ingredient] : 0;
+            production_report[ingredient] = new_cost;
           });
-
           delete cart[ingredient];
+        }
+
+        if (inventories != undefined) {
+          await inventories.save(function(err) {
+            if (err) return next(err);
+          });
         }
 
         await User.findByIdAndUpdate({
@@ -563,14 +478,19 @@ router.post('/checkout_cart', function(req, res, next) {
           }
         }, function(err, cart_instance) {
           if (err) return next(err);
-          return res.redirect(req.baseUrl + '/cart');
         });
+
+        return res.redirect(req.baseUrl + '/report');
       });
     }
   });
 });
 
-router.get('/report', function(req, res, next) {
+router.get('/report/:page?', function(req, res, next) {
+  var perPage = 10;
+  var page = req.params.page || 1;
+  page = (page < 1) ? 1 : page;
+
   User.count({ _id: req.session.userId }, function(err, count) {
     if (err) return next(err);
 
@@ -581,18 +501,34 @@ router.get('/report', function(req, res, next) {
         let report = user.report[0];
         var ingredients = [];
 
+        var numbered_report = [];
         for (ingredient in report) {
+          numbered_report.push(ingredient);
+        }
+
+        numbered_report.sort();
+
+        var start = perPage * (page - 1);
+        for (i = start; i < start + perPage; i++) {
+          var ingredient = numbered_report[i];
+          if (ingredient == undefined) {
+            break;
+          }
           ingredients.push({ "ingredient": ingredient, "cost": report[ingredient] });
         }
 
-        ingredients = underscore.sortBy(ingredients, "ingredient");
-        return res.render('report', { ingredients });
+        //ingredients = underscore.sortBy(ingredients, "ingredient");
+        return res.render('report', { ingredients: ingredients, page: page });
       });
     }
   });
 });
 
-router.get('/production_report', function(req, res, next) {
+router.get('/production_report/:page?', function(req, res, next) {
+  var perPage = 10;
+  var page = req.params.page || 1;
+  page = (page < 1) ? 1 : page;
+
   User.count({ _id: req.session.userId }, function(err, count) {
     if (err) return next(err);
 
@@ -603,12 +539,24 @@ router.get('/production_report', function(req, res, next) {
         let report = user.production_report[0];
         var ingredients = [];
 
+        var numbered_report = [];
         for (ingredient in report) {
+          numbered_report.push(ingredient);
+        }
+
+        numbered_report.sort();
+
+        var start = perPage * (page - 1);
+        for (i = start; i < start + perPage; i++) {
+          var ingredient = numbered_report[i];
+          if (ingredient == undefined) {
+            break;
+          }
           ingredients.push({ "ingredient": ingredient, "cost": report[ingredient] });
         }
 
-        ingredients = underscore.sortBy(ingredients, "ingredient");
-        return res.render('report', { ingredients });
+        //ingredients = underscore.sortBy(ingredients, "ingredient");
+        return res.render('production_report', { ingredients: ingredients, page: page });
       });
     }
   });

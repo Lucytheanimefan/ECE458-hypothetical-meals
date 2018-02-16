@@ -1,0 +1,13 @@
+extends layout
+block link
+  -var selected = 'Logs';
+
+block content
+  .row
+    h1 #{title}
+    h3 #{time}
+    h3 Initiating user: #{user}
+    h3 Entities: #{entities}
+    p Description: #{description}
+    
+      

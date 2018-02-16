@@ -4,14 +4,13 @@ block link
   -var selected = 'Vendors';
 
 block content
-  form(action='/vendors/' + vendor.code + '/delete', method='post')
+  form.adminOnly.hide(action='/vendors/' + vendor.code + '/delete', method='post')
     button.btn.btn-primary.pull-right(type='submit', value = 'Delete vendor') Delete
   h1= vendor.name
   h4= 'Code: ' + vendor.code
   h4= vendor.contact
-  h4= vendor.location['state'] + ', ' + vendor.location['city']
   h2= 'Catalogue'
-  
+
   #ing-table
     table.table
       thead.text-primary
@@ -41,43 +40,31 @@ block content
       a(data-toggle='tab', href='#update') Update
     li.adminOnly.hide
       a(data-toggle='tab', href='#add') Add Ingredient
-    li
+    li.adminOnly.hide
       a(data-toggle='tab', href='#updateing') Update Ingredient
-    li
+    li.manager.hide
       a(data-toggle='tab', href='#order') Make Order
   .tab-content
-    #update.tab-pane.fade.in.active
+    #update.tab-pane.fade.in.active.adminOnly.hide
       h1= 'Update vendor'
       form(action='/vendors/' + vendor.code + '/update', method='post')
         label.control-label Vendor Name
         input.form-control(type='text', name='name', placeholder = 'Vendor name', required='', value=name)
+        label.control-label Freight Code
+        input.form-control(type='text', name='code', placeholder = 'Freight Code', required='',value=code)
         label.control-label Contact Info
         input.form-control(type='text', name='contact', placeholder = 'Contact Info', required='',value=contact)
-        label.control-label City
-        input.form-control(type='text', name='city', placeholder = 'city', required='',value=city)
-        label.control-label State
-        input.form-control(type='text', name='state', placeholder = 'state', required='',value=state)
-
+        label.control-label Location
+        input.form-control(type='text', name='location', placeholder = 'Location',value=location)
+        button.btn.btn-primary.pull-right(type='submit', value='Vendor Updated') update
     #add.tab-pane.fade.in.adminOnly.hide
       h1= 'Add Ingredient'
       form(action='/vendors/' + vendor.code + '/add_ingredients', method='post')
         label.control-label Ingredient
         input.form-control(type='text', name='ingredient', placeholder = 'Ingredient', required='')
-        label.control-label Package Type
-        select.form-control(name='size', placeholder = '', required='')
-          option(disabled='' selected='' value='') Select an option
-          each package in packages
-            option(value=package)= package
-        label.control-label Quantity
-        input.form-control(type='text', name='quantity', placeholder = 'Quantity', required='')
-        label.control-label Storage Temperature
-        select.form-control(name='temperature', placeholder = '', required='')
-          option(disabled="" selected="" value="") Select an option
-          each temp in temps
-            option(value=temp)= temp
         label.control-label Cost
         input.form-control(type='text', name='cost', placeholder = 'Cost/Unit', required='')
-        button.btn.btn-primary.pull-right(type='submit', value='ingredient added') add
+        button.btn.btn-primary.pull-right(type='submit', value='ingredient added') Add
 
     #updateing.tab-pane.fade.in.adminOnly.hide
       h1= 'Update Ingredient'
@@ -87,14 +74,12 @@ block content
           option(disabled="" selected="" value="") Select an option
           each ing in catalogue
             option(value=temp)= ing['ingredient']
-        label.control-label Quantity
-        input.form-control(type='text', name='quantity', placeholder = 'Quantity', required='')
         label.control-label Cost
         input.form-control(type='text', name='cost', placeholder = 'Cost/Unit', required='')
-        button.btn.btn-primary.pull-right(type='submit', value='ingredient added') update
+        button.btn.btn-primary.pull-right(type='submit', value='ingredient added') Update
 
 
-    #order.tab-pane.fade.in
+    #order.tab-pane.manager.fade.in
       h1= 'Make Order'
       form(action='/vendors/' + vendor.code + '/order', method='post')
         label.control-label Ingredient
@@ -104,8 +89,8 @@ block content
             option(value=temp)= ing['ingredient']
         label.control-label Quantity
         input.form-control(type='text', name='quantity', placeholder = 'Quantity', required='')
-        button.btn.btn-primary.pull-right(type='submit', value='order made') order
+        button.btn.btn-primary.pull-right(type='submit', value='order made') Order
 
-block scripts
-  script.
-    loadAdminOnlyContent();
+//- block scripts
+//-   script.
+//-     loadAdminOnlyContent();

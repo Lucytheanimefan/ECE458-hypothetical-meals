@@ -67,8 +67,16 @@ block content
               else
                 option(value=temp)= temp
           label.control-label Amount in storage (Pounds)
-          input.form-control(type='number', name='amount', value = ingredient.amount, required='')
+          input.form-control(type='number', step="any", name='amount', value = ingredient.amount, required='')
           button.btn.btn-primary.pull-right(type='submit') Update ingredient
+
+        form(action='/ingredients/' + ingredient.name + '/add-vendor', method='post')
+          label.control-label Vendor
+          select.form-control(name='vendor', placeholder = '', required='')
+            option(disabled='' selected='' value='') Select an option
+            each vendor in existingVendors
+              option(value=vendor._id)= vendor.code
+          button.btn.btn-primary.pull-right(type='submit') Add vendor
 
       div.card#vendor-info
         div.card-header(data-background-color='purple')
@@ -94,6 +102,6 @@ block content
             form(action='/ingredients/' + ingredient.name + '/' + amount + '/' + (parseInt(page)+1).toString(), method='get')
               button.btn.btn-white.btn-round.btn-just-icon(type='submit') Next
 
-block scripts
-  script.
-    loadAdminOnlyContent();
+//- block scripts
+//-   script.
+//-     loadAdminContent();
