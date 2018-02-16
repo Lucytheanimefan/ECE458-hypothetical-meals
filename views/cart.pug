@@ -24,14 +24,14 @@ block content
                     input.btn.btn-secondary(type="submit" value="Remove" style="padding: 5px; background-color:#66c2ff; color: white; display:inline;")
           p
             br
-            Page #{parseInt(page)}
         .row
-          .col-md-12
-            div.pages(style="text-align:center;")
-              form(action="/users/cart/" + (parseInt(page)-1).toString(), method="get")
-                button.btn.btn-white(type="submit" style="padding: 5px; text-align: center; display: inline-block;") <
-              form(action="/users/cart/" + (parseInt(page)+1).toString(), method="get")
-                button.btn.btn-white(type="submit" style="padding: 5px; display: inline-block;") >
+          div.pages(style="text-align:center;")
+            .col-md-12
+              form(action="/users/cart/" + (parseInt(page)-1).toString(), method="get" style="display: inline-block;")
+                button.btn.btn-white(type="submit" style="padding: 5px;") <
+              p(style="padding: 10px; display: inline-block;") #{parseInt(page)}
+              form(action="/users/cart/" + (parseInt(page)+1).toString(), method="get" style="display: inline-block;")
+                button.btn.btn-white(type="submit" style="padding: 5px;") >
         .row
           .col-md-12
             p

@@ -28,7 +28,7 @@ block content
               a(href='/vendors/' + vendor.code)= vendor.name
             td= vendor.code
             td= vendor.contact
-            td= vendor.location.state
+            td= vendor.location
       div.previous
         form(action='/vendors/home/' + (parseInt(page)-1).toString(), method='get')
           button.btn.btn-white.btn-round.btn-just-icon(type='submit') Prev
@@ -49,14 +49,14 @@ block content
           label.control-label Vendor name
           input.form-control(type='text', name='name', required='')
         .form-group
+          label.control-label Freight Code
+          input.form-control(type='text', name='code', required='')
+        .form-group
           label.control-label Contact Info
           input.form-control(type='text', name='contact', required='')
         .form-group
-          label.control-label City
-          input.form-control(type='text', name='city', required='')
-        .form-group
-          label.control-label State
-          input.form-control(type='text', name='state', required='')
+          label.control-label Location
+          input.form-control(type='text', name='location')
         button.btn.btn-primary.pull-right(type='submit', value='add vendor') Add vendor
 
     //- .card-content#search_vendor.tab-pane.fade.in.active

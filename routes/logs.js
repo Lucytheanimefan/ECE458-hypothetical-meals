@@ -11,15 +11,6 @@ router.get('/', (req, res, next) => {
       console.log(err);
       return next(err);
     }
-
-    // logs = logs.map(function(log) {
-    //   let id = log.initiating_user;
-    //   User.findById(id)
-    //     .exec(function(error, user) {
-    //       log['initiating_user'] = user.username;
-    //       return log;
-    //     });
-    // });
     res.render('logs', { logs: logs });
   });
 });

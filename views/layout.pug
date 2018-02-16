@@ -36,7 +36,7 @@ html(lang='en')
           a.simple-text(href='/')
             | Hypothetical Meals
 
-        -var menu = { 'Home': '/', 'Profile': '/users/profile','Users':'/users/admin', 'Ingredients': '/ingredients', 'Vendors':'/vendors', 'Cart':'/users/cart', 'Uploads': '/files','Inventory':'/inventory', 'Report':'/users/report', 'Logs': '/logs'};
+        -var menu = { 'Home': '/', 'Profile': '/users/profile','Users':'/users/admin', 'Ingredients': '/ingredients', 'Vendors':'/vendors', 'Cart':'/users/cart', 'Uploads': '/files','Inventory':'/inventory', 'Formulas': '/formulas', 'Report':'/users/report', 'Logs': '/logs'};
 
         -var icons = {'Home':'home', 'Profile': 'account_circle','Users': 'supervisor_account','Uploads': 'publish','Ingredients':'local_pizza','Vendors':'restaurant','Cart':'local_grocery_store','Inventory':'local_shipping', 'Report':'content_paste', 'Logs': 'library_books'}
 
@@ -91,7 +91,7 @@ html(lang='en')
   // Core JS Files
   script(src='/js/jquery-3.2.1.min.js', type='text/javascript')
   script(src='/js/jquery-ui.min.js', type='text/javascript')
-  script(src='/js/jquery.tablesorter.min.js', type='text/javascript')
+  script(src='/js/jquery-paginate.min.js', type='text/javascript')
   script(src='/js/bootstrap.min.js', type='text/javascript')
   script(src='/js/material.min.js', type='text/javascript')
   // Charts Plugin
@@ -110,7 +110,12 @@ html(lang='en')
     loadLoggedInContent();
     $('tbody').sortable();
     loadRelevantContent();
+    $('table').paginate({ limit: 10, // 10 elements per page
+      initialPage: 0, // Start on second page
+      //previous: false, // Show previous button
+      previousText: 'Prev  ', // Change previous button text
+      next: true, // Show previous button
+      nextText: '  Next', // Change next button text
 
+    });
   block scripts
-
-    

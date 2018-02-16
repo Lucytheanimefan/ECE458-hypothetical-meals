@@ -2,7 +2,7 @@ var express = require('express');
 var router = express.Router();
 var User = require('../models/user');
 var Ingredient = require('../models/ingredient');
-var Inventory = require('../models/inventory');
+var Inventory = require('../models/inventory').model;
 var Token = require('../models/token');
 var crypto = require('crypto');
 var nodemailer = require('nodemailer');
@@ -75,6 +75,7 @@ router.post('/', function(req, res, next) {
         return next(err);
       } else {
         req.session.userId = user._id;
+        req.session.role = user.role.toLowerCase();
         return res.redirect(req.baseUrl + '/profile');
       }
     });
@@ -163,6 +164,11 @@ router.get('/admin', function(req, res, next) {
 });
 
 router.post('/delete/:username', function(req, res, next) {
+  if (req.session.role != 'admin'){
+    let err = new Error('You must be an admin to delete a user');
+    return next(err);
+  }
+
   User.findOneAndRemove({ username: req.params.username }, function(error, result) {
     if (error) {
       var err = new Error('Couldn\'t delete that user.');
@@ -178,6 +184,11 @@ router.post('/delete/:username', function(req, res, next) {
 
 // Any user can update their own account
 router.post('/update', async function(req, res, next) {
+  if (req.session.role != 'admin'){
+    let err = new Error('You must be an admin to update a user');
+    return next(err);
+  }
+
   var userdata = null;
   if (req.body.netid !== null) {
     userdata = { 'netid': req.body.netid };
@@ -198,8 +209,12 @@ router.post('/update', async function(req, res, next) {
   })
 });
 
-// Admin can update the user through username 
+// Admin can update the user through username
 router.post('/update/:username', async function(req, res, next) {
+  if (req.session.role != 'admin'){
+    let err = new Error('You must be an admin to delete a user');
+    return next(err);
+  }
   console.log('Update user by username ' + req.params.username);
   console.log('Update user body request: ')
   //console.log(req.body);
@@ -306,6 +321,8 @@ router.get('/cart/:page?', function(req, res, next) {
 });
 
 router.post('/add_to_cart', function(req, res, next) {
+  req.params.
+
   User.count({ _id: req.session.userId }, function(err, count) {
     if (err) return next(err);
 
@@ -459,6 +476,7 @@ router.post('/checkout_cart', function(req, res, next) {
             production_report[ingredient] = new_cost;
           });
           delete cart[ingredient];
+
         }
 
         if (inventories != undefined) {
@@ -478,6 +496,7 @@ router.post('/checkout_cart', function(req, res, next) {
           if (err) return next(err);
         });
 
+        logs.makeLog('Checked out cart and updated report', {cart: cart_instance, inventory: inventories, production_report: production_report}, ['cart', 'inventory'], req.session.userId);
         return res.redirect(req.baseUrl + '/report');
       });
     }
@@ -562,7 +581,7 @@ router.get('/production_report/:page?', function(req, res, next) {
 
 module.exports = router;
 module.exports.requireRole = function(role) {
-  console.log("----Call user requireRole");
+  console.log("----Call user requireRole: for " + role);
   return function(req, res, next) {
     console.log('In require role callback function');
     User.findById(req.session.userId).exec(function(error, user) {
