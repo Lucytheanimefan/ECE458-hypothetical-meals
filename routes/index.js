@@ -12,7 +12,7 @@ router.get('/', function(req, res, next) {
       } else if (user === null) {
         res.redirect('/users');
       } else {
-        res.render('index', { title: '' });
+        res.render('index', { title: '', role:  req.session.role });
       }
     });
 });

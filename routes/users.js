@@ -75,6 +75,7 @@ router.post('/', function(req, res, next) {
         return next(err);
       } else {
         req.session.userId = user._id;
+        req.session.role = user.role.toLowerCase();
         return res.redirect(req.baseUrl + '/profile');
       }
     });
@@ -163,6 +164,11 @@ router.get('/admin', function(req, res, next) {
 });
 
 router.post('/delete/:username', function(req, res, next) {
+  if (req.session.role != 'admin'){
+    let err = new Error('You must be an admin to delete a user');
+    return next(err);
+  }
+
   User.findOneAndRemove({ username: req.params.username }, function(error, result) {
     if (error) {
       var err = new Error('Couldn\'t delete that user.');
@@ -178,6 +184,11 @@ router.post('/delete/:username', function(req, res, next) {
 
 // Any user can update their own account
 router.post('/update', async function(req, res, next) {
+  if (req.session.role != 'admin'){
+    let err = new Error('You must be an admin to update a user');
+    return next(err);
+  }
+
   var userdata = null;
   if (req.body.netid !== null) {
     userdata = { 'netid': req.body.netid };
@@ -200,6 +211,10 @@ router.post('/update', async function(req, res, next) {
 
 // Admin can update the user through username 
 router.post('/update/:username', async function(req, res, next) {
+  if (req.session.role != 'admin'){
+    let err = new Error('You must be an admin to delete a user');
+    return next(err);
+  }
   console.log('Update user by username ' + req.params.username);
   console.log('Update user body request: ')
   //console.log(req.body);

@@ -110,8 +110,14 @@ html(lang='en')
     loadLoggedInContent();
     $('tbody').sortable();
     loadRelevantContent();
-    $('table').paginate({ limit: 10 });
+    $('table').paginate({ limit: 10, // 10 elements per page
+      initialPage: 0, // Start on second page
+      //previous: false, // Show previous button
+      previousText: 'Prev  ', // Change previous button text
+      next: true, // Show previous button
+      nextText: '  Next', // Change next button text
 
+    });
   block scripts
 
     
