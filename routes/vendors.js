@@ -100,6 +100,7 @@ router.post('/:code/add_ingredients', function(req, res, next) {
 //bare bones done, more implementation needed for adding other ingredients, currently hardcoded
 router.post('/:code/update_ingredients', function(req, res, next) {
   let ingId = mongoose.Types.ObjectId(req.body.ingredient);
+  console.log('Ingredient id: ' + ingId);
   VendorHelper.updateIngredient(req.params.code, ingId, req.body.cost);
   logs.makeVendorLog('Update ingredients', { 'Vendor code': req.params.code, 'Ingredient ID': ingId, 'cost': req.body.cost }, entities = ['vendor', 'ingredient'], req.session.userId);
   res.redirect(req.baseUrl + '/' + req.params.code);
