@@ -56,14 +56,11 @@ router.get('/:code/:page?', async function(req, res, next) {
     console.log(fullMenu);
     let name = vendQuery.name;
     let contact = vendQuery.contact;
+    let location = vendQuery.location;
     let menu = fullMenu.splice((page - 1) * pageSize, page * pageSize)
     res.render('vendor', {
       vendor: vendQuery,
-      packages: packageTypes,
-      temps: temperatures,
       catalogue: menu,
-      name: name,
-      contact: contact,
       page: page,
       code: req.params.code
     });

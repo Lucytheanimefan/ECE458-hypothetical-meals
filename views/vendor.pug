@@ -8,7 +8,8 @@ block content
     button.btn.btn-primary.pull-right(type='submit', value = 'Delete vendor') Delete
   h1= vendor.name
   h4= 'Code: ' + vendor.code
-  h4= vendor.contact
+  h4= 'Contact: ' + vendor.contact
+  h4= 'Location: ' + vendor.location
   h2= 'Catalogue'
 
   #ing-table
@@ -49,13 +50,13 @@ block content
       h1= 'Update vendor'
       form(action='/vendors/' + vendor.code + '/update', method='post')
         label.control-label Vendor Name
-        input.form-control(type='text', name='name', placeholder = 'Vendor name', required='', value=name)
+        input.form-control(type='text', name='name', placeholder = 'Vendor name', required='', value=vendor.name)
         label.control-label Freight Code
-        input.form-control(type='text', name='code', placeholder = 'Freight Code', required='',value=code)
+        input.form-control(type='text', name='code', placeholder = 'Freight Code', required='',value=vendor.code)
         label.control-label Contact Info
-        input.form-control(type='text', name='contact', placeholder = 'Contact Info', required='',value=contact)
+        input.form-control(type='text', name='contact', placeholder = 'Contact Info', required='',value=vendor.contact)
         label.control-label Location
-        input.form-control(type='text', name='location', placeholder = 'Location',value=location)
+        input.form-control(type='text', name='location', placeholder = 'Location',value=vendor.location)
         button.btn.btn-primary.pull-right(type='submit', value='Vendor Updated') update
     #add.tab-pane.fade.in.adminOnly.hide
       h1= 'Add Ingredient'
