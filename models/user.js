@@ -1,7 +1,8 @@
 var mongoose = require('mongoose');
 mongoose.Promise = global.Promise;
 var bcrypt = require('bcrypt');
-
+var path = require('path');
+var Log = require(path.resolve(__dirname, "./log.js"));
 
 var UserSchema = new mongoose.Schema({
   email: {
@@ -73,32 +74,37 @@ UserSchema.statics.authenticate = function(email, password, callback) {
 }
 
 UserSchema.statics.authenticate_netid = function(netid, email, callback) {
+  console.log('authenticate_netid');
   findUserByNetid(netid, function(err, user) {
     if (err) {
       console.log('Err: ' + err);
       return callback(err);
     } else if (!user) {
-      var user_data = { 'netid': netid, 'username': netid, 'isDukePerson':true };
+      var user_data = { 'netid': netid, 'username': netid, 'isDukePerson': true };
       if (email != null) {
         user_data['email'] = email;
       }
+
+      // TODO this should happen in the route, not here
       // User not found, create an account associated with netid
-      User.create(user_data, function(error, user) {
-        if (error) {
-          console.log("Error creating user: ");
-          console.log(error);
-          return callback(error);
-        }
-        // Try logging in again
-        findUserByNetid(netid, function(err, user) {
-          if (err) {
-            console.log('Error finding user by netid: ');
-            console.log(err);
-            return callback(err);
-          }
-          return callback(null, user);
-        });
-      })
+    
+      // User.create(user_data, function(error, user) {
+      //   if (error) {
+      //     console.log("Error creating user: ");
+      //     console.log(error);
+      //     return callback(error);
+      //   }
+      //   // Try logging in again
+      //   findUserByNetid(netid, function(err, user) {
+      //     if (err) {
+      //       console.log('Error finding user by netid: ');
+      //       console.log(err);
+      //       return callback(err);
+      //     }
+      //     return callback(null, user);
+      //   });
+      // })
+
     } else {
       console.log('Found the user!');
       console.log(user);
@@ -161,6 +167,25 @@ UserSchema.statics.all = function(callback) {
   })
 }
 
+UserSchema.statics.current_user = function(req, callback) {
+  User.findById(req.session.userId)
+    .exec(function(error, user) {
+      if (error) {
+        return callback(error);
+      } else {
+        if (user == null) {
+          let err = new Error('No user for that id');
+          return callback(err);
+        } else {
+          callback(null, user);
+        }
+      }
+    });
+}
+
+UserSchema.statics.user_by_netid = function(netid, callback){
+  findUserByNetid(netid, callback);
+}
 
 findUserByNetid = function(netid, callback) {
   let user_data = { netid: netid };
@@ -170,6 +195,25 @@ findUserByNetid = function(netid, callback) {
     })
 }
 
+// makeUserLog = function(user) {
+//   let log_data = {
+//     'title': 'User created',
+//     'description': user.username + ', ' + user.email + ', ' + user.role,
+//     'entities': 'user',
+//     'initiating_user' : ''
+//     ,
+//         'user': user.username + ', ' + user.role
+//   }
+//   Log.create(log_data, function(error, log) {
+//     if (error) {
+//       console.log('Error logging user data: ');
+//       console.log(error);
+//       //return next();
+//     }
+//     console.log('Logged user: ' + log);
+//     //return next();
+//   })
+// }
 
 //hashing a password before saving it to the database
 UserSchema.pre('save', function(next) {
@@ -184,6 +228,7 @@ UserSchema.pre('save', function(next) {
           return next(err);
         }
         user.password = hash;
+        //makeUserLog(user);
         next(null, user);
       });
     }
@@ -191,6 +236,7 @@ UserSchema.pre('save', function(next) {
     return next(null, user);
   }
 });
+
 
 
 var User = mongoose.model('User', UserSchema);

@@ -1,5 +1,8 @@
 var mongoose = require('mongoose');
 mongoose.Promise = global.Promise;
+var path = require('path');
+var User = require(path.resolve(__dirname, "./user.js"));
+var Log = require(path.resolve(__dirname, "./log.js"));
 
 var IngredientSchema = new mongoose.Schema({
   name: {
@@ -91,3 +94,42 @@ module.exports.addVendor = function(name, vendorId) {
 }
 
 module.exports.model = Ingredient;
+
+IngredientSchema.pre('save', function(next, req, callback) {
+  var ingredient = this;
+  let log_data = {
+    'title': 'Ingredient created',
+    'description': ingredient.name + ', ' + ingredient.package + ', ' + ingredient.temperature + ', ' + ingredient.amount,
+    'entities': 'ingredient'/*,
+    'user': user.username + ', ' + user.role*/
+  }
+  Log.create(log_data, function(error, log) {
+    if (error) {
+      console.log('Error logging ingredient data: ');
+      console.log(error);
+      return next();
+    }
+    console.log(log);
+    return next();
+  })
+
+});
+
+// IngredientSchema.pre('update', function(next) {
+//   console.log('Updating ingredient, need to log!');
+//   var ingredient = this;
+//   let log_data = {
+//     'title': 'Ingredient updated',
+//     'description': ingredient.name + ', ' + ingredient.package + ', ' + ingredient.temperature + ', ' + ingredient.amount,
+//     'entities': 'ingredient'/*,
+//     'user': user.username + ', ' + user.role*/
+//   }
+//   Log.create(log_data, function(error, user) {
+//     if (error) {
+//       console.log('Error logging ingredient data: ');
+//       console.log(error);
+//       return next();
+//     }
+//     return next();
+//   })
+// });

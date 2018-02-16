@@ -11,8 +11,15 @@ a {
   display: none;
 }
 
+table{
+  table-layout: fixed;
+  width: 100%;
+}
 th { cursor: pointer; }
 
+td{
+  word-wrap: break-word;
+}
 .div-dropdown {
   position: relative;
   display: inline-block;

@@ -7,18 +7,23 @@ var Ingredient = require('../models/ingredient');
 var VendorHelper = require('../helpers/vendor');
 var uniqid = require('uniqid');
 var mongoose = require('mongoose');
+var path = require('path');
+var logs = require(path.resolve(__dirname, "./logs.js"));
+var uniqid = require('uniqid')
 let packageTypes = ['sack', 'pail', 'drum', 'supersack', 'truckload', 'railcar'];
 let temperatures = ['frozen', 'refrigerated', 'room temperature'];
 let pageSize = 10;
 
-let weightMapping = {
-  sack:50,
-  pail:50,
-  drum:500,
-  supersack:2000,
-  truckload:50000,
-  railcar:280000
+let spaceMapping = {
+  sack:0.5,
+  pail:1,
+  drum:3,
+  supersack:16,
+  truckload:0,
+  railcar:0
 }
+
+
 
 //no need for now
 router.get('/', function(req, res, next) {
@@ -48,6 +53,7 @@ router.get('/:code/:page?', async function(req, res, next) {
     var page = req.params.page || 1;
     page = (page < 1) ? 1 : page;
     let fullMenu = vendQuery.catalogue;
+    console.log(fullMenu);
     let name = vendQuery.name;
     let contact = vendQuery.contact;
     let menu = fullMenu.splice((page-1)*pageSize,page*pageSize)
@@ -63,15 +69,22 @@ router.post('/:code/delete', function(req, res, next) {
   return res.redirect(req.baseUrl);
 });
 
-//bare bones done, more implementation needed
+//bare bones done, more implementation needed for adding other ingredients, currently hardcoded
 router.post('/:code/add_ingredients', function(req,res,next){
-  VendorHelper.addIngredient(req.params.code,"5a80bfb29ba8aa7f814a363e",req.body.cost);
-  res.redirect(req.baseUrl + '/' + req.params.code);
+  var ingQuery = Ingredient.getIngredient(req.body.ingredient);
+  ingQuery.then(function(result){
+    let ingId = mongoose.Types.ObjectId(result._id);
+    VendorHelper.addIngredient(req.params.code,ingId,req.body.cost);
+    return res.redirect(req.baseUrl + '/' + req.params.code);
+  }).catch(function(error){
+    next(error);
+  })
 });
 
-//bare bones done, more implementation needed
+//bare bones done, more implementation needed for adding other ingredients, currently hardcoded
 router.post('/:code/update_ingredients', function(req,res,next){
-  VendorHelper.updateIngredient(req.params.code,"5a80bfb29ba8aa7f814a363e",req.body.cost);
+  let ingId = mongoose.Types.ObjectId(req.body.ingredient);
+  VendorHelper.updateIngredient(req.params.code,ingId,req.body.cost);
   res.redirect(req.baseUrl + '/' + req.params.code);
 });
 
@@ -82,8 +95,6 @@ router.post('/:code/update', async function(req, res, next) {
   let name = req.body.name;
   let location = req.body.location;
   let contact = req.body.contact;
-  console.log(currCode);
-  console.log(req.body);
   var update = VendorHelper.updateVendor(currCode, name, code, contact, location);
   update.then(function(result){
     return res.redirect(req.baseUrl + '/' + req.body.code);
@@ -109,8 +120,7 @@ router.post('/new', function(req, res, next) {
 });
 
 router.post('/:code/order', async function(req,res,next){
-  let ingredientId = "5a80bfb29ba8aa7f814a363e";
-  let ingId = mongoose.Types.ObjectId(ingredientId);
+  let ingId = mongoose.Types.ObjectId(req.body.ingredient);
   var vendQuery = Vendor.findVendorByCode(req.params.code);
   let amount = parseFloat(req.body.quantity);
   vendQuery.then(function(vend){
@@ -123,6 +133,7 @@ router.post('/:code/order', async function(req,res,next){
     next(error);
   })
 });
+
 
 
 module.exports = router;

@@ -1,4 +1,5 @@
 var Ingredient = require('../models/ingredient');
+var Inventory = require('../models/inventory');
 var InventoryHelper = require('./inventory');
 var Vendor = require('../models/vendor');
 var mongoose = require('mongoose');

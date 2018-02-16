@@ -1,0 +1,29 @@
+extends layout
+block link
+  -var selected = 'Logs';
+
+block content
+  .row
+    form(action='/logs/delete/', method='post')
+      button.btn.btn-primary.pull-right(type='submit', value='Delete') Clear all
+    div.card
+      div.card-header(data-background-color='purple')
+        h4.title Logs
+      div.card-content.table-response
+        input.form-control#logInput(type='text',onkeyup='filterTable(\'log\')', placeholder='Search for logs..', title='Type in some search text')
+        table.table#logTable
+          thead.text-primary
+            th(onclick='sortTable(0, \'log\')') Title
+            th(onclick='sortTable(0, \'log\')') Time
+            th(onclick='sortTable(0, \'log\')') Description
+            th(onclick='sortTable(0, \'log\')') Initiating User
+            th(onclick='sortTable(0, \'log\')') Related entities
+          tbody
+          each log in logs
+            tr
+              td
+                a(href='/logs/log/'+log.initiating_user+'?title='+log.title+'&description=' + log.description + '&time='+log.time+'&entities=' + log.entities)= log.title
+              td= log.time
+              td= log.description
+              td= log.initiating_user
+              td= log.entities
