@@ -1,4 +1,5 @@
 var mongoose = require('mongoose');
+mongoose.Promise = global.Promise;
 // var mongoosePaginate = require('mongoose-paginate');
 
 var VendorSchema = new mongoose.Schema({
@@ -20,35 +21,13 @@ var VendorSchema = new mongoose.Schema({
     trim: true
   },
   location:{
-    city:{
-      type:String,
-      required:true,
-      trim: true
-    },
-    state:{
-      type:String,
-      required:true,
-      trim: true
-    }
+    type: String,
+    required: false,
+    trim: true
   },
   catalogue:[{
     ingredient: {
       type: String,
-      required: true,
-      trim: true
-    },
-    temp:{
-      type: String,
-      required: true,
-      trim: true
-    },
-    package:{
-      type: String,
-      required: true,
-      trim: true
-    },
-    available:{
-      type: Number,
       required: true,
       trim: true
     },
@@ -63,4 +42,66 @@ var VendorSchema = new mongoose.Schema({
 })
 
 var Vendor = mongoose.model('Vendor', VendorSchema);
-module.exports = Vendor;
+
+module.exports.findVendorByName = function(name){
+  return Vendor.findOne({'name':name}).exec();
+}
+
+module.exports.findVendorByCode = function(code){
+  return Vendor.findOne({'code':code}).exec();
+}
+
+module.exports.findVendorByCodeAndName = function(code,name){
+  return Vendor.findOne({'code':code, 'name':name})
+}
+
+module.exports.createVendor = function(name, code, contact, location) {
+  return Vendor.create({
+    'name': name,
+    'code': code,
+    'contact': contact,
+    'location': location,
+    'history':[],
+    'catalogue':[]
+  });
+}
+
+module.exports.updateVendor = function(code, name, newCode, contact, location) {
+  return Vendor.findOneAndUpdate({ 'code':  code }, {
+    '$set': {
+      'name': name,
+      'code': newCode,
+      'contact': contact,
+      'location': location
+    }
+  }).exec();
+}
+
+module.exports.deleteVendor = function(code) {
+  return Vendor.findOneAndRemove({ 'code': code }).exec();
+}
+
+module.exports.addIngredient = function(code, ingId, cost){
+  let entry = {ingredient:ingId, cost:cost};
+  return Vendor.findOneAndUpdate({'code':code},{'$push':{'catalogue':entry}}).exec();
+}
+
+module.exports.removeIngredient = function(code, ingId){
+  return Vendor.findOneAndUpdate({'code':code},{'$pull':{'catalogue':{'ingredient':ingId}}}).exec();
+}
+
+module.exports.updateIngredient = function(code, ingId, cost){
+  var remove = removeIngredient(code,ingId,cost);
+  var append = addIngredient(code,ingId,cost);
+  remove.then(function(result){
+    return append;
+  });
+}
+
+removeIngredient = function(code,ingId,cost){
+  return Vendor.findOneAndUpdate({'code':code},{'$pull':{'catalogue':{'ingredient':ingId}}}).exec();
+}
+addIngredient = function(code,ingId,cost){
+  return Vendor.findOneAndUpdate({'code':code},{'$push':{'catalogue':{'ingredient':ingId, 'cost':cost}}}).exec();
+}
+module.exports.model = Vendor;
