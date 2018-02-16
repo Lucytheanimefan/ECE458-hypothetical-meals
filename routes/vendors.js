@@ -99,6 +99,7 @@ router.post('/:code/add_ingredients', function(req, res, next) {
 
 //bare bones done, more implementation needed for adding other ingredients, currently hardcoded
 router.post('/:code/update_ingredients', function(req, res, next) {
+  console.log('Ingredient: '  + req.body.ingredient);
   let ingId = mongoose.Types.ObjectId(req.body.ingredient);
   console.log('Ingredient id: ' + ingId);
   VendorHelper.updateIngredient(req.params.code, ingId, req.body.cost);
