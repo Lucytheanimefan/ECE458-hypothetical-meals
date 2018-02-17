@@ -1,6 +1,7 @@
 var Ingredient = require('../models/ingredient');
 var Inventory = require('../models/inventory');
 var InventoryHelper = require('./inventory');
+var VendorHelper = require('./vendor');
 var Vendor = require('../models/vendor');
 var mongoose = require('mongoose');
 mongoose.Promise = global.Promise;
@@ -88,17 +89,17 @@ module.exports.searchIngredients = function(searchQuery, currentPage) {
   })
 }
 
-module.exports.addVendor = function(name, vendorId) {
+module.exports.addVendor = function(name, vendorId, cost) {
   let vendorObjectId = mongoose.Types.ObjectId(vendorId);
   return new Promise(function(resolve, reject) {
-    var vendorQuery = Vendor.findById(vendorObjectId);
+    var vendorQuery = Vendor.model.findById(vendorObjectId);
     vendorQuery.exec().then(function(vendor) {
       if (vendor == null) {
         var error = new Error('The specified vendor doesn\'t exist!');
         error.status = 400;
         throw error;
       } else {
-        return Ingredient.addVendor(name, vendorObjectId);
+        return Promise.all([Ingredient.addVendor(name, vendorObjectId), Vendor.addIngredient(vendor['code'], name, cost)]);
       }
     }).then(function(result) {
       resolve();
