@@ -153,16 +153,18 @@ module.exports.deleteIngredient = function(code, ingredientId){
   return new Promise(function(resolve,reject){
     var ingQuery = Ingredient.model.findById(ingId);
     ingQuery.exec().then(function(ing){
+      console.log(ing);
       if(ing==null){
         var error = new Error('Specified ingredient doesn\'t exist');
         error.status = 400;
         throw(error);
       }
       else{
-        return Vendor.removeIngredient(code,ingId);
+
+        result = Vendor.removeIngredient(code,ingId);
       }
     }).then(function(result) {
-      resolve();
+      resolve(result);
     }).catch(function(error){
       reject(error);
     })

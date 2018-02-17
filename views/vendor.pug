@@ -19,7 +19,6 @@ block content
         th Cost
         th Package
         th Temperature
-        th Available
       tbody
       each ing in catalogue
         tr
@@ -28,9 +27,10 @@ block content
           th= ing.cost
           th= ing.package
           th= ing.temp
-          th= ing.available
+          th
+            a(href='/vendors/' + vendor.code + '/' + 'remove_ingredients' + '/' + ing['ingredient']) Remove
     div.previous
-      form(action='/vendors/'+vendor.code + '/' + (parseInt(page)-1).toString() method='get')
+      form(action='/vendors/'+ vendor.code + '/' + (parseInt(page)-1).toString() method='get')
         button.btn.btn-white.btn-round.btn-just-icon(type='submit') Prev
     div.next
       form(action='/vendors/'+vendor.code + '/' + (parseInt(page)+1).toString() method='get')
@@ -66,8 +66,11 @@ block content
       h1= 'Add Ingredient'
       form(action='/vendors/' + vendor.code + '/add_ingredients', method='post')
         .form-group
-          label.control-label Ingredient
-          input.form-control(type='text', name='ingredient', required='')
+          label.control-label Ingredients
+          select.form-control(name='ingredient', placeholder = '', required='')
+            option(disabled="" selected="" value="") Select an option
+            each ing in ingredientList
+              option(value=ing._id)= ing['name']
         .form-group
           label.control-label Cost
           input.form-control(type='text', name='cost', required='')

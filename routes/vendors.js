@@ -48,23 +48,28 @@ router.get('/home/:page?', function(req, res, next) {
 
 //refactored
 router.get('/:code/:page?', async function(req, res, next) {
+  var ingList;
+  var ingQuery = Ingredient.getAllIngredients();
   var query = Vendor.findVendorByCode(req.params.code);
-  query.then(function(vendQuery) {
-    var page = req.params.page || 1;
-    page = (page < 1) ? 1 : page;
-    let fullMenu = vendQuery.catalogue;
-    console.log(fullMenu);
-    let name = vendQuery.name;
-    let contact = vendQuery.contact;
-    let location = vendQuery.location;
-    let menu = fullMenu.splice((page - 1) * pageSize, page * pageSize)
-    res.render('vendor', {
-      vendor: vendQuery,
-      catalogue: menu,
-      page: page,
-      code: req.params.code
-    });
-  });
+  ingQuery.then(function(result){
+    ingList = result;
+    return query;
+  }).then(function(vendQuery){
+      var page = req.params.page || 1;
+      page = (page < 1) ? 1 : page;
+      let fullMenu = vendQuery.catalogue;
+      let name = vendQuery.name;
+      let contact = vendQuery.contact;
+      let location = vendQuery.location;
+      let menu = fullMenu.splice((page - 1) * pageSize, page * pageSize);
+      res.render('vendor', {
+        vendor: vendQuery,
+        catalogue: menu,
+        page: page,
+        code: req.params.code,
+        ingredientList: ingList
+      });
+  })
 })
 
 //POST request to delete an existing ingredient
@@ -77,8 +82,7 @@ router.post('/:code/delete', function(req, res, next) {
 
 //bare bones done, more implementation needed for adding other ingredients, currently hardcoded
 router.post('/:code/add_ingredients', function(req, res, next) {
-  var ingQuery = Ingredient.getIngredient(req.body.ingredient);
-
+  var ingQuery = Ingredient.getIngredientById(mongoose.Types.ObjectId(req.body.ingredient));
   ingQuery.then(function(result) {
     console.log(result);
     if (result == null) {
@@ -94,13 +98,24 @@ router.post('/:code/add_ingredients', function(req, res, next) {
   })
 });
 
-//bare bones done, more implementation needed for adding other ingredients, currently hardcoded
+//bare bones done
 router.post('/:code/update_ingredients', function(req, res, next) {
   console.log('Ingredient: '  + req.body.ingredient);
   let ingId = mongoose.Types.ObjectId(req.body.ingredient);
   console.log('Ingredient id: ' + ingId);
   VendorHelper.updateIngredient(req.params.code, ingId, req.body.cost);
   logs.makeVendorLog('Update ingredients', { 'Vendor code': req.params.code, 'Ingredient ID': ingId, 'cost': req.body.cost }, entities = ['vendor', 'ingredient'], req.session.userId);
+  res.redirect(req.baseUrl + '/' + req.params.code);
+});
+
+//bare bones done
+router.post('/:code/remove_ingredients/:ingredient', function(req, res, next) {
+  console.log(req.params.ingredient);
+  console.log("delete this boy");
+  let ingId = mongoose.Types.ObjectId(req.params.ingredient);
+  VendorHelper.deleteIngredient(req.params.code, ingId);
+  //TODO link delete to logs
+  //logs.makeVendorLog('Update ingredients', { 'Vendor code': req.params.code, 'Ingredient ID': ingId, 'cost': req.body.cost }, entities = ['vendor', 'ingredient'], req.session.userId);
   res.redirect(req.baseUrl + '/' + req.params.code);
 });
 
