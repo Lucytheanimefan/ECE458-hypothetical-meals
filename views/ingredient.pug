@@ -12,10 +12,10 @@ block content
     ul.nav.nav-tabs
       li.active
         a(data-toggle='tab', href='#ingredient-info') Ingredient Information
-      //- li
-      //-   a(data-toggle='tab', href='#vendor-info') Vendors
       li.adminOnly.hide
         a(data-toggle='tab', href='#update-form') Update Ingredient
+      li
+        a(data-toggle='tab', href='#vendor-form') Associate Vendor
     .tab-content
       .row.tab-pane.fade.in.active#ingredient-info
         .col-md-6
@@ -35,7 +35,7 @@ block content
             tr
               th Units in Storage
               td= ingredient.amount
-          div.delete-form
+          div.delete-form.adminOnly.hide
             form(action='/ingredients/' + ingredient.name + '/delete', method='post')
               button.btn.btn-primary.pull-right(style="margin: 30px 15px;" type='submit') Delete ingredient
 
@@ -52,10 +52,33 @@ block content
               .col-md-8
               .col-md-4
                 button.btn.btn-primary.pull-right(id="cartbtn" type="submit" name="submit" value="Add to Cart") Add to Cart
+        div.card#vendor-info
+          div.card-header(data-background-color='purple')
+            h4.title Vendor Information
+          div.card-content.table-responsive
+            table.table
+              thead.text-primary
+                th Vendor
+                th Package
+                th Units Available
+                th Cost Per Unit ($)
+                each vendor in vendors
+                  tr
+                    th
+                      a(href="/vendors/" + vendor.vendorCode)= vendor.vendorName
+                    th= vendor.record.package
+                    th= vendor.record.available
+                    th= vendor.record.cost
+            div.previous
+              form(action='/ingredients/' + ingredient.name + '/' + amount + '/' + (parseInt(page)-1).toString(), method='get')
+                button.btn.btn-white.btn-round.btn-just-icon(type='submit') Prev
+            div.next
+              form(action='/ingredients/' + ingredient.name + '/' + amount + '/' + (parseInt(page)+1).toString(), method='get')
+                button.btn.btn-white.btn-round.btn-just-icon(type='submit') Next
 
       .adminOnly.hide.card-content.tab-pane.fade#update-form
         h1= 'Update ingredient'
-        form(action='/ingredients/' + ingredient.name + '/update', method='post')
+        form.form-group(action='/ingredients/' + ingredient.name + '/update', method='post')
 
           .form-group
             label.control-label Ingredient Name
@@ -77,10 +100,6 @@ block content
                 else
                   option(value=temp)= temp
           .form-group
-            label.control-label Amount in storage (Pounds)
-            input.form-control(type='number', step="any", name='amount', value = ingredient.amount, required='')
-
-          .form-group
             label.control-label Native Unit
             input.form-control(type='text', name='nativeUnit', value = ingredient.nativeUnit, required='')
           .form-group
@@ -92,39 +111,21 @@ block content
 
           button.btn.btn-primary.pull-right(type='submit') Update ingredient
 
-        form(action='/ingredients/' + ingredient.name + '/add-vendor', method='post')
+      .card-content.tab-pane.fade#vendor-form
+        h1= 'Associate Vendor'
+        form.form-group(action='/ingredients/' + ingredient.name + '/add-vendor', method='post')
           .form-group
             label.control-label Vendor
             select.form-control(name='vendor', placeholder = '', required='')
               option(disabled='' selected='' value='') Select an option
               each vendor in existingVendors
                 option(value=vendor._id)= vendor.code
+          .form-group
+            label.control-label Cost
+            input.form-control(type='number', step='0.01', name='cost', required='')
+
           button.btn.btn-primary.pull-right(type='submit') Add vendor
 
-      div.card#vendor-info
-        div.card-header(data-background-color='purple')
-          h4.title Vendor Information
-        div.card-content.table-responsive
-          table.table
-            thead.text-primary
-              th Vendor
-              th Package
-              th Units Available
-              th Cost Per Unit ($)
-              each vendor in vendors
-                tr
-                  th
-                    a(href="/vendors/" + vendor.vendorCode)= vendor.vendorName
-                  th= vendor.record.package
-                  th= vendor.record.available
-                  th= vendor.record.cost
-          div.previous
-            form(action='/ingredients/' + ingredient.name + '/' + amount + '/' + (parseInt(page)-1).toString(), method='get')
-              button.btn.btn-white.btn-round.btn-just-icon(type='submit') Prev
-          div.next
-            form(action='/ingredients/' + ingredient.name + '/' + amount + '/' + (parseInt(page)+1).toString(), method='get')
-              button.btn.btn-white.btn-round.btn-just-icon(type='submit') Next
-
-//- block scripts
-//-   script.
-//-     loadAdminContent();
+block scripts
+  script.
+    loadAdminContent();
