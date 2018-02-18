@@ -68,7 +68,7 @@ router.post('/upload', function(req, res, next) {
       }
       csvData = data.data;
       return Promise.all(csvData.map(function(row, index) {
-        return checkVendor(row['VENDOR FREIGHT CODE']);
+        return Promise.all([checkIngredient(row), checkVendor(row['VENDOR FREIGHT CODE'])]);
       }));
     }).then(function() {
       return Promise.all(csvData.map(function(row, index) {
@@ -202,6 +202,25 @@ parseFile = function(file, next) {
       reject(error);
     });
   });
+}
+
+checkIngredient = function(row) {
+  return new Promise(function(resolve, reject) {
+    let name = row['INGREDIENT'];
+    Ingredient.getIngredient(name).then(function(ing) {
+      if (ing == null) {
+        resolve();
+      } else {
+        if (ing.package !== row['PACKAGE'] || ing.temperature !== row['TEMPERATURE'] || ing.nativeUnit !== row['NATIVE UNIT'] || parseFloat(ing.unitsPerPackage) != parseFloat(row['UNITS PER PACKAGE'])) {
+          reject(new Error('Ingredient ' + ing.name + ' doesn\'t match pre-existing ingredient'));
+        } else {
+          resolve();
+        }
+      }
+    }).catch(function(error) {
+      reject(error);
+    });
+  })
 }
 
 checkVendor = function(vendorCode) {
