@@ -201,29 +201,6 @@ parseFile = function(file, next) {
     }).catch(function(error) {
       reject(error);
     });
-    // var headerKeys;
-    // var options = {
-    //   trim: true,
-    //   columns: function(header) {
-    //     headerKeys = header;
-    //     console.log('header: ', header);
-    //     if (!validHeaders(headerKeys)) {
-    //       let err = new Error('Error reading CSV. Headers are in invalid format.');
-    //       err.status = 400;
-    //       reject(err);
-    //     }
-    //   }
-    // };
-
-    // parse(file, options).then(function(rows) {
-    //   return Promise.all(rows.map(function(row, index) {
-    //     return addToDatabase(index, row, headerKeys);
-    //   }))
-    // }).then(function(csvData) {
-    //   resolve(csvData);
-    // }).catch(function(error) {
-    //   reject(error);
-    // });
   });
 }
 
