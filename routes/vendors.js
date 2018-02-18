@@ -14,16 +14,6 @@ let packageTypes = ['sack', 'pail', 'drum', 'supersack', 'truckload', 'railcar']
 let temperatures = ['frozen', 'refrigerated', 'room temperature'];
 let pageSize = 10;
 
-let spaceMapping = {
-  sack: 0.5,
-  pail: 1,
-  drum: 3,
-  supersack: 16,
-  truckload: 0,
-  railcar: 0
-}
-
-
 
 //no need for now
 router.get('/', function(req, res, next) {
@@ -108,8 +98,8 @@ router.post('/:code/update_ingredients', function(req, res, next) {
   res.redirect(req.baseUrl + '/' + req.params.code);
 });
 
-//bare bones done
-router.post('/:code/remove_ingredients/:ingredient', function(req, res, next) {
+//TODO This route is giving a 404 for some reason.  Fix this!!!!a
+router.post('/:code/:ingredient/remove_ingredients/', function(req, res, next) {
   console.log(req.params.ingredient);
   console.log("delete this boy");
   let ingId = mongoose.Types.ObjectId(req.params.ingredient);
@@ -154,6 +144,7 @@ router.post('/new', function(req, res, next) {
 
 router.post('/:code/order', async function(req, res, next) {
   let ingId = mongoose.Types.ObjectId(req.body.ingredient);
+  console.log(req.body.ingredient);
   var vendQuery = Vendor.findVendorByCode(req.params.code);
   let amount = parseFloat(req.body.quantity);
   vendQuery.then(function(vend) {
@@ -171,4 +162,3 @@ router.post('/:code/order', async function(req, res, next) {
 
 
 module.exports = router;
-module.exports.addIngredient = addIngredient;

@@ -28,7 +28,7 @@ block content
           th= ing.package
           th= ing.temp
           th
-            a(href='/vendors/' + vendor.code + '/' + 'remove_ingredients' + '/' + ing['ingredient']) Remove
+            a(href='/vendors/' + vendor.code + '/' + ing['ingredient'] + '/' + 'remove_ingredients') Remove
     div.previous
       form(action='/vendors/'+ vendor.code + '/' + (parseInt(page)-1).toString() method='get')
         button.btn.btn-white.btn-round.btn-just-icon(type='submit') Prev
@@ -99,7 +99,7 @@ block content
           select.form-control(name='ingredient', placeholder = '', required='')
             option(disabled="" selected="" value="") Select an option
             each ing in catalogue
-              option(value=ing.id)= ing['ingredient']
+              option(value=ing['ingredient'])= ing['ingredient']
         .form-group
           label.control-label Quantity
           input.form-control(type='text', name='quantity', required='')

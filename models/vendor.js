@@ -90,18 +90,4 @@ module.exports.removeIngredient = function(code, ingId){
   return Vendor.findOneAndUpdate({'code':code},{'$pull':{'catalogue':{'ingredient':ingId}}}).exec();
 }
 
-module.exports.updateIngredient = function(code, ingId, cost){
-  var remove = removeIngredient(code,ingId,cost);
-  var append = addIngredient(code,ingId,cost);
-  remove.then(function(result){
-    return append;
-  });
-}
-
-removeIngredient = function(code,ingId,cost){
-  return Vendor.findOneAndUpdate({'code':code},{'$pull':{'catalogue':{'ingredient':ingId}}}).exec();
-}
-addIngredient = function(code,ingId,cost){
-  return Vendor.findOneAndUpdate({'code':code},{'$push':{'catalogue':{'ingredient':ingId, 'cost':cost}}}).exec();
-}
 module.exports.model = Vendor;

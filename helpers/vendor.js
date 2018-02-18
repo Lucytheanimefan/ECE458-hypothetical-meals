@@ -6,6 +6,16 @@ var Inventory = require('../models/inventory');
 var mongoose = require('mongoose');
 mongoose.promise = global.Promise;
 
+let spaceMapping = {
+  sack: 0.5,
+  pail: 1,
+  drum: 3,
+  supersack: 16,
+  truckload: 0,
+  railcar: 0
+}
+
+
 module.exports.makeOrder = function(ingredientId,vendorId,numUnits){
   let ingId = mongoose.Types.ObjectId(ingredientId);
   let vendId = mongoose.Types.ObjectId(vendorId);
@@ -35,7 +45,9 @@ module.exports.makeOrder = function(ingredientId,vendorId,numUnits){
         let nativeUnit = ing['nativeUnit'];
         let unitsPerPackage = ing['unitsPerPackage'];
         //TODO make amount on package volume
-        let amount = numUnits+parseFloat(ing['amount']);
+
+        let amount = numUnits*spaceMapping[package]+parseFloat(ing['amount']);
+        console.log(amount);
         return IngredientHelper.updateIngredient(name, newName, package, temp, nativeUnit, unitsPerPackage, amount);
       }
     }).then(function(result){
