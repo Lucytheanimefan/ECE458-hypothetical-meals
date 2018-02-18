@@ -131,7 +131,7 @@ router.post('/new', function(req, res, next) {
 router.post('/:name/add-vendor', function(req, res, next) {
   let ingName = req.params.name;
 
-  IngredientHelper.addVendor(ingName, req.body.vendor).then(function() {
+  IngredientHelper.addVendor(ingName, req.body.vendor, req.body.cost).then(function() {
     res.redirect(req.baseUrl + '/' + ingName);
   }).catch(function(error) {
     next(error);
