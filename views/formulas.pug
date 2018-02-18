@@ -1,0 +1,29 @@
+extends layout
+
+block link
+  -var selected = 'Formulas';
+
+block content
+  #formula-table
+  div.card
+    div.card-header(data-background-color='purple')
+      h4.title Formulas
+    div.card-content.table-response
+      table.table#formulaTable
+        thead.text-primary
+          th(onclick='sortTable(0, \'formula\')') Formula
+          th(onclick='sortTable(1, \'formula\')') Description
+          th(onclick='sortTable(3, \'formula\')') Units
+        tbody
+        each formula in formulas
+          tr
+            td
+              a(href='/formulas/' + formula.name)= formula.name
+            td= formula.description
+            td= formula.units
+    div.card-tabs
+      ul.nav.nav-pills
+        li.active
+          a(href="#") Home
+        li
+          a(href="#") Menu 
