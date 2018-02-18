@@ -139,12 +139,12 @@ router.post('/:name/add-vendor', function(req, res, next) {
   })
 })
 
-createCatalogue = function(vendors, name) {
+createCatalogue = function(vendors, id) {
   var catalogue = [];
   for (i = 0; i < vendors.length; i++) {
     var vendor = vendors[i];
     for (j = 0; j < vendor['catalogue'].length; j++) {
-      if (vendor['catalogue'][j]['ingredient'] == name) {
+      if (vendor['catalogue'][j]['ingredient'] == id) {
         catalogue.push({ vendorName: vendor['name'], vendorCode: vendor['code'], record: vendor['catalogue'][j] });
       }
     }
