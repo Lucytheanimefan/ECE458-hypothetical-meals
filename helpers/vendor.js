@@ -47,7 +47,6 @@ module.exports.makeOrder = function(ingredientId,vendorId,numUnits){
         //TODO make amount on package volume
 
         let amount = numUnits*spaceMapping[package]+parseFloat(ing['amount']);
-        console.log(amount);
         return IngredientHelper.updateIngredient(name, newName, package, temp, nativeUnit, unitsPerPackage, amount);
       }
     }).then(function(result){
@@ -109,6 +108,7 @@ module.exports.addIngredient = function(code, ingredientId, cost){
   let ingId = mongoose.Types.ObjectId(ingredientId);
   return new Promise(function(resolve,reject){
     var ingQuery = Ingredient.model.findById(ingId);
+    var vendQuery = Vendor.findVendorByCode(code);
     ingQuery.exec().then(function(ing){
       if(ing==null){
         var error = new Error('Specified ingredient doesn\'t exist');
@@ -121,10 +121,21 @@ module.exports.addIngredient = function(code, ingredientId, cost){
         throw(error);
       }
       else{
-        return Vendor.addIngredient(code,ingId,cost);
+        return vendQuery;
       }
-    }).then(function(result) {
-      resolve();
+    }).then(function(vend) {
+      let menu = vend['catalogue'];
+      let index = ingIndex(menu,ingredientId);
+      if(index >= 0){
+        vend['catalogue'][index]['cost'] = cost;
+        vend.save();
+        return;
+      }
+      else{
+        var result = Vendor.addIngredient(code,ingId,cost);
+      }
+    }).then(function(result){
+      resolve(result);
     }).catch(function(error){
       reject(error);
     })
@@ -181,4 +192,13 @@ module.exports.deleteIngredient = function(code, ingredientId){
       reject(error);
     })
   })
+}
+
+ingIndex = function(list,name){
+  for(var i = 0; i < list.length; i++){
+    if(list[i]['ingredient'] === name.toString()){
+      return i;
+    }
+  }
+  return -1;
 }
