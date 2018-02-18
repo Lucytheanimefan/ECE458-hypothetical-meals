@@ -45,7 +45,9 @@ router.get('/:name/:amt/:page?', function(req, res, next) {
   var page = req.params.page || 1;
   page = (page < 1) ? 1 : page;
 
-  var vendorQuery = Vendor.model.find({ 'catalogue.ingredient': req.params.name }).skip((perPage * page) - perPage).limit(perPage);
+  var vendorQuery = function(id) {
+    return Vendor.model.find({ 'catalogue.ingredient': id }).skip((perPage * page) - perPage).limit(perPage);
+  }
   // should be from Vendor model
   var findAllVendors = Vendor.model.find().exec();
   var ingredient;
@@ -60,9 +62,9 @@ router.get('/:name/:amt/:page?', function(req, res, next) {
       throw err;
     }
     ingredient = ing;
-    return vendorQuery;
+    return vendorQuery(ing['_id']);
   }).then(function(vendors) {
-    return createCatalogue(vendors, req.params.name);
+    return createCatalogue(vendors, ingredient['_id']);
   }).then(function(catalogue) {
     res.render('ingredient', { ingredient: ingredient, packages: packageTypes, temps: temperatures, vendors: catalogue, page: page, amount: req.params.amt, existingVendors: vendorObjects });
   }).catch(function(error) {

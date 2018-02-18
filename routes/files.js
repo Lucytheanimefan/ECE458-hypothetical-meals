@@ -3,7 +3,11 @@ var router = express.Router();
 // var csvparse = require('csv-parse');
 var async = require('async');
 var Ingredient = require('../models/ingredient');
+var IngredientHelper = require('../helpers/ingredients');
+var Vendor = require('../models/vendor');
+var VendorHelper = require('../helpers/vendor');
 var vendors = require('../routes/vendors');
+var Papa = require('papaparse');
 
 const fs = require('fs');
 const formidable = require('formidable')
@@ -57,10 +61,23 @@ router.post('/upload', function(req, res, next) {
     }
 
     var file = fs.readFileSync(filepath, 'utf8')
-
-    parseFile(file).then(function(csvData) {
+    var csvData;
+    parseFile(file).then(function(data) {
+      if (data.errors.length != 0) {
+        throw data.errors;
+      }
+      csvData = data.data;
+      return Promise.all(csvData.map(function(row, index) {
+        return checkVendor(row['VENDOR FREIGHT CODE']);
+      }));
+    }).then(function() {
+      return Promise.all(csvData.map(function(row, index) {
+        return addToDatabase(index, row);
+      }));
+    }).then(function() {
       res.redirect(req.baseUrl);
     }).catch(function(error) {
+      console.log(error);
       next(error);
     });
 
@@ -74,7 +91,7 @@ router.post('/upload', function(req, res, next) {
 })
 
 validHeaders = function(headers) {
-  let validHeaders = ['INGREDIENT', 'PACKAGE', 'AMOUNT (LBS)', 'PRICE PER PACKAGE', 'VENDOR FREIGHT CODE', 'TEMPERATURE'];
+  let validHeaders = ['INGREDIENT', 'PACKAGE', 'AMOUNT (NATIVE UNITS)', 'NATIVE UNIT', 'UNITS PER PACKAGE', 'PRICE PER PACKAGE', 'VENDOR FREIGHT CODE', 'TEMPERATURE'];
   for (let i = 0; i < validHeaders.length; i++) {
     if (!(validHeaders.indexOf(headers[i].toUpperCase()) > -1)) {
       console.log('HEADER CULPRIT: ' + headers[i]);
@@ -88,28 +105,32 @@ validDataRow = function(csvRow) {
   let validPackages = ['sack', 'pail', 'drum', 'supersack', 'truckload', 'railcar'];
   let validTemperatures = ['frozen', 'refrigerated', 'room temperature'];
 
-  let ingredientName = csvRow[0];
-  let packageType = csvRow[1];
-  let amount = csvRow[2];
-  let price = csvRow[3];
-  let vendorCode = csvRow[4];
-  let temp = csvRow[5];
+  let ingredientName = csvRow['INGREDIENT'];
+  let packageType = csvRow['PACKAGE'];
+  let temp = csvRow['TEMPERATURE'];
+  let nativeUnit = csvRow['NATIVE UNIT'];
+  let unitsPerPackage = csvRow['UNITS PER PACKAGE'];
+  let vendorCode = csvRow['VENDOR FREIGHT CODE'];
+  let price = csvRow['PRICE PER PACKAGE'];
+  let amount = csvRow['AMOUNT (NATIVE UNITS)'];
 
-  if (ingredientName == undefined | packageType == undefined | amount == undefined | price == undefined | price == undefined | vendorCode == undefined | temp == undefined) {
+  if (ingredientName == undefined | packageType == undefined | amount == undefined | price == undefined | price == undefined | vendorCode == undefined | temp == undefined | nativeUnit == undefined | unitsPerPackage == undefined) {
     return { 'valid': false, 'reason': 'Undefined values' };
   }
   let validPackageType = validPackages.indexOf(packageType.toLowerCase()) > -1;
   let validAmount = (parseInt(amount) != NaN);
   let validPrice = (parseFloat(price) != NaN) && (parseFloat(price) > 0);
+  let validUnitsPerPackage = (parseFloat(unitsPerPackage) != NaN) && (parseFloat(unitsPerPackage) > 0);
   let validTemp = validTemperatures.indexOf(temp.toLowerCase()) > -1;
 
   let reason = (validPackageType ? '' : 'Invalid package type(' + packageType + ') for ' + ingredientName + '; ') +
     (validAmount ? '' : 'Invalid amount(' + amount + ') for ' + ingredientName + '; ') +
+    (validUnitsPerPackage ? '' : 'Invalid units per package(' + unitsPerPackage + ') for ' + ingredientName + '; ') +
     (validPrice ? '' : 'Invalid price(' + price + ') for ' + ingredientName + '; ') +
     (validTemp ? '' : 'Invalid temperature(' + temp + ') for ' + ingredientName + ';');
 
 
-  return { 'valid': validPackageType && validAmount && validPrice && validTemp, 'reason': reason };
+  return { 'valid': validPackageType && validAmount && validUnitsPerPackage && validPrice && validTemp, 'reason': reason };
 
 }
 
@@ -133,18 +154,11 @@ CSVtoArray = function(text) {
   return a;
 };
 
-addToDatabase = function(index, csvRow, header) {
+addToDatabase = function(index, csvRow) {
   return new Promise(function(resolve, reject) {
     console.log(csvRow.length);
     console.log(csvRow);
     console.log('-----------');
-
-    let ingIndex = header.indexOf('INGREDIENT');
-    let packageIndex = header.indexOf('PACKAGE');
-    let tempIndex = header.indexOf('TEMPERATURE');
-    let amountIndex = header.indexOf('AMOUNT (LBS)');
-    let codeIndex = header.indexOf('VENDOR FREIGHT CODE');
-    let costIndex = header.indexOf('PRICE PER PACKAGE');
 
     let validDataRowData = validDataRow(csvRow);
     let isValid = validDataRowData['valid'];
@@ -153,65 +167,84 @@ addToDatabase = function(index, csvRow, header) {
       let err = new Error('Error reading CSV. Row #' + index + ' contains formatting errors. ' + reason);
       err.status = 400;
       reject(err);
-    }
+    } else {
 
-    var ingredient = {};
-    ingredient.ingredient = csvRow[ingIndex];
-    ingredient.size = csvRow[packageIndex];
-    ingredient.temperature = csvRow[tempIndex];
-    ingredient.cost = csvRow[costIndex];
-    ingredient.code = csvRow[codeIndex];
-    ingredient.quantity = 0;
+      let name = csvRow['INGREDIENT'];
+      let package = csvRow['PACKAGE'];
+      let temperature = csvRow['TEMPERATURE'];
+      let nativeUnit = csvRow['NATIVE UNIT'];
+      let unitsPerPackage = parseFloat(csvRow['UNITS PER PACKAGE']);
+      let code = csvRow['VENDOR FREIGHT CODE'];
+      let price = parseFloat(csvRow['PRICE PER PACKAGE']);
+      let amount = 0;
 
-    var addIngredient = vendors.addIngredient(ingredient, csvRow[codeIndex]);
-    var createIngredient = Ingredient.create({
-      name: csvRow[ingIndex],
-      package: csvRow[packageIndex].toLowerCase(),
-      temperature: csvRow[tempIndex].toLowerCase(),
-      amount: 0
-    });
-
-    createIngredient.then(function(ing) {
-      return addIngredient;
-    }).then(function(result) {
-      resolve(csvRow);
-    }).catch(function(error) {
-      if (error.name === 'MongoError' && error.code === 11000) {
+      IngredientHelper.createIngredient(name, package, temperature, nativeUnit, unitsPerPackage, amount).then(function(ing) {
+        return VendorHelper.addIngredient(code, ing['_id'], price);
+      }).then(function() {
         resolve(csvRow);
-      } else {
-        reject(error);
-      }
-    });
-
+      }).catch(function(error) {
+        if (error.name === 'MongoError' && error.code === 11000) {
+          resolve(csvRow);
+        } else {
+          reject(error);
+        }
+      });
+    }
   });
 }
 
 parseFile = function(file, next) {
   return new Promise(function(resolve, reject) {
-    var headerKeys;
-    var options = {
-      trim: true,
-      columns: function(header) {
-        headerKeys = header;
-        console.log('header: ', header);
-        if (!validHeaders(headerKeys)) {
-          let err = new Error('Error reading CSV. Headers are in invalid format.');
-          err.status = 400;
-          reject(err);
-        }
-      }
-    };
-
-    parse(file, options).then(function(rows) {
-      return Promise.all(rows.map(function(row, index) {
-        return addToDatabase(index, row, headerKeys);
-      }))
-    }).then(function(csvData) {
-      resolve(csvData);
+    Papa.parsePromise(file).then(function(results) {
+      console.log(results);
+      resolve(results);
     }).catch(function(error) {
       reject(error);
     });
+    // var headerKeys;
+    // var options = {
+    //   trim: true,
+    //   columns: function(header) {
+    //     headerKeys = header;
+    //     console.log('header: ', header);
+    //     if (!validHeaders(headerKeys)) {
+    //       let err = new Error('Error reading CSV. Headers are in invalid format.');
+    //       err.status = 400;
+    //       reject(err);
+    //     }
+    //   }
+    // };
+
+    // parse(file, options).then(function(rows) {
+    //   return Promise.all(rows.map(function(row, index) {
+    //     return addToDatabase(index, row, headerKeys);
+    //   }))
+    // }).then(function(csvData) {
+    //   resolve(csvData);
+    // }).catch(function(error) {
+    //   reject(error);
+    // });
   });
 }
+
+checkVendor = function(vendorCode) {
+  return new Promise(function(resolve, reject) {
+    Vendor.model.findOne( {code: vendorCode} ).exec().then(function(result) {
+      if (result == null) {
+        reject(new Error('Vendor with freight code ' + vendorCode +' doesn\'t exist!'));
+      } else {
+        resolve();
+      }
+    }).catch(function(error) {
+      reject(error);
+    })
+  })
+}
+
+Papa.parsePromise = function(file) {
+  return new Promise(function(complete, error) {
+    Papa.parse(file, {header: true, delimiter: ',', complete, error});
+  });
+};
 
 module.exports = router;
