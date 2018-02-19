@@ -44,8 +44,6 @@ module.exports.makeOrder = function(ingredientId,vendorId,numUnits){
         let newName = ing['name'];
         let nativeUnit = ing['nativeUnit'];
         let unitsPerPackage = ing['unitsPerPackage'];
-        //TODO make amount on package volume
-
         let amount = numUnits*spaceMapping[package]+parseFloat(ing['amount']);
         return IngredientHelper.updateIngredient(name, newName, package, temp, nativeUnit, unitsPerPackage, amount);
       }

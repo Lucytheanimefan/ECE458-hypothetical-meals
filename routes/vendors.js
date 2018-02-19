@@ -47,7 +47,9 @@ router.get('/:code/:page?', async function(req, res, next) {
   }).then(function(vendQuery){
       var page = req.params.page || 1;
       page = (page < 1) ? 1 : page;
+      //let fullMenu = catalogueParse(vendQuery.catalogue);
       let fullMenu = vendQuery.catalogue;
+      console.log(fullMenu);
       let name = vendQuery.name;
       let contact = vendQuery.contact;
       let location = vendQuery.location;
@@ -144,7 +146,6 @@ router.post('/new', function(req, res, next) {
 
 router.post('/:code/order', async function(req, res, next) {
   let ingId = mongoose.Types.ObjectId(req.body.ingredient);
-  console.log(req.body.ingredient);
   var vendQuery = Vendor.findVendorByCode(req.params.code);
   let amount = parseFloat(req.body.quantity);
   vendQuery.then(function(vend) {
@@ -159,6 +160,27 @@ router.post('/:code/order', async function(req, res, next) {
   })
 });
 
-
+catalogueParse = function(list){
+  var processedList = [];
+  //console.log(list);
+  for(var i = 0; i < list.length; i++){
+    var entry = {};
+    let ingId = mongoose.Types.ObjectId(list[i].ingredient);
+    var ing = Ingredient.model.findById(ingId);
+    let cost = list[i]['cost'];
+    ing.then(function(result){
+      entry['name'] = result['name'];
+      entry['package'] = result['package'];
+      entry['cost'] = cost;
+      entry['temperature'] = result['temperature'];
+      processedList.push(entry);
+      console.log(processedList);
+    }).catch(function(error){
+      return error;
+    })
+  }
+  console.log(processedList);
+  return processedList;
+}
 
 module.exports = router;
