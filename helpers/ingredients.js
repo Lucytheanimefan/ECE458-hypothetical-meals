@@ -27,7 +27,7 @@ module.exports.createIngredient = function(name, package, temp, nativeUnit, unit
           throw error;
         }
       }).then(function(results) {
-        resolve("created ingredient!");
+        resolve(results[1]);
       }).catch(function(error) {
         reject(error);
       });
