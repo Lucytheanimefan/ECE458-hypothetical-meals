@@ -209,10 +209,12 @@ function loadPugView() {
 
       var text = '';
       console.log(key.toLowerCase());
-      if (key.toLowerCase() == 'vendor code') {
-        text = '<a href=\'/vendors/' + description[key] + '\'>' + '<b>' + key + '</b>: ' + description[key] + '</a>';
+      var keyLower = key.toLowerCase()
+      if (keyLower == 'vendor code') {
+        text = key + ': <a href=\'/vendors/' + description[key] + '\'>' + description[key] + '</a>';
         $("#description").append("<li>" + text + "</li>");
-      } else if (key.toLowerCase() == 'ingredient_id' || key.toLowerCase() == 'ingredient id') {
+      } else if (keyLower == 'ingredient_id' || keyLower == 'ingredient id') {
+        console.log('get ingredient for id');
         getIngredientForID(description[key], function(ingredient) {
           text = 'Ingredient: <ul>';
           for (var ingKey in ingredient) {
@@ -224,8 +226,20 @@ function loadPugView() {
 
           $("#description").append("<li>" + text + "</li>");
         })
+      } else if (keyLower == "array_description") {
+        for (var i in description[key]) {
+          var result = description[key][i];
+          console.log(result);
 
+          if (result.hasOwnProperty('package')) { // it's an ingredient
+            text += '<li>Ingredient: <a href=\'/ingredients/' + result['name'] + '\'>' + result['name'] + '</a></li>';
+          } else if (result.hasOwnProperty('code')) { // it's a vendor
+            text += '<li>Vendor: <a href=\'/vendors/' + result['code'] + '\'>' + result['code'] + '</a></li>';
+          }
+        }
+        $("#description").append(text);
         //text = '<a href=\'/vendors/' + description[key] + '\'>' + '<b>' + key + '</b>: ' + description[key] + '</a>'
+
       } else {
         $("#description").append("<li>" + key + ": " + description[key] + "</li>");
       }

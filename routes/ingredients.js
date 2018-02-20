@@ -104,6 +104,8 @@ router.post('/:name/delete', function(req, res, next) {
 
 router.post('/:name/update', function(req, res, next) {
   let ingName = req.body.name;
+  let initiating_user = req.session.userId;
+  console.log(initiating_user)
 
   var updatePromise = IngredientHelper.updateIngredient(
     req.params.name,
@@ -114,7 +116,8 @@ router.post('/:name/update', function(req, res, next) {
     parseFloat(req.body.unitsPerPackage),
     parseFloat(req.body.amount)
   );
-  updatePromise.then(function() {
+  updatePromise.then(function(ingredient) {
+    logs.makeIngredientLog('Update', {'ingredient_id': ingredient[0]._id}, ['ingredient'], initiating_user);
     res.redirect(req.baseUrl + '/' + ingName);
   }).catch(function(error) {
     next(error);
@@ -124,7 +127,7 @@ router.post('/:name/update', function(req, res, next) {
 
 router.post('/new', function(req, res, next) {
   let ingName = req.body.name;
-
+  let initiating_user = req.session.userId;
   var promise = IngredientHelper.createIngredient(
     ingName,
     req.body.package,
@@ -133,7 +136,8 @@ router.post('/new', function(req, res, next) {
     parseFloat(req.body.unitsPerPackage),
     parseFloat(req.body.amount)
   );
-  promise.then(function() {
+  promise.then(function(ingredient) {
+    logs.makeIngredientLog('Creation', {'ingredient_id': ingredient._id}, ['ingredient'], initiating_user);
     res.redirect(req.baseUrl + '/' + ingName);
   }).catch(function(error) {
     next(error);
@@ -144,8 +148,9 @@ router.post('/new', function(req, res, next) {
 
 router.post('/:name/add-vendor', function(req, res, next) {
   let ingName = req.params.name;
-
-  IngredientHelper.addVendor(ingName, req.body.vendor, req.body.cost).then(function() {
+  let initiating_user = req.session.userId;
+  IngredientHelper.addVendor(ingName, req.body.vendor, req.body.cost).then(function(results) {
+    logs.makeIngredientLog('Add vendor to ingredient', {'array_description':results}, ['ingredient','vendor'], initiating_user);
     res.redirect(req.baseUrl + '/' + ingName);
   }).catch(function(error) {
     next(error);
