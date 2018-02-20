@@ -49,7 +49,6 @@ router.get('/:code/:page?', async function(req, res, next) {
       page = (page < 1) ? 1 : page;
       //let fullMenu = catalogueParse(vendQuery.catalogue);
       let fullMenu = vendQuery.catalogue;
-      console.log(fullMenu);
       let name = vendQuery.name;
       let contact = vendQuery.contact;
       let location = vendQuery.location;
@@ -77,13 +76,14 @@ router.post('/:code/add_ingredients', function(req, res, next) {
   var ingQuery = Ingredient.getIngredientById(mongoose.Types.ObjectId(req.body.ingredient));
   ingQuery.then(function(result) {
     console.log(result);
+    console.log("gimme dat meme");
     if (result == null) {
       let err = new Error('This ingredient does not exist');
       return next(err);
     }
-    let ingId = mongoose.Types.ObjectId(result._id);
-    VendorHelper.addIngredient(req.params.code, ingId, req.body.cost);
-    logs.makeVendorLog('Add ingredients', { 'Vendor code': req.params.code, 'Ingredient ID': ingId, 'cost': req.body.cost }, entities = ['vendor', 'ingredient'], req.session.userId);
+    VendorHelper.addIngredient(req.params.code, result._id, req.body.cost);
+    console.log("we out here bruv");
+    logs.makeVendorLog('Add ingredients', { 'Vendor code': req.params.code, 'Ingredient ID': result._id, 'cost': req.body.cost }, entities = ['vendor', 'ingredient'], req.session.userId);
     return res.redirect(req.baseUrl + '/' + req.params.code);
   }).catch(function(error) {
     next(error);

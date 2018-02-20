@@ -103,7 +103,7 @@ module.exports.deleteVendor = function(code){
 }
 
 module.exports.addIngredient = function(code, ingredientId, cost){
-  let ingId = mongoose.Types.ObjectId(ingredientId);
+  let ingId = ingredientId;
   return new Promise(function(resolve,reject){
     var ingQuery = Ingredient.model.findById(ingId);
     var vendQuery = Vendor.findVendorByCode(code);
@@ -194,7 +194,7 @@ module.exports.deleteIngredient = function(code, ingredientId){
 
 ingIndex = function(list,name){
   for(var i = 0; i < list.length; i++){
-    if(list[i]['ingredient'] === name.toString()){
+    if(list[i]['ingredient']['_id'].toString() === name.toString()){
       return i;
     }
   }
