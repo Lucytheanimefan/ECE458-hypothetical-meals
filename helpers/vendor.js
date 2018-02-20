@@ -44,7 +44,7 @@ module.exports.makeOrder = function(ingredientId,vendorId,numUnits){
         let newName = ing['name'];
         let nativeUnit = ing['nativeUnit'];
         let unitsPerPackage = ing['unitsPerPackage'];
-        let amount = numUnits*ing['unitsPerPackage'] + parseFloat(ing['amount']);
+        let amount = parseFloat(numUnits)*parseFloat(ing['unitsPerPackage']) + parseFloat(ing['amount']);
         return IngredientHelper.updateIngredient(name, newName, package, temp, nativeUnit, unitsPerPackage, amount);
       }
     }).then(function(result){
@@ -156,7 +156,7 @@ module.exports.updateIngredient = function(code, ingredientId, cost){
         throw(error);
       }
       else{
-        result = Vendor.removeIngredient(code,ingId);
+        var result = Vendor.removeIngredient(code,ingId);
       }
     }).then(function(result) {
       resolve(result);
