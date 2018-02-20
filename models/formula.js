@@ -12,6 +12,10 @@ var FormulaSchema = new mongoose.Schema({
     required: true
   },
   tuples:[{
+    index: {
+      type: Number,
+      required: true
+    },
     ingredient: {
       type: String,
       required: true
@@ -57,8 +61,8 @@ module.exports.updateFormula = function(name, newName, description, units) {
   }).exec();
 }
 
-module.exports.addTuple = function(name, ingredient, quantity){
-  let entry = {ingredient:ingredient, quantity:quantity};
+module.exports.addTuple = function(name, index, ingredient, quantity){
+  let entry = {index:index, ingredient:ingredient, quantity:quantity};
   return Formula.findOneAndUpdate({'name':name},{'$push':{'tuples':entry}}).exec();
 }
 
@@ -66,9 +70,9 @@ module.exports.removeTuple = function(name, ingredient){
   return Formula.findOneAndUpdate({'name':name},{'$pull':{'tuples':{'ingredient':ingredient}}}).exec();
 }
 
-module.exports.updateTuple = function(name, ingredient, quantity){
-  var remove = removeTuple(code,ingredient,quantity);
-  var append = addTuple(code,ingredient,quantity);
+module.exports.updateTuple = function(name, index, ingredient, quantity){
+  var remove = removeTuple(name,ingredient);
+  var append = addTuple(name,index,ingredient,quantity);
   remove.then(function(result){
     return append;
   });

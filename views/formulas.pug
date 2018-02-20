@@ -21,7 +21,7 @@ block content
               thead.text-primary
                 th(onclick='sortTable(0, \'formula\')') Formula
                 th(onclick='sortTable(1, \'formula\')') Description
-                th(onclick='sortTable(2, \'formula\')') Ingredients
+                th(onclick='sortTable(2, \'formula\')') Ingredients (Quantity)
                 th(onclick='sortTable(3, \'formula\')') Number of Units Produced
               tbody
               each formula in formulas
@@ -32,7 +32,7 @@ block content
                   td
                     each tuple in formula.tuples
                       a(href='/ingredients/' + tuple.ingredient)= tuple.ingredient
-                      | : #{tuple.quantity}
+                      |  (#{tuple.quantity})
                       br
                   td= formula.units
       .card-content.tab-pane.fade#add_formula.adminOnly.hide

@@ -4,7 +4,11 @@ var Formula = require('../models/formula');
 var FormulaHelper = require('../helpers/formula');
 var mongoose = require('mongoose');
 
-router.get('/:page?', function(req, res, next) {
+router.get('/', function(req, res, next) {
+  res.redirect(req.baseUrl + '/home/');
+})
+
+router.get('/home/:page?', function(req, res, next) {
   var perPage = 10;
   var page = req.params.page || 1;
   page = (page < 1) ? 1 : page;
@@ -21,7 +25,7 @@ router.get('/:page?', function(req, res, next) {
 });
 
 router.get('/:name', function(req, res, next) {
-  var formQuery = Formula.findFormulaByName(name);
+  var formQuery = Formula.findFormulaByName(req.params.name);
   formQuery.then(function(formula) {
     res.render('formula', { formula: formula });
   }).catch(function(error) {
@@ -40,7 +44,7 @@ router.post('/new', async function(req, res, next) {
     while (req.body["ingredient"+index] != undefined) {
       ingredient = req.body["ingredient"+index];
       quantity = req.body["quantity"+index];
-      FormulaHelper.addTuple(name, ingredient, quantity);
+      FormulaHelper.addTuple(name, index, ingredient, quantity);
       index = index + 1;
     }
     res.redirect(req.baseUrl + '/' + name);
