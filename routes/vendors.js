@@ -74,15 +74,12 @@ router.post('/:code/delete', function(req, res, next) {
 //bare bones done, more implementation needed for adding other ingredients, currently hardcoded
 router.post('/:code/add_ingredients', function(req, res, next) {
   var ingQuery = Ingredient.getIngredientById(mongoose.Types.ObjectId(req.body.ingredient));
-  ingQuery.then(function(result) {
-    console.log(result);
-    console.log("gimme dat meme");
+  ingQuery.then(async function(result) {
     if (result == null) {
       let err = new Error('This ingredient does not exist');
       return next(err);
     }
-    VendorHelper.addIngredient(req.params.code, result._id, req.body.cost);
-    console.log("we out here bruv");
+    await VendorHelper.addIngredient(req.params.code, result._id, req.body.cost);
     logs.makeVendorLog('Add ingredients', { 'Vendor code': req.params.code, 'Ingredient ID': result._id, 'cost': req.body.cost }, entities = ['vendor', 'ingredient'], req.session.userId);
     return res.redirect(req.baseUrl + '/' + req.params.code);
   }).catch(function(error) {
@@ -92,18 +89,14 @@ router.post('/:code/add_ingredients', function(req, res, next) {
 
 //bare bones done
 router.post('/:code/update_ingredients', function(req, res, next) {
-  console.log('Ingredient: '  + req.body.ingredient);
   let ingId = mongoose.Types.ObjectId(req.body.ingredient);
-  console.log('Ingredient id: ' + ingId);
   VendorHelper.updateIngredient(req.params.code, ingId, req.body.cost);
   logs.makeVendorLog('Update ingredients', { 'Vendor code': req.params.code, 'Ingredient ID': ingId, 'cost': req.body.cost }, entities = ['vendor', 'ingredient'], req.session.userId);
   res.redirect(req.baseUrl + '/' + req.params.code);
 });
 
-//TODO This route is giving a 404 for some reason.  Fix this!!!!a
+//TODO This route is giving a 404 for some reason.  Fix this!!!!
 router.post('/:code/:ingredient/remove_ingredients/', function(req, res, next) {
-  console.log(req.params.ingredient);
-  console.log("delete this boy");
   let ingId = mongoose.Types.ObjectId(req.params.ingredient);
   VendorHelper.deleteIngredient(req.params.code, ingId);
   //TODO link delete to logs
@@ -160,27 +153,5 @@ router.post('/:code/order', async function(req, res, next) {
   })
 });
 
-catalogueParse = function(list){
-  var processedList = [];
-  //console.log(list);
-  for(var i = 0; i < list.length; i++){
-    var entry = {};
-    let ingId = mongoose.Types.ObjectId(list[i].ingredient);
-    var ing = Ingredient.model.findById(ingId);
-    let cost = list[i]['cost'];
-    ing.then(function(result){
-      entry['name'] = result['name'];
-      entry['package'] = result['package'];
-      entry['cost'] = cost;
-      entry['temperature'] = result['temperature'];
-      processedList.push(entry);
-      console.log(processedList);
-    }).catch(function(error){
-      return error;
-    })
-  }
-  console.log(processedList);
-  return processedList;
-}
 
 module.exports = router;
