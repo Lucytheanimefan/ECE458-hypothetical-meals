@@ -147,13 +147,14 @@ function loadLoggedInContent() {
 
 function loadRelevantContent() {
   let role = sessionStorage.getItem("role");
-  if (role != null) {
-    console.log('Load cached content!');
+  console.log('Load relevant content for role: ' + role);
+  if (role != null && role != "none") {
+    console.log('-Load cached content!');
     loadContent(role);
   } else {
     getUserRole(function(role) {
       let my_role = role.toLowerCase();
-      //console.log('Role: ' + my_role);
+      console.log('-Load relevant content for role: ' + role);
 
       // Cache the role
       sessionStorage.setItem("role", my_role);
