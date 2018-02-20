@@ -73,15 +73,17 @@ router.post('/:code/delete', function(req, res, next) {
 //bare bones done, more implementation needed for adding other ingredients, currently hardcoded
 router.post('/:code/add_ingredients', function(req, res, next) {
   var ingQuery = Ingredient.getIngredientById(mongoose.Types.ObjectId(req.body.ingredient));
-  ingQuery.then(async function(result) {
+  ingQuery.then(function(result) {
     if (result == null) {
       let err = new Error('This ingredient does not exist');
       return next(err);
     }
-    await VendorHelper.addIngredient(req.params.code, result._id, req.body.cost);
+    var vend = VendorHelper.addIngredient(req.params.code, result._id, req.body.cost);
     logs.makeVendorLog('Add ingredients', { 'Vendor code': req.params.code, 'Ingredient ID': result._id, 'cost': req.body.cost }, entities = ['vendor', 'ingredient'], req.session.userId);
+  }).then(function(outcome){
+
     return res.redirect(req.baseUrl + '/' + req.params.code);
-  }).catch(function(error) {
+  }).catch(function(error){
     next(error);
   })
 });
