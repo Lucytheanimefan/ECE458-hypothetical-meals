@@ -47,8 +47,7 @@ router.get('/:code/:page?', async function(req, res, next) {
   }).then(function(vendQuery){
       var page = req.params.page || 1;
       page = (page < 1) ? 1 : page;
-      //let fullMenu = catalogueParse(vendQuery.catalogue);
-      let fullMenu = vendQuery.catalogue;
+      let fullMenu = processMenu(vendQuery.catalogue,req.params.code);
       let name = vendQuery.name;
       let contact = vendQuery.contact;
       let location = vendQuery.location;
@@ -152,6 +151,19 @@ router.post('/:code/order', async function(req, res, next) {
     next(error);
   })
 });
+
+processMenu = function(list,code){
+  var newList = list.slice();
+  for(var i = 0; i < newList.length; i++){
+    if(newList[i]['ingredient'] == null){
+      let id = newList[i]['_id'];
+      VendorHelper.deleteIngredient(code,id);
+      newList.splice(i,1);
+      i--;
+    }
+  }
+  return newList;
+}
 
 
 module.exports = router;

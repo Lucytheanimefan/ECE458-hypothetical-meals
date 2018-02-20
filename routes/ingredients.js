@@ -83,7 +83,6 @@ router.post('/:name/delete', function(req, res, next) {
       parseFloat(ing['amount'])
     );
   }).then(function() {
-    return VendorHe
     res.redirect(req.baseUrl + '/');
   }).catch(function(error) {
     next(error);

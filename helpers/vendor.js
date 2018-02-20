@@ -44,7 +44,7 @@ module.exports.makeOrder = function(ingredientId,vendorId,numUnits){
         let newName = ing['name'];
         let nativeUnit = ing['nativeUnit'];
         let unitsPerPackage = ing['unitsPerPackage'];
-        let amount = numUnits*spaceMapping[package]+parseFloat(ing['amount']);
+        let amount = numUnits*ing['unitsPerPackage'] + parseFloat(ing['amount']);
         return IngredientHelper.updateIngredient(name, newName, package, temp, nativeUnit, unitsPerPackage, amount);
       }
     }).then(function(result){
@@ -172,20 +172,11 @@ module.exports.updateIngredient = function(code, ingredientId, cost){
 module.exports.deleteIngredient = function(code, ingredientId){
   let ingId = mongoose.Types.ObjectId(ingredientId);
   return new Promise(function(resolve,reject){
-    var ingQuery = Ingredient.model.findById(ingId);
-    ingQuery.exec().then(function(ing){
-      console.log(ing);
-      if(ing==null){
-        var error = new Error('Specified ingredient doesn\'t exist');
-        error.status = 400;
-        throw(error);
-      }
-      else{
-
-        result = Vendor.removeIngredient(code,ingId);
-      }
-    }).then(function(result) {
-      resolve(result);
+    console.log("REEEEE");
+    console.log(ingredientId);
+    var result = Vendor.removeIngredient(code,ingId);
+    result.then(function(success){
+      resolve(success);
     }).catch(function(error){
       reject(error);
     })

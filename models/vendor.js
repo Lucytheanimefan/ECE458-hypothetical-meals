@@ -81,6 +81,7 @@ module.exports.addIngredient = function(code, ingId, cost){
 }
 
 module.exports.removeIngredient = function(code, ingId){
+  console.log(ingId);
   return Vendor.findOneAndUpdate({'code':code},{'$pull':{'catalogue':{'type':ingId}}}).exec();
 }
 
