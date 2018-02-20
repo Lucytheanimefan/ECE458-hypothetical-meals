@@ -91,9 +91,12 @@ router.post('/:code/add_ingredients', function(req, res, next) {
 //bare bones done
 router.post('/:code/update_ingredients', function(req, res, next) {
   let ingId = mongoose.Types.ObjectId(req.body.ingredient);
-  VendorHelper.updateIngredient(req.params.code, ingId, req.body.cost);
-  logs.makeVendorLog('Update ingredients', { 'Vendor code': req.params.code, 'Ingredient ID': ingId, 'cost': req.body.cost }, entities = ['vendor', 'ingredient'], req.session.userId);
-  res.redirect(req.baseUrl + '/' + req.params.code);
+  VendorHelper.updateIngredient(req.params.code, ingId, req.body.cost).then(function(result){
+    logs.makeVendorLog('Update ingredients', { 'Vendor code': req.params.code, 'Ingredient ID': ingId, 'cost': req.body.cost }, entities = ['vendor', 'ingredient'], req.session.userId);
+    res.redirect(req.baseUrl + '/' + req.params.code);
+  }).catch(function(err){
+    next(err);
+  });
 });
 
 //TODO This route is giving a 404 for some reason.  Fix this!!!!

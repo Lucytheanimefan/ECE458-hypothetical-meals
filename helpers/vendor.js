@@ -156,7 +156,7 @@ module.exports.updateIngredient = function(code, ingredientId, cost){
         throw(error);
       }
       else{
-        var result = Vendor.removeIngredient(code,ingId);
+        return result = Vendor.removeIngredient(code,ingId);
       }
     }).then(function(result) {
       resolve(result);
