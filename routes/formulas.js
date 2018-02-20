@@ -33,6 +33,27 @@ router.get('/:name', function(req, res, next) {
   });
 })
 
+router.post('/:name/update', function(req, res, next) {
+  let name = req.params.name;
+  let newName = req.body.name;
+  let description = req.body.description;
+  let units = req.body.units;
+  var promise = FormulaHelper.updateFormula(name, newName, description, units);
+  promise.then(function() {
+    var index = 1;
+    var ingredient, quantity;
+    while (req.body["ingredient"+index] != undefined) {
+      ingredient = req.body["ingredient"+index];
+      quantity = req.body["quantity"+index];
+      FormulaHelper.updateTuple(name, index, ingredient, quantity);
+      index = index + 1;
+    }
+    res.redirect(req.baseUrl + '/' + name);
+  }).catch(function(error) {
+    next(error);
+  });
+})
+
 router.post('/new', async function(req, res, next) {
   let name = req.body.name;
   let description = req.body.description;
@@ -51,6 +72,6 @@ router.post('/new', async function(req, res, next) {
   }).catch(function(error) {
     next(error);
   });
-});
+})
 
 module.exports = router;

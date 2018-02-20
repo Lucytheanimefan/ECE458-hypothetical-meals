@@ -60,23 +60,53 @@ module.exports.addTuple = function(name, index, ingredient, quantity){
         throw(error);
       }
       if(parseFloat(quantity) < 0){
-        var error = new Error('Invalid quantity: ${quantity}. Please enter a valid quantity');
+        var error = new Error('Invalid quantity: ${quantity}. Please enter a valid quantity.');
         error.status = 400;
         throw(error);
       } else {
         var ingQuery = Ingredient.getIngredient(ingredient);
-        ingQuery.then(function(result) {
-          if (result == null) {
-            var error = new Error('The ingredient ${ingredient} does not exist!');
-            error.status = 400;
-            throw(error);
-          }
-          return Formula.addTuple(name,index,ingredient,quantity);
-        }).catch(function(error) {
-          reject(error);
-        })
+        return ingQuery;
       }
+    }).then(function(ingResult) {
+      if (ingResult == null) {
+        var error = new Error('The ingredient ${ingredient} does not exist!');
+        error.status = 400;
+        throw(error);
+      }
+      return Formula.addTuple(name,index,ingredient,quantity);
     }).then(function(result) {
+      resolve();
+    }).catch(function(error){
+      reject(error);
+    })
+  })
+}
+
+module.exports.updateTuple = function(name, index, ingredient, quantity){
+  return new Promise(function(resolve,reject){
+    var formQuery = Formula.findFormulaByName(name);
+    formQuery.then(function(form){
+      if(form==null){
+        var error = new Error('Specified formula doesn\'t exist');
+        error.status = 400;
+        throw(error);
+      }
+      if(parseFloat(quantity) < 0){
+        var error = new Error('Invalid quantity: ${quantity}. Please enter a valid quantity.');
+        error.status = 400;
+        throw(error);
+      } else {
+        var ingQuery = Ingredient.getIngredient(ingredient);
+        return ingQuery;
+      }
+    }).then(function(ingResult) {
+      if (ingResult == null) {
+        var error = new Error('The ingredient ${ingredient} does not exist!');
+        error.status = 400;
+        throw(error);
+      }
+      return Formula.updateTuple(name, index, ingredient, quantity);
+    }).then(function() {
       resolve();
     }).catch(function(error){
       reject(error);
