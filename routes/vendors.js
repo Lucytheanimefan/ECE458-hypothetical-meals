@@ -78,10 +78,10 @@ router.post('/:code/add_ingredients', function(req, res, next) {
       let err = new Error('This ingredient does not exist');
       return next(err);
     }
-    var vend = VendorHelper.addIngredient(req.params.code, result._id, req.body.cost);
     logs.makeVendorLog('Add ingredients', { 'Vendor code': req.params.code, 'Ingredient ID': result._id, 'cost': req.body.cost }, entities = ['vendor', 'ingredient'], req.session.userId);
-  }).then(function(outcome){
+    return vend = VendorHelper.addIngredient(req.params.code, result._id, req.body.cost);
 
+  }).then(function(outcome){
     return res.redirect(req.baseUrl + '/' + req.params.code);
   }).catch(function(error){
     next(error);

@@ -172,8 +172,6 @@ module.exports.updateIngredient = function(code, ingredientId, cost){
 module.exports.deleteIngredient = function(code, ingredientId){
   let ingId = mongoose.Types.ObjectId(ingredientId);
   return new Promise(function(resolve,reject){
-    console.log("REEEEE");
-    console.log(ingredientId);
     var result = Vendor.removeIngredient(code,ingId);
     result.then(function(success){
       resolve(success);
