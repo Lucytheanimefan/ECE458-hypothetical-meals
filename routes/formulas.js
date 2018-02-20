@@ -41,12 +41,15 @@ router.post('/new', async function(req, res, next) {
   promise.then(function() {
     var index = 1;
     var ingredient, quantity;
+    let tuplePromises = [];
     while (req.body["ingredient"+index] != undefined) {
       ingredient = req.body["ingredient"+index];
       quantity = req.body["quantity"+index];
-      FormulaHelper.addTuple(name, index, ingredient, quantity);
+      tuplePromises.push(FormulaHelper.addTuple(name, index, ingredient, quantity));
       index = index + 1;
     }
+    return Promise.all(tuplePromises);
+  }).then(function(results) {
     res.redirect(req.baseUrl + '/' + name);
   }).catch(function(error) {
     next(error);
