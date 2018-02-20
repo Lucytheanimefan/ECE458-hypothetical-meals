@@ -38,6 +38,19 @@ router.get('/:name', function(req, res, next) {
   res.redirect(req.baseUrl + '/' + req.params.name + '/0');
 })
 
+
+router.get('/id/:ingredient_id', function(req, res, next) {
+  console.log('Get ingredient for id: ' + req.params.ingredient_id);
+  var findIngredient = Ingredient.model.findOne({ _id: req.params.ingredient_id }).exec();
+  findIngredient.then(function(ingredient) {
+    console.log(ingredient);
+    res.send(ingredient);
+  }).catch(function(error){
+    res.send({'error': error});
+  })
+
+})
+
 //TODO: Refactor once vendor is ready
 router.get('/:name/:amt/:page?', function(req, res, next) {
   var ingQuery = Ingredient.getIngredient(req.params.name);

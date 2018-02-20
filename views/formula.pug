@@ -34,7 +34,7 @@ block content
 
       .adminOnly.hide.card-content.tab-pane.fade#update-form
         h1= 'Update Formula'
-        form.form-group(action='/formulas/' + formula.name + '/update', method='post')
+        form(action='/formulas/' + formula.name + '/update', method='post')
           .form-group
             label.control-label Formula Name
             input.form-control(type='text', name='name', value = formula.name, required='')
@@ -66,8 +66,6 @@ block content
           button.btn.btn-primary.pull-right(type='submit') Update Formula
 
 block scripts
-  script.
-    loadAdminContent();
   script.
     $(document).ready(function() {
       var next = #{formula.tuples.length};

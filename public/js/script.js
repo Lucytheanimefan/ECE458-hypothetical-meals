@@ -201,6 +201,54 @@ function loadSideBar() {
   })
 }
 
+function loadPugView() {
+  var description = $("#descriptionValues").data("description");
+  console.log(description);
+  for (var key in description) {
+    if (description.hasOwnProperty(key)) {
+
+      var text = '';
+      console.log(key.toLowerCase());
+      if (key.toLowerCase() == 'vendor code') {
+        text = '<a href=\'/vendors/' + description[key] + '\'>' + '<b>' + key + '</b>: ' + description[key] + '</a>';
+        $("#description").append("<li>" + text + "</li>");
+      } else if (key.toLowerCase() == 'ingredient_id' || key.toLowerCase() == 'ingredient id') {
+        getIngredientForID(description[key], function(ingredient) {
+          text = 'Ingredient: <ul>';
+          for (var ingKey in ingredient) {
+            if (ingKey != '_id' && ingKey != '__v' && ingKey != 'vendors') {
+              text += '<li>' + ingKey + ': ' + ingredient[ingKey] + '</li>';
+            }
+          }
+          text += '</ul>';
+
+          $("#description").append("<li>" + text + "</li>");
+        })
+
+        //text = '<a href=\'/vendors/' + description[key] + '\'>' + '<b>' + key + '</b>: ' + description[key] + '</a>'
+      } else {
+        $("#description").append("<li>" + key + ": " + description[key] + "</li>");
+      }
+
+      console.log(key, description[key]);
+    }
+  }
+}
+
+function getIngredientForID(id, callback) {
+  console.log("Get ingredient for id");
+  $.ajax({
+    type: 'GET',
+    url: '/ingredients/id/' + id,
+    contentType: 'application/json; charset=utf-8',
+    dataType: 'json',
+    success: function(response) {
+      console.log(response);
+      callback(response);
+    }
+  });
+
+}
 
 function getAccessTokenHash() {
   let hash = window.location.hash;

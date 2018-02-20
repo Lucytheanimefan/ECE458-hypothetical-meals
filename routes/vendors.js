@@ -87,7 +87,7 @@ router.post('/:code/add_ingredients', function(req, res, next) {
     }
     let ingId = mongoose.Types.ObjectId(result._id);
     VendorHelper.addIngredient(req.params.code, ingId, req.body.cost);
-    logs.makeVendorLog('Add ingredients', { 'Vendor code': req.params.code, 'Ingredient ID': ingId, 'cost': req.body.cost }, entities = ['vendor', 'ingredient'], req.session.userId);
+    logs.makeVendorLog('Add ingredients', { 'Vendor code': req.params.code, 'Ingredient_ID': ingId, 'Cost': req.body.cost }, entities = ['vendor', 'ingredient'], req.session.userId);
     return res.redirect(req.baseUrl + '/' + req.params.code);
   }).catch(function(error) {
     next(error);
@@ -100,7 +100,7 @@ router.post('/:code/update_ingredients', function(req, res, next) {
   let ingId = mongoose.Types.ObjectId(req.body.ingredient);
   console.log('Ingredient id: ' + ingId);
   VendorHelper.updateIngredient(req.params.code, ingId, req.body.cost);
-  logs.makeVendorLog('Update ingredients', { 'Vendor code': req.params.code, 'Ingredient ID': ingId, 'cost': req.body.cost }, entities = ['vendor', 'ingredient'], req.session.userId);
+  logs.makeVendorLog('Update ingredients', { 'Vendor code': req.params.code, 'Ingredient_ID': ingId, 'Cost': req.body.cost }, entities = ['vendor', 'ingredient'], req.session.userId);
   res.redirect(req.baseUrl + '/' + req.params.code);
 });
 
@@ -146,7 +146,7 @@ router.post('/:code/order', async function(req, res, next) {
     let vendId = mongoose.Types.ObjectId(oid);
     return VendorHelper.makeOrder(ingId, vendId, amount);
   }).then(function(result) {
-    logs.makeVendorLog('Order', { 'Vendor': result, 'Ingredient ID': ingId }, entities = ['vendor', 'ingredient'], req.session.userId);
+    logs.makeVendorLog('Order', { 'Vendor': result, 'Ingredient_ID': ingId }, entities = ['vendor', 'ingredient'], req.session.userId);
     res.redirect(req.baseUrl + '/' + req.params.code);
   }).catch(function(error) {
     next(error);
