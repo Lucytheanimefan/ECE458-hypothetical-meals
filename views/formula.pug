@@ -4,3 +4,74 @@ block link
   -var selected = 'Formulas';
 
 block content
+  h1= formula.name
+  div#tabs
+    ul.nav.nav-tabs
+      li.active
+        a(data-toggle='tab', href='#formula-info') Formula Information
+      li.adminOnly.hide
+        a(data-toggle='tab', href='#update-form') Update Formula
+    .tab-content
+      .row.tab-pane.fade.in.active#formula-info
+        .col-md-6
+          table.table
+            tr
+              th Description
+              td= ingredient.description
+          div.delete-form.adminOnly.hide
+            form(action='/formulas/' + formula.name + '/delete', method='post')
+              button.btn.btn-primary.pull-right(style="margin: 30px 15px;" type='submit') Delete Formula
+
+      .adminOnly.hide.card-content.tab-pane.fade#update-form
+        h1= 'Update Formula'
+        form.form-group(action='/ingredients/' + ingredient.name + '/update', method='post')
+
+          .form-group
+            label.control-label Ingredient Name
+            input.form-control(type='text', name='name', value = ingredient.name, required='')
+          .form-group
+            label.control-label Package Type
+            select.form-control(name='package', placeholder = '', required='')
+              each package in packages
+                if package == ingredient.package
+                  option(selected='' value=package)= package
+                else
+                  option(value=package)= package
+          .form-group
+            label.control-label Storage Temperature
+            select.form-control(name='temperature', placeholder = '', required='')
+              each temp in temps
+                if temp == ingredient.temperature
+                  option(selected='' value=temp)= temp
+                else
+                  option(value=temp)= temp
+          .form-group
+            label.control-label Native Unit
+            input.form-control(type='text', name='nativeUnit', value = ingredient.nativeUnit, required='')
+          .form-group
+            label.control-label Units per Package
+            input.form-control(type='number', step='any', name='unitsPerPackage', value = ingredient.unitsPerPackage, required='')
+          .form-group
+            label.control-label Units in Storage
+            input.form-control(type='number', step="any", name='amount', value = ingredient.amount, required='')
+
+          button.btn.btn-primary.pull-right(type='submit') Update ingredient
+
+      .card-content.tab-pane.fade#vendor-form
+        h1= 'Associate Vendor'
+        form.form-group(action='/ingredients/' + ingredient.name + '/add-vendor', method='post')
+          .form-group
+            label.control-label Vendor
+            select.form-control(name='vendor', placeholder = '', required='')
+              option(disabled='' selected='' value='') Select an option
+              each vendor in existingVendors
+                option(value=vendor._id)= vendor.code
+          .form-group
+            label.control-label Cost
+            input.form-control(type='number', step='0.01', name='cost', required='')
+
+          button.btn.btn-primary.pull-right(type='submit') Add vendor
+
+block scripts
+  script.
+    loadAdminContent();

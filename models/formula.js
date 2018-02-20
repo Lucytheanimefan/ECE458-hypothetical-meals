@@ -31,10 +31,10 @@ var Formula = mongoose.model('Formula', FormulaSchema);
 module.exports.model = Formula;
 
 module.exports.findFormulaByName = function(name){
-  return Vendor.findOne({'name':name}).exec();
+  return Formula.findOne({'name':name}).exec();
 }
 
-module.exports.createFormula = function(name, description, ingredient, quantity, units) {
+module.exports.createFormula = function(name, description, units) {
   return Formula.create({
     'name': name,
     'description': description,
@@ -44,11 +44,11 @@ module.exports.createFormula = function(name, description, ingredient, quantity,
 }
 
 module.exports.deleteFormula = function(name) {
-  return Vendor.findOneAndRemove({ 'name': name }).exec();
+  return Formula.findOneAndRemove({ 'name': name }).exec();
 }
 
 module.exports.updateFormula = function(name, newName, description, units) {
-  return Vendor.findOneAndUpdate({ 'name': name }, {
+  return Formula.findOneAndUpdate({ 'name': name }, {
     '$set': {
       'name': name,
       'description': description,
@@ -59,16 +59,16 @@ module.exports.updateFormula = function(name, newName, description, units) {
 
 module.exports.addTuple = function(name, ingredient, quantity){
   let entry = {ingredient:ingredient, quantity:quantity};
-  return Vendor.findOneAndUpdate({'name':name},{'$push':{'catalogue':entry}}).exec();
+  return Formula.findOneAndUpdate({'name':name},{'$push':{'tuples':entry}}).exec();
 }
 
 module.exports.removeTuple = function(name, ingredient){
-  return Vendor.findOneAndUpdate({'name':name},{'$pull':{'catalogue':{'ingredient':ingredient}}}).exec();
+  return Formula.findOneAndUpdate({'name':name},{'$pull':{'tuples':{'ingredient':ingredient}}}).exec();
 }
 
 module.exports.updateTuple = function(name, ingredient, quantity){
-  var remove = removeIngredient(code,ingredient,quantity);
-  var append = addIngredient(code,ingredient,quantity);
+  var remove = removeTuple(code,ingredient,quantity);
+  var append = addTuple(code,ingredient,quantity);
   remove.then(function(result){
     return append;
   });
