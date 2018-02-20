@@ -41,7 +41,6 @@ router.post('/new', async function(req, res, next) {
   promise.then(function() {
     var index = 1;
     var ingredient, quantity;
-    console.log(req.body);
     let tuplePromises = [];
     while (req.body["ingredient"+index] != undefined) {
       ingredient = req.body["ingredient"+index];
