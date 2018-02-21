@@ -59,15 +59,11 @@ block content
             table.table
               thead.text-primary
                 th Vendor
-                th Package
-                th Units Available
                 th Cost Per Unit ($)
                 each vendor in vendors
                   tr
                     th
                       a(href="/vendors/" + vendor.vendorCode)= vendor.vendorName
-                    th= vendor.record.package
-                    th= vendor.record.available
                     th= vendor.record.cost
             div.previous
               form(action='/ingredients/' + ingredient.name + '/' + amount + '/' + (parseInt(page)-1).toString(), method='get')
