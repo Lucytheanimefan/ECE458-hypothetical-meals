@@ -65,19 +65,17 @@ module.exports.addTuple = function(name, index, ingredient, quantity){
         throw(error);
       } else {
         var ingQuery = Ingredient.getIngredient(ingredient);
-        ingQuery.then(function(result) {
-          if (result == null) {
-            var error = new Error('The ingredient ${ingredient} does not exist!');
-            error.status = 400;
-            throw(error);
-          }
-          return Formula.addTuple(name,index,ingredient,quantity);
-        }).catch(function(error) {
-          reject(error);
-        })
+        return ingQuery;
       }
     }).then(function(result) {
-      resolve();
+      if (result == null) {
+        var error = new Error('The ingredient ${ingredient} does not exist!');
+        error.status = 400;
+        throw(error);
+      }
+      return Formula.addTuple(name,index,ingredient,quantity);
+    }).then(function(formula) {
+      resolve(formula);
     }).catch(function(error){
       reject(error);
     })

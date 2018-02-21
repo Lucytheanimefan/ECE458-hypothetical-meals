@@ -1,12 +1,17 @@
 extends layout
 block link
-	-var selected = 'Uploads';
+  -var selected = 'Uploads';
 
 block content
-	h1 Bulk Import File Upload
-	p Information on file formatting #[a( href='/files/documentation' ) here]
+  h1 Bulk Import File Upload
+  p Information on file formatting #[a( href='/files/documentation' ) here]
 
-	form(action='/files/upload', enctype='multipart/form-data', method='post')
-		input.form-control(type='text', name='title')
-		input.pull-left(type='file', name='file', required='')
-		button.btn.btn-primary.pull-right(type='submit', value='Upload') Upload
+  form(action='/files/upload/ingredients', enctype='multipart/form-data', method='post')
+    input.form-control(type='text', name='title')
+    input.pull-left(type='file', name='file', required='')
+    button.btn.btn-primary.pull-right(type='submit', value='Upload') Upload Ingredients
+
+  form(action='/files/upload/formulas', enctype='multipart/form-data', method='post')
+    input.form-control(type='text', name='title')
+    input.pull-left(type='file', name='file', required='')
+    button.btn.btn-primary.pull-right(type='submit', value='Upload') Upload Formulas
