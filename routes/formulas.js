@@ -3,6 +3,8 @@ var router = express.Router();
 var Formula = require('../models/formula');
 var FormulaHelper = require('../helpers/formula');
 var mongoose = require('mongoose');
+var path = require('path');
+var logs = require(path.resolve(__dirname, "./logs.js"));
 
 router.get('/', function(req, res, next) {
   res.redirect(req.baseUrl + '/home/');
@@ -50,6 +52,7 @@ router.post('/new', async function(req, res, next) {
     }
     return Promise.all(tuplePromises);
   }).then(function(results) {
+  	logs.makeLog('New formula', results, ['formula'], req.session.userId); 
     res.redirect(req.baseUrl + '/' + name);
   }).catch(function(error) {
     next(error);

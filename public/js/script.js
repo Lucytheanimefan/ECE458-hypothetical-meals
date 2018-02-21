@@ -204,11 +204,16 @@ function loadSideBar() {
 function loadPugView() {
   var description = $("#descriptionValues").data("description");
   console.log(description);
-  for (var key in description) {
-    if (description.hasOwnProperty(key)) {
 
+  if (typeof description == 'string'){
+    $("#description").append(description);
+    return;
+  }
+
+  for (var key in description) {
+    if (description.hasOwnProperty(key) && (description instanceof Object)) {
       var text = '';
-      console.log(key.toLowerCase());
+      //console.log(key.toLowerCase());
       var keyLower = key.toLowerCase()
       if (keyLower == 'vendor code') {
         text = key + ': <a href=\'/vendors/' + description[key] + '\'>' + description[key] + '</a>';
@@ -223,7 +228,6 @@ function loadPugView() {
             }
           }
           text += '</ul>';
-
           $("#description").append("<li>" + text + "</li>");
         })
       } else if (keyLower == "array_description") {
@@ -241,10 +245,9 @@ function loadPugView() {
         //text = '<a href=\'/vendors/' + description[key] + '\'>' + '<b>' + key + '</b>: ' + description[key] + '</a>'
 
       } else {
-        $("#description").append("<li>" + key + ": " + description[key] + "</li>");
+        text = '<li>' + key + ': ' + description[key] + '</li>';
+        $("#description").append(text);
       }
-
-      console.log(key, description[key]);
     }
   }
 }
