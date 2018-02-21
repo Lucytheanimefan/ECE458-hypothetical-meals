@@ -3,6 +3,7 @@ var queryString = require('query-string');
 var router = express.Router();
 var Ingredient = require('../models/ingredient');
 var IngredientHelper = require('../helpers/ingredients');
+var VendorHelper = require('../helpers/vendor');
 var Vendor = require('../models/vendor');
 var users = require('./users');
 var path = require('path');
