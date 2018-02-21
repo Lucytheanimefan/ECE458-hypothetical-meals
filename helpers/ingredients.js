@@ -19,7 +19,7 @@ module.exports.createIngredient = function(name, package, temp, nativeUnit, unit
     } else {
       InventoryHelper.checkInventory(name, package, temp, unitsPerPackage, amount).then(function(update) {
         if (update) {
-          return Promise.all([InventoryHelper.updateInventory(name, package, temp, unitsPerPackage, amount), 
+          return Promise.all([InventoryHelper.updateInventory(name, package, temp, unitsPerPackage, amount),
             Ingredient.createIngredient(name, package, temp, nativeUnit, unitsPerPackage, amount)])
         } else {
           var error = new Error('Not enough room in inventory!');
@@ -48,7 +48,7 @@ module.exports.updateIngredient = function(name, newName, package, temp, nativeU
     } else {
       InventoryHelper.checkInventory(name, package, temp, unitsPerPackage, amount).then(function(update) {
         if (update) {
-          return Promise.all([InventoryHelper.updateInventory(name, package, temp, unitsPerPackage, amount), 
+          return Promise.all([InventoryHelper.updateInventory(name, package, temp, unitsPerPackage, amount),
             Ingredient.updateIngredient(name, newName, package, temp, nativeUnit, unitsPerPackage, amount)])
         } else {
           var error = new Error('Not enough room in inventory!');
@@ -93,13 +93,15 @@ module.exports.addVendor = function(name, vendorId, cost) {
   let vendorObjectId = mongoose.Types.ObjectId(vendorId);
   return new Promise(function(resolve, reject) {
     var vendorQuery = Vendor.model.findById(vendorObjectId);
-    vendorQuery.exec().then(function(vendor) {
+    Promise.all([vendorQuery.exec(), Ingredient.getIngredient(name)]).then(function(results) {
+      let vendor = results[0];
+      let ing = results[1];
       if (vendor == null) {
         var error = new Error('The specified vendor doesn\'t exist!');
         error.status = 400;
         throw error;
       } else {
-        return Promise.all([Ingredient.addVendor(name, vendorObjectId), Vendor.addIngredient(vendor['code'], name, cost)]);
+        return Promise.all([Ingredient.addVendor(name, vendorObjectId), Vendor.addIngredient(vendor['code'], mongoose.Types.ObjectId(ing['_id']), cost)]);
       }
     }).then(function(result) {
       resolve();

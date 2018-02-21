@@ -25,19 +25,12 @@ var VendorSchema = new mongoose.Schema({
     required: false,
     trim: true
   },
-  catalogue:[{
-    ingredient: {
-      type: String,
-      required: true,
-      trim: true
-    },
-    cost:{
-      type: Number,
-      required: true,
-      trim: true
+  catalogue:[
+    {
+      ingredient:{type:mongoose.Schema.Types.ObjectId, ref:'Ingredient'},
+      cost:Number
     }
-
-  }],
+  ],
   history:[{ingredient:String, cost:Number, number:Number}]
 })
 
@@ -48,7 +41,7 @@ module.exports.findVendorByName = function(name){
 }
 
 module.exports.findVendorByCode = function(code){
-  return Vendor.findOne({'code':code}).exec();
+  return Vendor.findOne({'code':code}).populate('catalogue.ingredient').exec();
 }
 
 module.exports.findVendorByCodeAndName = function(code,name){
@@ -82,26 +75,13 @@ module.exports.deleteVendor = function(code) {
 }
 
 module.exports.addIngredient = function(code, ingId, cost){
+  ingId = mongoose.Types.ObjectId(ingId.toString());
   let entry = {ingredient:ingId, cost:cost};
   return Vendor.findOneAndUpdate({'code':code},{'$push':{'catalogue':entry}}).exec();
 }
 
 module.exports.removeIngredient = function(code, ingId){
-  return Vendor.findOneAndUpdate({'code':code},{'$pull':{'catalogue':{'ingredient':ingId}}}).exec();
+  return Vendor.findOneAndUpdate({'code':code},{'$pull':{'catalogue':{'ingredient':mongoose.Types.ObjectId(ingId)}}}).exec();
 }
 
-module.exports.updateIngredient = function(code, ingId, cost){
-  var remove = removeIngredient(code,ingId,cost);
-  var append = addIngredient(code,ingId,cost);
-  remove.then(function(result){
-    return append;
-  });
-}
-
-removeIngredient = function(code,ingId,cost){
-  return Vendor.findOneAndUpdate({'code':code},{'$pull':{'catalogue':{'ingredient':ingId}}}).exec();
-}
-addIngredient = function(code,ingId,cost){
-  return Vendor.findOneAndUpdate({'code':code},{'$push':{'catalogue':{'ingredient':ingId, 'cost':cost}}}).exec();
-}
 module.exports.model = Vendor;
