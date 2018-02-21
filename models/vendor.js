@@ -81,7 +81,13 @@ module.exports.addIngredient = function(code, ingId, cost){
 }
 
 module.exports.removeIngredient = function(code, ingId){
-  return Vendor.findOneAndUpdate({'code':code},{'$pull':{'catalogue':{'ingredient':mongoose.Types.ObjectId(ingId)}}}).exec();
+  return Vendor.findOneAndUpdate({'code':code},{'$pull':{'catalogue':{'ingredient':ingId}}}).exec();
+}
+
+module.exports.removeDeletedIngredient = function(code, ingId){
+  console.log(ingId);
+  console.log("jfc");
+  return Vendor.findOneAndUpdate({'code':code},{'$pull':{'catalogue':{'_id':ingId}}}).exec();
 }
 
 module.exports.model = Vendor;

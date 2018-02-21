@@ -162,6 +162,7 @@ module.exports.updateIngredient = function(code, ingredientId, cost){
       resolve(result);
       nextResult = Vendor.addIngredient(code,ingId,cost);
     }).then(function(nextResult){
+      console.log("resolved this");
       resolve(nextResult);
     }).catch(function(error){
       reject(error);
@@ -173,6 +174,18 @@ module.exports.deleteIngredient = function(code, ingredientId){
   let ingId = mongoose.Types.ObjectId(ingredientId);
   return new Promise(function(resolve,reject){
     var result = Vendor.removeIngredient(code,ingId);
+    result.then(function(success){
+      resolve(success);
+    }).catch(function(error){
+      reject(error);
+    })
+  })
+}
+
+module.exports.deleteRemovedIngredient = function(code, ingredientId){
+  let ingId = mongoose.Types.ObjectId(ingredientId);
+  return new Promise(function(resolve,reject){
+    var result = Vendor.removeDeletedIngredient(code,ingId);
     result.then(function(success){
       resolve(success);
     }).catch(function(error){
