@@ -61,6 +61,10 @@ module.exports.getIngredient = function(name) {
   return Ingredient.findOne({ 'name': name }).exec();
 }
 
+module.exports.getIngredientById = function(id){
+  return Ingredient.findById(id).exec();
+}
+
 module.exports.getAllIngredients = function() {
   return Ingredient.find().exec();
 }

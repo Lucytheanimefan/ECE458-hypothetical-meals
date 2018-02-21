@@ -19,7 +19,7 @@ module.exports.createIngredient = function(name, package, temp, nativeUnit, unit
     } else {
       InventoryHelper.checkInventory(name, package, temp, unitsPerPackage, amount).then(function(update) {
         if (update) {
-          return Promise.all([InventoryHelper.updateInventory(name, package, temp, unitsPerPackage, amount), 
+          return Promise.all([InventoryHelper.updateInventory(name, package, temp, unitsPerPackage, amount),
             Ingredient.createIngredient(name, package, temp, nativeUnit, unitsPerPackage, amount)])
         } else {
           var error = new Error('Not enough room in inventory!');
@@ -48,7 +48,7 @@ module.exports.updateIngredient = function(name, newName, package, temp, nativeU
     } else {
       InventoryHelper.checkInventory(name, package, temp, unitsPerPackage, amount).then(function(update) {
         if (update) {
-          return Promise.all([InventoryHelper.updateInventory(name, package, temp, unitsPerPackage, amount), 
+          return Promise.all([InventoryHelper.updateInventory(name, package, temp, unitsPerPackage, amount),
             Ingredient.updateIngredient(name, newName, package, temp, nativeUnit, unitsPerPackage, amount)])
         } else {
           var error = new Error('Not enough room in inventory!');
