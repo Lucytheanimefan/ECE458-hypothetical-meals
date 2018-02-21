@@ -42,12 +42,14 @@ router.post('/:name/update', function(req, res, next) {
   promise.then(function() {
     var index = 1;
     var ingredient, quantity;
+    let tuplePromises = [];
     while (req.body["ingredient"+index] != undefined) {
       ingredient = req.body["ingredient"+index];
       quantity = req.body["quantity"+index];
-      FormulaHelper.updateTuple(name, index, ingredient, quantity);
+      tuplePromises.push(FormulaHelper.updateTuple(name, index, ingredient, quantity));
       index = index + 1;
     }
+    return Promise.all(tuplePromises);
     res.redirect(req.baseUrl + '/' + name);
   }).catch(function(error) {
     next(error);

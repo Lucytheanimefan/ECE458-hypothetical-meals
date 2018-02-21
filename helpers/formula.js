@@ -85,7 +85,9 @@ module.exports.addTuple = function(name, index, ingredient, quantity){
 module.exports.updateTuple = function(name, index, ingredient, quantity){
   return new Promise(function(resolve,reject){
     var formQuery = Formula.findFormulaByName(name);
+    var formula;
     formQuery.then(function(form){
+      formula = form;
       if(form==null){
         var error = new Error('Specified formula doesn\'t exist');
         error.status = 400;
@@ -95,17 +97,22 @@ module.exports.updateTuple = function(name, index, ingredient, quantity){
         var error = new Error('Invalid quantity: ${quantity}. Please enter a valid quantity.');
         error.status = 400;
         throw(error);
-      } else {
-        var ingQuery = Ingredient.getIngredient(ingredient);
-        return ingQuery;
       }
+      var ingQuery = Ingredient.getIngredient(ingredient);
+      return ingQuery;
     }).then(function(ingResult) {
       if (ingResult == null) {
         var error = new Error('The ingredient ${ingredient} does not exist!');
         error.status = 400;
         throw(error);
       }
-      return Formula.updateTuple(name, index, ingredient, quantity);
+      var tuples = formula.tuples;
+      for (tuple in tuples) {
+        if (ingredient === tuple[ingredient]) {
+          //return Formula.updateTuple(name, index, ingredient, quantity);
+        }
+      }
+      return Formula.addTuple(name, index, ingredient, quantity);
     }).then(function() {
       resolve();
     }).catch(function(error){
