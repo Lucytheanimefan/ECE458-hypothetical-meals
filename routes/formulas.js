@@ -40,7 +40,10 @@ router.post('/new', async function(req, res, next) {
   let description = req.body.description;
   let units = req.body.units;
   var promise = FormulaHelper.createFormula(name, description, units);
-  promise.then(function() {
+  promise.then(function(result) {
+  	console.log('Formula result:')
+  	console.log(result);
+  	logs.makeLog('New formula', result, ['formula'], req.session.userId); 
     var index = 1;
     var ingredient, quantity;
     let tuplePromises = [];
@@ -51,8 +54,7 @@ router.post('/new', async function(req, res, next) {
       index = index + 1;
     }
     return Promise.all(tuplePromises);
-  }).then(function(results) {
-  	logs.makeLog('New formula', results, ['formula'], req.session.userId); 
+  }).then(function() {
     res.redirect(req.baseUrl + '/' + name);
   }).catch(function(error) {
     next(error);
