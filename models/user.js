@@ -248,14 +248,26 @@ UserSchema.pre('save', function(next) {
   }
 });
 
+var User = mongoose.model('User', UserSchema);
+module.exports = User;
+
 module.exports.getUserById = function(id) {
   return User.findOne({'_id':id}).exec();
-});
+}
 
 module.exports.addToCart = function(id, ingredient, quantity, vendor) {
   let entry = {ingredient:ingredient, quantity:quantity, vendor:vendor};
-  return User.findOneAndUpdate({'_id':id},{'$push':{'tuples':entry}}).exec();
-});
+  return User.findOneAndUpdate({'_id':id},{'$push':{'cart':entry}}).exec();
+}
 
-var User = mongoose.model('User', UserSchema);
-module.exports = User;
+module.exports.removeOrder = function(id, ingredient) {
+  return User.findOneAndUpdate({'_id':id},{'$pull':{'cart':{'ingredient':ingredient}}}).exec();
+}
+
+module.exports.updateCart = function(id, ingredient, quantity, vendor) {
+  var remove = User.removeOrder(id,ingredient);
+  var append = User.addToCart(id,ingredient,quantity,vendor);
+  remove.then(function(result){
+    return append;
+  });
+}
