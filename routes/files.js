@@ -6,8 +6,8 @@ var Ingredient = require('../models/ingredient');
 var IngredientHelper = require('../helpers/ingredients');
 var Vendor = require('../models/vendor');
 var VendorHelper = require('../helpers/vendor');
+var Formula = require('../models/formula');
 var FormulaHelper = require('../helpers/formula');
-var vendors = require('../routes/vendors');
 var Papa = require('papaparse');
 
 const fs = require('fs');
@@ -69,7 +69,7 @@ router.post('/upload/formulas', function(req, res, next) {
       }
       csvData = data.data;
       return Promise.all(csvData.map(function(row, index) {
-        return checkIngredientExists(row['INGREDIENT']);
+        return Promise.all([checkIngredientExists(row['INGREDIENT']), checkFormulaPreexisting(row['NAME'])]);
       }));
     }).then(function() {
       return addFormulas(csvData);
@@ -133,10 +133,11 @@ router.post('/upload/ingredients', function(req, res, next) {
     }).then(function() {
       res.redirect(req.baseUrl);
     }).catch(function(error) {
+      console.log(error);
       if (Array.isArray(error)) {
         var message = "";
         for (i = 0; i < error.length; i++) {
-          message += error[i] + "\n";
+          message += "Row " + error[i].row + ": " + error[i].message + ",\n";
         }
         next(new Error(message));
       } else {
@@ -314,6 +315,20 @@ parseFile = function(file) {
       reject(error);
     });
   });
+}
+
+checkFormulaPreexisting = function(name) {
+  return new Promise(function(resolve, reject) {
+    Formula.getFormulaByName(name).then(function(formula) {
+      if (formula == null) {
+        resolve();
+      } else {
+        reject(new Error('Formula ' + name + ' already exists in the database!'));
+      }
+    }).catch(function(error) {
+      reject(error);
+    })
+  })
 }
 
 checkIngredientExists = function(name) {
