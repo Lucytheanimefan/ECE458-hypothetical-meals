@@ -84,7 +84,7 @@ UserSchema.statics.authenticate_netid = function(netid, email, callback) {
       if (email != null) {
         user_data['email'] = email;
       }
-
+      callback(null, null);
       // TODO this should happen in the route, not here
       // User not found, create an account associated with netid
     
