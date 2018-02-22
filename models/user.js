@@ -38,9 +38,20 @@ var UserSchema = new mongoose.Schema({
     default: 'user',
     required: true,
   },
-  cart: {
-    type: Array
-  },
+  cart: [{
+    ingredient: {
+      type: String,
+      required: true
+    },
+    quantity: {
+      type: Number,
+      required: true
+    },
+    vendor: {
+      type: String,
+      required: true
+    }
+  }],
   report: {
     type: Array
   },
@@ -87,7 +98,7 @@ UserSchema.statics.authenticate_netid = function(netid, email, callback) {
 
       // TODO this should happen in the route, not here
       // User not found, create an account associated with netid
-    
+
       // User.create(user_data, function(error, user) {
       //   if (error) {
       //     console.log("Error creating user: ");
@@ -237,7 +248,14 @@ UserSchema.pre('save', function(next) {
   }
 });
 
+module.exports.getUserById = function(id) {
+  return User.findOne({'_id':id}).exec();
+});
 
+module.exports.addToCart = function(id, ingredient, quantity, vendor) {
+  let entry = {ingredient:ingredient, quantity:quantity, vendor:vendor};
+  return User.findOneAndUpdate({'_id':id},{'$push':{'tuples':entry}}).exec();
+});
 
 var User = mongoose.model('User', UserSchema);
 module.exports = User;

@@ -321,11 +321,6 @@ router.get('/cart/:page?', function(req, res, next) {
 });
 
 router.post('/add_to_cart', function(req, res, next) {
-  req.params.
-
-  User.count({ _id: req.session.userId }, function(err, count) {
-    if (err) return next(err);
-
     var ingredient = req.body.ingredient;
     var quantity = Number(req.body.quantity);
     var amount = Number(req.body.amount);
@@ -341,10 +336,6 @@ router.post('/add_to_cart', function(req, res, next) {
           cart.push({});
         }
         cart = cart[0];
-        /*if (ingredient in cart) {
-          quantity += Number(cart[ingredient]);
-        }*/
-
         cart[ingredient] = quantity;
 
         User.findByIdAndUpdate({
@@ -358,18 +349,7 @@ router.post('/add_to_cart', function(req, res, next) {
           return res.redirect(req.baseUrl + '/cart');
         });
       });
-    } else {
-      User.create({
-        _id: req.session.userId,
-        cart: {
-          [ingredient]: quantity
-        }
-      }, function(err, cart_instance) {
-        if (err) return next(err);
-        return res.redirect(req.baseUrl + '/cart');
-      });
     }
-  });
 });
 
 router.post('/remove_ingredient', function(req, res, next) {
