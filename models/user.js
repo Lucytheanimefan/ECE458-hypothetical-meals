@@ -265,10 +265,13 @@ module.exports.removeOrder = function(id, ingredient) {
 }
 
 module.exports.updateCart = function(id, ingredient, quantity, vendor) {
-  var remove = User.removeOrder(id,ingredient);
-  console.log(quantity);
-  //var append = User.addToCart(id,ingredient,quantity,vendor);
-  remove.then(function(result){
-    return User.addToCart(id,ingredient,quantity,vendor);
-  });
+  return new Promise(function(resolve, reject) {
+    User.removeOrder(id,ingredient).then(function(result){
+      return User.addToCart(id,ingredient,quantity,vendor);
+    }).then(function(tuple) {
+      resolve(tuple);
+    }).catch(function(error) {
+      reject(error);
+    });
+  })
 }

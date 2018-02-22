@@ -75,8 +75,6 @@ module.exports.removeTuple = function(name, ingredient){
 }
 
 module.exports.updateTuple = function(name, index, ingredient, ingredientID, quantity){
-  // var remove = removeTuple(name,ingredient);
-  // var append = addTuple(name,index,ingredient,ingredientID,quantity);
   return new Promise(function(resolve, reject) {
     exports.removeTuple(name,ingredient).then(function(result){
       return exports.addTuple(name,index,ingredient,ingredientID,quantity);
