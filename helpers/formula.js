@@ -98,23 +98,24 @@ module.exports.updateTuple = function(name, index, ingredient, quantity){
         error.status = 400;
         throw(error);
       }
-      var ingQuery = Ingredient.getIngredient(ingredient);
+      var ingQuery = Ingredient.getIngredientById(ingredient);
       return ingQuery;
     }).then(function(ingResult) {
       if (ingResult == null) {
-        var error = new Error('The ingredient ${ingredient} does not exist!');
+        var error = new Error('The ingredient ' + ingredient + ' does not exist!');
         error.status = 400;
         throw(error);
       }
       var tuples = formula.tuples;
-      for (tuple in tuples) {
-        if (ingredient === tuple[ingredient]) {
-          //return Formula.updateTuple(name, index, ingredient, quantity);
+      for (i = 0; i < tuples.length; i++) {
+        let tuple = tuples[i];
+        if (ingResult['name'] === tuple['ingredient']) {
+          return Formula.updateTuple(name, index, ingResult['name'], ingredient, quantity);
         }
       }
-      return Formula.addTuple(name, index, ingredient, quantity);
-    }).then(function() {
-      resolve();
+      return Formula.addTuple(name, index, ingResult['name'], ingredient, quantity);
+    }).then(function(tuple) {
+      resolve(tuple);
     }).catch(function(error){
       reject(error);
     })
