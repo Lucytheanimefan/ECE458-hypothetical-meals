@@ -37,13 +37,12 @@ module.exports.addToCart = function(id, ingredient, quantity, vendor) {
       for (let ing of user.cart) {
         if (ingredient === ing.ingredient) {
           var newQuantity = quantity + ing.quantity;
-          console.log(newQuantity);
-          return User.updateCart(id, ingredient, quantity, vendor);
+          return User.updateCart(id, ingredient, newQuantity, vendor);
         }
       }
       return User.addToCart(id, ingredient, quantity, vendor);
     }).then(function(result) {
-      resolve();
+      resolve(result);
     }).catch(function(error){
       reject(error);
     })

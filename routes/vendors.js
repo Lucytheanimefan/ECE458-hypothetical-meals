@@ -162,35 +162,8 @@ router.post('/:code/order', async function(req, res, next) {
     ingredient = ingResult.name;
     return UserHelper.addToCart(req.session.userId, ingredient, amount, vendor);
   }).then(function(cartResult) {
-    res.redirect(req.baseUrl + '/' + req.params.code + '/order/cart');
+    res.redirect('/users/cart');
   }).catch(function(error) {
-    next(error);
-  })
-});
-
-router.get('/:code/order/cart/:page?', function(req, res, next) {
-  var perPage = 10;
-  var page = req.params.page || 1;
-  page = (page < 1) ? 1 : page;
-
-  var userQuery = User.getUserById(req.session.userId);
-  var cart;
-  var orders = [];
-  userQuery.then(function(user) {
-    cart = user.cart;
-    cart = underscore.sortBy(cart, "ingredient");
-    var start = perPage * (page - 1);
-    for (i = start; i < start + perPage; i++) {
-      var order = cart[i];
-      if (order == undefined) {
-        break;
-      }
-      orders.push(order);
-    }
-    return res.render('cart', { ingredients: orders, page: page });
-  }).then(function(result) {
-    resolve();
-  }).catch(function(error){
     next(error);
   })
 });

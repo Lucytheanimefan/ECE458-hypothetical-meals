@@ -249,7 +249,11 @@ UserSchema.pre('save', function(next) {
 });
 
 var User = mongoose.model('User', UserSchema);
-module.exports = User;
+module.exports.model = User;
+
+module.exports.findById = function(id) {
+  return User.findOne({'_id':id});
+}
 
 module.exports.getUserById = function(id) {
   return User.findOne({'_id':id}).exec();
@@ -266,8 +270,8 @@ module.exports.removeOrder = function(id, ingredient) {
 
 module.exports.updateCart = function(id, ingredient, quantity, vendor) {
   return new Promise(function(resolve, reject) {
-    User.removeOrder(id,ingredient).then(function(result){
-      return User.addToCart(id,ingredient,quantity,vendor);
+    exports.removeOrder(id,ingredient).then(function(result){
+      return exports.addToCart(id,ingredient,quantity,vendor);
     }).then(function(tuple) {
       resolve(tuple);
     }).catch(function(error) {

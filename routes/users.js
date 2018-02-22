@@ -274,6 +274,31 @@ router.get('/logout', function(req, res, next) {
   }
 });
 
+router.get('/cart/:page?', function(req, res, next) {
+  var perPage = 10;
+  var page = req.params.page || 1;
+  page = (page < 1) ? 1 : page;
+
+  var userQuery = User.getUserById(req.session.userId);
+  var cart;
+  var orders = [];
+  userQuery.then(function(user) {
+    cart = user.cart;
+    cart = underscore.sortBy(cart, "ingredient");
+    var start = perPage * (page - 1);
+    for (i = start; i < start + perPage; i++) {
+      var order = cart[i];
+      if (order == undefined) {
+        break;
+      }
+      orders.push(order);
+    }
+    res.render('cart', { ingredients: orders, page: page });
+  }).catch(function(error){
+    next(error);
+  })
+});
+
 router.post('/remove_ingredient', function(req, res, next) {
   User.count({ _id: req.session.userId }, function(err, count) {
     if (err) return next(err);
