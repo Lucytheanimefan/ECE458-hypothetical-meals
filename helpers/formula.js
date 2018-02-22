@@ -50,7 +50,7 @@ module.exports.updateFormula = function(name, newName, description, units) {
   });
 }
 
-module.exports.addTuple = function(name, index, ingredient, quantity){
+module.exports.addTuple = function(name, index, ingredientID, quantity){
   return new Promise(function(resolve,reject){
     var formQuery = Formula.findFormulaByName(name);
     formQuery.then(function(form){
@@ -64,7 +64,7 @@ module.exports.addTuple = function(name, index, ingredient, quantity){
         error.status = 400;
         throw(error);
       } else {
-        var ingQuery = Ingredient.getIngredient(ingredient);
+        var ingQuery = Ingredient.getIngredientById(ingredientID);
         return ingQuery;
       }
     }).then(function(ingResult) {
@@ -73,7 +73,7 @@ module.exports.addTuple = function(name, index, ingredient, quantity){
         error.status = 400;
         throw(error);
       }
-      return Formula.addTuple(name,index,ingredient,quantity);
+      return Formula.addTuple(name,index,ingResult.name,ingredientID,quantity);
     }).then(function(result) {
       resolve();
     }).catch(function(error){
