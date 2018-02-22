@@ -59,15 +59,11 @@ block content
             table.table
               thead.text-primary
                 th Vendor
-                th Package
-                th Units Available
-                th Cost Per Unit ($)
+                th Cost per Package ($)
                 each vendor in vendors
                   tr
                     th
                       a(href="/vendors/" + vendor.vendorCode)= vendor.vendorName
-                    th= vendor.record.package
-                    th= vendor.record.available
                     th= vendor.record.cost
             div.previous
               form(action='/ingredients/' + ingredient.name + '/' + amount + '/' + (parseInt(page)-1).toString(), method='get')
@@ -121,7 +117,7 @@ block content
               each vendor in existingVendors
                 option(value=vendor._id)= vendor.code
           .form-group
-            label.control-label Cost
+            label.control-label Cost per Package
             input.form-control(type='number', step='0.01', name='cost', required='')
 
           button.btn.btn-primary.pull-right(type='submit') Add vendor

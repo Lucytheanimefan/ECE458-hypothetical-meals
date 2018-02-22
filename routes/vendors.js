@@ -48,6 +48,7 @@ router.get('/:code/:page?', async function(req, res, next) {
       var page = req.params.page || 1;
       page = (page < 1) ? 1 : page;
       let fullMenu = processMenu(vendQuery.catalogue,req.params.code);
+      //console.log(fullMenu);
       let name = vendQuery.name;
       let contact = vendQuery.contact;
       let location = vendQuery.location;
@@ -161,8 +162,11 @@ processMenu = function(list,code){
   var newList = list.slice();
   for(var i = 0; i < newList.length; i++){
     if(newList[i]['ingredient'] == null){
+      console.log(newList[i]);
       let id = newList[i]['_id'];
-      VendorHelper.deleteIngredient(code,id);
+      VendorHelper.deleteRemovedIngredient(code,id).catch(function(err){
+        reject(err);
+      });
       newList.splice(i,1);
       i--;
     }
