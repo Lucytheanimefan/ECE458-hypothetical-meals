@@ -74,6 +74,7 @@ router.post('/:name/update', function(req, res, next) {
       index = index + 1;
     }
     return Promise.all(tuplePromises);
+  }).then(function(tuples) {
     res.redirect(req.baseUrl + '/' + name);
   }).catch(function(error) {
     next(error);
