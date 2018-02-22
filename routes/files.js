@@ -133,8 +133,15 @@ router.post('/upload/ingredients', function(req, res, next) {
     }).then(function() {
       res.redirect(req.baseUrl);
     }).catch(function(error) {
-      console.log(error);
-      next(error);
+      if (Array.isArray(error)) {
+        var message = "";
+        for (i = 0; i < error.length; i++) {
+          message += error[i] + "\n";
+        }
+        next(new Error(message));
+      } else {
+        next(error);
+      }
     });
 
   })
@@ -271,8 +278,8 @@ addToDatabase = function(index, csvRow) {
     } else {
 
       let name = csvRow['INGREDIENT'];
-      let package = csvRow['PACKAGE'];
-      let temperature = csvRow['TEMPERATURE'];
+      let package = csvRow['PACKAGE'].toLowerCase();
+      let temperature = csvRow['TEMPERATURE'].toLowerCase();
       let nativeUnit = csvRow['NATIVE UNIT'];
       let unitsPerPackage = parseFloat(csvRow['UNITS PER PACKAGE']);
       let code = csvRow['VENDOR FREIGHT CODE'];
@@ -280,7 +287,11 @@ addToDatabase = function(index, csvRow) {
       let amount = 0;
 
       IngredientHelper.createIngredient(name, package, temperature, nativeUnit, unitsPerPackage, amount).then(function(ing) {
-        return VendorHelper.addIngredient(code, ing['_id'], price);
+        if (code === "") {
+          resolve(csvRow);
+        } else {
+          return VendorHelper.addIngredient(code, ing['_id'], price);
+        }
       }).then(function() {
         resolve(csvRow);
       }).catch(function(error) {
@@ -336,15 +347,19 @@ checkIngredient = function(row) {
 
 checkVendor = function(vendorCode) {
   return new Promise(function(resolve, reject) {
-    Vendor.model.findOne( {code: vendorCode} ).exec().then(function(result) {
-      if (result == null) {
-        reject(new Error('Vendor with freight code ' + vendorCode +' doesn\'t exist!'));
-      } else {
-        resolve();
-      }
-    }).catch(function(error) {
-      reject(error);
-    })
+    if (vendorCode === "") {
+      resolve();
+    } else {
+      Vendor.model.findOne( {code: vendorCode} ).exec().then(function(result) {
+        if (result == null) {
+          reject(new Error('Vendor with freight code ' + vendorCode +' doesn\'t exist!'));
+        } else {
+          resolve();
+        }
+      }).catch(function(error) {
+        reject(error);
+      });
+    }
   })
 }
 
