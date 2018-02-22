@@ -266,8 +266,9 @@ module.exports.removeOrder = function(id, ingredient) {
 
 module.exports.updateCart = function(id, ingredient, quantity, vendor) {
   var remove = User.removeOrder(id,ingredient);
-  var append = User.addToCart(id,ingredient,quantity,vendor);
+  console.log(quantity);
+  //var append = User.addToCart(id,ingredient,quantity,vendor);
   remove.then(function(result){
-    return append;
+    return User.addToCart(id,ingredient,quantity,vendor);
   });
 }
