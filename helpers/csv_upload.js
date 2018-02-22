@@ -5,6 +5,8 @@ var VendorHelper = require('../helpers/vendor');
 var Formula = require('../models/formula');
 var FormulaHelper = require('../helpers/formula');
 
+ingredientHeaders = ['INGREDIENT', 'PACKAGE', 'TEMPERATURE', 'NATIVE UNIT', 'UNITS PER PACKAGE', 'VENDOR FREIGHT CODE', 'PRICE PER PACKAGE', 'AMOUNT (NATIVE UNITS)'];
+
 addFormula = function(rows) {
   return new Promise(function(resolve, reject) {
     let firstRow = rows[0];
@@ -162,3 +164,9 @@ module.exports.checkVendor = function(vendorCode) {
     }
   })
 }
+
+// module.exports.checkHeader = function(row) {
+//   return new Promise(function(resolve, reject) {
+
+//   })
+// }
