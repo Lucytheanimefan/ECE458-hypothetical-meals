@@ -189,14 +189,6 @@ module.exports.compareAmount = function(id, amount) {
   })
 }
 
-module.exports.sendIngredientToProduction = function(id, amount) {
-  return new Promise(function(resolve, reject) {
-    Ingredient.getIngredientById(id).then(function(ing) {
-      exports.updateIngredient()
-    })
-  })
-}
-
 module.exports.addVendor = function(name, vendorId, cost) {
   let vendorObjectId = mongoose.Types.ObjectId(vendorId);
   return new Promise(function(resolve, reject) {
