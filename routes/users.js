@@ -100,7 +100,7 @@ router.post('/', function(req, res, next) {
           logs.makeUserLog('Created user', user, ['user'], req.session.userId);
 
           // Try logging in again
-          User.user_by_netid(netid, function(err, user) {
+          User.user_by_netid(req.body.netid, function(err, user) {
             if (err) {
               console.log('Error finding user by netid: ');
               res.send({ 'success': false, 'error': error });
