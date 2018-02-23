@@ -73,7 +73,7 @@ block content
               option(value=ing._id)= ing['name']
         .form-group
           label.control-label Cost
-          input.form-control(type='number', name='cost', min='0', required='')
+          input.form-control(type='number', name='cost', min='0', step="any", required='')
         button.btn.btn-primary.pull-right(type='submit', value='ingredient added') Add
 
     #updateing.tab-pane.fade.in.adminOnly.hide
@@ -87,7 +87,7 @@ block content
               option(value=ing['ingredient'].id)= ing['ingredient']['name']
         .form-group
           label.control-label Cost (per unit)
-          input.form-control(type='number', name='cost', min='0',required='')
+          input.form-control(type='number', name='cost', min='0', step="any",required='')
         button.btn.btn-primary.pull-right(type='submit', value='ingredient added') Update
 
 
@@ -102,5 +102,5 @@ block content
               option(value=ing['ingredient']['_id'])= ing['ingredient']['name']
         .form-group
           label.control-label Quantity (Number of storage units)
-          input.form-control(type='number', name='quantity', min='0' required='')
+          input.form-control(type='number', name='quantity', min='0', required='')
         button.btn.btn-primary.pull-right(type='submit', value='order made') Order
