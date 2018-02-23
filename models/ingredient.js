@@ -99,25 +99,25 @@ module.exports.addVendor = function(name, vendorId) {
 
 module.exports.model = Ingredient;
 
-IngredientSchema.pre('save', function(next, req, callback) {
-  var ingredient = this;
-  let log_data = {
-    'title': 'Ingredient created',
-    'description': ingredient.name + ', ' + ingredient.package + ', ' + ingredient.temperature + ', ' + ingredient.amount,
-    'entities': 'ingredient'/*,
-    'user': user.username + ', ' + user.role*/
-  }
-  Log.create(log_data, function(error, log) {
-    if (error) {
-      console.log('Error logging ingredient data: ');
-      console.log(error);
-      return next();
-    }
-    console.log(log);
-    return next();
-  })
+// IngredientSchema.pre('save', function(next, req, callback) {
+//   var ingredient = this;
+//   let log_data = {
+//     'title': 'Ingredient created',
+//     'description': ingredient.name + ', ' + ingredient.package + ', ' + ingredient.temperature + ', ' + ingredient.amount,
+//     'entities': 'ingredient'/*,
+//     'user': user.username + ', ' + user.role*/
+//   }
+//   Log.create(log_data, function(error, log) {
+//     if (error) {
+//       console.log('Error logging ingredient data: ');
+//       console.log(error);
+//       return next();
+//     }
+//     console.log(log);
+//     return next();
+//   })
 
-});
+// });
 
 // IngredientSchema.pre('update', function(next) {
 //   console.log('Updating ingredient, need to log!');

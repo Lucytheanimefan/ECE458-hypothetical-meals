@@ -16,7 +16,7 @@ const uploadDir = path.join(__dirname, '/..', '/uploads/')
 
 var PromiseBlue = require('bluebird');
 var parse = PromiseBlue.promisify(require('csv-parse'));
-
+var logs = require(path.resolve(__dirname, "./logs.js"));
 
 router.get('/', function(req, res) {
   res.render('uploads');
@@ -74,7 +74,8 @@ router.post('/upload', function(req, res, next) {
       return Promise.all(csvData.map(function(row, index) {
         return addToDatabase(index, row);
       }));
-    }).then(function() {
+    }).then(function(results) {
+      logs.makeLog('Uploaded file', results, ['file'], req.session.userId); 
       res.redirect(req.baseUrl);
     }).catch(function(error) {
       console.log(error);
