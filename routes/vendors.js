@@ -50,7 +50,6 @@ router.get('/:code/:page?', async function(req, res, next) {
       var page = req.params.page || 1;
       page = (page < 1) ? 1 : page;
       let fullMenu = processMenu(vendQuery.catalogue,req.params.code);
-      //console.log(fullMenu);
       let name = vendQuery.name;
       let contact = vendQuery.contact;
       let location = vendQuery.location;
@@ -103,8 +102,7 @@ router.post('/:code/update_ingredients', function(req, res, next) {
 });
 
 //TODO This route is giving a 404 for some reason.  Fix this!!!!
-router.post('/:code/remove_ingredients/:ingredient', function(req, res, next) {
-  console.log("hello");
+router.get('/:code/remove_ingredient/:ingredient', function(req, res, next) {
   let ingId = mongoose.Types.ObjectId(req.params.ingredient);
   VendorHelper.deleteIngredient(req.params.code, ingId).then(function(result) {
     res.redirect(req.baseUrl + '/' + req.params.code);
@@ -177,7 +175,6 @@ processMenu = function(list,code){
   var newList = list.slice();
   for(var i = 0; i < newList.length; i++){
     if(newList[i]['ingredient'] == null){
-      console.log(newList[i]);
       let id = newList[i]['_id'];
       VendorHelper.deleteRemovedIngredient(code,id).catch(function(err){
         reject(err);
