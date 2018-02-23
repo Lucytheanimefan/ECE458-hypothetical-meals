@@ -248,3 +248,37 @@ function createOrLoginAccountNetID(userdata) {
     }
   });
 }
+
+function addTuples(ingredients, start) {
+  var next = start;
+  ingredients = JSON.parse(ingredients);
+  $(".add-more").click(function(e){
+    e.preventDefault();
+    var addTo = "#tuple" + next;
+    next = next + 1;
+
+    var newHTML = '<div id="tuple' + next + '" class="row">';
+    newHTML += '<div class="col-md-6"><div class="form-group"></div><label class="control-label">Ingredient</label>';
+    newHTML += '<select class="form-control" id="ingredient' + next + '" name="ingredient' + next + '"><option disabled="" selected="" value="">Select an Ingredient</option>';
+
+    var i;
+    for (i = 0; i < ingredients.length; i++) {
+      var ing = ingredients[i];
+      newHTML += '<option value=' + ing._id + '>' + ing.name + '</option>';
+    }
+    newHTML += '</select></div>';
+    newHTML += '<div class="col-md-6"><div class="form-group"></div><label class="control-label">Quantity</label>';
+    newHTML += '<input class="form-control" id="quantity' + next + '" type="number" name="quantity' + next + '" min="0" step="0.01"/></div></div>';
+    var newInput = $(newHTML);
+    $(addTo).after(newInput);
+    $("#tuple" + next).attr('data-source',$(addTo).attr('data-source'));
+  });
+}
+
+function selectTuple(tuples) {
+  tuples = JSON.parse(tuples);
+  for (i = 0; i < tuples.length; i++) {
+    var id = tuples[i].ingredientID;
+    $("#ingredient"+(i+1)).val(id).attr("selected", "true");
+  }
+}

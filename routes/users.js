@@ -274,102 +274,29 @@ router.get('/logout', function(req, res, next) {
   }
 });
 
-// GET route after registering
 router.get('/cart/:page?', function(req, res, next) {
   var perPage = 10;
   var page = req.params.page || 1;
   page = (page < 1) ? 1 : page;
 
-  User.count({ _id: req.session.userId }, function(err, count) {
-    if (err) return next(err);
-
-    if (count > 0) {
-      User.findById(req.session.userId, async function(err, user) {
-        if (err) return next(err);
-
-        let cart = user.cart[0];
-        var ingredients = [];
-
-        var numbered_cart = [];
-        for (ingredient in cart) {
-          await Ingredient.find({ name: ingredient }, function(err, instance) {
-            if (err) return next(err);
-            var amount = instance[0].amount;
-            if (amount < cart[ingredient]) {
-              cart[ingredient] = amount;
-            }
-          });
-          numbered_cart.push(ingredient);
-        }
-
-        numbered_cart.sort();
-
-        var start = perPage * (page - 1);
-
-        for (i = start; i < start + perPage; i++) {
-          var ingredient = numbered_cart[i];
-          if (ingredient == undefined) {
-            break;
-          }
-          ingredients.push({ "ingredient": ingredient, "quantity": cart[ingredient] });
-        }
-
-        return res.render('cart', { ingredients: ingredients, page: page });
-      });
+  var userQuery = User.getUserById(req.session.userId);
+  var cart;
+  var orders = [];
+  userQuery.then(function(user) {
+    cart = user.cart;
+    cart = underscore.sortBy(cart, "ingredient");
+    var start = perPage * (page - 1);
+    for (i = start; i < start + perPage; i++) {
+      var order = cart[i];
+      if (order == undefined) {
+        break;
+      }
+      orders.push(order);
     }
-  });
-});
-
-router.post('/add_to_cart', function(req, res, next) {
-  req.params.
-
-  User.count({ _id: req.session.userId }, function(err, count) {
-    if (err) return next(err);
-
-    var ingredient = req.body.ingredient;
-    var quantity = Number(req.body.quantity);
-    var amount = Number(req.body.amount);
-
-    if (count > 0) {
-      User.findOne({ "_id": req.session.userId }, function(err, user) {
-        if (err) return next(err);
-        var cart;
-
-        cart = user.cart;
-        if (cart === null | cart === undefined | cart == []) {
-          cart = [];
-          cart.push({});
-        }
-        cart = cart[0];
-        /*if (ingredient in cart) {
-          quantity += Number(cart[ingredient]);
-        }*/
-
-        cart[ingredient] = quantity;
-
-        User.findByIdAndUpdate({
-          _id: req.session.userId
-        }, {
-          $set: {
-            cart: cart
-          }
-        }, function(err, cart_instance) {
-          if (err) return next(err);
-          return res.redirect(req.baseUrl + '/cart');
-        });
-      });
-    } else {
-      User.create({
-        _id: req.session.userId,
-        cart: {
-          [ingredient]: quantity
-        }
-      }, function(err, cart_instance) {
-        if (err) return next(err);
-        return res.redirect(req.baseUrl + '/cart');
-      });
-    }
-  });
+    res.render('cart', { ingredients: orders, page: page });
+  }).catch(function(error){
+    next(error);
+  })
 });
 
 router.post('/remove_ingredient', function(req, res, next) {

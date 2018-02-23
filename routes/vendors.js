@@ -4,8 +4,10 @@ var User = require('../models/user');
 var Vendor = require('../models/vendor');
 var Inventory = require('../models/inventory').model;
 var Ingredient = require('../models/ingredient');
+var UserHelper = require('../helpers/users');
 var VendorHelper = require('../helpers/vendor');
 var uniqid = require('uniqid');
+var underscore = require('underscore');
 var mongoose = require('mongoose');
 var path = require('path');
 var logs = require(path.resolve(__dirname, "./logs.js"));
@@ -145,13 +147,21 @@ router.post('/:code/order', async function(req, res, next) {
   let ingId = mongoose.Types.ObjectId(req.body.ingredient);
   var vendQuery = Vendor.findVendorByCode(req.params.code);
   let amount = parseFloat(req.body.quantity);
+  var vendor, ingredient;
   vendQuery.then(function(vend) {
     let oid = vend._id;
     let vendId = mongoose.Types.ObjectId(oid);
+    vendor = vend.name;
     return VendorHelper.makeOrder(ingId, vendId, amount);
   }).then(function(result) {
     logs.makeVendorLog('Order', { 'Vendor': result, 'Ingredient ID': ingId }, entities = ['vendor', 'ingredient'], req.session.userId);
-    res.redirect(req.baseUrl + '/' + req.params.code);
+    var ingQuery = Ingredient.getIngredientById(ingId);
+    return ingQuery;
+  }).then(function(ingResult) {
+    ingredient = ingResult.name;
+    return UserHelper.addToCart(req.session.userId, ingredient, amount, vendor);
+  }).then(function(cartResult) {
+    res.redirect('/users/cart');
   }).catch(function(error) {
     next(error);
   })
