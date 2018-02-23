@@ -103,12 +103,17 @@ router.post('/:code/update_ingredients', function(req, res, next) {
 });
 
 //TODO This route is giving a 404 for some reason.  Fix this!!!!
-router.post('/:code/:ingredient/remove_ingredients/', function(req, res, next) {
+router.post('/:code/remove_ingredients/:ingredient', function(req, res, next) {
+  console.log("hello");
   let ingId = mongoose.Types.ObjectId(req.params.ingredient);
-  VendorHelper.deleteIngredient(req.params.code, ingId);
+  VendorHelper.deleteIngredient(req.params.code, ingId).then(function(result) {
+    res.redirect(req.baseUrl + '/' + req.params.code);
+  }).catch(function(error) {
+    console.log(error);
+    next(error);
+  });
   //TODO link delete to logs
   //logs.makeVendorLog('Update ingredients', { 'Vendor code': req.params.code, 'Ingredient ID': ingId, 'cost': req.body.cost }, entities = ['vendor', 'ingredient'], req.session.userId);
-  res.redirect(req.baseUrl + '/' + req.params.code);
 });
 
 //refactored

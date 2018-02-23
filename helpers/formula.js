@@ -121,3 +121,21 @@ module.exports.updateTuple = function(name, index, ingredient, quantity){
     })
   })
 }
+
+module.exports.createListOfTuples = function(formulaName, amount) {
+  return new Promise(function(resolve, reject) {
+    Formula.findFormulaByName(formulaName).then(function(formula) {
+      let tuples = formula.tuples;
+      let total = [];
+      for (let tuple of tuples) {
+        let newTuple = {};
+        newTuple['id'] = tuple['ingredientID']
+        newTuple['amount'] = amount*parseFloat(tuple['quantity']);
+        total.push(newTuple);
+      }
+      resolve(total);
+    }).catch(function(error) {
+      reject(error);
+    })
+  })
+}
