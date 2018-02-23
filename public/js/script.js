@@ -10,6 +10,14 @@ function dropDownInteractivity() {
   }
 }
 
+function onLogout(){
+  $("#logout").click(function(){
+    console.log("Log out, clear session storage");
+    // clear session storage
+    sessionStorage.removeItem("role");
+  })
+}
+
 function filterTable(type) {
   console.log('Filter users!');
   var input, filter, table, tr, td, i;
