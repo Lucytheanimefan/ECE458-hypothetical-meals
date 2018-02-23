@@ -144,7 +144,7 @@ router.post('/:name/add-vendor', function(req, res, next) {
 })
 
 
-router.get('/order/add/to/cart', function(req, res, next) {
+router.post('/order/add/to/cart', function(req, res, next) {
   let userId = req.session.userId;
   let order = req.query;
   console.log(order);

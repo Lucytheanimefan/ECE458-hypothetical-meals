@@ -109,7 +109,7 @@ router.post('/:name/order', function(req, res, next) {
 })
 
 //TODO: production logging
-router.get('/:name/order/:amount', function(req, res, next) {
+router.post('/:name/order/:amount', function(req, res, next) {
   let formulaName = req.params.name;
   let amount = parseFloat(req.params.amount);
   FormulaHelper.createListOfTuples(formulaName, amount).then(function(total) {

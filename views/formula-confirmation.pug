@@ -29,10 +29,10 @@ block content
                 form(action='/ingredient/' + object.ingredient + '/order', method='post')
                   button.btn.btn-primary(style='padding: 5px 10px; margin: 0px;') Order
       if orderAmounts.length > 0 
-        form(action='/ingredients/order/add/to/cart', method='get')
+        form(action='/ingredients/order/add/to/cart', method='post')
           each order in orderAmounts
             input.hide(type='checkbox', name=order.ingredient, value=order.orderAmount, checked)
           button.btn.btn-primary.pull-right Order Remaining Ingredients
       else
-        form(action='/formulas/' + formula + '/order/' + amount, method='get')
+        form(action='/formulas/' + formula + '/order/' + amount, method='post')
           button.btn.btn-primary.pull-right Send Ingredients to Production

@@ -47,6 +47,7 @@ block content
                 th(onclick='sortTable(3, \'ingredient\')') Native Unit
                 th(onclick='sortTable(4, \'ingredient\')') Units per Package
                 th(onclick='sortTable(5, \'ingredient\')') Units in Storage
+                th.adminOnly.hide Remove
               tbody
               each ing in ingredients
                 tr
@@ -57,6 +58,9 @@ block content
                   td= ing.nativeUnit
                   td= ing.unitsPerPackage
                   td= ing.amount
+                  td.adminOnly.hide
+                    form(action='/ingredients/' + ing.name + '/delete', method='post')
+                      button.btn.btn-primary(type='submit', style='margin:0px; padding: 5px 10px;') Remove
             div.previous
               form(action='/ingredients/search_results/' + (parseInt(page)-1).toString() + '/' + searchQuery, method='get')
                 button.btn.btn-white.btn-round.btn-just-icon(type='submit') Prev
