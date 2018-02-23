@@ -85,8 +85,6 @@ module.exports.removeIngredient = function(code, ingId){
 }
 
 module.exports.removeDeletedIngredient = function(code, ingId){
-  console.log(ingId);
-  console.log("jfc");
   return Vendor.findOneAndUpdate({'code':code},{'$pull':{'catalogue':{'_id':ingId}}}).exec();
 }
 
