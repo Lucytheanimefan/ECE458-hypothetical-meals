@@ -4,8 +4,10 @@ var User = require('../models/user');
 var Vendor = require('../models/vendor');
 var Inventory = require('../models/inventory').model;
 var Ingredient = require('../models/ingredient');
+var UserHelper = require('../helpers/users');
 var VendorHelper = require('../helpers/vendor');
 var uniqid = require('uniqid');
+var underscore = require('underscore');
 var mongoose = require('mongoose');
 var path = require('path');
 var logs = require(path.resolve(__dirname, "./logs.js"));
@@ -13,16 +15,6 @@ var uniqid = require('uniqid')
 let packageTypes = ['sack', 'pail', 'drum', 'supersack', 'truckload', 'railcar'];
 let temperatures = ['frozen', 'refrigerated', 'room temperature'];
 let pageSize = 10;
-
-let spaceMapping = {
-  sack: 0.5,
-  pail: 1,
-  drum: 3,
-  supersack: 16,
-  truckload: 0,
-  railcar: 0
-}
-
 
 
 //no need for now
@@ -48,23 +40,28 @@ router.get('/home/:page?', function(req, res, next) {
 
 //refactored
 router.get('/:code/:page?', async function(req, res, next) {
+  var ingList;
+  var ingQuery = Ingredient.getAllIngredients();
   var query = Vendor.findVendorByCode(req.params.code);
-  query.then(function(vendQuery) {
+  ingQuery.then(function(result) {
+    ingList = result;
+    return query;
+  }).then(function(vendQuery) {
     var page = req.params.page || 1;
     page = (page < 1) ? 1 : page;
-    let fullMenu = vendQuery.catalogue;
-    console.log(fullMenu);
+    let fullMenu = processMenu(vendQuery.catalogue, req.params.code);
     let name = vendQuery.name;
     let contact = vendQuery.contact;
     let location = vendQuery.location;
-    let menu = fullMenu.splice((page - 1) * pageSize, page * pageSize)
+    let menu = fullMenu.splice((page - 1) * pageSize, page * pageSize);
     res.render('vendor', {
       vendor: vendQuery,
       catalogue: menu,
       page: page,
-      code: req.params.code
+      code: req.params.code,
+      ingredientList: ingList
     });
-  });
+  })
 })
 
 //POST request to delete an existing ingredient
@@ -77,30 +74,42 @@ router.post('/:code/delete', function(req, res, next) {
 
 //bare bones done, more implementation needed for adding other ingredients, currently hardcoded
 router.post('/:code/add_ingredients', function(req, res, next) {
-  var ingQuery = Ingredient.getIngredient(req.body.ingredient);
-
+  var ingQuery = Ingredient.getIngredientById(mongoose.Types.ObjectId(req.body.ingredient));
   ingQuery.then(function(result) {
-    console.log(result);
     if (result == null) {
       let err = new Error('This ingredient does not exist');
       return next(err);
     }
     let ingId = mongoose.Types.ObjectId(result._id);
-    VendorHelper.addIngredient(req.params.code, ingId, req.body.cost);
     logs.makeVendorLog('Add ingredients', { 'Vendor code': req.params.code, 'Ingredient_ID': ingId, 'Cost': req.body.cost }, entities = ['vendor', 'ingredient'], req.session.userId);
+
+    return vend = VendorHelper.addIngredient(req.params.code, result._id, req.body.cost);
+
+  }).then(function(outcome) {
     return res.redirect(req.baseUrl + '/' + req.params.code);
   }).catch(function(error) {
     next(error);
   })
 });
 
-//bare bones done, more implementation needed for adding other ingredients, currently hardcoded
+//bare bones done
 router.post('/:code/update_ingredients', function(req, res, next) {
-  console.log('Ingredient: '  + req.body.ingredient);
   let ingId = mongoose.Types.ObjectId(req.body.ingredient);
   console.log('Ingredient id: ' + ingId);
-  VendorHelper.updateIngredient(req.params.code, ingId, req.body.cost);
-  logs.makeVendorLog('Update ingredients', { 'Vendor code': req.params.code, 'Ingredient_ID': ingId, 'Cost': req.body.cost }, entities = ['vendor', 'ingredient'], req.session.userId);
+  VendorHelper.updateIngredient(req.params.code, ingId, req.body.cost).then(function(result) {
+    logs.makeVendorLog('Update ingredients', { 'Vendor code': req.params.code, 'Ingredient_ID': ingId, 'Cost': req.body.cost }, entities = ['vendor', 'ingredient'], req.session.userId);
+    res.redirect(req.baseUrl + '/' + req.params.code);
+  }).catch(function(err) {
+    next(err);
+  });
+});
+
+//TODO This route is giving a 404 for some reason.  Fix this!!!!
+router.get('/:code/remove_ingredient/:ingredient', function(req, res, next) {
+  let ingId = mongoose.Types.ObjectId(req.params.ingredient);
+  VendorHelper.deleteIngredient(req.params.code, ingId);
+  //TODO link delete to logs
+  logs.makeVendorLog('Remove ingredient from vendor', { 'Vendor code': req.params.code, 'Ingredient ID': ingId}, entities = ['vendor', 'ingredient'], req.session.userId);
   res.redirect(req.baseUrl + '/' + req.params.code);
 });
 
@@ -141,19 +150,40 @@ router.post('/:code/order', async function(req, res, next) {
   let ingId = mongoose.Types.ObjectId(req.body.ingredient);
   var vendQuery = Vendor.findVendorByCode(req.params.code);
   let amount = parseFloat(req.body.quantity);
+  var vendor, ingredient;
   vendQuery.then(function(vend) {
     let oid = vend._id;
     let vendId = mongoose.Types.ObjectId(oid);
+    vendor = vend.name;
     return VendorHelper.makeOrder(ingId, vendId, amount);
-  }).then(function(result) {
+  }).then(function(result) { 
     logs.makeVendorLog('Order', { 'Vendor': result, 'Ingredient_ID': ingId }, entities = ['vendor', 'ingredient'], req.session.userId);
-    res.redirect(req.baseUrl + '/' + req.params.code);
+    let ingQuery = Ingredient.getIngredientById(ingId);
+    return ingQuery;
+  }).then(function(ingResult) {
+    ingredient = ingResult.name;
+    return UserHelper.addToCart(req.session.userId, ingredient, amount, vendor);
+  }).then(function(cartResult) {
+    res.redirect('/users/cart'); 
   }).catch(function(error) {
     next(error);
   })
 });
 
+processMenu = function(list, code) {
+  var newList = list.slice();
+  for (var i = 0; i < newList.length; i++) {
+    if (newList[i]['ingredient'] == null) {
+      let id = newList[i]['_id'];
+      VendorHelper.deleteRemovedIngredient(code, id).catch(function(err) {
+        reject(err);
+      });
+      newList.splice(i, 1);
+      i--;
+    }
+  }
+  return newList;
+}
 
 
 module.exports = router;
-module.exports.addIngredient = addIngredient;

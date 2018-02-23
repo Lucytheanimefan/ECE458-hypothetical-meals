@@ -38,9 +38,20 @@ var UserSchema = new mongoose.Schema({
     default: 'user',
     required: true,
   },
-  cart: {
-    type: Array
-  },
+  cart: [{
+    ingredient: {
+      type: String,
+      required: true
+    },
+    quantity: {
+      type: Number,
+      required: true
+    },
+    vendor: {
+      type: String,
+      required: true
+    }
+  }],
   report: {
     type: Array
   },
@@ -84,10 +95,10 @@ UserSchema.statics.authenticate_netid = function(netid, email, callback) {
       if (email != null) {
         user_data['email'] = email;
       }
-
+      callback(null, null);
       // TODO this should happen in the route, not here
       // User not found, create an account associated with netid
-    
+
       // User.create(user_data, function(error, user) {
       //   if (error) {
       //     console.log("Error creating user: ");
@@ -237,7 +248,34 @@ UserSchema.pre('save', function(next) {
   }
 });
 
-
-
 var User = mongoose.model('User', UserSchema);
-module.exports = User;
+module.exports.model = User;
+
+module.exports.findById = function(id) {
+  return User.findOne({'_id':id});
+}
+
+module.exports.getUserById = function(id) {
+  return User.findOne({'_id':id}).exec();
+}
+
+module.exports.addToCart = function(id, ingredient, quantity, vendor) {
+  let entry = {ingredient:ingredient, quantity:quantity, vendor:vendor};
+  return User.findOneAndUpdate({'_id':id},{'$push':{'cart':entry}}).exec();
+}
+
+module.exports.removeOrder = function(id, ingredient) {
+  return User.findOneAndUpdate({'_id':id},{'$pull':{'cart':{'ingredient':ingredient}}}).exec();
+}
+
+module.exports.updateCart = function(id, ingredient, quantity, vendor) {
+  return new Promise(function(resolve, reject) {
+    exports.removeOrder(id,ingredient).then(function(result){
+      return exports.addToCart(id,ingredient,quantity,vendor);
+    }).then(function(tuple) {
+      resolve(tuple);
+    }).catch(function(error) {
+      reject(error);
+    });
+  })
+}

@@ -3,10 +3,13 @@ var queryString = require('query-string');
 var router = express.Router();
 var Ingredient = require('../models/ingredient');
 var IngredientHelper = require('../helpers/ingredients');
+var VendorHelper = require('../helpers/vendor');
 var Vendor = require('../models/vendor');
 var users = require('./users');
 var path = require('path');
 var logs = require(path.resolve(__dirname, "./logs.js"));
+var mongoose = require('mongoose');
+mongoose.Promise = global.Promise;
 
 var packageTypes = ['sack', 'pail', 'drum', 'supersack', 'truckload', 'railcar'];
 var temperatures = ['frozen', 'refrigerated', 'room temperature'];
@@ -58,8 +61,8 @@ router.get('/:name/:amt/:page?', function(req, res, next) {
   var page = req.params.page || 1;
   page = (page < 1) ? 1 : page;
 
-  var vendorQuery = function(id) {
-    return Vendor.model.find({ 'catalogue.ingredient': id }).skip((perPage * page) - perPage).limit(perPage);
+  var vendorQuery = function(ing) {
+    return Vendor.model.find({ 'catalogue.ingredient': ing }).skip((perPage * page) - perPage).limit(perPage);
   }
   var findAllVendors = Vendor.model.find().exec();
   var ingredient;
@@ -74,8 +77,9 @@ router.get('/:name/:amt/:page?', function(req, res, next) {
       throw err;
     }
     ingredient = ing;
-    return vendorQuery(ing['_id']);
+    return vendorQuery(ing);
   }).then(function(vendors) {
+    console.log(vendors);
     return createCatalogue(vendors, ingredient['_id']);
   }).then(function(catalogue) {
     res.render('ingredient', { ingredient: ingredient, packages: packageTypes, temps: temperatures, vendors: catalogue, page: page, amount: req.params.amt, existingVendors: vendorObjects });
@@ -162,7 +166,7 @@ createCatalogue = function(vendors, id) {
   for (i = 0; i < vendors.length; i++) {
     var vendor = vendors[i];
     for (j = 0; j < vendor['catalogue'].length; j++) {
-      if (vendor['catalogue'][j]['ingredient'] == id) {
+      if (vendor['catalogue'][j]['ingredient'].toString() == id) {
         catalogue.push({ vendorName: vendor['name'], vendorCode: vendor['code'], record: vendor['catalogue'][j] });
       }
     }

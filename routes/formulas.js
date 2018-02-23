@@ -2,6 +2,8 @@ var express = require('express');
 var router = express.Router();
 var Formula = require('../models/formula');
 var FormulaHelper = require('../helpers/formula');
+var Ingredient = require('../models/ingredient');
+var underscore = require('underscore');
 var mongoose = require('mongoose');
 var path = require('path');
 var logs = require(path.resolve(__dirname, "./logs.js"));
@@ -21,17 +23,63 @@ router.get('/home/:page?', function(req, res, next) {
       err.status = 400;
       return next(err);
     } else {
-      res.render('formulas', { formulas: formulas, page: page });
+      var ingredients = [];
+      var ingQuery = Ingredient.getAllIngredients();
+      ingQuery.then(function(result) {
+        for (let ing of result) {
+          ingredients.push({ _id: ing._id, name: ing.name });
+        }
+        for (let formula of formulas) {
+          formula.tuples = underscore.sortBy(formula.tuples, "index");
+        }
+        res.render('formulas', { formulas: formulas, ingredients: ingredients, page: page });
+      }).catch(function(error){
+        reject(error);
+      })
     }
   })
 });
 
 router.get('/:name', function(req, res, next) {
   var formQuery = Formula.findFormulaByName(req.params.name);
-  formQuery.then(function(formula) {
-    res.render('formula', { formula: formula });
+  var formula;
+  formQuery.then(function(form) {
+    formula = form;
+    var ingQuery = Ingredient.getAllIngredients();
+    return ingQuery;
+  }).then(function(result) {
+    var ingredients = [];
+    for (let ing of result) {
+      ingredients.push({ _id: ing._id, name: ing.name });
+    }
+    formula.tuples = underscore.sortBy(formula.tuples, "index");
+    res.render('formula', { formula: formula, ingredients: ingredients });
   }).catch(function(error) {
     next(error)
+  });
+})
+
+router.post('/:name/update', function(req, res, next) {
+  let name = req.params.name;
+  let newName = req.body.name;
+  let description = req.body.description;
+  let units = req.body.units;
+  var promise = FormulaHelper.updateFormula(name, newName, description, units);
+  promise.then(function() {
+    var index = 1;
+    var ingredient, quantity;
+    let tuplePromises = [];
+    while (req.body["ingredient"+index] != undefined) {
+      ingredient = req.body["ingredient"+index];
+      quantity = req.body["quantity"+index];
+      tuplePromises.push(FormulaHelper.updateTuple(name, index, ingredient, quantity));
+      index = index + 1;
+    }
+    return Promise.all(tuplePromises);
+  }).then(function(tuples) {
+    res.redirect(req.baseUrl + '/' + name);
+  }).catch(function(error) {
+    next(error);
   });
 })
 
@@ -59,6 +107,6 @@ router.post('/new', async function(req, res, next) {
   }).catch(function(error) {
     next(error);
   });
-});
+})
 
 module.exports = router;

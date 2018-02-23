@@ -19,18 +19,18 @@ block content
         th Cost
         th Package
         th Temperature
-        th Available
       tbody
       each ing in catalogue
         tr
           th
-            a(href='/ingredients/' + ing['ingredient'])= ing.ingredient
+            a(href='/ingredients/' + ing.ingredient.name)= ing.ingredient.name
           th= ing.cost
-          th= ing.package
-          th= ing.temp
-          th= ing.available
+          th= ing.ingredient.package
+          th= ing.ingredient.temperature
+          th
+            a(href='/vendors/' + vendor.code + '/' + 'remove_ingredient' + '/' +  ing['ingredient']['_id']) Remove
     div.previous
-      form(action='/vendors/'+vendor.code + '/' + (parseInt(page)-1).toString() method='get')
+      form(action='/vendors/'+ vendor.code + '/' + (parseInt(page)-1).toString() method='get')
         button.btn.btn-white.btn-round.btn-just-icon(type='submit') Prev
     div.next
       form(action='/vendors/'+vendor.code + '/' + (parseInt(page)+1).toString() method='get')
@@ -66,11 +66,14 @@ block content
       h1= 'Add Ingredient'
       form(action='/vendors/' + vendor.code + '/add_ingredients', method='post')
         .form-group
-          label.control-label Ingredient
-          input.form-control(type='text', name='ingredient', required='')
+          label.control-label Ingredients
+          select.form-control(name='ingredient', placeholder = '', required='')
+            option(disabled="" selected="" value="") Select an option
+            each ing in ingredientList
+              option(value=ing._id)= ing['name']
         .form-group
           label.control-label Cost
-          input.form-control(type='text', name='cost', required='')
+          input.form-control(type='number', name='cost', min='0', step="any", required='')
         button.btn.btn-primary.pull-right(type='submit', value='ingredient added') Add
 
     #updateing.tab-pane.fade.in.adminOnly.hide
@@ -81,10 +84,10 @@ block content
           select.form-control(name='ingredient', placeholder = '', required='')
             option(disabled="" selected="" value="") Select an option
             each ing in catalogue
-              option(value=ing.id)= ing['ingredient']
+              option(value=ing['ingredient'].id)= ing['ingredient']['name']
         .form-group
           label.control-label Cost (per unit)
-          input.form-control(type='text', name='cost',  required='')
+          input.form-control(type='number', name='cost', min='0', step="any",required='')
         button.btn.btn-primary.pull-right(type='submit', value='ingredient added') Update
 
 
@@ -96,9 +99,8 @@ block content
           select.form-control(name='ingredient', placeholder = '', required='')
             option(disabled="" selected="" value="") Select an option
             each ing in catalogue
-              option(value=ing.id)= ing['ingredient']
+              option(value=ing['ingredient']['_id'])= ing['ingredient']['name']
         .form-group
-          label.control-label Quantity
-          input.form-control(type='text', name='quantity', required='')
+          label.control-label Quantity (Number of storage units)
+          input.form-control(type='number', name='quantity', min='0', required='')
         button.btn.btn-primary.pull-right(type='submit', value='order made') Order
-
