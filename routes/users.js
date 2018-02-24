@@ -169,7 +169,7 @@ router.get('/admin', function(req, res, next) {
 });
 
 router.post('/delete/:username', function(req, res, next) {
-  if (req.session.role != 'admin'){
+  if (req.session.role != 'admin') {
     let err = new Error('You must be an admin to delete a user');
     return next(err);
   }
@@ -189,7 +189,7 @@ router.post('/delete/:username', function(req, res, next) {
 
 // Any user can update their own account
 router.post('/update', async function(req, res, next) {
-  if (req.session.role != 'admin'){
+  if (req.session.role != 'admin') {
     let err = new Error('You must be an admin to update a user');
     return next(err);
   }
@@ -216,7 +216,7 @@ router.post('/update', async function(req, res, next) {
 
 // Admin can update the user through username
 router.post('/update/:username', async function(req, res, next) {
-  if (req.session.role != 'admin'){
+  if (req.session.role != 'admin') {
     let err = new Error('You must be an admin to delete a user');
     return next(err);
   }
@@ -299,7 +299,7 @@ router.get('/cart/:page?', function(req, res, next) {
       orders.push(order);
     }
     res.render('cart', { orders: orders, page: page });
-  }).catch(function(error){
+  }).catch(function(error) {
     next(error);
   })
 });
@@ -332,7 +332,7 @@ router.get('/edit_order/:ingredient/:page?', function(req, res, next) {
       orders.push(order);
     }
     res.render('edit_cart', { orders: orders, page: page });
-  }).catch(function(error){
+  }).catch(function(error) {
     next(error);
   })
 });
@@ -348,43 +348,44 @@ router.post('/remove_ingredient', function(req, res, next) {
   })
 });
 
-// router.post('/edit_order', function(req, res, next) {
-//   let ingredient = req.body.ingredient;
-//   let quantities = req.body.quantity;
-//   let codes = req.body.code;
-//   var vendor, cart;
-//   var userQuery = User.getUserById(req.session.userId);
-//   userQuery.then(function(user) {
-//     cart = user.cart;
-//     var promises = [];
-//     for (i = 0; i < codes.length; i++) {
+router.post('/edit_order', function(req, res, next) {
+  let ingredient = req.body.ingredient;
+  let quantities = req.body.quantity;
+  let codes = req.body.code;
+  var vendor, cart;
+  var userQuery = User.getUserById(req.session.userId);
+  userQuery.then(function(user) {
+    cart = user.cart;
+    var promises = [];
+    for (i = 0; i < codes.length; i++) {
 
-//     }
-//   var vendQuery = Vendor.findVendorByCode(code);
-//   vendQuery.then(function(vend) {
-//     vendor = vend.name;
+    }
+    var vendQuery = Vendor.findVendorByCode(code);
+    vendQuery.then(function(vend) {
+      vendor = vend.name;
 
-//   }).then(function(user) {
-//     var newQuantity;
-//     for (let order of cart) {
-//       if (ingredient === order.ingredient) {
-//         for (let vend of order.vendors) {
-//           if (vendor === vend.name) {
-//             newQuantity = quantity - vend.quantity;
-//           }
-//           break;
-//         }
-//         break;
-//       }
-//     }
-//     var promise = UserHelper.addToCart(req.session.userId, ingredient, newQuantity, vendor);
-//     return promise;
-//   }).then(function(results) {
-//     res.redirect('/users/cart');
-//   }).catch(function(error) {
-//     next(error);
-//   })
-// });
+    }).then(function(user) {
+      var newQuantity;
+      for (let order of cart) {
+        if (ingredient === order.ingredient) {
+          for (let vend of order.vendors) {
+            if (vendor === vend.name) {
+              newQuantity = quantity - vend.quantity;
+            }
+            break;
+          }
+          break;
+        }
+      }
+      var promise = UserHelper.addToCart(req.session.userId, ingredient, newQuantity, vendor);
+      return promise;
+    }).then(function(results) {
+      res.redirect('/users/cart');
+    }).catch(function(error) {
+      next(error);
+    })
+  });
+})
 
 router.post('/checkout_cart', function(req, res, next) {
   User.count({ _id: req.session.userId }, async function(err, count) {
@@ -478,7 +479,7 @@ router.post('/checkout_cart', function(req, res, next) {
           if (err) return next(err);
         });
 
-        logs.makeLog('Checked out cart and updated report', {cart: cart_instance, inventory: inventories, production_report: production_report}, ['cart', 'inventory'], req.session.userId);
+        logs.makeLog('Checked out cart and updated report', { cart: cart_instance, inventory: inventories, production_report: production_report }, ['cart', 'inventory'], req.session.userId);
         return res.redirect(req.baseUrl + '/report');
       });
     }
