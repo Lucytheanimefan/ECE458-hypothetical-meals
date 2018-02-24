@@ -8,12 +8,14 @@ var UserSchema = new mongoose.Schema({
   email: {
     type: String,
     required: false,
-    trim: true
+    trim: true,
+    unique: true
   },
   username: {
     type: String,
     required: false,
-    trim: true
+    trim: true,
+    unique: true
   },
   password: {
     type: String,
@@ -25,6 +27,7 @@ var UserSchema = new mongoose.Schema({
   },
   netid: {
     type: String,
+    unique: true,
     required: function() {
       return this.isDukePerson ? true : false
     }
@@ -74,11 +77,12 @@ UserSchema.statics.authenticate = function(email, password, callback) {
         return callback(err);
       }
       bcrypt.compare(password, user.password, function(err, result) {
-        //console.log('Compare password: ' + password + ' vs ' + user.password);
+        console.log('Compare password: ' + password + ' vs ' + user.password);
         if (result === true) {
           return callback(null, user);
         } else {
-          return callback();
+          console.log('Incorrect password');
+          return callback(null, null);
         }
       })
     });
