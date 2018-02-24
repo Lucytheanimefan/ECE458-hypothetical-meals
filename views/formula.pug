@@ -49,7 +49,6 @@ block content
                     .col-md-6
                       .form-group
                       label.control-label Ingredient
-                      //- input.form-control(type='text', id='ingredient'+tuple.index, name='ingredient'+tuple.index, value=tuple.ingredient, required='')
                       select.form-control(id='ingredient'+tuple.index, name='ingredient'+tuple.index)
                         option(disabled="" selected="" value="") Select an Ingredient
                         each ingredient in ingredients
