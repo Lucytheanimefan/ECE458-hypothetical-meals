@@ -117,7 +117,7 @@ router.post('/:name/order/:amount', function(req, res, next) {
   let amount = parseFloat(req.params.amount);
   FormulaHelper.createListOfTuples(formulaName, amount).then(function(total) {
     return Promise.all(total.map(function(ingTuple) {
-      return IngredientHelper.incrementAmount(mongoose.Types.ObjectId(ingTuple['id']), parseFloat(-ingTuple['amount']));
+      return IngredientHelper.sendIngredientsToProduction(mongoose.Types.ObjectId(ingTuple['id']), parseFloat(ingTuple['amount']));
     }));
   }).then(function(results) {
     res.redirect('/formulas');
