@@ -70,6 +70,22 @@ module.exports.deleteIngredient = function(name, package, temp, unitsPerPackage,
   })
 }
 
+module.exports.updateCost = function(name, newAmount, price) {
+  return new Promise(function(resolve, reject) {
+    Ingredient.getIngredient(name).then(function(ing) {
+      let currentTotal = parseFloat(ing.amount) * parseFloat(ing.averageCost);
+      let newTotal = parseFloat(newAmount) * parseFloat(price);
+      let newAverage = (currentTotal + newTotal) / (parseFloat(newAmount) + parseFloat(ing.amount));
+      ing.averageCost = newAverage;
+      return ing.save();
+    }).then(function(ing) {
+      resolve(ing.averageCost);
+    }).catch(function(error) {
+      reject(error);
+    })
+  })
+}
+
 module.exports.searchIngredients = function(searchQuery, currentPage) {
   var query = Ingredient.searchIngredients();
   return new Promise(function(resolve, reject) {
