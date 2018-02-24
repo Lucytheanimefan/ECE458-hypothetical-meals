@@ -4,6 +4,8 @@ var Vendor = require('../models/vendor');
 var VendorHelper = require('../helpers/vendor');
 var Formula = require('../models/formula');
 var FormulaHelper = require('../helpers/formula');
+var mongoose = require('mongoose')
+mongoose.Promise = global.Promise;
 
 ingredientHeaders = ['INGREDIENT', 'PACKAGE', 'TEMPERATURE', 'NATIVE UNIT', 'UNITS PER PACKAGE', 'VENDOR FREIGHT CODE', 'PRICE PER PACKAGE', 'AMOUNT (NATIVE UNITS)'];
 
@@ -12,10 +14,18 @@ formulaHeaders = ['NAME', 'PRODUCT UNITS', 'DESCRIPTION', 'INGREDIENT', 'INGREDI
 addFormula = function(rows) {
   return new Promise(function(resolve, reject) {
     let firstRow = rows[0];
-    FormulaHelper.createFormula(firstRow['FORMULA'], firstRow['DESCRIPTION'], firstRow['PRODUCT UNITS']).then(function(formula) {
+    FormulaHelper.createFormula(firstRow['NAME'], firstRow['DESCRIPTION'], firstRow['PRODUCT UNITS']).then(function(formula) {
       let name = formula.name;
       return Promise.all(rows.map(function(row, index) {
-        return FormulaHelper.addTuple(row['FORMULA'], index+1, row['INGREDIENT'], row['INGREDIENT UNITS']);
+        return new Promise(function(resolve, reject) {
+          Ingredient.getIngredient(row['INGREDIENT']).then(function(ing) {
+            return FormulaHelper.addTuple(row['NAME'], index+1, mongoose.Types.ObjectId(ing['_id']), row['INGREDIENT UNITS']);
+          }).then(function(formula) {
+            resolve(formula);
+          }).catch(function(error) {
+            reject(error);
+          })
+        });
       }));
     }).then(function(formulas) {
       resolve(formulas[0]);
@@ -31,13 +41,13 @@ module.exports.addFormulas = function(csvData) {
       resolve();
     } else {
       let row = 0;
-      let currentFormula = csvData[row]['FORMULA'];
+      let currentFormula = csvData[row]['NAME'];
       let formulaList = [];
       let currentList = [];
       while (row < csvData.length) {
         let myRow = csvData[row];
-        if (myRow['FORMULA'] !== currentFormula) {
-          currentFormula = myRow['FORMULA'];
+        if (myRow['NAME'] !== currentFormula) {
+          currentFormula = myRow['NAME'];
           formulaList.push(currentList);
           currentList = [];
         }
@@ -78,8 +88,6 @@ module.exports.addToDatabase = function(index, csvRow) {
       let code = csvRow['VENDOR FREIGHT CODE'];
       let price = parseFloat(csvRow['PRICE PER PACKAGE']);
       let amount = 0;
-
-      //this is quite hacky
 
       Ingredient.getIngredient(name).then(function(ing) {
         if (ing == null) {

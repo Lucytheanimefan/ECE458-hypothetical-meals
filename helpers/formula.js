@@ -74,13 +74,6 @@ module.exports.addTuple = function(name, index, ingredientID, quantity){
         throw(error);
       }
       return Formula.addTuple(name,index,ingResult.name,ingredientID,quantity);
-    }).then(function(result) {
-      if (result == null) {
-        var error = new Error('The ingredient ${ingredient} does not exist!');
-        error.status = 400;
-        throw(error);
-      }
-      return Formula.addTuple(name,index,ingredient,quantity);
     }).then(function(formula) {
       resolve(formula);
     }).catch(function(error){
