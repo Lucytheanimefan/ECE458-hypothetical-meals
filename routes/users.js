@@ -2,8 +2,10 @@ var express = require('express');
 var router = express.Router();
 var User = require('../models/user');
 var Ingredient = require('../models/ingredient');
+var Vendor = require('../models/vendor');
 var Inventory = require('../models/inventory').model;
 var Token = require('../models/token');
+var UserHelper = require('../helpers/users');
 var crypto = require('crypto');
 var nodemailer = require('nodemailer');
 var underscore = require('underscore');
@@ -69,7 +71,10 @@ router.post('/', function(req, res, next) {
     console.log('Authenticate!');
     User.authenticate(req.body.logemail, req.body.logpassword, function(error, user) {
       if (error || !user) {
+        console.log('Error: ');
         console.log(error);
+        console.log('User: ');
+        console.log(user);
         let err = new Error('Wrong email or password.');
         err.status = 401;
         return next(err);
@@ -293,42 +298,92 @@ router.get('/cart/:page?', function(req, res, next) {
       }
       orders.push(order);
     }
-    res.render('cart', { ingredients: orders, page: page });
+    res.render('cart', { orders: orders, page: page });
+  }).catch(function(error){
+    next(error);
+  })
+});
+
+router.get('/edit_order/:ingredient/:page?', function(req, res, next) {
+  var perPage = 10;
+  var page = req.params.page || 1;
+  page = (page < 1) ? 1 : page;
+
+  var userQuery = User.getUserById(req.session.userId);
+  var cart;
+  var orders = [];
+  var ingredient = req.params.ingredient;
+  userQuery.then(function(user) {
+    cart = user.cart;
+    cart = underscore.sortBy(cart, "ingredient");
+    var start = perPage * (page - 1);
+    for (i = start; i < start + perPage; i++) {
+      var order = cart[i];
+      if (order == undefined) {
+        break;
+      }
+      var show;
+      if (order.ingredient === ingredient) {
+        show = "visible";
+      } else {
+        show = "hidden";
+      }
+      order['show'] = show;
+      orders.push(order);
+    }
+    res.render('edit_cart', { orders: orders, page: page });
   }).catch(function(error){
     next(error);
   })
 });
 
 router.post('/remove_ingredient', function(req, res, next) {
-  User.count({ _id: req.session.userId }, function(err, count) {
-    if (err) return next(err);
+  let id = req.session.userId;
+  let ingredient = req.body.ingredient;
+  var promise = UserHelper.removeOrder(id, ingredient);
+  promise.then(function(result) {
+    res.redirect(req.baseUrl + '/cart');
+  }).catch(function(error) {
+    next(error);
+  })
+});
 
-    ingredient = req.body.ingredient;
+router.post('/edit_order', function(req, res, next) {
+  let ingredient = req.body.ingredient;
+  let quantities = req.body.quantity;
+  let codes = req.body.code;
+  var vendor, cart;
+  var userQuery = User.getUserById(req.session.userId);
+  userQuery.then(function(user) {
+    cart = user.cart;
+    var promises = [];
+    for (i = 0; i < codes.length; i++) {
 
-    if (count > 0) {
-      User.findOne({ "_id": req.session.userId }, function(err, user) {
-        if (err) return next(err);
-
-        var cart = user.cart[0];
-        if (ingredient in cart) {
-          delete cart[ingredient];
-        }
-
-        User.findByIdAndUpdate({
-          _id: req.session.userId
-        }, {
-          $set: {
-            cart: cart
-          }
-        }, function(err, cart_instance) {
-          if (err) return next(err);
-          return res.redirect(req.baseUrl + '/cart');
-        });
-      });
-    } else {
-      //TODO : error handling?
     }
-  });
+  var vendQuery = Vendor.findVendorByCode(code);
+  vendQuery.then(function(vend) {
+    vendor = vend.name;
+
+  }).then(function(user) {
+    var newQuantity;
+    for (let order of cart) {
+      if (ingredient === order.ingredient) {
+        for (let vend of order.vendors) {
+          if (vendor === vend.name) {
+            newQuantity = quantity - vend.quantity;
+          }
+          break;
+        }
+        break;
+      }
+    }
+    var promise = UserHelper.addToCart(req.session.userId, ingredient, newQuantity, vendor);
+    return promise;
+  }).then(function(results) {
+    res.redirect('/users/cart');
+  }).catch(function(error) {
+    next(error);
+  })
 });
 
 router.post('/checkout_cart', function(req, res, next) {
