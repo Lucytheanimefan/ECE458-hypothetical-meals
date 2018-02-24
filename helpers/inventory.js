@@ -85,7 +85,8 @@ module.exports.updateLimits = function(frozen, room, refrigerated) {
         var error = new Error('Can\'t set refrigerated limit to under current capacity');
         throw error;
       }
-      resolve(inv.save());
+      inv.save();
+      resolve(inv);
     }).catch(function(error) {
       reject(error);
     });

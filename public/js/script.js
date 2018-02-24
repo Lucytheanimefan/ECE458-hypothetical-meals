@@ -10,6 +10,14 @@ function dropDownInteractivity() {
   }
 }
 
+function onLogout(){
+  $("#logout").click(function(){
+    console.log("Log out, clear session storage");
+    // clear session storage
+    sessionStorage.removeItem("role");
+  })
+}
+
 function filterTable(type) {
   console.log('Filter users!');
   var input, filter, table, tr, td, i;
@@ -201,6 +209,71 @@ function loadSideBar() {
   })
 }
 
+function loadPugView() {
+  var description = $("#descriptionValues").data("description");
+  console.log(description);
+
+  if (typeof description == 'string') {
+    $("#description").append(description);
+    return;
+  }
+
+  for (var key in description) {
+    if (description.hasOwnProperty(key) && (description instanceof Object)) {
+      var text = '';
+      //console.log(key.toLowerCase());
+      var keyLower = key.toLowerCase()
+      if (keyLower == 'vendor code') {
+        text = key + ': <a href=\'/vendors/' + description[key] + '\'>' + description[key] + '</a>';
+        $("#description").append("<li>" + text + "</li>");
+      } else if (keyLower == 'ingredient_id' || keyLower == 'ingredient id') {
+        console.log('get ingredient for id');
+        getIngredientForID(description[key], function(ingredient) {
+          text = 'Ingredient: <ul>';
+          for (var ingKey in ingredient) {
+            if (ingKey != '_id' && ingKey != '__v' && ingKey != 'vendors') {
+              text += '<li>' + ingKey + ': ' + ingredient[ingKey] + '</li>';
+            }
+          }
+          text += '</ul>';
+          $("#description").append("<li>" + text + "</li>");
+        })
+      } else if (keyLower == "array_description") {
+        for (var i in description[key]) {
+          var result = description[key][i];
+          console.log(result);
+
+          if (result.hasOwnProperty('package')) { // it's an ingredient
+            text += '<li>Ingredient: <a href=\'/ingredients/' + result['name'] + '\'>' + result['name'] + '</a></li>';
+          } else if (result.hasOwnProperty('code')) { // it's a vendor
+            text += '<li>Vendor: <a href=\'/vendors/' + result['code'] + '\'>' + result['code'] + '</a></li>';
+          }
+        }
+        $("#description").append(text);
+        //text = '<a href=\'/vendors/' + description[key] + '\'>' + '<b>' + key + '</b>: ' + description[key] + '</a>'
+
+      } else {
+        text = '<li>' + key + ': ' + description[key] + '</li>';
+        $("#description").append(text);
+      }
+    }
+  }
+}
+
+function getIngredientForID(id, callback) {
+  console.log("Get ingredient for id");
+  $.ajax({
+    type: 'GET',
+    url: '/ingredients/id/' + id,
+    contentType: 'application/json; charset=utf-8',
+    dataType: 'json',
+    success: function(response) {
+      console.log(response);
+      callback(response);
+    }
+  });
+
+}
 
 function getAccessTokenHash() {
   let hash = window.location.hash;
@@ -252,7 +325,7 @@ function createOrLoginAccountNetID(userdata) {
 function addTuples(ingredients, start) {
   var next = start;
   ingredients = JSON.parse(ingredients);
-  $(".add-more").click(function(e){
+  $(".add-more").click(function(e) {
     e.preventDefault();
     var addTo = "#tuple" + next;
     next = next + 1;
@@ -271,7 +344,7 @@ function addTuples(ingredients, start) {
     newHTML += '<input class="form-control" id="quantity' + next + '" type="number" name="quantity' + next + '" min="0" step="0.01"/></div></div>';
     var newInput = $(newHTML);
     $(addTo).after(newInput);
-    $("#tuple" + next).attr('data-source',$(addTo).attr('data-source'));
+    $("#tuple" + next).attr('data-source', $(addTo).attr('data-source'));
   });
 }
 
@@ -279,6 +352,6 @@ function selectTuple(tuples) {
   tuples = JSON.parse(tuples);
   for (i = 0; i < tuples.length; i++) {
     var id = tuples[i].ingredientID;
-    $("#ingredient"+(i+1)).val(id).attr("selected", "true");
+    $("#ingredient" + (i + 1)).val(id).attr("selected", "true");
   }
 }

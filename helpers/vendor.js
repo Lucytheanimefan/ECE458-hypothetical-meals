@@ -162,7 +162,6 @@ module.exports.updateIngredient = function(code, ingredientId, cost){
       resolve(result);
       nextResult = Vendor.addIngredient(code,ingId,cost);
     }).then(function(nextResult){
-      console.log("resolved this");
       resolve(nextResult);
     }).catch(function(error){
       reject(error);
