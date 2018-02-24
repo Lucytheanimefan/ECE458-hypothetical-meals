@@ -105,6 +105,7 @@ router.post('/:name/order', function(req, res, next) {
       }
     }
     console.log(tuples);
+    console.log(results);
     res.render('formula-confirmation', { formula: formulaName, formulaObjects: results, orderAmounts: tuples, amount: amount });
   }).catch(function(error) {
     next(error);

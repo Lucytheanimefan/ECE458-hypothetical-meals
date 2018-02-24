@@ -348,43 +348,43 @@ router.post('/remove_ingredient', function(req, res, next) {
   })
 });
 
-router.post('/edit_order', function(req, res, next) {
-  let ingredient = req.body.ingredient;
-  let quantities = req.body.quantity;
-  let codes = req.body.code;
-  var vendor, cart;
-  var userQuery = User.getUserById(req.session.userId);
-  userQuery.then(function(user) {
-    cart = user.cart;
-    var promises = [];
-    for (i = 0; i < codes.length; i++) {
+// router.post('/edit_order', function(req, res, next) {
+//   let ingredient = req.body.ingredient;
+//   let quantities = req.body.quantity;
+//   let codes = req.body.code;
+//   var vendor, cart;
+//   var userQuery = User.getUserById(req.session.userId);
+//   userQuery.then(function(user) {
+//     cart = user.cart;
+//     var promises = [];
+//     for (i = 0; i < codes.length; i++) {
 
-    }
-  var vendQuery = Vendor.findVendorByCode(code);
-  vendQuery.then(function(vend) {
-    vendor = vend.name;
+//     }
+//   var vendQuery = Vendor.findVendorByCode(code);
+//   vendQuery.then(function(vend) {
+//     vendor = vend.name;
 
-  }).then(function(user) {
-    var newQuantity;
-    for (let order of cart) {
-      if (ingredient === order.ingredient) {
-        for (let vend of order.vendors) {
-          if (vendor === vend.name) {
-            newQuantity = quantity - vend.quantity;
-          }
-          break;
-        }
-        break;
-      }
-    }
-    var promise = UserHelper.addToCart(req.session.userId, ingredient, newQuantity, vendor);
-    return promise;
-  }).then(function(results) {
-    res.redirect('/users/cart');
-  }).catch(function(error) {
-    next(error);
-  })
-});
+//   }).then(function(user) {
+//     var newQuantity;
+//     for (let order of cart) {
+//       if (ingredient === order.ingredient) {
+//         for (let vend of order.vendors) {
+//           if (vendor === vend.name) {
+//             newQuantity = quantity - vend.quantity;
+//           }
+//           break;
+//         }
+//         break;
+//       }
+//     }
+//     var promise = UserHelper.addToCart(req.session.userId, ingredient, newQuantity, vendor);
+//     return promise;
+//   }).then(function(results) {
+//     res.redirect('/users/cart');
+//   }).catch(function(error) {
+//     next(error);
+//   })
+// });
 
 router.post('/checkout_cart', function(req, res, next) {
   User.count({ _id: req.session.userId }, async function(err, count) {
