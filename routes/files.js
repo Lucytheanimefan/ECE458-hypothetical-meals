@@ -70,15 +70,22 @@ router.post('/upload/formulas', function(req, res, next) {
       }
       csvData = data.data;
       return Promise.all(csvData.map(function(row, index) {
-        return Promise.all([Upload.checkIngredientExists(row['INGREDIENT']), Upload.checkFormulaPreexisting(row['NAME'])]);
+        return Promise.all([Upload.checkFormulaHeader(row), Upload.checkIngredientExists(row['INGREDIENT']), Upload.checkFormulaPreexisting(row['NAME'])]);
       }));
     }).then(function() {
       return Upload.addFormulas(csvData);
     }).then(function() {
       res.redirect(req.baseUrl);
     }).catch(function(error) {
-      console.log(error);
-      next(error);
+      if (Array.isArray(error)) {
+        var message = "";
+        for (i = 0; i < error.length; i++) {
+          message += "Row " + error[i].row + ": " + error[i].message + ",\n";
+        }
+        next(new Error(message));
+      } else {
+        next(error);
+      }
     });
 
   })
@@ -124,8 +131,9 @@ router.post('/upload/ingredients', function(req, res, next) {
         throw data.errors;
       }
       csvData = data.data;
+      console.log(csvData);
       return Promise.all(csvData.map(function(row, index) {
-        return Promise.all([Upload.checkIngredient(row), Upload.checkVendor(row['VENDOR FREIGHT CODE'])]);
+        return Promise.all([Upload.checkIngredientHeader(row), Upload.checkIngredient(row), Upload.checkVendor(row['VENDOR FREIGHT CODE'])]);
       }));
     }).then(function() {
       return Promise.all(csvData.map(function(row, index) {

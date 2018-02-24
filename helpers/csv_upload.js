@@ -7,6 +7,8 @@ var FormulaHelper = require('../helpers/formula');
 
 ingredientHeaders = ['INGREDIENT', 'PACKAGE', 'TEMPERATURE', 'NATIVE UNIT', 'UNITS PER PACKAGE', 'VENDOR FREIGHT CODE', 'PRICE PER PACKAGE', 'AMOUNT (NATIVE UNITS)'];
 
+formulaHeaders = ['NAME', 'PRODUCT UNITS', 'DESCRIPTION', 'INGREDIENT', 'INGREDIENT UNITS']
+
 addFormula = function(rows) {
   return new Promise(function(resolve, reject) {
     let firstRow = rows[0];
@@ -77,6 +79,8 @@ module.exports.addToDatabase = function(index, csvRow) {
       let price = parseFloat(csvRow['PRICE PER PACKAGE']);
       let amount = 0;
 
+      //this is quite hacky
+
       Ingredient.getIngredient(name).then(function(ing) {
         if (ing == null) {
           return IngredientHelper.createIngredient(name, package, temperature, nativeUnit, unitsPerPackage, amount);
@@ -93,7 +97,20 @@ module.exports.addToDatabase = function(index, csvRow) {
         resolve(csvRow);
       }).catch(function(error) {
         if (error.name === 'MongoError' && error.code === 11000) {
-          resolve(csvRow);
+          var tryAgain = new Promise(function(resolve, reject) {
+            Ingredient.getIngredient(name).then(function(ing) {
+              if (code === "") {
+                resolve(csvRow);
+              } else {
+                return VendorHelper.addIngredient(code, ing['_id'], price);
+              }
+            }).then(function() {
+              resolve(csvRow);
+            }).catch(function(error) {
+              reject(error);
+            });
+          })
+          resolve(tryAgain);
         } else {
           reject(error);
         }
@@ -122,7 +139,9 @@ checkIngredientExists = function(name) {
       if (ing != null) {
         resolve(ing);
       } else {
-        reject(new Error('Ingredient ' + name + ' doesn\'t match pre-existing ingredient'));
+        var error = new Error('Ingredient ' + name + ' doesn\'t exist');
+        error.name = 'IngredientError';
+        reject(error);
       }
     }).catch(function(error) {
       reject(error);
@@ -142,7 +161,11 @@ module.exports.checkIngredient = function(row) {
         resolve();
       }
     }).catch(function(error) {
-      reject(error);
+      if (error.name == 'IngredientError') {
+        resolve();
+      } else {
+        reject(error);
+      }
     });
   })
 }
@@ -165,8 +188,38 @@ module.exports.checkVendor = function(vendorCode) {
   })
 }
 
-// module.exports.checkHeader = function(row) {
-//   return new Promise(function(resolve, reject) {
+module.exports.checkIngredientHeader = function(row) {
+  return new Promise(function(resolve, reject) {
+    for (let header of ingredientHeaders) {
+      if (!row.hasOwnProperty(header)) {
+        reject(new Error('Ingredient CSV is missing headers! Refer to the bulk import documentation to see the required headers.'));
+        return;
+      }
+    }
+    for (let rowHeader in row) {
+      if (ingredientHeaders.indexOf(rowHeader) == -1) {
+        reject(new Error('Ingredient CSV has incorrect headers! Refer to the bulk import documentation to see the correct headers.'));
+        return;
+      }
+    }
+    resolve();
+  })
+}
 
-//   })
-// }
+module.exports.checkFormulaHeader = function(row) {
+  return new Promise(function(resolve, reject) {
+    for (let header of formulaHeaders) {
+      if (!row.hasOwnProperty(header)) {
+        reject(new Error('Formula CSV is missing headers! Refer to the bulk import documentation to see the required headers.'));
+        return;
+      }
+    }
+    for (let rowHeader in row) {
+      if (formulaHeaders.indexOf(rowHeader) == -1) {
+        reject(new Error('Formula CSV has incorrect headers! Refer to the bulk import documentation to see the correct headers.'));
+        return;
+      }
+    }
+    resolve();
+  })
+}
