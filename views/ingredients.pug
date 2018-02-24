@@ -51,7 +51,7 @@ block content
               each ing in ingredients
                 tr
                   td
-                    a(href='/ingredients/' + ing.name)= ing.name
+                    a(href='/ingredients/' + encodeURIComponent(ing.name))= ing.name
                   td= ing.package
                   td= ing.temperature
                   td= ing.nativeUnit
