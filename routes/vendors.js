@@ -43,24 +43,24 @@ router.get('/:code/:page?', async function(req, res, next) {
   var ingList;
   var ingQuery = Ingredient.getAllIngredients();
   var query = Vendor.findVendorByCode(req.params.code);
-  ingQuery.then(function(result){
+  ingQuery.then(function(result) {
     ingList = result;
     return query;
-  }).then(function(vendQuery){
-      var page = req.params.page || 1;
-      page = (page < 1) ? 1 : page;
-      let fullMenu = processMenu(vendQuery.catalogue,req.params.code);
-      let name = vendQuery.name;
-      let contact = vendQuery.contact;
-      let location = vendQuery.location;
-      let menu = fullMenu.splice((page - 1) * pageSize, page * pageSize);
-      res.render('vendor', {
-        vendor: vendQuery,
-        catalogue: menu,
-        page: page,
-        code: req.params.code,
-        ingredientList: ingList
-      });
+  }).then(function(vendQuery) {
+    var page = req.params.page || 1;
+    page = (page < 1) ? 1 : page;
+    let fullMenu = processMenu(vendQuery.catalogue, req.params.code);
+    let name = vendQuery.name;
+    let contact = vendQuery.contact;
+    let location = vendQuery.location;
+    let menu = fullMenu.splice((page - 1) * pageSize, page * pageSize);
+    res.render('vendor', {
+      vendor: vendQuery,
+      catalogue: menu,
+      page: page,
+      code: req.params.code,
+      ingredientList: ingList
+    });
   })
 })
 
@@ -80,12 +80,14 @@ router.post('/:code/add_ingredients', function(req, res, next) {
       let err = new Error('This ingredient does not exist');
       return next(err);
     }
-    logs.makeVendorLog('Add ingredients', { 'Vendor code': req.params.code, 'Ingredient ID': result._id, 'cost': req.body.cost }, entities = ['vendor', 'ingredient'], req.session.userId);
+    let ingId = mongoose.Types.ObjectId(result._id);
+    logs.makeVendorLog('Add ingredients', { 'Vendor code': req.params.code, 'Ingredient_ID': ingId, 'Cost': req.body.cost }, entities = ['vendor', 'ingredient'], req.session.userId);
+
     return vend = VendorHelper.addIngredient(req.params.code, result._id, req.body.cost);
 
-  }).then(function(outcome){
+  }).then(function(outcome) {
     return res.redirect(req.baseUrl + '/' + req.params.code);
-  }).catch(function(error){
+  }).catch(function(error) {
     next(error);
   })
 });
@@ -93,10 +95,11 @@ router.post('/:code/add_ingredients', function(req, res, next) {
 //bare bones done
 router.post('/:code/update_ingredients', function(req, res, next) {
   let ingId = mongoose.Types.ObjectId(req.body.ingredient);
-  VendorHelper.updateIngredient(req.params.code, ingId, req.body.cost).then(function(result){
-    logs.makeVendorLog('Update ingredients', { 'Vendor code': req.params.code, 'Ingredient ID': ingId, 'cost': req.body.cost }, entities = ['vendor', 'ingredient'], req.session.userId);
+  console.log('Ingredient id: ' + ingId);
+  VendorHelper.updateIngredient(req.params.code, ingId, req.body.cost).then(function(result) {
+    logs.makeVendorLog('Update ingredients', { 'Vendor code': req.params.code, 'Ingredient_ID': ingId, 'Cost': req.body.cost }, entities = ['vendor', 'ingredient'], req.session.userId);
     res.redirect(req.baseUrl + '/' + req.params.code);
-  }).catch(function(err){
+  }).catch(function(err) {
     next(err);
   });
 });
@@ -111,7 +114,8 @@ router.get('/:code/remove_ingredient/:ingredient', function(req, res, next) {
     next(error);
   });
   //TODO link delete to logs
-  //logs.makeVendorLog('Update ingredients', { 'Vendor code': req.params.code, 'Ingredient ID': ingId, 'cost': req.body.cost }, entities = ['vendor', 'ingredient'], req.session.userId);
+  logs.makeVendorLog('Remove ingredient from vendor', { 'Vendor code': req.params.code, 'Ingredient ID': ingId}, entities = ['vendor', 'ingredient'], req.session.userId);
+  res.redirect(req.baseUrl + '/' + req.params.code);
 });
 
 //refactored
@@ -157,29 +161,29 @@ router.post('/:code/order', async function(req, res, next) {
     let vendId = mongoose.Types.ObjectId(oid);
     vendor = vend.name;
     return VendorHelper.makeOrder(ingId, vendId, amount);
-  }).then(function(result) {
-    logs.makeVendorLog('Order', { 'Vendor': result, 'Ingredient ID': ingId }, entities = ['vendor', 'ingredient'], req.session.userId);
-    var ingQuery = Ingredient.getIngredientById(ingId);
+  }).then(function(result) { 
+    logs.makeVendorLog('Order', { 'Vendor': result, 'Ingredient_ID': ingId }, entities = ['vendor', 'ingredient'], req.session.userId);
+    let ingQuery = Ingredient.getIngredientById(ingId);
     return ingQuery;
   }).then(function(ingResult) {
     ingredient = ingResult.name;
     return UserHelper.addToCart(req.session.userId, ingredient, amount, vendor);
   }).then(function(cartResult) {
-    res.redirect('/users/cart');
+    res.redirect('/users/cart'); 
   }).catch(function(error) {
     next(error);
   })
 });
 
-processMenu = function(list,code){
+processMenu = function(list, code) {
   var newList = list.slice();
-  for(var i = 0; i < newList.length; i++){
-    if(newList[i]['ingredient'] == null){
+  for (var i = 0; i < newList.length; i++) {
+    if (newList[i]['ingredient'] == null) {
       let id = newList[i]['_id'];
-      VendorHelper.deleteRemovedIngredient(code,id).catch(function(err){
+      VendorHelper.deleteRemovedIngredient(code, id).catch(function(err) {
         reject(err);
       });
-      newList.splice(i,1);
+      newList.splice(i, 1);
       i--;
     }
   }

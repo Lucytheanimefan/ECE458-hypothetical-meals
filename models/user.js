@@ -249,7 +249,7 @@ UserSchema.pre('save', function(next) {
 });
 
 var User = mongoose.model('User', UserSchema);
-module.exports.model = User;
+module.exports = User;
 
 module.exports.findById = function(id) {
   return User.findOne({'_id':id});

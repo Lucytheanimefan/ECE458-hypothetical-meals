@@ -57,7 +57,7 @@ module.exports.updateIngredient = function(name, newName, package, temp, nativeU
           throw error;
         }
       }).then(function(results) {
-        resolve("updated ingredient!");
+        resolve(results);
       }).catch(function(error) {
         reject(error);
       });
@@ -204,7 +204,7 @@ module.exports.addVendor = function(name, vendorId, cost) {
         return Promise.all([Ingredient.addVendor(name, vendorObjectId), Vendor.addIngredient(vendor['code'], mongoose.Types.ObjectId(ing['_id']), cost)]);
       }
     }).then(function(result) {
-      resolve();
+      resolve(result);
     }).catch(function(error) {
       reject(error);
     })
