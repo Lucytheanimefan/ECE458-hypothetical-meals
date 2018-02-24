@@ -31,6 +31,19 @@ block content
           div.delete-form.adminOnly.hide
             form(action='/formulas/' + formula.name + '/delete', method='post')
               button.btn.btn-primary.pull-left(style="margin: 30px 15px;" type='submit') Delete Formula
+        .col-md-6
+          form(action="/formulas/" + formula.name + '/order/', method="post")
+            input.form-control(type="hidden" name="ingredient" value=formula.name)
+            input.form-control(type="hidden" name="amount" value=0)
+            .row
+              .col-md-8
+              .col-md-4
+                label.control-label(style="color:black;") Quantity (Product Units)
+                input.form-control(id='select_amount', type='number', step='any', name='quantity', value=formula.units, min=formula.units)
+            .row
+              .col-md-8
+              .col-md-4
+                button.btn.btn-primary.pull-right(type="submit" name="submit") Proceed
 
       .adminOnly.hide.card-content.tab-pane.fade#update-form
         h1= 'Update Formula'

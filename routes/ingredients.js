@@ -161,6 +161,21 @@ router.post('/:name/add-vendor', function(req, res, next) {
   })
 })
 
+
+router.post('/order/add/to/cart', function(req, res, next) {
+  let userId = req.session.userId;
+  let order = req.query;
+  let orderArray = [];
+  for (let ingredient in order) {
+    orderArray.push(IngredientHelper.addOrderToCart(userId, ingredient, order[ingredient]));
+  }
+  Promise.all(orderArray).then(function() {
+    res.redirect('/users/cart');
+  }).catch(function(error) {
+    next(error);
+  })
+})
+
 createCatalogue = function(vendors, id) {
   var catalogue = [];
   for (i = 0; i < vendors.length; i++) {
