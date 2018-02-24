@@ -44,14 +44,17 @@ block content
           .form-group
             label.control-label Description
             textarea.form-control(name='description' rows='5' cols='100')
-          div.tupleRow
+          div.tupleRow#data(data-ingredients=ingredients)
             .row
               .col-md-11
                 .row#tuple1
                   .col-md-6
                     .form-group
                     label.control-label Ingredient
-                    input#ingredient1.form-control(type='text', name='ingredient1', required='')
+                    select#ingredient1.form-control(name='ingredient1', required='')
+                      option(disabled="" selected="" value="") Select an Ingredient
+                      each ingredient in ingredients
+                        option(value=ingredient._id)= ingredient['name']
                   .col-md-6
                     .form-group
                     label.control-label Quantity
@@ -68,34 +71,5 @@ block content
 
 block scripts
   script.
-    loadAdminContent();
-  script.
-    $(document).ready(function() {
-      var next = 1;
-      $(".add-more").click(function(e){
-          e.preventDefault();
-          var addTo = "#tuple" + next;
-          next = next + 1;
-
-          var newHTML = '<div id="tuple' + next + '" class="row">';
-          newHTML += '<div class="col-md-6"><div class="form-group"></div><label class="control-label">Ingredient</label>';
-          newHTML += '<input class="form-control" id="ingredient' + next + '" type="text" name="ingredient' + next + '"/></div>';
-          newHTML += '<div class="col-md-6"><div class="form-group"></div><label class="control-label">Quantity</label>';
-          newHTML += '<input class="form-control" id="quantity' + next + '" type="number" name="quantity' + next + '" min="0" step="0.01"/></div></div>';
-          var newInput = $(newHTML);
-          $(addTo).after(newInput);
-          $("#tuple" + next).attr('data-source',$(addTo).attr('data-source'));
-
-          /*var addIngredient = "#ingredient" + next;
-          var addQuantity = "#quantity" + next;
-          next = next + 1;
-          var ingredientHTML = '<input class="input form-control" id="ingredient' + next + '" name="ingredient' + next + '" type="text">';
-          var quantityHTML = '<input class="input form-control" id="quantity' + next + '" name="quantity' + next + '" type="text">';
-          var newIngredientInput = $(ingredientHTML);
-          var newQuantityInput = $(quantityHTML);
-          $(addIngredient).after(newIngredientInput);
-          $(addQuantity).after(newQuantityInput);
-          $("#ingredient" + next).attr('data-source',$(addIngredient).attr('data-source'));
-          $("#quantity" + next).attr('data-source',$(addIngredient).attr('data-source'));*/
-      });
-    });
+    var ingredients = document.getElementById('data').dataset.ingredients;
+    addTuples(ingredients, 1);

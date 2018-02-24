@@ -28,7 +28,7 @@ block content
           th= ing.ingredient.package
           th= ing.ingredient.temperature
           th
-            a(href='/vendors/' + vendor.code + '/' + ing['ingredient'] + '/' + 'remove_ingredients') Remove
+            a(href='/vendors/' + vendor.code + '/' + 'remove_ingredient' + '/' +  ing['ingredient']['_id']) Remove
     div.previous
       form(action='/vendors/'+ vendor.code + '/' + (parseInt(page)-1).toString() method='get')
         button.btn.btn-white.btn-round.btn-just-icon(type='submit') Prev
@@ -73,7 +73,7 @@ block content
               option(value=ing._id)= ing['name']
         .form-group
           label.control-label Cost
-          input.form-control(type='text', name='cost', required='')
+          input.form-control(type='number', name='cost', min='0', step="any", required='')
         button.btn.btn-primary.pull-right(type='submit', value='ingredient added') Add
 
     #updateing.tab-pane.fade.in.adminOnly.hide
@@ -87,7 +87,7 @@ block content
               option(value=ing['ingredient'].id)= ing['ingredient']['name']
         .form-group
           label.control-label Cost (per unit)
-          input.form-control(type='text', name='cost',  required='')
+          input.form-control(type='number', name='cost', min='0', step="any",required='')
         button.btn.btn-primary.pull-right(type='submit', value='ingredient added') Update
 
 
@@ -101,6 +101,6 @@ block content
             each ing in catalogue
               option(value=ing['ingredient']['_id'])= ing['ingredient']['name']
         .form-group
-          label.control-label Quantity
-          input.form-control(type='text', name='quantity', required='')
+          label.control-label Quantity (Number of storage units)
+          input.form-control(type='number', name='quantity', min='0', required='')
         button.btn.btn-primary.pull-right(type='submit', value='order made') Order
