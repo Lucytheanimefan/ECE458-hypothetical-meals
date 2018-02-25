@@ -99,19 +99,15 @@ router.post('/', function(req, res, next) {
         User.create(user_data, function(error, user) {
           if (error) {
             console.log("Error creating user: " + error);
-            res.send({ 'success': false, 'error': error });
+            return res.send({ 'success': false, 'error': 'Error creating user for this Duke netid' });
           }
 
           logs.makeUserLog('Created user', user, ['user'], req.session.userId);
 
-          // Try logging in again
-          User.user_by_netid(req.body.netid, function(err, user) {
-            if (err) {
-              console.log('Error finding user by netid: ');
-              res.send({ 'success': false, 'error': error });
-            }
-            res.send({ 'success': true, 'netid': user.netid });
-          });
+          req.session.userId = user._id;
+          console.log('Render message');
+          return res.send({ 'success': true, 'netid': user.netid });
+
         })
 
       } else {

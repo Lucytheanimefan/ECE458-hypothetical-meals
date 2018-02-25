@@ -315,6 +315,9 @@ function createOrLoginAccountNetID(userdata) {
       if (result['success']) {
         window.location.href = '/users';
       }
+      else{
+        console.log('Error creating user: ' + result['error']);
+      }
       //console.log(result);
       // TODO: trigger success UI
 

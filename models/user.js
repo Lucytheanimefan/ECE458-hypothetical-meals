@@ -8,8 +8,7 @@ var UserSchema = new mongoose.Schema({
   email: {
     type: String,
     required: false,
-    trim: true,
-    unique: true
+    trim: true
   },
   username: {
     type: String,
@@ -27,7 +26,6 @@ var UserSchema = new mongoose.Schema({
   },
   netid: {
     type: String,
-    unique: true,
     required: function() {
       return this.isDukePerson ? true : false
     }
