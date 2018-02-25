@@ -99,7 +99,7 @@ router.post('/', function(req, res, next) {
         User.create(user_data, function(error, user) {
           if (error) {
             console.log("Error creating user: " + error);
-            res.render('error', {message: 'Error creating user for this Duke netid'});
+            return res.send({ 'success': false, 'error': 'Error creating user for this Duke netid' });
           }
 
           logs.makeUserLog('Created user', user, ['user'], req.session.userId);
