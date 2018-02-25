@@ -5,6 +5,7 @@ var VendorHelper = require('./vendor');
 var Vendor = require('../models/vendor');
 var UserHelper = require('./users');
 var Spending = require('../models/spending');
+var Production = require('../models/production');
 var mongoose = require('mongoose');
 mongoose.Promise = global.Promise;
 
@@ -98,11 +99,12 @@ module.exports.incrementAmount = function(id, amount) {
   })
 }
 
-module.exports.sendIngredientsToProduction = function(id, amount) {
+module.exports.sendIngredientsToProduction = function(formulaId, ingId, amount) {
   return new Promise(function(resolve, reject) {
-    Ingredient.getIngredientById(id).then(function(result) {
+    Ingredient.getIngredientById(ingId).then(function(result) {
       let spent = parseFloat(result.averageCost) * parseFloat(amount);
-      return Promise.all([exports.incrementAmount(id, -amount), Spending.updateReport(id, spent, 'production')]);
+      return Promise.all([exports.incrementAmount(ingId, -amount), Spending.updateReport(ingId, spent, 'production'),
+        Production.updateReport(formulaId, 0, spent)]);
     }).then(function(results) {
       resolve(results);
     }).catch(function(error) {

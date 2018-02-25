@@ -58,7 +58,7 @@ module.exports.updateReport = function(ingId, spent, reportType) {
   } else {
     return new Promise(function(resolve, reject) {
       createReports().then(function(results) {
-        return Spending.findOne({'name': reportType});
+        return Spending.findOne({'name': reportType}).exec();
       }).then(function(report) {
         if (checkNewIngredient(ingId, report)) {
           let newEntry = {
