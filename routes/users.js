@@ -287,9 +287,31 @@ router.get('/cart/:page?', function(req, res, next) {
   var userQuery = User.getUserById(req.session.userId);
   var cart;
   var orders = [];
+  var ingredients = [];
   userQuery.then(function(user) {
     cart = user.cart;
     cart = underscore.sortBy(cart, "ingredient");
+    var promises = [];
+    for (let order of cart) {
+      promises.push(Ingredient.getIngredient(order.ingredient));
+      ingredients.push(order.ingredient);
+    }
+    return Promise.all(promises);
+  }).then(function(ingResults) {
+    var promises = [];
+    for (let ing of ingResults) {
+      if (ing != null) {
+        var index = ingredients.indexOf(ing);
+        ingredients.splice(index, 1);
+      }
+    }
+    console.log("INGREDIENTS");
+    for (i = 0; i < ingredients.length; i++) {
+      console.log(ingredients[i]);
+      promises.push(UserHelper.removeOrder(req.session.userId, ingredients[i]));
+    }
+    return Promise.all(promises);
+  }).then(function(results) {
     var start = perPage * (page - 1);
     for (i = start; i < start + perPage; i++) {
       var order = cart[i];
@@ -350,42 +372,45 @@ router.post('/remove_ingredient', function(req, res, next) {
 
 router.post('/edit_order', function(req, res, next) {
   let ingredient = req.body.ingredient;
-  let quantities = req.body.quantity;
-  let codes = req.body.code;
+  let quantities = req.body.quantities;
+  let names = req.body.names;
+  let codes = req.body.codes;
   var vendor, cart;
+  if (!Array.isArray(names)) {
+    quantities = [req.body.quantities];
+    names = [req.body.names];
+    codes = [req.body.codes];
+  }
   var userQuery = User.getUserById(req.session.userId);
   userQuery.then(function(user) {
     cart = user.cart;
     var promises = [];
-    for (i = 0; i < codes.length; i++) {
-
-    }
-    var vendQuery = Vendor.findVendorByCode(code);
-    vendQuery.then(function(vend) {
-      vendor = vend.name;
-
-    }).then(function(user) {
+    for (i = 0; i < names.length; i++) {
+      var vendor = names[i];
+      var quantity = quantities[i];
       var newQuantity;
       for (let order of cart) {
         if (ingredient === order.ingredient) {
           for (let vend of order.vendors) {
             if (vendor === vend.name) {
               newQuantity = quantity - vend.quantity;
+              promises.push(UserHelper.addToCart(req.session.userId, ingredient, newQuantity, vendor));
             }
             break;
           }
           break;
         }
       }
-      var promise = UserHelper.addToCart(req.session.userId, ingredient, newQuantity, vendor);
-      return promise;
-    }).then(function(results) {
-      res.redirect('/users/cart');
-    }).catch(function(error) {
-      next(error);
-    })
-  });
-})
+      console.log("vendor = " + vendor);
+      console.log("quantity = " + quantity);
+    }
+    return Promise.all(promises);
+  }).then(function(results) {
+    res.redirect('/users/cart');
+  }).catch(function(error) {
+    next(error);
+  })
+});
 
 router.post('/checkout_cart', function(req, res, next) {
   User.count({ _id: req.session.userId }, async function(err, count) {
