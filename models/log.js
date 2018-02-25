@@ -3,7 +3,7 @@ var express = require('express');
 var router = express.Router();
 
 var Schema = mongoose.Schema,
-    ObjectId = Schema.ObjectId;
+  ObjectId = Schema.ObjectId;
 
 var LogSchema = new mongoose.Schema({
   title: {
@@ -23,15 +23,15 @@ var LogSchema = new mongoose.Schema({
     required: true
   },
   initiating_user: { //the initiating user
-  	type:ObjectId, 
-  	// unique: true,
-  	// required: true
+    type: ObjectId,
+    // unique: true,
+    // required: true
   }
 });
 
 
 LogSchema.statics.all = function(callback) {
-  Log.find({}, function(err, logs) {
+  Log.find({}).sort({ date: 'descending' }).exec(function(err, logs) {
     if (err) {
       callback(err);
     }
