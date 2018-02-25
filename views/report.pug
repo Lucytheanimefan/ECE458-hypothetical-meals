@@ -46,7 +46,7 @@ block content
               each tuple in production
                 tr
                   td
-                    a(href='/ingredients/' + encodeURIComponent(tuple.ingredientName))= tuple.ingredientName
+                    a(href='/ingredients/' + encodeURIComponent(tuple.ingredient))= tuple.ingredient
                   td= tuple.totalSpent
             else
     #formula-table.card-content.tab-pane.fade
@@ -65,7 +65,7 @@ block content
               each tuple in formula
                 tr
                   td
-                    a(href='/formulas/' + encodeURIComponent(tuple.formulaName))= tuple.formulaName
+                    a(href='/formulas/' + encodeURIComponent(tuple.formula))= tuple.formula
                   td= tuple.unitsProduced
                   td= tuple.totalCost
             else
