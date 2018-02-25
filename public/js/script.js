@@ -253,7 +253,7 @@ function loadPugView() {
         //text = '<a href=\'/vendors/' + description[key] + '\'>' + '<b>' + key + '</b>: ' + description[key] + '</a>'
 
       } else {
-        text = '<li>' + key + ': ' + description[key] + '</li>';
+        text = '<li>' + key + ': ' + JSON.stringify(description[key]) + '</li>';
         $("#description").append(text);
       }
     }
