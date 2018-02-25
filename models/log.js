@@ -31,10 +31,11 @@ var LogSchema = new mongoose.Schema({
 
 
 LogSchema.statics.all = function(callback) {
-  Log.find({}).sort({ date: 'descending' }).exec(function(err, logs) {
+  Log.find({}).sort({ time: -1 }).exec(function(err, logs) {
     if (err) {
       callback(err);
     }
+    console.log(logs);
     callback(null, logs);
   })
 }
