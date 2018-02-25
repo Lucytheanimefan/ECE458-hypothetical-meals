@@ -101,7 +101,7 @@ block content
             select.form-control(name='vendor', placeholder = '', required='')
               option(disabled='' selected='' value='') Select an option
               each vendor in existingVendors
-                option(value=vendor._id)= vendor.code
+                option(value=vendor._id)= vendor.name + ' (' + vendor.code + ')'
           .form-group
             label.control-label Cost per Package
             input.form-control(type='number', step='0.01', name='cost', required='')

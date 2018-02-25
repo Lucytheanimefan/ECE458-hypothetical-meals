@@ -86,7 +86,7 @@ router.post('/:code/add_ingredients', function(req, res, next) {
     return vend = VendorHelper.addIngredient(req.params.code, result._id, req.body.cost);
 
   }).then(function(outcome) {
-    return res.redirect(req.baseUrl + '/' + req.params.code);
+    res.redirect(req.baseUrl + '/' + req.params.code);
   }).catch(function(error) {
     next(error);
   })
@@ -107,10 +107,12 @@ router.post('/:code/update_ingredients', function(req, res, next) {
 //TODO This route is giving a 404 for some reason.  Fix this!!!!
 router.get('/:code/remove_ingredient/:ingredient', function(req, res, next) {
   let ingId = mongoose.Types.ObjectId(req.params.ingredient);
-  VendorHelper.deleteIngredient(req.params.code, ingId);
-  //TODO link delete to logs
+  VendorHelper.deleteIngredient(req.params.code, ingId).then(function(result) {
+    res.redirect(req.baseUrl + '/' + req.params.code);
+  }).catch(function(error) {
+    next(error);
+  });
   logs.makeVendorLog('Remove ingredient from vendor', { 'Vendor code': req.params.code, 'Ingredient ID': ingId}, entities = ['vendor', 'ingredient'], req.session.userId);
-  res.redirect(req.baseUrl + '/' + req.params.code);
 });
 
 //refactored
@@ -156,7 +158,7 @@ router.post('/:code/order', async function(req, res, next) {
     let vendId = mongoose.Types.ObjectId(oid);
     vendor = vend.name;
     return VendorHelper.makeOrder(ingId, vendId, amount);
-  }).then(function(result) { 
+  }).then(function(result) {
     logs.makeVendorLog('Order', { 'Vendor': result, 'Ingredient_ID': ingId }, entities = ['vendor', 'ingredient'], req.session.userId);
     let ingQuery = Ingredient.getIngredientById(ingId);
     return ingQuery;
@@ -164,7 +166,7 @@ router.post('/:code/order', async function(req, res, next) {
     ingredient = ingResult.name;
     return UserHelper.addToCart(req.session.userId, ingredient, amount, vendor);
   }).then(function(cartResult) {
-    res.redirect('/users/cart'); 
+    res.redirect('/users/cart');
   }).catch(function(error) {
     next(error);
   })

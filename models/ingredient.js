@@ -87,13 +87,21 @@ module.exports.updateIngredient = function(name, newName, package, temp, nativeU
   }).exec();
 }
 
+module.exports.incrementAmount = function(name, amount) {
+  return Ingredient.findOneAndUpdate({ 'name': name }, {
+    '$inc': {
+      'amount': parseFloat(amount)
+    }
+  }).exec();
+}
+
 module.exports.deleteIngredient = function(name) {
   return Ingredient.findOneAndRemove({ 'name': name }).exec();
 }
 
 module.exports.addVendor = function(name, vendorId) {
   return Ingredient.findOneAndUpdate({ 'name': name }, {
-    '$push': {'vendors': vendorId}
+    '$addToSet': {'vendors': vendorId}
   }).exec();
 }
 

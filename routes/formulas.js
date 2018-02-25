@@ -2,9 +2,12 @@ var express = require('express');
 var router = express.Router();
 var Formula = require('../models/formula');
 var FormulaHelper = require('../helpers/formula');
+var IngredientHelper = require('../helpers/ingredients');
 var Ingredient = require('../models/ingredient');
 var underscore = require('underscore');
 var mongoose = require('mongoose');
+mongoose.Promise = global.Promise;
+
 var path = require('path');
 var logs = require(path.resolve(__dirname, "./logs.js"));
 
@@ -78,6 +81,47 @@ router.post('/:name/update', function(req, res, next) {
     return Promise.all(tuplePromises);
   }).then(function(tuples) {
     res.redirect(req.baseUrl + '/' + name);
+  }).catch(function(error) {
+    next(error);
+  });
+})
+
+router.post('/:name/order', function(req, res, next) {
+  let formulaName = req.params.name;
+  let amount = parseFloat(req.body.quantity);
+  FormulaHelper.createListOfTuples(formulaName, amount).then(function(total) {
+    return Promise.all(total.map(function(ingTuple) {
+      return IngredientHelper.compareAmount(mongoose.Types.ObjectId(ingTuple['id']), ingTuple['amount']);
+    }));
+  }).then(function(results) {
+    let tuples = [];
+    for (let object of results) {
+      let orderAmount = parseFloat(object.neededAmount) - parseFloat(object.currentAmount);
+      if (orderAmount > 0) {
+        let tuple = {};
+        tuple['ingredient'] = object.ingredient;
+        tuple['orderAmount'] = orderAmount;
+        tuples.push(tuple);
+      }
+    }
+    console.log(tuples);
+    console.log(results);
+    res.render('formula-confirmation', { formula: formulaName, formulaObjects: results, orderAmounts: tuples, amount: amount });
+  }).catch(function(error) {
+    next(error);
+  });
+})
+
+//TODO: production logging
+router.post('/:name/order/:amount', function(req, res, next) {
+  let formulaName = req.params.name;
+  let amount = parseFloat(req.params.amount);
+  FormulaHelper.createListOfTuples(formulaName, amount).then(function(total) {
+    return Promise.all(total.map(function(ingTuple) {
+      return IngredientHelper.incrementAmount(mongoose.Types.ObjectId(ingTuple['id']), parseFloat(-ingTuple['amount']));
+    }));
+  }).then(function(results) {
+    res.redirect('/formulas');
   }).catch(function(error) {
     next(error);
   });

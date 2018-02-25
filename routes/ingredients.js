@@ -5,6 +5,7 @@ var Ingredient = require('../models/ingredient');
 var IngredientHelper = require('../helpers/ingredients');
 var VendorHelper = require('../helpers/vendor');
 var Vendor = require('../models/vendor');
+var Formula = require('../models/formula');
 var users = require('./users');
 var path = require('path');
 var logs = require(path.resolve(__dirname, "./logs.js"));
@@ -90,14 +91,27 @@ router.get('/:name/:amt/:page?', function(req, res, next) {
 
 //POST request to delete an existing ingredient
 router.post('/:name/delete', function(req, res, next) {
-  Ingredient.getIngredient(req.params.name).then(function(ing) {
-    return IngredientHelper.deleteIngredient(
-      ing['name'],
-      ing['package'],
-      ing['temperature'],
-      parseFloat(ing['unitsPerPackage']),
-      parseFloat(ing['amount'])
-    );
+  var formulaQuery = function(ingId) {
+    return Formula.model.find({ 'tuples.ingredientID': ingId });
+  }
+  var ing;
+  Ingredient.getIngredient(req.params.name).then(function(result) {
+    ing = result;
+    return formulaQuery(ing['_id']);
+  }).then(function(formulas) {
+    if (formulas.length != 0) {
+      var error = new Error('Can\'t delete because ' + ing.name + ' is being used in a formula!');
+      error.status = 400;
+      throw error;
+    } else {
+      return IngredientHelper.deleteIngredient(
+        ing['name'],
+        ing['package'],
+        ing['temperature'],
+        parseFloat(ing['unitsPerPackage']),
+        parseFloat(ing['amount'])
+      );
+    }
   }).then(function() {
     res.redirect(req.baseUrl + '/');
   }).catch(function(error) {
@@ -156,6 +170,21 @@ router.post('/:name/add-vendor', function(req, res, next) {
   IngredientHelper.addVendor(ingName, req.body.vendor, req.body.cost).then(function(results) {
     logs.makeIngredientLog('Add vendor to ingredient', {'array_description':results}, ['ingredient','vendor'], initiating_user);
     res.redirect(req.baseUrl + '/' + ingName);
+  }).catch(function(error) {
+    next(error);
+  })
+})
+
+
+router.get('/order/add/to/cart', function(req, res, next) {
+  let userId = req.session.userId;
+  let order = req.query;
+  let orderArray = [];
+  for (let ingredient in order) {
+    orderArray.push(IngredientHelper.addOrderToCart(userId, ingredient, order[ingredient]));
+  }
+  Promise.all(orderArray).then(function() {
+    res.redirect('/users/cart');
   }).catch(function(error) {
     next(error);
   })
