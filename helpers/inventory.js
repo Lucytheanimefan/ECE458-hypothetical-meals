@@ -49,15 +49,20 @@ module.exports.updateInventory = function(name, package, temp, unitsPerPackage, 
       let temperature = temp.toLowerCase().split(" ")[0];
       var newSpace = calculateSpace(package, unitsPerPackage, amount)
       var oldSpace = 0;
+      var updateList = [];
       if (ing != null) {
         let ingTemperature = ing.temperature.toLowerCase().split(" ")[0]
         oldSpace = calculateSpace(ing['package'], ing['unitsPerPackage'], ing['amount']);
-        inv['current'][ingTemperature] = parseFloat(inv['current'][ingTemperature]) - oldSpace;
+        let decrement = {};
+        decrement['current.' + ingTemperature] = -oldSpace;
+        updateList.push(Inventory.updateInventory(decrement));
       }
-      inv['current'][temperature] = parseFloat(inv['current'][temperature]) + newSpace;
-      return inv.save();
-    }).then(function(inv) {
-      resolve(inv);
+      let increment = {};
+      increment['current.' + temperature] = newSpace;
+      updateList.push(Inventory.updateInventory(increment));
+      return Promise.all(updateList);
+    }).then(function(results) {
+      resolve(results[1]);
     }).catch(function(error) {
       reject(error)
     })
