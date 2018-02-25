@@ -3,10 +3,13 @@ var queryString = require('query-string');
 var router = express.Router();
 var Ingredient = require('../models/ingredient');
 var IngredientHelper = require('../helpers/ingredients');
+var VendorHelper = require('../helpers/vendor');
 var Vendor = require('../models/vendor');
 var users = require('./users');
 var path = require('path');
 var logs = require(path.resolve(__dirname, "./logs.js"));
+var mongoose = require('mongoose');
+mongoose.Promise = global.Promise;
 
 var packageTypes = ['sack', 'pail', 'drum', 'supersack', 'truckload', 'railcar'];
 var temperatures = ['frozen', 'refrigerated', 'room temperature'];
@@ -38,6 +41,19 @@ router.get('/:name', function(req, res, next) {
   res.redirect(req.baseUrl + '/' + req.params.name + '/0');
 })
 
+
+router.get('/id/:ingredient_id', function(req, res, next) {
+  console.log('Get ingredient for id: ' + req.params.ingredient_id);
+  var findIngredient = Ingredient.model.findOne({ _id: req.params.ingredient_id }).exec();
+  findIngredient.then(function(ingredient) {
+    console.log(ingredient);
+    res.send(ingredient);
+  }).catch(function(error){
+    res.send({'error': error});
+  })
+
+})
+
 //TODO: Refactor once vendor is ready
 router.get('/:name/:amt/:page?', function(req, res, next) {
   var ingQuery = Ingredient.getIngredient(req.params.name);
@@ -45,8 +61,9 @@ router.get('/:name/:amt/:page?', function(req, res, next) {
   var page = req.params.page || 1;
   page = (page < 1) ? 1 : page;
 
-  var vendorQuery = Vendor.model.find({ 'catalogue.ingredient': req.params.name }).skip((perPage * page) - perPage).limit(perPage);
-  // should be from Vendor model
+  var vendorQuery = function(ing) {
+    return Vendor.model.find({ 'catalogue.ingredient': ing }).skip((perPage * page) - perPage).limit(perPage);
+  }
   var findAllVendors = Vendor.model.find().exec();
   var ingredient;
   var vendorObjects;
@@ -60,9 +77,10 @@ router.get('/:name/:amt/:page?', function(req, res, next) {
       throw err;
     }
     ingredient = ing;
-    return vendorQuery;
+    return vendorQuery(ing);
   }).then(function(vendors) {
-    return createCatalogue(vendors, req.params.name);
+    console.log(vendors);
+    return createCatalogue(vendors, ingredient['_id']);
   }).then(function(catalogue) {
     res.render('ingredient', { ingredient: ingredient, packages: packageTypes, temps: temperatures, vendors: catalogue, page: page, amount: req.params.amt, existingVendors: vendorObjects });
   }).catch(function(error) {
@@ -90,6 +108,8 @@ router.post('/:name/delete', function(req, res, next) {
 
 router.post('/:name/update', function(req, res, next) {
   let ingName = req.body.name;
+  let initiating_user = req.session.userId;
+  console.log(initiating_user)
 
   var updatePromise = IngredientHelper.updateIngredient(
     req.params.name,
@@ -100,7 +120,8 @@ router.post('/:name/update', function(req, res, next) {
     parseFloat(req.body.unitsPerPackage),
     parseFloat(req.body.amount)
   );
-  updatePromise.then(function() {
+  updatePromise.then(function(ingredient) {
+    logs.makeIngredientLog('Update', {'ingredient_id': ingredient[0]._id}, ['ingredient'], initiating_user);
     res.redirect(req.baseUrl + '/' + ingName);
   }).catch(function(error) {
     next(error);
@@ -110,7 +131,7 @@ router.post('/:name/update', function(req, res, next) {
 
 router.post('/new', function(req, res, next) {
   let ingName = req.body.name;
-
+  let initiating_user = req.session.userId;
   var promise = IngredientHelper.createIngredient(
     ingName,
     req.body.package,
@@ -119,7 +140,8 @@ router.post('/new', function(req, res, next) {
     parseFloat(req.body.unitsPerPackage),
     parseFloat(req.body.amount)
   );
-  promise.then(function() {
+  promise.then(function(ingredient) {
+    logs.makeIngredientLog('Creation', {'ingredient_id': ingredient._id}, ['ingredient'], initiating_user);
     res.redirect(req.baseUrl + '/' + ingName);
   }).catch(function(error) {
     next(error);
@@ -130,20 +152,36 @@ router.post('/new', function(req, res, next) {
 
 router.post('/:name/add-vendor', function(req, res, next) {
   let ingName = req.params.name;
-
-  IngredientHelper.addVendor(ingName, req.body.vendor).then(function() {
+  let initiating_user = req.session.userId;
+  IngredientHelper.addVendor(ingName, req.body.vendor, req.body.cost).then(function(results) {
+    logs.makeIngredientLog('Add vendor to ingredient', {'array_description':results}, ['ingredient','vendor'], initiating_user);
     res.redirect(req.baseUrl + '/' + ingName);
   }).catch(function(error) {
     next(error);
   })
 })
 
-createCatalogue = function(vendors, name) {
+
+router.get('/order/add/to/cart', function(req, res, next) {
+  let userId = req.session.userId;
+  let order = req.query;
+  let orderArray = [];
+  for (let ingredient in order) {
+    orderArray.push(IngredientHelper.addOrderToCart(userId, ingredient, order[ingredient]));
+  }
+  Promise.all(orderArray).then(function() {
+    res.redirect('/users/cart');
+  }).catch(function(error) {
+    next(error);
+  })
+})
+
+createCatalogue = function(vendors, id) {
   var catalogue = [];
   for (i = 0; i < vendors.length; i++) {
     var vendor = vendors[i];
     for (j = 0; j < vendor['catalogue'].length; j++) {
-      if (vendor['catalogue'][j]['ingredient'] == name) {
+      if (vendor['catalogue'][j]['ingredient'].toString() == id) {
         catalogue.push({ vendorName: vendor['name'], vendorCode: vendor['code'], record: vendor['catalogue'][j] });
       }
     }

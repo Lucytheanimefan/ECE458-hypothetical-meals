@@ -6,6 +6,16 @@ var Inventory = require('../models/inventory');
 var mongoose = require('mongoose');
 mongoose.promise = global.Promise;
 
+let spaceMapping = {
+  sack: 0.5,
+  pail: 1,
+  drum: 3,
+  supersack: 16,
+  truckload: 0,
+  railcar: 0
+}
+
+
 module.exports.makeOrder = function(ingredientId,vendorId,numUnits){
   let ingId = mongoose.Types.ObjectId(ingredientId);
   let vendId = mongoose.Types.ObjectId(vendorId);
@@ -34,8 +44,7 @@ module.exports.makeOrder = function(ingredientId,vendorId,numUnits){
         let newName = ing['name'];
         let nativeUnit = ing['nativeUnit'];
         let unitsPerPackage = ing['unitsPerPackage'];
-        //TODO make amount on package volume
-        let amount = numUnits+parseFloat(ing['amount']);
+        let amount = parseFloat(numUnits)*parseFloat(ing['unitsPerPackage']) + parseFloat(ing['amount']);
         return IngredientHelper.updateIngredient(name, newName, package, temp, nativeUnit, unitsPerPackage, amount);
       }
     }).then(function(result){
@@ -94,9 +103,10 @@ module.exports.deleteVendor = function(code){
 }
 
 module.exports.addIngredient = function(code, ingredientId, cost){
-  let ingId = mongoose.Types.ObjectId(ingredientId);
+  let ingId = ingredientId;
   return new Promise(function(resolve,reject){
     var ingQuery = Ingredient.model.findById(ingId);
+    var vendQuery = Vendor.findVendorByCode(code);
     ingQuery.exec().then(function(ing){
       if(ing==null){
         var error = new Error('Specified ingredient doesn\'t exist');
@@ -109,10 +119,21 @@ module.exports.addIngredient = function(code, ingredientId, cost){
         throw(error);
       }
       else{
-        return Vendor.addIngredient(code,ingId,cost);
+        return vendQuery;
       }
-    }).then(function(result) {
-      resolve();
+    }).then(function(vend) {
+      let menu = vend['catalogue'];
+      let index = ingIndex(menu,ingredientId);
+      if(index >= 0){
+        vend['catalogue'][index]['cost'] = cost;
+        vend.save();
+        return;
+      }
+      else{
+        var result = Vendor.addIngredient(code,ingId,cost);
+      }
+    }).then(function(result){
+      resolve(result);
     }).catch(function(error){
       reject(error);
     })
@@ -135,7 +156,7 @@ module.exports.updateIngredient = function(code, ingredientId, cost){
         throw(error);
       }
       else{
-        result = Vendor.removeIngredient(code,ingId);
+        return result = Vendor.removeIngredient(code,ingId);
       }
     }).then(function(result) {
       resolve(result);
@@ -151,20 +172,32 @@ module.exports.updateIngredient = function(code, ingredientId, cost){
 module.exports.deleteIngredient = function(code, ingredientId){
   let ingId = mongoose.Types.ObjectId(ingredientId);
   return new Promise(function(resolve,reject){
-    var ingQuery = Ingredient.model.findById(ingId);
-    ingQuery.exec().then(function(ing){
-      if(ing==null){
-        var error = new Error('Specified ingredient doesn\'t exist');
-        error.status = 400;
-        throw(error);
-      }
-      else{
-        return Vendor.removeIngredient(code,ingId);
-      }
-    }).then(function(result) {
-      resolve();
+    var result = Vendor.removeIngredient(code,ingId);
+    result.then(function(success){
+      resolve(success);
     }).catch(function(error){
       reject(error);
     })
   })
+}
+
+module.exports.deleteRemovedIngredient = function(code, ingredientId){
+  let ingId = mongoose.Types.ObjectId(ingredientId);
+  return new Promise(function(resolve,reject){
+    var result = Vendor.removeDeletedIngredient(code,ingId);
+    result.then(function(success){
+      resolve(success);
+    }).catch(function(error){
+      reject(error);
+    })
+  })
+}
+
+ingIndex = function(list,name){
+  for(var i = 0; i < list.length; i++){
+    if(list[i]['ingredient']['_id'].toString() === name.toString()){
+      return i;
+    }
+  }
+  return -1;
 }

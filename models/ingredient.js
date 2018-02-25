@@ -61,6 +61,10 @@ module.exports.getIngredient = function(name) {
   return Ingredient.findOne({ 'name': name }).exec();
 }
 
+module.exports.getIngredientById = function(id){
+  return Ingredient.findById(id).exec();
+}
+
 module.exports.getAllIngredients = function() {
   return Ingredient.find().exec();
 }
@@ -83,37 +87,45 @@ module.exports.updateIngredient = function(name, newName, package, temp, nativeU
   }).exec();
 }
 
+module.exports.incrementAmount = function(name, amount) {
+  return Ingredient.findOneAndUpdate({ 'name': name }, {
+    '$inc': {
+      'amount': parseFloat(amount)
+    }
+  }).exec();
+}
+
 module.exports.deleteIngredient = function(name) {
   return Ingredient.findOneAndRemove({ 'name': name }).exec();
 }
 
 module.exports.addVendor = function(name, vendorId) {
   return Ingredient.findOneAndUpdate({ 'name': name }, {
-    '$push': {'vendors': vendorId}
+    '$addToSet': {'vendors': vendorId}
   }).exec();
 }
 
 module.exports.model = Ingredient;
 
-IngredientSchema.pre('save', function(next, req, callback) {
-  var ingredient = this;
-  let log_data = {
-    'title': 'Ingredient created',
-    'description': ingredient.name + ', ' + ingredient.package + ', ' + ingredient.temperature + ', ' + ingredient.amount,
-    'entities': 'ingredient'/*,
-    'user': user.username + ', ' + user.role*/
-  }
-  Log.create(log_data, function(error, log) {
-    if (error) {
-      console.log('Error logging ingredient data: ');
-      console.log(error);
-      return next();
-    }
-    console.log(log);
-    return next();
-  })
+// IngredientSchema.pre('save', function(next, req, callback) {
+//   var ingredient = this;
+//   let log_data = {
+//     'title': 'Ingredient created',
+//     'description': ingredient.name + ', ' + ingredient.package + ', ' + ingredient.temperature + ', ' + ingredient.amount,
+//     'entities': 'ingredient'/*,
+//     'user': user.username + ', ' + user.role*/
+//   }
+//   Log.create(log_data, function(error, log) {
+//     if (error) {
+//       console.log('Error logging ingredient data: ');
+//       console.log(error);
+//       return next();
+//     }
+//     console.log(log);
+//     return next();
+//   })
 
-});
+// });
 
 // IngredientSchema.pre('update', function(next) {
 //   console.log('Updating ingredient, need to log!');

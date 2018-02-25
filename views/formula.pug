@@ -4,3 +4,89 @@ block link
   -var selected = 'Formulas';
 
 block content
+  h1= formula.name
+  div#tabs
+    ul.nav.nav-tabs
+      li.active
+        a(data-toggle='tab', href='#formula-info') Formula Information
+      li.adminOnly.hide
+        a(data-toggle='tab', href='#update-form') Update Formula
+    .tab-content
+      .row.tab-pane.fade.in.active#formula-info
+        .col-md-6
+          table.table
+            tr
+              th Description
+              td= formula.description
+            tr
+              th Ingredients (Quantity)
+              td
+                each tuple in formula.tuples
+                  a(href='/ingredients/' + tuple.ingredient)= tuple.ingredient
+                  |  (#{tuple.quantity})
+                  br
+            tr
+              th Number of Units Produced
+              td= formula.units
+          div.delete-form.adminOnly.hide
+            form(action='/formulas/' + formula.name + '/delete', method='post')
+              button.btn.btn-primary.pull-left(style="margin: 30px 15px;" type='submit') Delete Formula
+        .col-md-6
+          form(action="/formulas/" + formula.name + '/order/', method="post")
+            input.form-control(type="hidden" name="ingredient" value=formula.name)
+            input.form-control(type="hidden" name="amount" value=0)
+            .row
+              .col-md-8
+              .col-md-4
+                label.control-label(style="color:black;") Quantity (Product Units)
+                input.form-control(id='select_amount', type='number', step='any', name='quantity', value=formula.units, min=formula.units)
+            .row
+              .col-md-8
+              .col-md-4
+                button.btn.btn-primary.pull-right(type="submit" name="submit") Proceed
+
+      .adminOnly.hide.card-content.tab-pane.fade#update-form
+        h1= 'Update Formula'
+        form(action='/formulas/' + formula.name + '/update', method='post')
+          .form-group
+            label.control-label Formula Name
+            input.form-control(type='text', name='name', value = formula.name, required='')
+          .form-group
+            label.control-label Description
+            input.form-control(type='text', name='description', value = formula.description, required='')
+          div.tupleRow#data(data-ingredients=ingredients, data-tuples=formula.tuples)
+            .row
+              .col-md-11
+                each tuple in formula.tuples
+                  .row(id='tuple'+tuple.index)
+                    .col-md-6
+                      .form-group
+                      label.control-label Ingredient
+                      select.form-control(id='ingredient'+tuple.index, name='ingredient'+tuple.index)
+                        option(disabled="" selected="" value="") Select an Ingredient
+                        each ingredient in ingredients
+                          option(value=ingredient._id)= ingredient['name']
+                    .col-md-6
+                      .form-group
+                      label.control-label Quantity
+                      input.form-control(type='number', id='quantity'+tuple.index, name='quantity'+tuple.index, min='0', step='0.01', value=tuple.quantity, required='')
+              .col-md-1
+                p
+                  br
+                button#btn1.btn.btn-round.btn-just-icon.add-more(type='button', value='add')
+                  i.material-icons add
+          .form-group
+            label.control-label Number of Units Produced
+            input.form-control(type='number', name='units', min='0', value = formula.units, required='')
+
+          button.btn.btn-primary.pull-right(type='submit') Update Formula
+
+block scripts
+  script.
+    var tuples = document.getElementById('data').dataset.tuples;
+    selectTuple(tuples);
+
+    var ingredients = document.getElementById('data').dataset.ingredients;
+    var start = #{formula.tuples.length};
+    addTuples(ingredients, start);
+
