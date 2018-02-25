@@ -6,6 +6,8 @@ block content
   h1 Bulk Import File Upload
   p Information on file formatting #[a( href='/files/documentation' ) here]
 
+  div#alertData.hide(data-alert=alert)
+
   div(style='display: block; margin-bottom: 60px;').ingredient-upload
     form(action='/files/upload/ingredients', enctype='multipart/form-data', method='post')
       input.form-control(type='text', name='title')
@@ -17,3 +19,7 @@ block content
       input.form-control(type='text', name='title')
       input.pull-left(type='file', name='file', required='')
       button.btn.btn-primary.pull-right(type='submit', value='Upload') Upload Formulas
+
+block scripts
+  script.
+    displayFileAlert();
