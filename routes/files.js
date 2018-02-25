@@ -140,7 +140,7 @@ router.post('/upload/ingredients', function(req, res, next) {
         return Upload.addToDatabase(index, row);
       }));
     }).then(function(results) {
-      logs.makeLog('Uploaded file', results, ['file'], req.session.userId); 
+      logs.makeLog('Uploaded file', JSON.stringify(results), ['file'], req.session.userId); 
       res.redirect(req.baseUrl);
     }).catch(function(error) {
       console.log(error);

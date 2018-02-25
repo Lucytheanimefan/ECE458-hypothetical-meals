@@ -20,10 +20,10 @@ block content
             th(onclick='sortTable(0, \'log\')') Related entities
           tbody
           each log in logs
-            tr
+            tr(id=log._id)
               td
                 a(href='/logs/log/'+log.initiating_user+'?title='+log.title+'&description=' + log.description + '&time='+log.time+'&entities=' + log.entities)= log.title
               td= log.time
-              td= log.description
+              td= log.description.substr(1,100) + '...'
               td= log.initiating_user
               td= log.entities
