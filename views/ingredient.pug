@@ -38,20 +38,6 @@ block content
           div.delete-form.adminOnly.hide
             form(action='/ingredients/' + ingredient.name + '/delete', method='post')
               button.btn.btn-primary.pull-right(style="margin: 30px 15px;" type='submit') Delete ingredient
-
-        .col-md-6
-          form(action="/users/add_to_cart" method="post")
-            input.form-control(type="hidden" name="ingredient" value=ingredient.name)
-            input.form-control(type="hidden" name="amount" value=ingredient.amount)
-            .row
-              .col-md-8
-              .col-md-4
-                label.control-label(style="color:black;") Quantity (Pounds)
-                input.form-control(id='select_amount', type='number', name='quantity', value=amount, min="1", max=ingredient.amount)
-            .row
-              .col-md-8
-              .col-md-4
-                button.btn.btn-primary.pull-right(id="cartbtn" type="submit" name="submit" value="Add to Cart") Add to Cart
         div.card#vendor-info
           div.card-header(data-background-color='purple')
             h4.title Vendor Information

@@ -31,17 +31,30 @@ block content
           div.delete-form.adminOnly.hide
             form(action='/formulas/' + formula.name + '/delete', method='post')
               button.btn.btn-primary.pull-left(style="margin: 30px 15px;" type='submit') Delete Formula
+        .col-md-6
+          form(action="/formulas/" + formula.name + '/order/', method="post")
+            input.form-control(type="hidden" name="ingredient" value=formula.name)
+            input.form-control(type="hidden" name="amount" value=0)
+            .row
+              .col-md-8
+              .col-md-4
+                label.control-label(style="color:black;") Quantity (Product Units)
+                input.form-control(id='select_amount', type='number', step='any', name='quantity', value=formula.units, min=formula.units)
+            .row
+              .col-md-8
+              .col-md-4
+                button.btn.btn-primary.pull-right(type="submit" name="submit") Proceed
 
       .adminOnly.hide.card-content.tab-pane.fade#update-form
         h1= 'Update Formula'
-        form.form-group(action='/formulas/' + formula.name + '/update', method='post')
+        form(action='/formulas/' + formula.name + '/update', method='post')
           .form-group
             label.control-label Formula Name
             input.form-control(type='text', name='name', value = formula.name, required='')
           .form-group
             label.control-label Description
             input.form-control(type='text', name='description', value = formula.description, required='')
-          div.tupleRow
+          div.tupleRow#data(data-ingredients=ingredients, data-tuples=formula.tuples)
             .row
               .col-md-11
                 each tuple in formula.tuples
@@ -49,7 +62,10 @@ block content
                     .col-md-6
                       .form-group
                       label.control-label Ingredient
-                      input.form-control(type='text', id='ingredient'+tuple.index, name='ingredient'+tuple.index, value=tuple.ingredient, required='')
+                      select.form-control(id='ingredient'+tuple.index, name='ingredient'+tuple.index)
+                        option(disabled="" selected="" value="") Select an Ingredient
+                        each ingredient in ingredients
+                          option(value=ingredient._id)= ingredient['name']
                     .col-md-6
                       .form-group
                       label.control-label Quantity
@@ -67,21 +83,10 @@ block content
 
 block scripts
   script.
-    loadAdminContent();
-  script.
-    $(document).ready(function() {
-      var next = #{formula.tuples.length};
-      $(".add-more").click(function(e){
-          e.preventDefault();
-          var addTo = "#tuple" + next;
-          next = next + 1;
-          var newHTML = '<div id="tuple' + next + '" class="row">';
-          newHTML += '<div class="col-md-6"><div class="form-group"></div><label class="control-label">Ingredient</label>';
-          newHTML += '<input class="form-control" id="ingredient' + next + '" type="text" name="ingredient' + next + '"/></div>';
-          newHTML += '<div class="col-md-6"><div class="form-group"></div><label class="control-label">Quantity</label>';
-          newHTML += '<input class="form-control" id="quantity' + next + '" type="number" name="quantity' + next + '" min="0" step="0.01"/></div></div>';
-          var newInput = $(newHTML);
-          $(addTo).after(newInput);
-          $("#tuple" + next).attr('data-source',$(addTo).attr('data-source'));
-      });
-    });
+    var tuples = document.getElementById('data').dataset.tuples;
+    selectTuple(tuples);
+
+    var ingredients = document.getElementById('data').dataset.ingredients;
+    var start = #{formula.tuples.length};
+    addTuples(ingredients, start);
+

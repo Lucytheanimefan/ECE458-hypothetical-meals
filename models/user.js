@@ -8,12 +8,14 @@ var UserSchema = new mongoose.Schema({
   email: {
     type: String,
     required: false,
-    trim: true
+    trim: true,
+    unique: true
   },
   username: {
     type: String,
     required: false,
-    trim: true
+    trim: true,
+    unique: true
   },
   password: {
     type: String,
@@ -25,6 +27,7 @@ var UserSchema = new mongoose.Schema({
   },
   netid: {
     type: String,
+    unique: true,
     required: function() {
       return this.isDukePerson ? true : false
     }
@@ -38,9 +41,20 @@ var UserSchema = new mongoose.Schema({
     default: 'user',
     required: true,
   },
-  cart: {
-    type: Array
-  },
+  cart: [{
+    ingredient: {
+      type: String,
+      required: true
+    },
+    quantity: {
+      type: Number,
+      required: true
+    },
+    vendors: {
+      type: Array,
+      required: true
+    }
+  }],
   report: {
     type: Array
   },
@@ -63,11 +77,12 @@ UserSchema.statics.authenticate = function(email, password, callback) {
         return callback(err);
       }
       bcrypt.compare(password, user.password, function(err, result) {
-        //console.log('Compare password: ' + password + ' vs ' + user.password);
+        console.log('Compare password: ' + password + ' vs ' + user.password);
         if (result === true) {
           return callback(null, user);
         } else {
-          return callback();
+          console.log('Incorrect password');
+          return callback(null, null);
         }
       })
     });
@@ -87,7 +102,7 @@ UserSchema.statics.authenticate_netid = function(netid, email, callback) {
       callback(null, null);
       // TODO this should happen in the route, not here
       // User not found, create an account associated with netid
-    
+
       // User.create(user_data, function(error, user) {
       //   if (error) {
       //     console.log("Error creating user: ");
@@ -159,6 +174,7 @@ UserSchema.statics.update = function(userdata, newdata, callback) {
 }
 
 UserSchema.statics.all = function(callback) {
+  console.log("reached");
   User.find({}, function(err, users) {
     if (err) {
       callback(err);
@@ -237,7 +253,30 @@ UserSchema.pre('save', function(next) {
   }
 });
 
-
-
 var User = mongoose.model('User', UserSchema);
 module.exports = User;
+
+module.exports.getUserById = function(id) {
+  return User.findOne({'_id':id}).exec();
+}
+
+module.exports.addToCart = function(id, ingredient, quantity, vendors) {
+  let entry = {ingredient:ingredient, quantity:quantity, vendors:vendors};
+  return User.findOneAndUpdate({'_id':id},{'$push':{'cart':entry}}).exec();
+}
+
+module.exports.removeOrder = function(id, ingredient) {
+  return User.findOneAndUpdate({'_id':id},{'$pull':{'cart':{'ingredient':ingredient}}}).exec();
+}
+
+module.exports.updateCart = function(id, ingredient, quantity, vendors) {
+  return new Promise(function(resolve, reject) {
+    User.removeOrder(id,ingredient).then(function(result){
+      return User.addToCart(id,ingredient,quantity,vendors);
+    }).then(function(tuple) {
+      resolve(tuple);
+    }).catch(function(error) {
+      reject(error);
+    });
+  })
+}
