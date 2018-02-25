@@ -10,8 +10,8 @@ function dropDownInteractivity() {
   }
 }
 
-function onLogout(){
-  $("#logout").click(function(){
+function onLogout() {
+  $("#logout").click(function() {
     console.log("Log out, clear session storage");
     // clear session storage
     sessionStorage.removeItem("role");
@@ -253,7 +253,7 @@ function loadPugView() {
         //text = '<a href=\'/vendors/' + description[key] + '\'>' + '<b>' + key + '</b>: ' + description[key] + '</a>'
 
       } else {
-        text = '<li>' + key + ': ' + description[key] + '</li>';
+        text = '<li>' + key + ': ' + JSON.stringify(description[key]) + '</li>';
         $("#description").append(text);
       }
     }
@@ -312,10 +312,10 @@ function createOrLoginAccountNetID(userdata) {
     success: function(result) {
       console.log('createOrLoginAccount returned');
       console.log(result);
+
       if (result['success']) {
         window.location.href = '/users';
-      }
-      else{
+      } else {
         console.log('Error creating user: ' + result['error']);
       }
       //console.log(result);
@@ -357,4 +357,28 @@ function selectTuple(tuples) {
     var id = tuples[i].ingredientID;
     $("#ingredient" + (i + 1)).val(id).attr("selected", "true");
   }
+}
+
+//'top','center
+function displayFileAlert() {
+  var alertMessage = $("#alertData").data('alert');
+  if (alertMessage != null) {
+    displayNotification('top', 'center', alertMessage);
+  }
+
+}
+
+function displayNotification(from, align, alertMessage) {
+  $.notify({
+    icon: "notifications",
+    message: alertMessage
+
+  }, {
+    type: "success",
+    timer: 4000,
+    placement: {
+      from: from,
+      align: align
+    }
+  });
 }

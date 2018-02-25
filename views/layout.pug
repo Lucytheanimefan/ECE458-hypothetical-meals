@@ -91,6 +91,7 @@ html(lang='en')
   // Core JS Files
   script(src='/js/jquery-3.2.1.min.js', type='text/javascript')
   script(src='/js/jquery-ui.min.js', type='text/javascript')
+  //- script(src='/js/jquery.tablesorter.pager.js', type='text/javascript')
   script(src='/js/jquery-paginate.min.js', type='text/javascript')
   script(src='/js/bootstrap.min.js', type='text/javascript')
   script(src='/js/material.min.js', type='text/javascript')
@@ -109,9 +110,9 @@ html(lang='en')
   script.
     onLogout();
     loadLoggedInContent();
-    $('tbody').sortable();
+    //$('tbody').sortable();
     loadRelevantContent();
-    $('table').paginate({ limit: 10, // 10 elements per page
+    $('#logTable').paginate({ limit: 5, // 5 elements per page
       initialPage: 0, // Start on second page
       //previous: false, // Show previous button
       previousText: 'Prev  ', // Change previous button text

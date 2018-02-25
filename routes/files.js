@@ -21,18 +21,18 @@ var parse = PromiseBlue.promisify(require('csv-parse'));
 var logs = require(path.resolve(__dirname, "./logs.js"));
 
 router.get('/', function(req, res) {
-  res.render('uploads');
+  res.render('uploads', { alert: null });
 })
 
 
-router.get('/documentation', function (req, res) {
-    var filePath = "/files/BulkFormatDocumentation.pdf";
+router.get('/documentation', function(req, res) {
+  var filePath = "/files/BulkFormatDocumentation.pdf";
 
-    //console.log('PDF file name: ' + __dirname + filePath);
-    fs.readFile(__dirname + filePath , function (err,data){
-        res.contentType("application/pdf");
-        res.send(data);
-    });
+  //console.log('PDF file name: ' + __dirname + filePath);
+  fs.readFile(__dirname + filePath, function(err, data) {
+    res.contentType("application/pdf");
+    res.send(data);
+  });
 });
 
 router.post('/upload/formulas', function(req, res, next) {
@@ -75,7 +75,8 @@ router.post('/upload/formulas', function(req, res, next) {
     }).then(function() {
       return Upload.addFormulas(csvData);
     }).then(function() {
-      res.redirect(req.baseUrl);
+      logs.makeLog('Bulk import formula file uploaded', JSON.stringify(results), ['file'], req.session.userId);
+      res.render('uploads', { alert: 'Successfully uploaded file' });
     }).catch(function(error) {
       if (Array.isArray(error)) {
         var message = "";
@@ -140,8 +141,8 @@ router.post('/upload/ingredients', function(req, res, next) {
         return Upload.addToDatabase(index, row);
       }));
     }).then(function(results) {
-      logs.makeLog('Uploaded file', results, ['file'], req.session.userId); 
-      res.redirect(req.baseUrl);
+      logs.makeLog('Bulk import ingredients file uploaded', JSON.stringify(results), ['file'], req.session.userId);
+      res.render('uploads', { alert: 'Successfully uploaded file' });
     }).catch(function(error) {
       console.log(error);
       if (Array.isArray(error)) {
@@ -241,7 +242,7 @@ parseFile = function(file) {
 
 Papa.parsePromise = function(file) {
   return new Promise(function(complete, error) {
-    Papa.parse(file, {header: true, delimiter: ',', complete, error});
+    Papa.parse(file, { header: true, delimiter: ',', complete, error });
   });
 };
 
