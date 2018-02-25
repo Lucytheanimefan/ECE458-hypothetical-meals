@@ -312,6 +312,7 @@ function createOrLoginAccountNetID(userdata) {
     success: function(result) {
       console.log('createOrLoginAccount returned');
       console.log(result);
+
       if (result['success']) {
         window.location.href = '/users';
       }
