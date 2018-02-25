@@ -101,7 +101,7 @@ module.exports.deleteIngredient = function(name) {
 
 module.exports.addVendor = function(name, vendorId) {
   return Ingredient.findOneAndUpdate({ 'name': name }, {
-    '$push': {'vendors': vendorId}
+    '$addToSet': {'vendors': vendorId}
   }).exec();
 }
 
