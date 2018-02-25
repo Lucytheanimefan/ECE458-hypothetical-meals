@@ -22,7 +22,7 @@ block content
               th Ingredients (Quantity)
               td
                 each tuple in formula.tuples
-                  a(href='/ingredients/' + tuple.ingredient)= tuple.ingredient
+                  a(href='/ingredients/' + encodeURIComponent(tuple.ingredient))= tuple.ingredient
                   |  (#{tuple.quantity})
                   br
             tr
