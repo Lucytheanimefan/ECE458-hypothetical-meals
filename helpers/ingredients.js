@@ -117,12 +117,13 @@ module.exports.deleteIngredient = function(name, package, temp, unitsPerPackage,
   })
 }
 
-module.exports.updateCost = function(name, newAmount, price) {
+module.exports.updateCost = function(name, newPackages, price) {
   return new Promise(function(resolve, reject) {
     Ingredient.getIngredient(name).then(function(ing) {
+      let unitsPerPackage = parseFloat(ing.unitsPerPackage);
       let currentTotal = parseFloat(ing.amount) * parseFloat(ing.averageCost);
-      let newTotal = parseFloat(newAmount) * parseFloat(price);
-      let newAverage = (currentTotal + newTotal) / (parseFloat(newAmount) + parseFloat(ing.amount));
+      let newTotal = parseFloat(newPackages) * parseFloat(price);
+      let newAverage = (currentTotal + newTotal) / (parseFloat(newPackages) * unitsPerPackage + parseFloat(ing.amount));
       ing.averageCost = newAverage;
       return ing.save();
     }).then(function(ing) {
