@@ -123,6 +123,7 @@ module.exports.addIngredient = function(code, ingredientId, cost){
       }
     }).then(function(vend) {
       let menu = vend['catalogue'];
+      console.log(menu);
       let index = ingIndex(menu,ingredientId);
       if(index >= 0){
         vend['catalogue'][index]['cost'] = cost;
@@ -195,7 +196,9 @@ module.exports.deleteRemovedIngredient = function(code, ingredientId){
 
 ingIndex = function(list,name){
   for(var i = 0; i < list.length; i++){
-    if(list[i]['ingredient']['_id'].toString() === name.toString()){
+    if (list[i]['ingredient'] == null) {
+      continue;
+    } else if(list[i]['ingredient']['_id'].toString() === name.toString()){
       return i;
     }
   }
