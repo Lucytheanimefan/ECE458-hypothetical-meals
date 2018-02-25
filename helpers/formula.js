@@ -74,8 +74,8 @@ module.exports.addTuple = function(name, index, ingredientID, quantity){
         throw(error);
       }
       return Formula.addTuple(name,index,ingResult.name,ingredientID,quantity);
-    }).then(function(result) {
-      resolve();
+    }).then(function(formula) {
+      resolve(formula);
     }).catch(function(error){
       reject(error);
     })
