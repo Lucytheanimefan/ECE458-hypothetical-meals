@@ -95,7 +95,7 @@ router.post('/', function(req, res, next) {
       } else if (user == null) {
 
         // Create a user if it doesn't exist
-        let user_data = { 'netid': req.body.netid, 'username': req.body.netid, 'isDukePerson': true };
+        let user_data = { 'netid': req.body.netid, 'email': req.body.email,'username': req.body.netid, 'isDukePerson': true };
         User.create(user_data, function(error, user) {
           if (error) {
             console.log("Error creating user: " + error);
@@ -185,11 +185,6 @@ router.post('/delete/:username', function(req, res, next) {
 
 // Any user can update their own account
 router.post('/update', async function(req, res, next) {
-  if (req.session.role != 'admin') {
-    let err = new Error('You must be an admin to update a user');
-    return next(err);
-  }
-
   var userdata = null;
   if (req.body.netid !== null) {
     userdata = { 'netid': req.body.netid };
