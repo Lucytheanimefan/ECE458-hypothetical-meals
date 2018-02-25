@@ -11,8 +11,8 @@ block content
       table.table#orderTable
         thead.text-primary
           th(onclick='sortTable(0, \'order\')') Ingredient
-          th(onclick='sortTable(1, \'order\')') Vendors
-          th(onclick='sortTable(2, \'order\')') Quantity (Number of Packages)
+          th(onclick='sortTable(1, \'order\')') Vendors (Quantity)
+          th(onclick='sortTable(2, \'order\')') Total Quantity (Number of Packages)
           th
         tbody
         each order in orders
@@ -28,8 +28,9 @@ block content
                       a(href='/vendors/' + vendor.code)= vendor.name
                     .col-md-6
                       .form-group(style='margin-top: 10px;')
-                        input.form-control(type='number', name='quantity', value=vendor.quantity, min='0', required='', style='width: 50px;')
-                      input(type="hidden" name='code' value=vendor.code)
+                        input.form-control(type='number', name='quantities', value=vendor.quantity, min='0', required='', style='width: 50px;')
+                      input(type="hidden" name='names' value=vendor.name)
+                      input(type="hidden" name='codes' value=vendor.code)
               td= order.quantity
               td
                 input(type="hidden" name="ingredient" value=order.ingredient)
