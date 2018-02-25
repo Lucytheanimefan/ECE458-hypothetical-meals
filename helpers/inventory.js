@@ -34,6 +34,9 @@ module.exports.checkInventory = function(name, package, temp, unitsPerPackage, a
         inv['current'][ingTemperature] = parseFloat(inv['current'][ingTemperature]) - oldSpace;
       }
       inv['current'][temperature] = parseFloat(inv['current'][temperature]) + newSpace;
+      console.log("HERE BOIIIII");
+      console.log(parseFloat(inv['current'][temperature]));
+      console.log(parseFloat(inv['limits'][temperature]));
       var update = (parseFloat(inv['current'][temperature]) <= parseFloat(inv['limits'][temperature]));
       resolve(update);
     }).catch(function(error) {
@@ -72,19 +75,19 @@ module.exports.updateInventory = function(name, package, temp, unitsPerPackage, 
 module.exports.updateLimits = function(frozen, room, refrigerated) {
   return new Promise(function(resolve, reject) {
     Inventory.getInventory().then(function(inv) {
-      if (parseInt(frozen) >= parseInt(inv.current.frozen)) {
+      if (parseFloat(frozen) >= parseFloat(inv.current.frozen)) {
         inv.limits.frozen = frozen;
       } else {
         var error = new Error('Can\'t set frozen limit to under current capacity');
         throw error;
       }
-      if (parseInt(room) >= parseInt(inv.current.room)) {
+      if (parseFloat(room) >= parseFloat(inv.current.room)) {
         inv.limits.room = room;
       } else {
         var error = new Error('Can\'t set room temperature limit to under current capacity');
         throw error;
       }
-      if (parseInt(refrigerated) >= parseInt(inv.current.refrigerated)) {
+      if (parseFloat(refrigerated) >= parseFloat(inv.current.refrigerated)) {
         inv.limits.refrigerated = refrigerated;
       } else {
         var error = new Error('Can\'t set refrigerated limit to under current capacity');

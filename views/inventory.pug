@@ -16,13 +16,13 @@ block content
       form(action='/inventory/update_limits', method='post')
         .form-group
           label.control-label Frozen Limit
-          input.form-control(type='number', step='any', name='frozen', placeholder = 'Frozen Limit', value=frozen)
+          input.form-control(type='number', name='frozen', placeholder='Frozen Limit',min='0',step="any", value=frozen)
         .form-group
           label.control-label Refrigerator Limit
-          input.form-control(type='number', step='any', name='refrigerated', placeholder = 'Refrigerator Limit', value=refrigerated)
+          input.form-control(type='number', name='refrigerated', placeholder='Refrigerator Limit', min='0',step="any", value=refrigerated)
         .form-group
           label.control-label Room Limit
-          input.form-control(type='number', step='any', name='room', placeholder = 'Room Limit', value=room)
+          input.form-control(type='number', name='room', placeholder='Room Limit', min='0',step="any", value=room)
         button.btn.btn-primary.pull-right(type='submit', value='update') Update
 
     .card-content#see_limits.tab-pane.fade
