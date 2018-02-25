@@ -78,42 +78,29 @@ module.exports.incrementAmount = function(id, amount) {
     Ingredient.getIngredientById(id).then(function(result) {
       ing = result;
       newAmount = parseFloat(ing.amount) + parseFloat(amount);
-      return exports.updateIngredient(ing.name, ing.name, ing.package, ing.temperature, ing.nativeUnit, parseFloat(ing.unitsPerPackage), newAmount);
+      if (newAmount < 0) {
+        var error = new Error('Storage amount must be a non-negative number');
+        error.status = 400;
+        throw error;
+      } else {
+        return InventoryHelper.checkInventory(ing.name, ing.package, ing.temperature, parseFloat(ing.unitsPerPackage), newAmount);
+      }
+    }).then(function(update) {
+      if (update) {
+        return InventoryHelper.updateInventory(ing.name, ing.package, ing.temperature, parseFloat(ing.unitsPerPackage), newAmount);
+      } else {
+        var error = new Error('Not enough room in inventory!');
+        error.status = 400;
+        throw error;
+      }
     }).then(function(result) {
-      resolve(result);
+      Ingredient.incrementAmount(ing.name, amount);
+    }).then(function(result) {
+      resolve("updated ingredient!");
     }).catch(function(error) {
       reject(error);
-    });
-  });
-  // return new Promise(function(resolve, reject) {
-  //   var newAmount;
-  //   var ing;
-  //   Ingredient.getIngredientById(id).then(function(result) {
-  //     ing = result;
-  //     newAmount = parseFloat(ing.amount) + parseFloat(amount);
-  //     if (newAmount < 0) {
-  //       var error = new Error('Storage amount must be a non-negative number');
-  //       error.status = 400;
-  //       throw error;
-  //     } else {
-  //       return InventoryHelper.checkInventory(ing.name, ing.package, ing.temperature, parseFloat(ing.unitsPerPackage), newAmount);
-  //     }
-  //   }).then(function(update) {
-  //     if (update) {
-  //       console.log(newAmount);
-  //       return Promise.all([InventoryHelper.updateInventory(ing.name, ing.package, ing.temperature, parseFloat(ing.unitsPerPackage), newAmount),
-  //         Ingredient.incrementAmount(ing.name, amount)])
-  //     } else {
-  //       var error = new Error('Not enough room in inventory!');
-  //       error.status = 400;
-  //       throw error;
-  //     }
-  //   }).then(function(results) {
-  //     resolve("updated ingredient!");
-  //   }).catch(function(error) {
-  //     reject(error);
-  //   })
-  // })
+    })
+  })
 }
 
 module.exports.sendIngredientsToProduction = function(formulaId, ingId, amount) {
