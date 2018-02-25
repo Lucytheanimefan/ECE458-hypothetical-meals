@@ -1,6 +1,5 @@
 NAME,PRODUCT UNITS,DESCRIPTION,INGREDIENT,INGREDIENT UNITS
-Cake,1,This is a cake,Butter,2
-Cake,,,Egg,1
-Cake,,,Sprinkles,400
-Soup,2,This is soup,Tomato,4
-Soup,,,"Milk, 2%",1
+formula1,,,Egg,1
+formula2,,,Sprinkles,400
+formula3,2,This is soup,Tomato,4
+formula4,,,"Milk, 2%",1

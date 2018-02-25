@@ -9,9 +9,10 @@ var ProductionSchema = new mongoose.Schema({
   },
   product: [
     {
-      formula: {
+      formulaId: {
         type: mongoose.Schema.Types.ObjectId
       },
+      formulaName: String,
       unitsProduced: Number,
       totalCost: Number
     }
@@ -24,7 +25,7 @@ module.exports.model = Production;
 
 checkNewFormula = function(formulaId, report) {
   for (let record of report['product']) {
-    if (record['formula'].equals(formulaId)) {
+    if (record['formulaId'].equals(formulaId)) {
       return false;
     }
   }
@@ -33,7 +34,7 @@ checkNewFormula = function(formulaId, report) {
 
 createReport = function() {
   return new Promise(function(resolve, reject) {
-    exports.getProduction.then(function(report) {
+    exports.getProduction().then(function(report) {
       if (report == null) {
         resolve(Production.create({
           'name': 'production',
@@ -48,20 +49,21 @@ createReport = function() {
   });
 }
 
-module.exports.updateReport = function(formulaId, units, cost) {
+module.exports.updateReport = function(formulaId, formulaName, units, cost) {
   return new Promise(function(resolve, reject) {
     createReport().then(function(result) {
       return Production.findOne( {'name': 'production'}).exec();
     }).then(function(report) {
       if (checkNewFormula(formulaId, report)) {
         let newEntry = {
-          'formula': formulaId,
+          'formulaId': formulaId,
+          'formulaName': formulaName,
           'unitsProduced': units,
           'totalCost': cost
         };
         return Production.findOneAndUpdate({'name': 'production'}, {'$push': {'product': newEntry}}).exec();
       } else {
-        return Production.update({'$and': [{'name': 'production'}, {'product': {'$elemMatch': {'formula': formulaId}}}]},
+        return Production.update({'$and': [{'name': 'production'}, {'product': {'$elemMatch': {'formulaId': formulaId}}}]},
           {'$inc': {'product.$.totalCost': cost, 'product.$.unitsProduced': units}}).exec();
       }
     }).then(function(report) {
@@ -72,6 +74,12 @@ module.exports.updateReport = function(formulaId, units, cost) {
   })
 }
 
-module.exports.getProduction = new Promise(function(resolve, reject) {
-  resolve(Production.findOne({'name': 'production'}));
-});
+module.exports.getProduction = function() {
+  return new Promise(function(resolve, reject) {
+    Production.findOne({'name': 'production'}).then(function(production) {
+      resolve(production);
+    }).catch(function(error) {
+      reject(error);
+    });
+  });
+}

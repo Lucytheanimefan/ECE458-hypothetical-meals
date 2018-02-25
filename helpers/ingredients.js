@@ -3,6 +3,7 @@ var Inventory = require('../models/inventory');
 var InventoryHelper = require('./inventory');
 var VendorHelper = require('./vendor');
 var Vendor = require('../models/vendor');
+var Formula = require('../models/formula');
 var UserHelper = require('./users');
 var Spending = require('../models/spending');
 var Production = require('../models/production');
@@ -101,10 +102,12 @@ module.exports.incrementAmount = function(id, amount) {
 
 module.exports.sendIngredientsToProduction = function(formulaId, ingId, amount) {
   return new Promise(function(resolve, reject) {
-    Ingredient.getIngredientById(ingId).then(function(result) {
-      let spent = parseFloat(result.averageCost) * parseFloat(amount);
-      return Promise.all([exports.incrementAmount(ingId, -amount), Spending.updateReport(ingId, spent, 'production'),
-        Production.updateReport(formulaId, 0, spent)]);
+    Promise.all([Ingredient.getIngredientById(ingId), Formula.model.findById(formulaId)]).then(function(results) {
+      let ing = results[0];
+      let formula = results[1];
+      let spent = parseFloat(ing.averageCost) * parseFloat(amount);
+      return Promise.all([exports.incrementAmount(ingId, -amount), Spending.updateReport(ingId, ing.name, spent, 'production'),
+        Production.updateReport(formulaId, formula, 0, spent)]);
     }).then(function(results) {
       resolve(results);
     }).catch(function(error) {

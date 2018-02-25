@@ -10,7 +10,7 @@ var mongoose = require('mongoose')
 mongoose.Promise = global.Promise;
 
 router.get('/', function(req, res, next) {
-  res.redirect('/1');
+  res.redirect('/reports/1');
 })
 
 router.get('/:page', function(req, res, next) {
@@ -24,16 +24,12 @@ router.get('/:page', function(req, res, next) {
     spendingReport = results[0];
     productionReport = results[1];
     formulaReport = results[2];
-    return Promise.all(spendingReport.spending.map(function(tuple) {
-      return getIngredientName(tuple);
-    }));
-  }).then(function(tuples) {
-    spending = tuples;
-    return Promise.all(productionReport.spending.map(function(tuple) {
-      return getIngredientName(tuple);
-    }));
-  }).then(function(tuples) {
-    production = tuples;
+    console.log(spendingReport.spending);
+    console.log(productionReport.spending);
+    console.log(formulaReport.product);
+    res.render('report', {spending: spendingReport.spending, production: productionReport.spending, formula: formulaReport.product});
+  }).catch(function(error) {
+    next(error);
   })
 })
 

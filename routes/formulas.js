@@ -120,7 +120,7 @@ router.post('/:name/order/:amount', function(req, res, next) {
   var formulaId;
   Formula.findFormulaByName(formulaName).then(function(formula) {
     formulaId = mongoose.Types.ObjectId(formula['_id']);
-    return Promise.all([FormulaHelper.createListOfTuples(formulaName, amount), Production.updateReport(formulaId, amount, 0)]);
+    return Promise.all([FormulaHelper.createListOfTuples(formulaName, amount), Production.updateReport(formulaId, formulaName, amount, 0)]);
   }).then(function(results) {
     let total = results[0];
     return Promise.all(total.map(function(ingTuple) {

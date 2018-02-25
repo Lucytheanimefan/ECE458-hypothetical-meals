@@ -10,9 +10,10 @@ var SpendingSchema = new mongoose.Schema({
   },
   spending: [
     {
-      ingredient: {
+      ingredientId: {
         type: mongoose.Schema.Types.ObjectId
       },
+      ingredientName: String,
       totalSpent: Number
     }
   ]
@@ -24,7 +25,7 @@ module.exports.model = Spending;
 
 checkNewIngredient = function(ingId, report) {
   for (let record of report['spending']) {
-    if (record['ingredient'].equals(ingId)) {
+    if (record['ingredientId'].equals(ingId)) {
       console.log('im here');
       return false;
     }
@@ -34,7 +35,7 @@ checkNewIngredient = function(ingId, report) {
 
 createReports = function() {
   return new Promise(function(resolve, reject) {
-    exports.getSpending.then(function(report) {
+    exports.getSpending().then(function(report) {
       if (report == null) {
         resolve(Promise.all([Spending.create({
           'name': 'spending',
@@ -52,7 +53,7 @@ createReports = function() {
   });
 }
 
-module.exports.updateReport = function(ingId, spent, reportType) {
+module.exports.updateReport = function(ingId, ingName, spent, reportType) {
   if (reportType !== 'spending' && reportType !== 'production') {
     reject('That type of report doesn\'t exist');
   } else {
@@ -62,12 +63,14 @@ module.exports.updateReport = function(ingId, spent, reportType) {
       }).then(function(report) {
         if (checkNewIngredient(ingId, report)) {
           let newEntry = {
-            'ingredient': ingId,
+            'ingredientId': ingId,
+            'ingredientName': ingName,
             'totalSpent': spent
           };
           return Spending.findOneAndUpdate({'name': reportType}, {'$push': {'spending': newEntry}}).exec();
         } else {
-          return Spending.update({'$and': [{'name': reportType}, {'spending': {'$elemMatch': {'ingredient': ingId}}}]},
+          console.log(spent);
+          return Spending.update({'$and': [{'name': reportType}, {'spending': {'$elemMatch': {'ingredientId': ingId}}}]},
             {'$inc': {'spending.$.totalSpent': spent}}).exec();
         }
       }).then(function(report) {
@@ -79,10 +82,14 @@ module.exports.updateReport = function(ingId, spent, reportType) {
   }
 }
 
-module.exports.getSpending = new Promise(function(resolve, reject) {
-  resolve(Spending.findOne({'name': 'spending'}));
-});
+module.exports.getSpending = function() {
+  return new Promise(function(resolve, reject) {
+    resolve(Spending.findOne({'name': 'spending'}));
+  });
+}
 
-module.exports.getProduction = new Promise(function(resolve, reject) {
-  resolve(Spending.findOne({'name': 'production'}));
-});
+module.exports.getProduction = function() {
+  return new Promise(function(resolve, reject) {
+    resolve(Spending.findOne({'name': 'production'}));
+  });
+}
