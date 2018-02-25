@@ -7,34 +7,42 @@ block content
   form.adminOnly.hide(action='/vendors/' + vendor.code + '/delete', method='post')
     button.btn.btn-primary.pull-right(type='submit', value = 'Delete vendor') Delete
   h1= vendor.name
-  h4= 'Code: ' + vendor.code
-  h4= 'Contact: ' + vendor.contact
-  h4= 'Location: ' + vendor.location
-  h2= 'Catalogue'
+  p(style='white-space: pre;').
+    Code:
+    #{vendor.code}
+  p(style='white-space: pre;').
+    Contact:
+    #{vendor.contact}
+  p(style='white-space: pre;').
+    Location:
+    #{vendor.location}
+  div.card
+    div.card-header(data-background-color='purple')
+      h4.title Catalogue
+    div.card-content.table-response
+      table.table
+        thead.text-primary
+          th Ingredient
+          th Cost
+          th Package
+          th Temperature
+          tbody
+          each ing in catalogue
+            tr
+              th
+                a(href='/ingredients/' + ing.ingredient.name)= ing.ingredient.name
+                th= ing.cost
+                th= ing.ingredient.package
+                th= ing.ingredient.temperature
+                th
+                  a(href='/vendors/' + vendor.code + '/' + 'remove_ingredient' + '/' +  ing['ingredient']['_id']) Remove
+      div.previous
+        form(action='/vendors/' + vendor.code + '/' + (parseInt(page)-1).toString(), method='get')
+          button.btn.btn-white.btn-round.btn-just-icon(type='submit') Prev
+      div.next
+        form(action='/vendors/' + vendor.code + '/' + (parseInt(page)+1).toString(), method='get')
+          button.btn.btn-white.btn-round.btn-just-icon(type='submit') Next
 
-  #ing-table
-    table.table
-      thead.text-primary
-        th Ingredient
-        th Cost
-        th Package
-        th Temperature
-      tbody
-      each ing in catalogue
-        tr
-          th
-            a(href='/ingredients/' + encodeURIComponent(ing.ingredient.name))= ing.ingredient.name
-          th= ing.cost
-          th= ing.ingredient.package
-          th= ing.ingredient.temperature
-          th
-            a(href='/vendors/' + vendor.code + '/' + 'remove_ingredient' + '/' +  ing['ingredient']['_id']) Remove
-    div.previous
-      form(action='/vendors/'+ vendor.code + '/' + (parseInt(page)-1).toString() method='get')
-        button.btn.btn-white.btn-round.btn-just-icon(type='submit') Prev
-    div.next
-      form(action='/vendors/'+vendor.code + '/' + (parseInt(page)+1).toString() method='get')
-        button.btn.btn-white.btn-round.btn-just-icon(type='submit') Next
 
   ul.nav.nav-tabs
     li.active.adminOnly.hide
@@ -57,7 +65,7 @@ block content
           input.form-control(type='text', name='code',required='',value=vendor.code)
         .form-group
           label.control-label Contact Info
-          input.form-control(type='text', name='contact', required='',value=vendor.contact)
+          textarea.form-control(name='contact' rows='5' cols='100',required='') #{vendor.contact}
         .form-group
           label.control-label Location
           input.form-control(type='text', name='location', value=vendor.location)
@@ -103,4 +111,4 @@ block content
         .form-group
           label.control-label Quantity (Number of storage units)
           input.form-control(type='number', name='quantity', min='0', required='')
-        button.btn.btn-primary.pull-right(type='submit', value='order made') Order
+        button.btn.btn-primary.pull-right(type='submit', value='order made') Add to Cart

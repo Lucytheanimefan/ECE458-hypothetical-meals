@@ -232,7 +232,7 @@ module.exports.addVendor = function(name, vendorId, cost) {
         error.status = 400;
         throw error;
       } else {
-        return Promise.all([Ingredient.addVendor(name, vendorObjectId), Vendor.addIngredient(vendor['code'], mongoose.Types.ObjectId(ing['_id']), cost)]);
+        return Promise.all([Ingredient.addVendor(name, vendorObjectId), VendorHelper.addIngredient(vendor['code'], mongoose.Types.ObjectId(ing['_id']), cost)]);
       }
     }).then(function(result) {
       resolve(result);

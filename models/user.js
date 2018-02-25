@@ -13,7 +13,8 @@ var UserSchema = new mongoose.Schema({
   username: {
     type: String,
     required: false,
-    trim: true
+    trim: true,
+    unique: true
   },
   password: {
     type: String,
@@ -47,8 +48,8 @@ var UserSchema = new mongoose.Schema({
       type: Number,
       required: true
     },
-    vendor: {
-      type: String,
+    vendors: {
+      type: Array,
       required: true
     }
   }],
@@ -74,11 +75,12 @@ UserSchema.statics.authenticate = function(email, password, callback) {
         return callback(err);
       }
       bcrypt.compare(password, user.password, function(err, result) {
-        //console.log('Compare password: ' + password + ' vs ' + user.password);
+        console.log('Compare password: ' + password + ' vs ' + user.password);
         if (result === true) {
           return callback(null, user);
         } else {
-          return callback();
+          console.log('Incorrect password');
+          return callback(null, null);
         }
       })
     });
@@ -170,6 +172,7 @@ UserSchema.statics.update = function(userdata, newdata, callback) {
 }
 
 UserSchema.statics.all = function(callback) {
+  console.log("reached");
   User.find({}, function(err, users) {
     if (err) {
       callback(err);
@@ -251,16 +254,12 @@ UserSchema.pre('save', function(next) {
 var User = mongoose.model('User', UserSchema);
 module.exports = User;
 
-module.exports.findById = function(id) {
-  return User.findOne({'_id':id});
-}
-
 module.exports.getUserById = function(id) {
   return User.findOne({'_id':id}).exec();
 }
 
-module.exports.addToCart = function(id, ingredient, quantity, vendor) {
-  let entry = {ingredient:ingredient, quantity:quantity, vendor:vendor};
+module.exports.addToCart = function(id, ingredient, quantity, vendors) {
+  let entry = {ingredient:ingredient, quantity:quantity, vendors:vendors};
   return User.findOneAndUpdate({'_id':id},{'$push':{'cart':entry}}).exec();
 }
 
@@ -268,10 +267,10 @@ module.exports.removeOrder = function(id, ingredient) {
   return User.findOneAndUpdate({'_id':id},{'$pull':{'cart':{'ingredient':ingredient}}}).exec();
 }
 
-module.exports.updateCart = function(id, ingredient, quantity, vendor) {
+module.exports.updateCart = function(id, ingredient, quantity, vendors) {
   return new Promise(function(resolve, reject) {
-    exports.removeOrder(id,ingredient).then(function(result){
-      return exports.addToCart(id,ingredient,quantity,vendor);
+    User.removeOrder(id,ingredient).then(function(result){
+      return User.addToCart(id,ingredient,quantity,vendors);
     }).then(function(tuple) {
       resolve(tuple);
     }).catch(function(error) {
