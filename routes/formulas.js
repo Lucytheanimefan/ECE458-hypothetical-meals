@@ -4,6 +4,7 @@ var Formula = require('../models/formula');
 var FormulaHelper = require('../helpers/formula');
 var IngredientHelper = require('../helpers/ingredients');
 var Ingredient = require('../models/ingredient');
+var Production = require('../models/production');
 var underscore = require('underscore');
 var mongoose = require('mongoose');
 mongoose.Promise = global.Promise;
@@ -116,9 +117,14 @@ router.post('/:name/order', function(req, res, next) {
 router.post('/:name/order/:amount', function(req, res, next) {
   let formulaName = req.params.name;
   let amount = parseFloat(req.params.amount);
-  FormulaHelper.createListOfTuples(formulaName, amount).then(function(total) {
+  var formulaId;
+  Formula.findFormulaByName(formulaName).then(function(formula) {
+    formulaId = mongoose.Types.ObjectId(formula['_id']);
+    return Promise.all([FormulaHelper.createListOfTuples(formulaName, amount), Production.updateReport(formulaId, formulaName, amount, 0)]);
+  }).then(function(results) {
+    let total = results[0];
     return Promise.all(total.map(function(ingTuple) {
-      return IngredientHelper.incrementAmount(mongoose.Types.ObjectId(ingTuple['id']), parseFloat(-ingTuple['amount']));
+      return IngredientHelper.sendIngredientsToProduction(formulaId, mongoose.Types.ObjectId(ingTuple['id']), parseFloat(ingTuple['amount']));
     }));
   }).then(function(results) {
     res.redirect('/formulas');
