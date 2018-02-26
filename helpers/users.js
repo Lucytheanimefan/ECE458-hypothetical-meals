@@ -38,6 +38,7 @@ module.exports.addToCart = function(id, ingId, quantity, vendor) {
     }).then(function(vendResult) {
       code = vendResult.code;
       var entry = {'name': vendor, 'code': code, 'quantity': quantity};
+      console.log("cart: " + user.cart);
       for (let ing of user.cart) {
         if (ingId.toString() === ing.ingredient.toString()) {
           var total = quantity + ing.quantity;

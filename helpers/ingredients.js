@@ -180,11 +180,12 @@ findCheapestVendor = function(ing) {
         reject(new Error('No vendors sell ' + ing.name + '!'));
         return;
       }
+      minVendor = vendors[0];
       for (let vendor of vendors) {
         for (j = 0; j < vendor['catalogue'].length; j++) {
           if (vendor['catalogue'][j]['ingredient'].toString() == ing['_id']) {
+            minVendor = (parseFloat(vendor['catalogue'][j]['cost']) < min) ? vendor : minVendor;
             min = Math.min(parseFloat(vendor['catalogue'][j]['cost']), min)
-            minVendor = vendor;
             break;
           }
         }
