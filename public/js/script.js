@@ -252,12 +252,16 @@ function loadPugView() {
 
         text = '<li>Ingredient: ' + value + '</li>';
 
-      } else if (keyLower == "vendor_id"){
-        value = '<a href="/vendors/id/' + encodeURIComponent(description[key]) + '">' + description[key] + '</a>';
-
-        text = '<li>Vendor: ' + value + '</li>';
-      } 
-      else if (keyLower == "array_description") {
+      } else if (keyLower == "vendor_id") {
+        var vendor_id = description[key];
+        getVendorForID(vendor_id, function(vendor) {
+          console.log(vendor);
+          let code = vendor['code'];
+          value = '<a href="/vendors/' + encodeURIComponent(code) + '">' + code + '</a>';
+          text = '<li>Vendor code: ' + value + '</li>';
+          $("#description").append(text);
+        })
+      } else if (keyLower == "array_description") {
         for (var i in description[key]) {
           console.log(description[key]);
           var result = description[key][i];
@@ -297,6 +301,21 @@ function getIngredientForID(id, callback) {
   $.ajax({
     type: 'GET',
     url: '/ingredients/id/' + id,
+    contentType: 'application/json; charset=utf-8',
+    dataType: 'json',
+    success: function(response) {
+      console.log(response);
+      callback(response);
+    }
+  });
+
+}
+
+function getVendorForID(id, callback) {
+  console.log("Get vendor for id");
+  $.ajax({
+    type: 'GET',
+    url: '/vendors/vendor/id/' + id,
     contentType: 'application/json; charset=utf-8',
     dataType: 'json',
     success: function(response) {

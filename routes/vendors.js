@@ -64,6 +64,19 @@ router.get('/:code/:page?', async function(req, res, next) {
   })
 })
 
+
+router.get('/vendor/id/:vendor_id', function(req, res, next) {
+  console.log('Get vendor for id: ' + req.params.vendor_id);
+  var findVendor = Vendor.model.findOne({ _id: req.params.vendor_id }).exec();
+  findVendor.then(function(vendor) {
+    console.log(vendor);
+    res.send(vendor);
+  }).catch(function(error){
+    res.send({'error': error});
+  })
+})
+
+
 //POST request to delete an existing ingredient
 //refactored
 router.post('/:code/delete', function(req, res, next) {
