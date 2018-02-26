@@ -74,8 +74,11 @@ router.post('/upload/formulas', function(req, res, next) {
       }));
     }).then(function() {
       return Upload.addFormulas(csvData);
-    }).then(function() {
-      logs.makeLog('Bulk import formula file uploaded', JSON.stringify(results), ['file'], req.session.userId);
+    }).then(function(results) {
+      // let logResults = results.map(function(currentValue, index, arr){
+      //   return currentValue['FORMULA'];
+      // })
+      logs.makeLog('Bulk import formula file uploaded', 'Successfully uploaded file'/*JSON.stringify({'formula_names':logResults})*/, ['file'], req.session.userId);
       res.render('uploads', { alert: 'Successfully uploaded file' });
     }).catch(function(error) {
       if (Array.isArray(error)) {
@@ -134,14 +137,17 @@ router.post('/upload/ingredients', function(req, res, next) {
       csvData = data.data;
       console.log(csvData);
       return Promise.all(csvData.map(function(row, index) {
-        return Promise.all([Upload.checkIngredientHeader(row), Upload.checkIngredient(row), Upload.checkVendor(row['VENDOR FREIGHT CODE'])]);
+        return Promise.all([Upload.checkIngredientHeader(row), Upload.checkIngredient(row), Upload.checkVendor(row)]);
       }));
     }).then(function() {
       return Promise.all(csvData.map(function(row, index) {
         return Upload.addToDatabase(index, row);
       }));
     }).then(function(results) {
-      logs.makeLog('Bulk import ingredients file uploaded', JSON.stringify(results), ['file'], req.session.userId);
+      let logResults = results.map(function(currentValue, index, arr){
+        return currentValue['INGREDIENT'];
+      })
+      logs.makeLog('Bulk import ingredients file uploaded', JSON.stringify({'ingredient_names':logResults}), ['file'], req.session.userId);
       res.render('uploads', { alert: 'Successfully uploaded file' });
     }).catch(function(error) {
       console.log(error);

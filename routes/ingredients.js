@@ -3,6 +3,7 @@ var queryString = require('query-string');
 var router = express.Router();
 var Ingredient = require('../models/ingredient');
 var IngredientHelper = require('../helpers/ingredients');
+var UserHelper = require('../helpers/users');
 var VendorHelper = require('../helpers/vendor');
 var Vendor = require('../models/vendor');
 var Formula = require('../models/formula');
@@ -112,7 +113,10 @@ router.post('/:name/delete', function(req, res, next) {
         parseFloat(ing['amount'])
       );
     }
-  }).then(function() {
+  }).then(function(ing) {
+    var promise = UserHelper.updateCart(req.session.userId);
+    return promise;
+  }).then(function(result) {
     res.redirect(req.baseUrl + '/');
   }).catch(function(error) {
     next(error);
@@ -167,8 +171,9 @@ router.post('/new', function(req, res, next) {
 router.post('/:name/add-vendor', function(req, res, next) {
   let ingName = req.params.name;
   let initiating_user = req.session.userId;
+  //addVendor = function(name, vendorId, cost) 
   IngredientHelper.addVendor(ingName, req.body.vendor, req.body.cost).then(function(results) {
-    logs.makeIngredientLog('Add vendor to ingredient', {'array_description':results}, ['ingredient','vendor'], initiating_user);
+    logs.makeIngredientLog('Add vendor to ingredient', {'ingredient_name':ingName, 'vendor_id': req.body.vendor}, ['ingredient','vendor'], initiating_user);
     res.redirect(req.baseUrl + '/' + encodeURIComponent(ingName));
   }).catch(function(error) {
     next(error);

@@ -1,5 +1,6 @@
 var Ingredient = require('../models/ingredient');
 var Inventory = require('../models/inventory');
+var FormulaHelper = require('./formula');
 var InventoryHelper = require('./inventory');
 var VendorHelper = require('./vendor');
 var Vendor = require('../models/vendor');
@@ -61,6 +62,11 @@ module.exports.updateIngredient = function(name, newName, package, temp, nativeU
         }
       }).then(function(result) {
         return Ingredient.updateIngredient(name, newName, package, temp, nativeUnit, unitsPerPackage, amount);
+      }).then(function(result) {
+        var ingQuery = Ingredient.getIngredient(newName);
+        return ingQuery;
+      }).then(function(ing) {
+        return FormulaHelper.updateTuples(newName, ing._id);
       }).then(function(result) {
         resolve(result);
       }).catch(function(error) {
@@ -174,11 +180,12 @@ findCheapestVendor = function(ing) {
         reject(new Error('No vendors sell ' + ing.name + '!'));
         return;
       }
+      minVendor = vendors[0];
       for (let vendor of vendors) {
         for (j = 0; j < vendor['catalogue'].length; j++) {
           if (vendor['catalogue'][j]['ingredient'].toString() == ing['_id']) {
+            minVendor = (parseFloat(vendor['catalogue'][j]['cost']) < min) ? vendor : minVendor;
             min = Math.min(parseFloat(vendor['catalogue'][j]['cost']), min)
-            minVendor = vendor;
             break;
           }
         }
@@ -199,7 +206,7 @@ module.exports.addOrderToCart = function(userId, ingredient, amount) {
       return findCheapestVendor(ing)
     }).then(function(vendor) {
       let packages = Math.ceil(parseFloat(amount) / parseFloat(ing['unitsPerPackage']));
-      return UserHelper.addToCart(userId, ingredient, packages, vendor.name);
+      return UserHelper.addToCart(userId, mongoose.Types.ObjectId(ing['_id']), packages, vendor.name);
     }).then(function(result) {
       resolve();
     }).catch(function(error) {

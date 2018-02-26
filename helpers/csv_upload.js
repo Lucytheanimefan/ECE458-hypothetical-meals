@@ -7,9 +7,13 @@ var FormulaHelper = require('../helpers/formula');
 var mongoose = require('mongoose')
 mongoose.Promise = global.Promise;
 
-ingredientHeaders = ['INGREDIENT', 'PACKAGE', 'TEMPERATURE', 'NATIVE UNIT', 'UNITS PER PACKAGE', 'VENDOR FREIGHT CODE', 'PRICE PER PACKAGE', 'AMOUNT (NATIVE UNITS)'];
+var ingredientHeaders = ['INGREDIENT', 'PACKAGE', 'TEMPERATURE', 'NATIVE UNIT', 'UNITS PER PACKAGE', 'VENDOR FREIGHT CODE', 'PRICE PER PACKAGE', 'AMOUNT (NATIVE UNITS)'];
 
-formulaHeaders = ['NAME', 'PRODUCT UNITS', 'DESCRIPTION', 'INGREDIENT', 'INGREDIENT UNITS']
+var formulaHeaders = ['NAME', 'PRODUCT UNITS', 'DESCRIPTION', 'INGREDIENT', 'INGREDIENT UNITS'];
+
+var packageTypes = ['sack', 'pail', 'drum', 'supersack', 'truckload', 'railcar'];
+
+var temperatures = ['frozen', 'refrigerated', 'room temperature'];
 
 addFormula = function(rows) {
   return new Promise(function(resolve, reject) {
@@ -43,13 +47,34 @@ module.exports.addFormulas = function(csvData) {
       let row = 0;
       let currentFormula = csvData[row]['NAME'];
       let formulaList = [];
+      let seenFormulas = [];
       let currentList = [];
+      let seenIngs = [];
       while (row < csvData.length) {
         let myRow = csvData[row];
         if (myRow['NAME'] !== currentFormula) {
           currentFormula = myRow['NAME'];
+          seensIngs = [];
+
+          if (seenFormulas.indexOf(currentFormula) != -1) {
+            reject(new Error('Formula names must be unique (there are multiple formulas with the same name in the CSV)'));
+            return;
+          } else {
+            seenFormulas.push(currentFormula);
+          }
+          if (myRow['PRODUCT UNITS'] == '' || myRow['DESCRIPTION'] == '') {
+            reject(new Error('Product units or description can\'t be empty on the first appearance of the formula!'));
+            return;
+          }
+
           formulaList.push(currentList);
           currentList = [];
+        }
+        if (seenIngs.indexOf(myRow['INGREDIENT']) != -1) {
+          reject(new Error('Formulas cannot have more than one instance of the same ingredient.'));
+          return;
+        } else {
+          seenIngs.push(myRow['INGREDIENT']);
         }
         currentList.push(myRow);
         console.log(currentList);
@@ -178,10 +203,14 @@ module.exports.checkIngredient = function(row) {
   })
 }
 
-module.exports.checkVendor = function(vendorCode) {
+module.exports.checkVendor = function(row) {
+  let vendorCode = row['VENDOR FREIGHT CODE'];
+  let price = row['PRICE PER PACKAGE'];
   return new Promise(function(resolve, reject) {
-    if (vendorCode === "") {
+    if (vendorCode == "" && price == "") {
       resolve();
+    } else if (vendorCode != "" && price == "" || vendorCode == "" && price != "") {
+      reject(new Error('Vendor and price must both be empty or non-empty!'));
     } else {
       Vendor.model.findOne( {code: vendorCode} ).exec().then(function(result) {
         if (result == null) {
@@ -208,6 +237,16 @@ module.exports.checkIngredientHeader = function(row) {
       if (ingredientHeaders.indexOf(rowHeader) == -1) {
         reject(new Error('Ingredient CSV has incorrect headers! Refer to the bulk import documentation to see the correct headers.'));
         return;
+      } else if (rowHeader == 'PACKAGE') {
+        if (packageTypes.indexOf(row[rowHeader].toLowerCase()) == -1) {
+          reject(new Error('Incorrect package type: ' + row[rowHeader]));
+          return;
+        }
+      } else if (rowHeader == 'TEMPERATURE') {
+        if (temperatures.indexOf(row[rowHeader].toLowerCase()) == -1) {
+          reject(new Error('Incorrect temperature: ' + row[rowHeader]));
+          return;
+        }
       }
     }
     resolve();
