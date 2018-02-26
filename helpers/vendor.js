@@ -3,6 +3,7 @@ var Ingredient = require('../models/ingredient');
 var IngredientHelper = require('./ingredients');
 var InventoryHelper = require('./inventory');
 var Inventory = require('../models/inventory');
+var Spending = require('../models/spending');
 var mongoose = require('mongoose');
 mongoose.promise = global.Promise;
 
@@ -20,8 +21,9 @@ module.exports.makeOrder = function(ingredientId,vendorId,numUnits){
   let ingId = mongoose.Types.ObjectId(ingredientId);
   let vendId = mongoose.Types.ObjectId(vendorId);
   return new Promise(function(resolve,reject){
-    var vendQuery = Vendor.model.findById(vendorId);
+    var vendQuery = Vendor.model.findById(vendorId).populate('catalogue.ingredient');
     var ingQuery = Ingredient.model.findById(ingId);
+    var vendor;
     vendQuery.exec().then(function(vend){
       if(vend==null){
         var error = new Error('Vendor could not be found');
@@ -29,9 +31,10 @@ module.exports.makeOrder = function(ingredientId,vendorId,numUnits){
         throw(error);
       }
       else{
+        vendor = vend;
         return ingQuery;
       }
-    }).then(function(ing,vend){
+    }).then(function(ing){
       if(ing==null){
         var error = new Error('Ingredient could not be found');
         error.status = 400;
@@ -43,9 +46,22 @@ module.exports.makeOrder = function(ingredientId,vendorId,numUnits){
         let name = ing['name'];
         let newName = ing['name'];
         let nativeUnit = ing['nativeUnit'];
-        let unitsPerPackage = ing['unitsPerPackage'];
-        let amount = parseFloat(numUnits)*parseFloat(ing['unitsPerPackage']) + parseFloat(ing['amount']);
-        return IngredientHelper.updateIngredient(name, newName, package, temp, nativeUnit, unitsPerPackage, amount);
+        let unitsPerPackage = parseFloat(ing['unitsPerPackage']);
+        let totalNewUnits = parseFloat(numUnits)*parseFloat(ing['unitsPerPackage'])
+        let amount = totalNewUnits + parseFloat(ing['amount']);
+        // console.log(vendor['catalogue']);
+        let index = ingIndex(vendor['catalogue'], ing._id);
+        if (index == -1) {
+          var error = new Error('Vendor ' + vendor['code'] + ' does not have ingredient ' + ing['name']);
+          error.status = 400;
+          throw error;
+        } else {
+          let cost = parseFloat(vendor['catalogue'][index]['cost']);
+          let updateIngCost = IngredientHelper.updateCost(name, totalNewUnits, cost);
+          let updateReport = Spending.updateReport(mongoose.Types.ObjectId(ing['_id']), cost*parseFloat(numUnits), 'spending');
+          let updateIngredient = IngredientHelper.updateIngredient(name, newName, package, temp, nativeUnit, unitsPerPackage, amount);
+          return Promise.all([updateIngCost, updateReport, updateIngredient]);
+        }
       }
     }).then(function(result){
       resolve(result);
@@ -195,6 +211,8 @@ module.exports.deleteRemovedIngredient = function(code, ingredientId){
 }
 
 ingIndex = function(list,name){
+  console.log(name);
+  console.log(list);
   for(var i = 0; i < list.length; i++){
     if (list[i]['ingredient'] == null) {
       continue;

@@ -77,7 +77,7 @@ app.use('/vendors', users.requireLogin(), vendors);
 app.use('/formulas', formulas);
 app.use('/reports', users.requireLogin(), reports);
 
-app.use('/files', files);
+app.use('/files', users.requireRole('admin'),files);
 app.use('/inventory',users.requireRole("admin"),inventory);
 
 app.use('/duke_oauth', oauth);
