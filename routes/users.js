@@ -16,6 +16,8 @@ var bcrypt = require('bcrypt');
 var variables = require('../helpers/variables');
 var path = require('path');
 var logs = require(path.resolve(__dirname, "./logs.js"));
+var mongoose = require('mongoose');
+mongoose.Promise = global.Promise;
 
 
 
@@ -442,7 +444,7 @@ router.post('/checkout_cart', function(req, res, next) {
     cart = user.cart;
     var promises = [];
     for (let order of cart) {
-      promises.push(IngredientHelper.incrementAmount(order.ingredient, order.quantity));
+      promises.push(UserHelper.updateIngredientOnCheckout(mongoose.Types.ObjectId(order.ingredient), order.vendors));
       //promises.push(Spending.updateReport(order.ingredient, ingName, spent, reportType));
       promises.push(UserHelper.removeOrder(req.session.userId, order.ingredient));
     }
