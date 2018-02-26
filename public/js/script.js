@@ -200,7 +200,7 @@ function loadSideBar() {
         // Users
         let tmp = $(this).find('a')[0];
         let category = $($(tmp).find('p')[0]).text();
-        if (category !== 'Inventory' && category !== 'Users') {
+        if (category !== 'Inventory' && category !== 'Users' && category !== "Uploads") {
           $(this).removeClass('hide');
         }
       }
