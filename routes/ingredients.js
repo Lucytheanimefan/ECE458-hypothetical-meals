@@ -171,8 +171,9 @@ router.post('/new', function(req, res, next) {
 router.post('/:name/add-vendor', function(req, res, next) {
   let ingName = req.params.name;
   let initiating_user = req.session.userId;
+  //addVendor = function(name, vendorId, cost) 
   IngredientHelper.addVendor(ingName, req.body.vendor, req.body.cost).then(function(results) {
-    logs.makeIngredientLog('Add vendor to ingredient', {'array_description':results}, ['ingredient','vendor'], initiating_user);
+    logs.makeIngredientLog('Add vendor to ingredient', {'ingredient_name':ingName, 'vendor_id': req.body.vendor}, ['ingredient','vendor'], initiating_user);
     res.redirect(req.baseUrl + '/' + encodeURIComponent(ingName));
   }).catch(function(error) {
     next(error);
