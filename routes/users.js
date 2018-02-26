@@ -4,6 +4,7 @@ var User = require('../models/user');
 var Ingredient = require('../models/ingredient');
 var Vendor = require('../models/vendor');
 var Inventory = require('../models/inventory').model;
+var Spending = require('../models/spending');
 var Token = require('../models/token');
 var UserHelper = require('../helpers/users');
 var IngredientHelper = require('../helpers/ingredients');
@@ -435,6 +436,7 @@ router.post('/checkout_cart', function(req, res, next) {
     var promises = [];
     for (let order of cart) {
       promises.push(IngredientHelper.incrementAmount(order.ingredient, order.quantity));
+      //promises.push(Spending.updateReport(order.ingredient, ingName, spent, reportType));
       promises.push(UserHelper.removeOrder(req.session.userId, order.ingredient));
     }
     return Promise.all(promises);
