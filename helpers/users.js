@@ -1,5 +1,7 @@
 var User = require('../models/user');
 var Ingredient = require('../models/ingredient');
+var IngredientHelper = require('../helpers/ingredients');
+var Spending = require('../models/spending');
 var Vendor = require('../models/vendor');
 var Token = require('../models/token');
 var crypto = require('crypto');
@@ -111,6 +113,49 @@ module.exports.updateCart = function(id) {
       return Promise.all(promises);
     }).then(function(result) {
       resolve(result);
+    }).catch(function(error) {
+      reject(error);
+    })
+  })
+}
+
+module.exports.updateIngredientOnCheckout = function(ingId, vendors) {
+  return new Promise(function(resolve, reject) {
+    var ing;
+    Ingredient.getIngredientById(ingId).then(function(result){
+      ing = result;
+      return Promise.all(vendors.map(function(tuple) {
+        return new Promise(function(resolve, reject) {
+          Vendor.findVendorByName(tuple.name).then(function(vendor) {
+            tuple['vendor'] = vendor;
+            resolve(tuple);
+          }).catch(function(error) {
+            reject(error);
+          })
+        });
+      }));
+    }).then(function(results) {
+      let totalCost = 0;
+      let averageCost = 0;
+      let totalPackages = 0;
+      for (let tuple of results) {
+        let vendor = tuple['vendor'];
+        for (j = 0; j < vendor['catalogue'].length; j++) {
+          if (vendor['catalogue'][j]['ingredient'].toString() == ing['_id']) {
+            let quantity = parseFloat(tuple.quantity);
+            let cost = parseFloat(vendor['catalogue'][j]['cost']);
+            totalCost += cost*quantity;
+            averageCost = (averageCost*totalPackages+cost*quantity)/(totalPackages+quantity);
+            totalPackages += quantity;
+          }
+        }
+      }
+      let ingUpdate = IngredientHelper.incrementAmount(ingId, totalPackages*parseFloat(ing.unitsPerPackage));
+      let ingCostUpdate = IngredientHelper.updateCost(ing.name, totalPackages, averageCost);
+      let spendingUpdate = Spending.updateReport(ingId, ing.name, totalCost, 'spending');
+      return Promise.all([ingUpdate, ingCostUpdate, spendingUpdate]);
+    }).then(function(results) {
+      resolve();
     }).catch(function(error) {
       reject(error);
     })
