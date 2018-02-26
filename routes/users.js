@@ -63,7 +63,7 @@ router.post('/', function(req, res, next) {
         console.log(error);
         return next(error);
       } else {
-        logs.makeUserLog('Creation', user, 'user', req.session.userId);
+        logs.makeUserLog('Creation', {username:user.username}, 'user', req.session.userId);
 
         console.log('Hash the password');
         res.redirect(req.baseUrl + '/admin');
@@ -106,7 +106,7 @@ router.post('/', function(req, res, next) {
             return res.send({ 'success': false, 'error': 'Error creating user for this Duke netid' });
           }
 
-          logs.makeUserLog('Created user', user, ['user'], req.session.userId);
+          logs.makeUserLog('Created user', {username:user.username}, ['user'], req.session.userId);
 
           req.session.userId = user._id;
           console.log('Render message');
@@ -180,7 +180,7 @@ router.post('/delete/:username', function(req, res, next) {
       err.status = 400;
       return next(err);
     } else {
-      logs.makeUserLog('Deleted user', result, ['user'], req.session.userId);
+      logs.makeUserLog('Deleted user', {username:result.username}, ['user'], req.session.userId);
       //alert user the ingredient has been deleted.
       return res.redirect(req.baseUrl + '/admin');
     }
@@ -224,7 +224,7 @@ router.post('/update/:username', async function(req, res, next) {
     if (err) {
       return next(err);
     }
-    logs.makeUserLog('Updated user', user, ['user'], req.session.userId);
+    logs.makeUserLog('Updated user', {username:user.username}, ['user'], req.session.userId);
     return res.redirect(req.baseUrl + '/admin');
   })
 });

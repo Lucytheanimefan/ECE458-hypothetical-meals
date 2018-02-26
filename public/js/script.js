@@ -304,6 +304,11 @@ function loadPugView() {
           text += '<li>Formula: ' + value + '</li>';
         }
       } 
+      else if (keyLower == 'username'){
+        let username = description[key];
+        value = '<a href="/users/user/' + encodeURIComponent(username) + '">' + username + '</a>';
+        text = '<li>User: ' + value + '</li>';
+      }
       else {
         text = '<li>' + key + ': ' + JSON.stringify(description[key]) + '</li>';
         //$("#description").append(text);
