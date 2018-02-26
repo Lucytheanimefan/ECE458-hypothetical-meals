@@ -63,6 +63,16 @@ router.get('/:name', function(req, res, next) {
   });
 })
 
+router.post('/:name/delete', function(req, res, next) {
+  let name = req.params.name;
+  var promise = FormulaHelper.deleteFormula(name);
+  promise.then(function(result) {
+    res.redirect(req.baseUrl + '/');
+  }).catch(function(error) {
+    next(error);
+  });
+})
+
 router.post('/:name/update', function(req, res, next) {
   let name = req.params.name;
   let newName = req.body.name;
@@ -141,7 +151,7 @@ router.post('/new', async function(req, res, next) {
   promise.then(function(result) {
   	console.log('Formula result:')
   	console.log(result);
-  	logs.makeLog('New formula', result, ['formula'], req.session.userId); 
+  	logs.makeLog('New formula', result, ['formula'], req.session.userId);
     var index = 1;
     var ingredient, quantity;
     let tuplePromises = [];

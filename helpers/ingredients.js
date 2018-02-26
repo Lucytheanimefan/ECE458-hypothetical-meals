@@ -1,5 +1,6 @@
 var Ingredient = require('../models/ingredient');
 var Inventory = require('../models/inventory');
+var FormulaHelper = require('./formula');
 var InventoryHelper = require('./inventory');
 var VendorHelper = require('./vendor');
 var Vendor = require('../models/vendor');
@@ -61,6 +62,11 @@ module.exports.updateIngredient = function(name, newName, package, temp, nativeU
         }
       }).then(function(result) {
         return Ingredient.updateIngredient(name, newName, package, temp, nativeUnit, unitsPerPackage, amount);
+      }).then(function(result) {
+        var ingQuery = Ingredient.getIngredient(newName);
+        return ingQuery;
+      }).then(function(ing) {
+        return FormulaHelper.updateTuples(newName, ing._id);
       }).then(function(result) {
         resolve(result);
       }).catch(function(error) {
