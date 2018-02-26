@@ -42,6 +42,10 @@ module.exports.findFormulaByName = function(name){
   return Formula.findOne({'name':name}).exec();
 }
 
+module.exports.getAllFormulas = function() {
+  return Formula.find().exec();
+}
+
 module.exports.createFormula = function(name, description, units) {
   return Formula.create({
     'name': name,
@@ -71,12 +75,13 @@ module.exports.addTuple = function(name, index, ingredient, ingredientID, quanti
 }
 
 module.exports.removeTuple = function(name, ingredient){
+  console.log("removed");
   return Formula.findOneAndUpdate({'name':name},{'$pull':{'tuples':{'ingredient':ingredient}}}).exec();
 }
 
-module.exports.updateTuple = function(name, index, ingredient, ingredientID, quantity){
+module.exports.updateTuple = function(name, index, oldIngredient, ingredient, ingredientID, quantity){
   return new Promise(function(resolve, reject) {
-    exports.removeTuple(name,ingredient).then(function(result){
+    exports.removeTuple(name,oldIngredient).then(function(result){
       return exports.addTuple(name,index,ingredient,ingredientID,quantity);
     }).then(function(tuple) {
       resolve(tuple);
