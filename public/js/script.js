@@ -259,6 +259,9 @@ function loadPugView() {
             if (formulaKey == 'tuples'){
               value = JSON.stringify(value);
             }
+            else if (formulaKey == 'name'){
+              value = '<a href="/formulas/'+ encodeURIComponent(value) + '">' + value + '</a>';
+            }
             text += '<li>' + formulaKey + ': ' + value + '</li>';
           }
         }
