@@ -5,13 +5,19 @@ block link
 
 block content
   ul.nav.nav-tabs
-    li.active.adminOnly.hide
+    li.admin.hide
       a(data-toggle='tab', href='#update_limits') Update
-    li
+    li.active
       a(data-toggle='tab', href='#see_limits') View
 
   .tab-content
-    .card-content#update_limits.tab-pane.fade.in.active
+    .card-content#see_limits.tab-pane.fade.in.active
+      h1= 'View Inventory Status'
+      h4= 'Frozen: ' + inventory['current']['frozen'] + ' sqft out of ' + inventory['limits']['frozen'] + ' occupied.'
+      h4= 'Refrigerated: ' + inventory['current']['refrigerated'] + ' sqft out of ' + inventory['limits']['refrigerated'] + ' occupied.'
+      h4= 'Room: ' + inventory['current']['room'] + ' sqft out of ' + inventory['limits']['room'] + ' occupied.'
+
+    .card-content#update_limits.tab-pane.fade.admin.hide
       h1= 'Update Inventory Limits'
       form(action='/inventory/update_limits', method='post')
         .form-group
@@ -25,6 +31,7 @@ block content
           input.form-control(type='number', name='room', placeholder = 'Room Limit', value=room)
         button.btn.btn-primary.pull-right(type='submit', value='update') Update
 
+<<<<<<< Updated upstream
     .card-content#see_limits.tab-pane.fade
       h1= 'View Inventory Status'
       h4= 'Frozen: ' + inventory['current']['frozen'] + ' lb out of ' + inventory['limits']['frozen'] + ' occupied.'
@@ -33,6 +40,8 @@ block content
 
 
 
+=======
+>>>>>>> Stashed changes
 
 //- block scripts
 //-   script.

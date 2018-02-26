@@ -75,8 +75,9 @@ app.post('/ingredients/*', users.requireRole("admin"), ingredients);
 app.use('/vendors', users.requireLogin(), vendors);
 app.use('/formulas', formulas);
 
-app.use('/files', files);
-app.use('/inventory',users.requireRole("admin"),inventory);
+app.use('/files', users.requireRole('admin'),files);
+app.use('/inventory',inventory);
+
 
 app.use('/duke_oauth', oauth);
 app.use('/logs', logs);
