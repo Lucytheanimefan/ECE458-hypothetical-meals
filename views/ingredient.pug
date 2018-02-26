@@ -36,7 +36,7 @@ block content
               th Units in Storage
               td= ingredient.amount
           div.delete-form.adminOnly.hide
-            form(action='/ingredients/' + ingredient.name + '/delete', method='post')
+            form(action='/ingredients/' + encodeURIComponent(ingredient.name) + '/delete', method='post')
               button.btn.btn-primary.pull-right(style="margin: 30px 15px;" type='submit') Delete ingredient
         div.card#vendor-info
           div.card-header(data-background-color='purple')
@@ -52,15 +52,15 @@ block content
                       a(href="/vendors/" + vendor.vendorCode)= vendor.vendorName
                     th= vendor.record.cost
             div.previous
-              form(action='/ingredients/' + ingredient.name + '/' + amount + '/' + (parseInt(page)-1).toString(), method='get')
+              form(action='/ingredients/' + encodeURIComponent(ingredient.name) + '/' + amount + '/' + (parseInt(page)-1).toString(), method='get')
                 button.btn.btn-white.btn-round.btn-just-icon(type='submit') Prev
             div.next
-              form(action='/ingredients/' + ingredient.name + '/' + amount + '/' + (parseInt(page)+1).toString(), method='get')
+              form(action='/ingredients/' + encodeURIComponent(ingredient.name) + '/' + amount + '/' + (parseInt(page)+1).toString(), method='get')
                 button.btn.btn-white.btn-round.btn-just-icon(type='submit') Next
 
       .adminOnly.hide.card-content.tab-pane.fade#update-form
         h1= 'Update ingredient'
-        form.form-group(action='/ingredients/' + ingredient.name + '/update', method='post')
+        form.form-group(action='/ingredients/' + encodeURIComponent(ingredient.name) + '/update', method='post')
 
           .form-group
             label.control-label Ingredient Name
@@ -95,7 +95,7 @@ block content
 
       .card-content.tab-pane.fade#vendor-form
         h1= 'Associate Vendor'
-        form.form-group(action='/ingredients/' + ingredient.name + '/add-vendor', method='post')
+        form.form-group(action='/ingredients/' + encodeURIComponent(ingredient.name) + '/add-vendor', method='post')
           .form-group
             label.control-label Vendor
             select.form-control(name='vendor', placeholder = '', required='')

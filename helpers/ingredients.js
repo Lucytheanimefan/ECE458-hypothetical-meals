@@ -3,7 +3,10 @@ var Inventory = require('../models/inventory');
 var InventoryHelper = require('./inventory');
 var VendorHelper = require('./vendor');
 var Vendor = require('../models/vendor');
+var Formula = require('../models/formula');
 var UserHelper = require('./users');
+var Spending = require('../models/spending');
+var Production = require('../models/production');
 var mongoose = require('mongoose');
 mongoose.Promise = global.Promise;
 
@@ -20,15 +23,16 @@ module.exports.createIngredient = function(name, package, temp, nativeUnit, unit
     } else {
       InventoryHelper.checkInventory(name, package, temp, unitsPerPackage, amount).then(function(update) {
         if (update) {
-          return Promise.all([InventoryHelper.updateInventory(name, package, temp, unitsPerPackage, amount),
-            Ingredient.createIngredient(name, package, temp, nativeUnit, unitsPerPackage, amount)])
+          return InventoryHelper.updateInventory(name, package, temp, unitsPerPackage, amount);
         } else {
           var error = new Error('Not enough room in inventory!');
           error.status = 400;
           throw error;
         }
-      }).then(function(results) {
-        resolve(results[1]);
+      }).then(function(result) {
+        return Ingredient.createIngredient(name, package, temp, nativeUnit, unitsPerPackage, amount);
+      }).then(function(result) {
+        resolve(result);
       }).catch(function(error) {
         reject(error);
       });
@@ -49,15 +53,16 @@ module.exports.updateIngredient = function(name, newName, package, temp, nativeU
     } else {
       InventoryHelper.checkInventory(name, package, temp, unitsPerPackage, amount).then(function(update) {
         if (update) {
-          return Promise.all([InventoryHelper.updateInventory(name, package, temp, unitsPerPackage, amount),
-            Ingredient.updateIngredient(name, newName, package, temp, nativeUnit, unitsPerPackage, amount)])
+          return InventoryHelper.updateInventory(name, package, temp, unitsPerPackage, amount);
         } else {
           var error = new Error('Not enough room in inventory!');
           error.status = 400;
           throw error;
         }
-      }).then(function(results) {
-        resolve(results);
+      }).then(function(result) {
+        return Ingredient.updateIngredient(name, newName, package, temp, nativeUnit, unitsPerPackage, amount);
+      }).then(function(result) {
+        resolve(result);
       }).catch(function(error) {
         reject(error);
       });
@@ -78,18 +83,19 @@ module.exports.incrementAmount = function(id, amount) {
         error.status = 400;
         throw error;
       } else {
-        return InventoryHelper.checkInventory(ing.name, ing.package, ing.temperature, ing.unitsPerPackage, newAmount);
+        return InventoryHelper.checkInventory(ing.name, ing.package, ing.temperature, parseFloat(ing.unitsPerPackage), newAmount);
       }
     }).then(function(update) {
       if (update) {
-        return Promise.all([InventoryHelper.updateInventory(ing.name, ing.package, ing.temperature, ing.unitsPerPackage, newAmount),
-          Ingredient.incrementAmount(ing.name, amount)])
+        return InventoryHelper.updateInventory(ing.name, ing.package, ing.temperature, parseFloat(ing.unitsPerPackage), newAmount);
       } else {
         var error = new Error('Not enough room in inventory!');
         error.status = 400;
         throw error;
       }
-    }).then(function(results) {
+    }).then(function(result) {
+      Ingredient.incrementAmount(ing.name, amount);
+    }).then(function(result) {
       resolve("updated ingredient!");
     }).catch(function(error) {
       reject(error);
@@ -97,9 +103,42 @@ module.exports.incrementAmount = function(id, amount) {
   })
 }
 
+module.exports.sendIngredientsToProduction = function(formulaId, ingId, amount) {
+  return new Promise(function(resolve, reject) {
+    Promise.all([Ingredient.getIngredientById(ingId), Formula.model.findById(formulaId)]).then(function(results) {
+      let ing = results[0];
+      let formula = results[1];
+      let spent = parseFloat(ing.averageCost) * parseFloat(amount);
+      return Promise.all([exports.incrementAmount(ingId, -amount), Spending.updateReport(ingId, ing.name, spent, 'production'),
+        Production.updateReport(formulaId, formula, 0, spent)]);
+    }).then(function(results) {
+      resolve(results);
+    }).catch(function(error) {
+      reject(error);
+    });
+  });
+}
+
 module.exports.deleteIngredient = function(name, package, temp, unitsPerPackage, amount) {
   return new Promise(function(resolve, reject) {
     resolve(Promise.all([InventoryHelper.updateInventory(name, package, temp, unitsPerPackage, 0), Ingredient.deleteIngredient(name)]));
+  })
+}
+
+module.exports.updateCost = function(name, newPackages, price) {
+  return new Promise(function(resolve, reject) {
+    Ingredient.getIngredient(name).then(function(ing) {
+      let unitsPerPackage = parseFloat(ing.unitsPerPackage);
+      let currentTotal = parseFloat(ing.amount) * parseFloat(ing.averageCost);
+      let newTotal = parseFloat(newPackages) * parseFloat(price);
+      let newAverage = (currentTotal + newTotal) / (parseFloat(newPackages) * unitsPerPackage + parseFloat(ing.amount));
+      ing.averageCost = newAverage;
+      return ing.save();
+    }).then(function(ing) {
+      resolve(ing.averageCost);
+    }).catch(function(error) {
+      reject(error);
+    })
   })
 }
 

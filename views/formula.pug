@@ -32,7 +32,7 @@ block content
             form(action='/formulas/' + formula.name + '/delete', method='post')
               button.btn.btn-primary.pull-left(style="margin: 30px 15px;" type='submit') Delete Formula
         .col-md-6
-          form(action="/formulas/" + formula.name + '/order/', method="post")
+          form.manager.hide(action="/formulas/" + formula.name + '/order/', method="post")
             input.form-control(type="hidden" name="ingredient" value=formula.name)
             input.form-control(type="hidden" name="amount" value=0)
             .row
