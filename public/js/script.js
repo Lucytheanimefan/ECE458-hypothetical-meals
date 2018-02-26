@@ -218,6 +218,7 @@ function loadPugView() {
     return;
   }
 
+  var appendText = true;
   for (var key in description) {
     if (description.hasOwnProperty(key) && (description instanceof Object)) {
       var text = '';
@@ -232,23 +233,40 @@ function loadPugView() {
         getIngredientForID(description[key], function(ingredient) {
           text = 'Ingredient: <ul>';
           for (var ingKey in ingredient) {
-            if (ingKey != '_id' && ingKey != '__v' && ingKey != 'vendors') {
-              text += '<li>' + ingKey + ': ' + ingredient[ingKey] + '</li>';
+            if (ingKey != '_id' && ingKey != '__v' /*&& ingKey != 'vendors'*/ ) {
+              value = ingredient[ingKey]
+              if (ingKey == 'name') {
+                value = '<a href="/ingredients/' + encodeURIComponent(value) + '">' + value + '</a>';
+              }
+
+              text += '<li>' + ingKey + ': ' + value + '</li>';
             }
           }
           text += '</ul>';
           text = "<li>" + text + "</li>";
-          //$("#description").append("<li>" + text + "</li>");
+          $("#description").append(text);
+          appendText = false;
         })
-      } else if (keyLower == "array_description") {
-        for (var i in description[key]) {
-          var result = description[key][i];
-          console.log(result);
+      } else if (keyLower == 'ingredient_name') {
+        value = '<a href="/ingredients/' + encodeURIComponent(description[key]) + '">' + description[key] + '</a>';
 
-          if (result.hasOwnProperty('package')) { // it's an ingredient
-            text += '<li>Ingredient: <a href=\'/ingredients/' + result['name'] + '\'>' + result['name'] + '</a></li>';
-          } else if (result.hasOwnProperty('code')) { // it's a vendor
-            text += '<li>Vendor: <a href=\'/vendors/' + result['code'] + '\'>' + result['code'] + '</a></li>';
+        text = '<li>Ingredient: ' + value + '</li>';
+
+      } else if (keyLower == "vendor_id"){
+        value = '<a href="/vendors/id/' + encodeURIComponent(description[key]) + '">' + description[key] + '</a>';
+
+        text = '<li>Vendor: ' + value + '</li>';
+      } 
+      else if (keyLower == "array_description") {
+        for (var i in description[key]) {
+          console.log(description[key]);
+          var result = description[key][i];
+          if (result != null) {
+            if (result.hasOwnProperty('package')) { // it's an ingredient
+              text += '<li>Ingredient: <a href=\'/ingredients/' + result['name'] + '\'>' + result['name'] + '</a></li>';
+            } else if (result.hasOwnProperty('code')) { // it's a vendor
+              text += '<li>Vendor: <a href=\'/vendors/' + result['code'] + '\'>' + result['code'] + '</a></li>';
+            }
           }
         }
         //$("#description").append(text);
@@ -256,11 +274,10 @@ function loadPugView() {
         for (var formulaKey in description[key]) {
           if (formulaKey != '_id' && formulaKey != '__v') {
             value = description[key][formulaKey]
-            if (formulaKey == 'tuples'){
+            if (formulaKey == 'tuples') {
               value = JSON.stringify(value);
-            }
-            else if (formulaKey == 'name'){
-              value = '<a href="/formulas/'+ encodeURIComponent(value) + '">' + value + '</a>';
+            } else if (formulaKey == 'name') {
+              value = '<a href="/formulas/' + encodeURIComponent(value) + '">' + value + '</a>';
             }
             text += '<li>' + formulaKey + ': ' + value + '</li>';
           }
