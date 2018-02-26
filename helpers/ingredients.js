@@ -32,7 +32,7 @@ module.exports.createIngredient = function(name, package, temp, nativeUnit, unit
       }).then(function(result) {
         return Ingredient.createIngredient(name, package, temp, nativeUnit, unitsPerPackage, amount);
       }).then(function(result) {
-        resolve(results[1]);
+        resolve(result);
       }).catch(function(error) {
         reject(error);
       });
