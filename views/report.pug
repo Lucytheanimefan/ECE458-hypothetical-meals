@@ -29,7 +29,7 @@ block content
                 tr
                   td
                     a(href='/ingredients/' + encodeURIComponent(tuple.ingredient))= tuple.ingredient
-                  td= tuple.totalSpent
+                  td= tuple.totalSpent.toFixed(2)
             else
     #production-table.card-content.tab-pane.fade
       div.card
@@ -47,7 +47,7 @@ block content
                 tr
                   td
                     a(href='/ingredients/' + encodeURIComponent(tuple.ingredient))= tuple.ingredient
-                  td= tuple.totalSpent
+                  td= tuple.totalSpent.toFixed(2)
             else
     #formula-table.card-content.tab-pane.fade
       div.card
@@ -67,7 +67,7 @@ block content
                   td
                     a(href='/formulas/' + encodeURIComponent(tuple.formula))= tuple.formula
                   td= tuple.unitsProduced
-                  td= tuple.totalCost
+                  td= tuple.totalCost.toFixed(2)
             else
   //- .row
   //-   .card
