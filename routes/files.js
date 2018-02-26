@@ -74,7 +74,7 @@ router.post('/upload/formulas', function(req, res, next) {
       }));
     }).then(function() {
       return Upload.addFormulas(csvData);
-    }).then(function() {
+    }).then(function(results) {
       logs.makeLog('Bulk import formula file uploaded', JSON.stringify(results), ['file'], req.session.userId);
       res.render('uploads', { alert: 'Successfully uploaded file' });
     }).catch(function(error) {
