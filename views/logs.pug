@@ -24,6 +24,7 @@ block content
               td
                 a(href='/logs/log/'+log.initiating_user+'?title='+log.title+'&description=' + log.description + '&time='+log.time+'&entities=' + log.entities)= log.title
               td= log.time
-              td= log.description.substr(1,100) + '...'
+              if log.description
+                td= log.description.substr(1,100) + '...'
               td= log.initiating_user
               td= log.entities
