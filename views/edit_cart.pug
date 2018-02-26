@@ -19,20 +19,22 @@ block content
           tr
             td
               a(href='/ingredients/' + order.ingredient)= order.ingredient
-            td
-              each vendor in order.vendors
-                a(href='/vendors/' + vendor.code)= vendor.name
-                |  (#{vendor.quantity})
-                br
-            td= order.quantity
-            td
-              form(action="/users/remove_ingredient" method="post")
+            form(action="/users/edit_order" method="post")
+              td
+                each vendor in order.vendors
+                  .row
+                    .col-md-6
+                      br
+                      a(href='/vendors/' + vendor.code)= vendor.name
+                    .col-md-6
+                      .form-group(style='margin-top: 10px;')
+                        input.form-control(type='number', name='quantities', value=vendor.quantity, min='0', required='', style='width: 50px;')
+                      input(type="hidden" name='names' value=vendor.name)
+                      input(type="hidden" name='codes' value=vendor.code)
+              td= order.quantity
+              td
                 input(type="hidden" name="ingredient" value=order.ingredient)
-                input(type="hidden" name="quantity" value=order.quantity)
-                span(style="float:right;")
-                  a(href='/users/edit_order/' + order.ingredient)
-                    button(class="btn btn-secondary" type="button" style="margin-right: 20px; padding: 5px; background-color:#66c2ff; color: white; display:inline;") Edit
-                  input.btn.btn-secondary(type="submit" value="Remove" style="padding: 5px; background-color:#66c2ff; color: white; display:inline;")
+                input.btn.btn-secondary(type="submit" value="Submit" style="background-color:#66c2ff; color: white; display:inline; visibility:" + order.show + ";")
       .row
         .col-md-12
           p
@@ -45,8 +47,3 @@ block content
             p(style="padding: 10px; display: inline-block;") Page #{parseInt(page)}
             form(action="/users/cart/" + (parseInt(page)+1).toString(), method="get" style="display: inline-block;")
               button.btn.btn-white(type="submit" style="padding: 5px;") >
-      .row
-        .col-md-10
-        .col-md-2
-          form(action="/users/checkout_cart" method="post")
-            input.btn.btn-primary(type="submit" name="checkout" value="Place Order" style="float:right;")

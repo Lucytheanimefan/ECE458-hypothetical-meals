@@ -7,19 +7,27 @@ a {
   color: #00B7FF;
 }
 
-.hide{
+.hide {
   display: none;
 }
 
-table{
+table {
   table-layout: fixed;
   width: 100%;
 }
-th { cursor: pointer; }
 
-td{
+th {
+  cursor: pointer;
+}
+
+td {
   word-wrap: break-word;
 }
+
+/*#description {
+  text-indent: 50px;
+}*/
+
 .div-dropdown {
   position: relative;
   display: inline-block;

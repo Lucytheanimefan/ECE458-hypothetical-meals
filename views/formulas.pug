@@ -1,0 +1,75 @@
+extends layout
+
+block link
+  -var selected = 'Formulas';
+
+block content
+  div.card-tabs
+    ul.nav.nav-tabs
+      li.active
+        a(data-toggle='tab', href='#formula-table') Formulas
+      li.adminOnly.hide
+        a(data-toggle='tab', href='#add_formula') Create
+
+    .tab-content
+      #formula-table.tab-pane.fade.in.active
+        div.card
+          div.card-header(data-background-color='purple')
+            h4.title Formulas
+          div.card-content.table-response
+            table.table#formulaTable
+              thead.text-primary
+                th(onclick='sortTable(0, \'formula\')') Formula
+                th(onclick='sortTable(1, \'formula\')') Description
+                th(onclick='sortTable(2, \'formula\')') Ingredients (Quantity)
+                th(onclick='sortTable(3, \'formula\')') Number of Units Produced
+              tbody
+              each formula in formulas
+                tr
+                  td
+                    a(href='/formulas/' + formula.name)= formula.name
+                  td= formula.description
+                  td
+                    each tuple in formula.tuples
+                      a(href='/ingredients/' + encodeURIComponent(tuple.ingredient))= tuple.ingredient
+                      |  (#{tuple.quantity})
+                      br
+                  td= formula.units
+      .card-content.tab-pane.fade#add_formula.adminOnly.hide
+        h1= 'Create Formula'
+        form(action='/formulas/new', method='post')
+          .form-group
+            label.control-label Formula Name
+            input.form-control(type='text', name='name', required='')
+          .form-group
+            label.control-label Description
+            textarea.form-control(name='description' rows='5' cols='100')
+          div.tupleRow#data(data-ingredients=ingredients)
+            .row
+              .col-md-11
+                .row#tuple1
+                  .col-md-6
+                    .form-group
+                    label.control-label Ingredient
+                    select#ingredient1.form-control(name='ingredient1', required='')
+                      option(disabled="" selected="" value="") Select an Ingredient
+                      each ingredient in ingredients
+                        option(value=ingredient._id)= ingredient['name']
+                  .col-md-6
+                    .form-group
+                    label.control-label Quantity
+                    input#quantity1.form-control(type='number', name='quantity1', min='0', step='0.01', required='')
+              .col-md-1
+                p
+                  br
+                button#btn1.btn.btn-round.btn-just-icon.add-more(type='button', value='add')
+                  i.material-icons add
+          .form-group
+            label.control-label Number of Units Produced
+            input.form-control(type='number', name='units', min='0', required='')
+          button.btn.btn-primary.pull-right(type='submit', value='add vendor') Add Formula
+
+block scripts
+  script.
+    var ingredients = document.getElementById('data').dataset.ingredients;
+    addTuples(ingredients, 1);

@@ -6,8 +6,14 @@ block content
   .row
     h1 #{title}
     h3 #{time}
-    h3 Initiating user: #{user}
+    h3 Initiating user: 
+      a(href='/users/user/'+user) user
     h3 Entities: #{entities}
-    p Description: #{description}
-    
+    h4 Description: 
+    ul#description
+    div#descriptionValues(data-description=description)
+
+block scripts
+  script.
+    loadPugView()
       

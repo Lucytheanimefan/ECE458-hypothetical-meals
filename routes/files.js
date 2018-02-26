@@ -6,7 +6,9 @@ var Ingredient = require('../models/ingredient');
 var IngredientHelper = require('../helpers/ingredients');
 var Vendor = require('../models/vendor');
 var VendorHelper = require('../helpers/vendor');
-var vendors = require('../routes/vendors');
+var Formula = require('../models/formula');
+var FormulaHelper = require('../helpers/formula');
+var Upload = require('../helpers/csv_upload');
 var Papa = require('papaparse');
 
 const fs = require('fs');
@@ -16,24 +18,24 @@ const uploadDir = path.join(__dirname, '/..', '/uploads/')
 
 var PromiseBlue = require('bluebird');
 var parse = PromiseBlue.promisify(require('csv-parse'));
-
+var logs = require(path.resolve(__dirname, "./logs.js"));
 
 router.get('/', function(req, res) {
-  res.render('uploads');
+  res.render('uploads', { alert: null });
 })
 
 
-router.get('/documentation', function (req, res) {
-    var filePath = "/files/BulkFormatDocumentation.pdf";
+router.get('/documentation', function(req, res) {
+  var filePath = "/files/BulkFormatDocumentation.pdf";
 
-    //console.log('PDF file name: ' + __dirname + filePath);
-    fs.readFile(__dirname + filePath , function (err,data){
-        res.contentType("application/pdf");
-        res.send(data);
-    });
+  //console.log('PDF file name: ' + __dirname + filePath);
+  fs.readFile(__dirname + filePath, function(err, data) {
+    res.contentType("application/pdf");
+    res.send(data);
+  });
 });
 
-router.post('/upload', function(req, res, next) {
+router.post('/upload/formulas', function(req, res, next) {
   var form = new formidable.IncomingForm();
   form.multiples = true;
   form.keepExtensions = true;
@@ -68,17 +70,96 @@ router.post('/upload', function(req, res, next) {
       }
       csvData = data.data;
       return Promise.all(csvData.map(function(row, index) {
-        return Promise.all([checkIngredient(row), checkVendor(row['VENDOR FREIGHT CODE'])]);
+        return Promise.all([Upload.checkFormulaHeader(row), Upload.checkIngredientExists(row['INGREDIENT']), Upload.checkFormulaPreexisting(row['NAME'])]);
+      }));
+    }).then(function() {
+      return Upload.addFormulas(csvData);
+    }).then(function(results) {
+      // let logResults = results.map(function(currentValue, index, arr){
+      //   return currentValue['FORMULA'];
+      // })
+      logs.makeLog('Bulk import formula file uploaded', 'Successfully uploaded file'/*JSON.stringify({'formula_names':logResults})*/, ['file'], req.session.userId);
+      res.render('uploads', { alert: 'Successfully uploaded file' });
+    }).catch(function(error) {
+      if (Array.isArray(error)) {
+        var message = "";
+        for (i = 0; i < error.length; i++) {
+          message += "Row " + error[i].row + ": " + error[i].message + ",\n";
+        }
+        next(new Error(message));
+      } else {
+        next(error);
+      }
+    });
+
+  })
+  form.on('fileBegin', function(name, file) {
+    const [fileName, fileExt] = file.name.split('.');
+    file.path = path.join(uploadDir, `${fileName}_${new Date().getTime()}.${fileExt}`);
+    console.log('Uploaded file successfully: ' + fileName);
+
+  });
+})
+
+router.post('/upload/ingredients', function(req, res, next) {
+  var form = new formidable.IncomingForm();
+  form.multiples = true;
+  form.keepExtensions = true;
+
+  console.log('Some way through uploading');
+
+  var error = false;
+  form.on('fileBegin', function(name, file) {
+    var fileType = file.type.split('/').pop();
+    if (fileType.toUpperCase() !== 'CSV') {
+      error = true;
+      let err = new Error('File must be in CSV format.');
+      err.status = 400;
+      return next(err);
+    }
+  })
+  form.parse(req, (err, fields, files) => {
+    if (err) return res.status(500).json({ error: err });
+    console.log('Uploaded true!');
+    let filepath = files.file.path;
+    console.log('File path: ' + filepath);
+
+    if (error) {
+      return true;
+    }
+
+    var file = fs.readFileSync(filepath, 'utf8')
+    var csvData;
+    parseFile(file).then(function(data) {
+      if (data.errors.length != 0) {
+        throw data.errors;
+      }
+      csvData = data.data;
+      console.log(csvData);
+      return Promise.all(csvData.map(function(row, index) {
+        return Promise.all([Upload.checkIngredientHeader(row), Upload.checkIngredient(row), Upload.checkVendor(row)]);
       }));
     }).then(function() {
       return Promise.all(csvData.map(function(row, index) {
-        return addToDatabase(index, row);
+        return Upload.addToDatabase(index, row);
       }));
-    }).then(function() {
-      res.redirect(req.baseUrl);
+    }).then(function(results) {
+      let logResults = results.map(function(currentValue, index, arr){
+        return currentValue['INGREDIENT'];
+      })
+      logs.makeLog('Bulk import ingredients file uploaded', JSON.stringify({'ingredient_names':logResults}), ['file'], req.session.userId);
+      res.render('uploads', { alert: 'Successfully uploaded file' });
     }).catch(function(error) {
       console.log(error);
-      next(error);
+      if (Array.isArray(error)) {
+        var message = "";
+        for (i = 0; i < error.length; i++) {
+          message += "Row " + error[i].row + ": " + error[i].message + ",\n";
+        }
+        next(new Error(message));
+      } else {
+        next(error);
+      }
     });
 
   })
@@ -154,46 +235,7 @@ CSVtoArray = function(text) {
   return a;
 };
 
-addToDatabase = function(index, csvRow) {
-  return new Promise(function(resolve, reject) {
-    console.log(csvRow.length);
-    console.log(csvRow);
-    console.log('-----------');
-
-    let validDataRowData = validDataRow(csvRow);
-    let isValid = validDataRowData['valid'];
-    let reason = validDataRowData['reason'];
-    if (!isValid) {
-      let err = new Error('Error reading CSV. Row #' + index + ' contains formatting errors. ' + reason);
-      err.status = 400;
-      reject(err);
-    } else {
-
-      let name = csvRow['INGREDIENT'];
-      let package = csvRow['PACKAGE'];
-      let temperature = csvRow['TEMPERATURE'];
-      let nativeUnit = csvRow['NATIVE UNIT'];
-      let unitsPerPackage = parseFloat(csvRow['UNITS PER PACKAGE']);
-      let code = csvRow['VENDOR FREIGHT CODE'];
-      let price = parseFloat(csvRow['PRICE PER PACKAGE']);
-      let amount = 0;
-
-      IngredientHelper.createIngredient(name, package, temperature, nativeUnit, unitsPerPackage, amount).then(function(ing) {
-        return VendorHelper.addIngredient(code, ing['_id'], price);
-      }).then(function() {
-        resolve(csvRow);
-      }).catch(function(error) {
-        if (error.name === 'MongoError' && error.code === 11000) {
-          resolve(csvRow);
-        } else {
-          reject(error);
-        }
-      });
-    }
-  });
-}
-
-parseFile = function(file, next) {
+parseFile = function(file) {
   return new Promise(function(resolve, reject) {
     Papa.parsePromise(file).then(function(results) {
       console.log(results);
@@ -204,42 +246,9 @@ parseFile = function(file, next) {
   });
 }
 
-checkIngredient = function(row) {
-  return new Promise(function(resolve, reject) {
-    let name = row['INGREDIENT'];
-    Ingredient.getIngredient(name).then(function(ing) {
-      if (ing == null) {
-        resolve();
-      } else {
-        if (ing.package !== row['PACKAGE'] || ing.temperature !== row['TEMPERATURE'] || ing.nativeUnit !== row['NATIVE UNIT'] || parseFloat(ing.unitsPerPackage) != parseFloat(row['UNITS PER PACKAGE'])) {
-          reject(new Error('Ingredient ' + ing.name + ' doesn\'t match pre-existing ingredient'));
-        } else {
-          resolve();
-        }
-      }
-    }).catch(function(error) {
-      reject(error);
-    });
-  })
-}
-
-checkVendor = function(vendorCode) {
-  return new Promise(function(resolve, reject) {
-    Vendor.model.findOne( {code: vendorCode} ).exec().then(function(result) {
-      if (result == null) {
-        reject(new Error('Vendor with freight code ' + vendorCode +' doesn\'t exist!'));
-      } else {
-        resolve();
-      }
-    }).catch(function(error) {
-      reject(error);
-    })
-  })
-}
-
 Papa.parsePromise = function(file) {
   return new Promise(function(complete, error) {
-    Papa.parse(file, {header: true, delimiter: ',', complete, error});
+    Papa.parse(file, { header: true, delimiter: ',', complete, error });
   });
 };
 

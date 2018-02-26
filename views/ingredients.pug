@@ -17,8 +17,8 @@ block content
     .tab-content
       #ing-table.tab-pane.fade.in.active
         form(action='/ingredients/search_results/1' method='get')
-          //- div.search-bar
-          //-   input.form-control(type='text', name='name', placeholder='Search for Ingredient Name')
+          div.search-bar
+            input.form-control(type='text', name='name', placeholder='Search for Ingredient Name')
           div.package-select
             label.search-label Package Type
             each package in packages
@@ -38,7 +38,7 @@ block content
           div.card-header(data-background-color='purple')
             h4.title Ingredients
           div.card-content.table-response
-            input.form-control#ingredientInput(type='text',onkeyup='filterTable(\'ingredient\')', placeholder='Search for ingredients..', title='Type in some search text')
+            //- input.form-control#ingredientInput(type='text',onkeyup='filterTable(\'ingredient\')', placeholder='Search for ingredients..', title='Type in some search text')
             table.table#ingredientTable
               thead.text-primary
                 th(onclick='sortTable(0, \'ingredient\')') Ingredient
@@ -47,16 +47,20 @@ block content
                 th(onclick='sortTable(3, \'ingredient\')') Native Unit
                 th(onclick='sortTable(4, \'ingredient\')') Units per Package
                 th(onclick='sortTable(5, \'ingredient\')') Units in Storage
+                th.adminOnly.hide Remove
               tbody
               each ing in ingredients
                 tr
                   td
-                    a(href='/ingredients/' + ing.name)= ing.name
+                    a(href='/ingredients/' + encodeURIComponent(ing.name))= ing.name
                   td= ing.package
                   td= ing.temperature
                   td= ing.nativeUnit
                   td= ing.unitsPerPackage
                   td= ing.amount
+                  td.adminOnly.hide
+                    form(action='/ingredients/' + ing.name + '/delete', method='post')
+                      button.btn.btn-primary(type='submit', style='margin:0px; padding: 5px 10px;') Remove
             div.previous
               form(action='/ingredients/search_results/' + (parseInt(page)-1).toString() + '/' + searchQuery, method='get')
                 button.btn.btn-white.btn-round.btn-just-icon(type='submit') Prev

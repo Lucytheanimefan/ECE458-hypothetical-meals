@@ -3,10 +3,15 @@ var queryString = require('query-string');
 var router = express.Router();
 var Ingredient = require('../models/ingredient');
 var IngredientHelper = require('../helpers/ingredients');
+var UserHelper = require('../helpers/users');
+var VendorHelper = require('../helpers/vendor');
 var Vendor = require('../models/vendor');
+var Formula = require('../models/formula');
 var users = require('./users');
 var path = require('path');
 var logs = require(path.resolve(__dirname, "./logs.js"));
+var mongoose = require('mongoose');
+mongoose.Promise = global.Promise;
 
 var packageTypes = ['sack', 'pail', 'drum', 'supersack', 'truckload', 'railcar'];
 var temperatures = ['frozen', 'refrigerated', 'room temperature'];
@@ -38,6 +43,19 @@ router.get('/:name', function(req, res, next) {
   res.redirect(req.baseUrl + '/' + req.params.name + '/0');
 })
 
+
+router.get('/id/:ingredient_id', function(req, res, next) {
+  console.log('Get ingredient for id: ' + req.params.ingredient_id);
+  var findIngredient = Ingredient.model.findOne({ _id: req.params.ingredient_id }).exec();
+  findIngredient.then(function(ingredient) {
+    console.log(ingredient);
+    res.send(ingredient);
+  }).catch(function(error){
+    res.send({'error': error});
+  })
+
+})
+
 //TODO: Refactor once vendor is ready
 router.get('/:name/:amt/:page?', function(req, res, next) {
   var ingQuery = Ingredient.getIngredient(req.params.name);
@@ -45,8 +63,8 @@ router.get('/:name/:amt/:page?', function(req, res, next) {
   var page = req.params.page || 1;
   page = (page < 1) ? 1 : page;
 
-  var vendorQuery = function(id) {
-    return Vendor.model.find({ 'catalogue.ingredient': id }).skip((perPage * page) - perPage).limit(perPage);
+  var vendorQuery = function(ing) {
+    return Vendor.model.find({ 'catalogue.ingredient': ing }).skip((perPage * page) - perPage).limit(perPage);
   }
   var findAllVendors = Vendor.model.find().exec();
   var ingredient;
@@ -61,8 +79,9 @@ router.get('/:name/:amt/:page?', function(req, res, next) {
       throw err;
     }
     ingredient = ing;
-    return vendorQuery(ing['_id']);
+    return vendorQuery(ing);
   }).then(function(vendors) {
+    console.log(vendors);
     return createCatalogue(vendors, ingredient['_id']);
   }).then(function(catalogue) {
     res.render('ingredient', { ingredient: ingredient, packages: packageTypes, temps: temperatures, vendors: catalogue, page: page, amount: req.params.amt, existingVendors: vendorObjects });
@@ -73,15 +92,31 @@ router.get('/:name/:amt/:page?', function(req, res, next) {
 
 //POST request to delete an existing ingredient
 router.post('/:name/delete', function(req, res, next) {
-  Ingredient.getIngredient(req.params.name).then(function(ing) {
-    return IngredientHelper.deleteIngredient(
-      ing['name'],
-      ing['package'],
-      ing['temperature'],
-      parseFloat(ing['unitsPerPackage']),
-      parseFloat(ing['amount'])
-    );
-  }).then(function() {
+  var formulaQuery = function(ingId) {
+    return Formula.model.find({ 'tuples.ingredientID': ingId });
+  }
+  var ing;
+  Ingredient.getIngredient(req.params.name).then(function(result) {
+    ing = result;
+    return formulaQuery(ing['_id']);
+  }).then(function(formulas) {
+    if (formulas.length != 0) {
+      var error = new Error('Can\'t delete because ' + ing.name + ' is being used in a formula!');
+      error.status = 400;
+      throw error;
+    } else {
+      return IngredientHelper.deleteIngredient(
+        ing['name'],
+        ing['package'],
+        ing['temperature'],
+        parseFloat(ing['unitsPerPackage']),
+        parseFloat(ing['amount'])
+      );
+    }
+  }).then(function(ing) {
+    var promise = UserHelper.updateCart(req.session.userId);
+    return promise;
+  }).then(function(result) {
     res.redirect(req.baseUrl + '/');
   }).catch(function(error) {
     next(error);
@@ -91,6 +126,8 @@ router.post('/:name/delete', function(req, res, next) {
 
 router.post('/:name/update', function(req, res, next) {
   let ingName = req.body.name;
+  let initiating_user = req.session.userId;
+  console.log(initiating_user)
 
   var updatePromise = IngredientHelper.updateIngredient(
     req.params.name,
@@ -101,8 +138,9 @@ router.post('/:name/update', function(req, res, next) {
     parseFloat(req.body.unitsPerPackage),
     parseFloat(req.body.amount)
   );
-  updatePromise.then(function() {
-    res.redirect(req.baseUrl + '/' + ingName);
+  updatePromise.then(function(ingredient) {
+    logs.makeIngredientLog('Update', {'ingredient_id': ingredient._id}, ['ingredient'], initiating_user);
+    res.redirect(req.baseUrl + '/' + encodeURIComponent(ingName));
   }).catch(function(error) {
     next(error);
   });
@@ -111,7 +149,7 @@ router.post('/:name/update', function(req, res, next) {
 
 router.post('/new', function(req, res, next) {
   let ingName = req.body.name;
-
+  let initiating_user = req.session.userId;
   var promise = IngredientHelper.createIngredient(
     ingName,
     req.body.package,
@@ -120,8 +158,9 @@ router.post('/new', function(req, res, next) {
     parseFloat(req.body.unitsPerPackage),
     parseFloat(req.body.amount)
   );
-  promise.then(function() {
-    res.redirect(req.baseUrl + '/' + ingName);
+  promise.then(function(ingredient) {
+    logs.makeIngredientLog('Creation', {'ingredient_id': ingredient._id}, ['ingredient'], initiating_user);
+    res.redirect(req.baseUrl + '/' + encodeURIComponent(ingName));
   }).catch(function(error) {
     next(error);
   });
@@ -131,9 +170,26 @@ router.post('/new', function(req, res, next) {
 
 router.post('/:name/add-vendor', function(req, res, next) {
   let ingName = req.params.name;
+  let initiating_user = req.session.userId;
+  //addVendor = function(name, vendorId, cost) 
+  IngredientHelper.addVendor(ingName, req.body.vendor, req.body.cost).then(function(results) {
+    logs.makeIngredientLog('Add vendor to ingredient', {'ingredient_name':ingName, 'vendor_id': req.body.vendor}, ['ingredient','vendor'], initiating_user);
+    res.redirect(req.baseUrl + '/' + encodeURIComponent(ingName));
+  }).catch(function(error) {
+    next(error);
+  })
+})
 
-  IngredientHelper.addVendor(ingName, req.body.vendor, req.body.cost).then(function() {
-    res.redirect(req.baseUrl + '/' + ingName);
+
+router.get('/order/add/to/cart', function(req, res, next) {
+  let userId = req.session.userId;
+  let order = req.query;
+  let orderArray = [];
+  for (let ingredient in order) {
+    orderArray.push(IngredientHelper.addOrderToCart(userId, ingredient, order[ingredient]));
+  }
+  Promise.all(orderArray).then(function() {
+    res.redirect('/users/cart');
   }).catch(function(error) {
     next(error);
   })
@@ -144,7 +200,7 @@ createCatalogue = function(vendors, id) {
   for (i = 0; i < vendors.length; i++) {
     var vendor = vendors[i];
     for (j = 0; j < vendor['catalogue'].length; j++) {
-      if (vendor['catalogue'][j]['ingredient'] == id) {
+      if (vendor['catalogue'][j]['ingredient'].toString() == id) {
         catalogue.push({ vendorName: vendor['name'], vendorCode: vendor['code'], record: vendor['catalogue'][j] });
       }
     }
