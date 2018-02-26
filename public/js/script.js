@@ -176,7 +176,7 @@ function loadContent(my_role) {
   if (my_role === 'admin') {
     $('.manager').removeClass('hide');
     $('.adminOnly').removeClass('hide');
-    ('.admin').removeClass('hide');
+    $('.admin').removeClass('hide');
   } else if (my_role === 'manager') {
     $('.manager').removeClass('hide');
   }
