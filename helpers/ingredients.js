@@ -205,7 +205,7 @@ module.exports.addOrderToCart = function(userId, ingredient, amount) {
       return findCheapestVendor(ing)
     }).then(function(vendor) {
       let packages = Math.ceil(parseFloat(amount) / parseFloat(ing['unitsPerPackage']));
-      return UserHelper.addToCart(userId, ingredient, packages, vendor.name);
+      return UserHelper.addToCart(userId, mongoose.Types.ObjectId(ing['_id']), packages, vendor.name);
     }).then(function(result) {
       resolve();
     }).catch(function(error) {
