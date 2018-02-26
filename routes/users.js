@@ -361,6 +361,7 @@ router.get('/edit_order/:ingredient/:page?', function(req, res, next) {
       order['show'] = show;
       orders.push(order);
     }
+
     res.render('edit_cart', { orders: orders, page: page });
   }).catch(function(error) {
     next(error);
@@ -368,6 +369,7 @@ router.get('/edit_order/:ingredient/:page?', function(req, res, next) {
 });
 
 router.post('/remove_ingredient', function(req, res, next) {
+  console.log('POST remove_ingredient')
   let ingredient = req.body.ingredient;
   var id;
   var ingQuery = Ingredient.getIngredient(ingredient);
@@ -376,6 +378,8 @@ router.post('/remove_ingredient', function(req, res, next) {
     var promise = UserHelper.removeOrder(req.session.userId, id);
     return promise;
   }).then(function(result) {
+    console.log(result);
+    logs.makeLog('Remove ingredient from cart', JSON.stringify({ ingredient_id: id }), ['cart'], req.session.userId);
     res.redirect(req.baseUrl + '/cart');
   }).catch(function(error) {
     next(error);
@@ -383,10 +387,11 @@ router.post('/remove_ingredient', function(req, res, next) {
 });
 
 router.post('/edit_order', function(req, res, next) {
+  console.log('Call POST /edit_order');
   let ingredient = req.body.ingredient;
-  let quantities = req.body.quantities;
-  let names = req.body.names;
-  let codes = req.body.codes;
+  var quantities = req.body.quantities;
+  var names = req.body.names;
+  var codes = req.body.codes;
   var vendor, cart;
   if (!Array.isArray(names)) {
     quantities = [req.body.quantities];
@@ -422,6 +427,8 @@ router.post('/edit_order', function(req, res, next) {
     }
     //return Promise.all(promises);
   }).then(function(results) {
+    console.log(cart);
+    logs.makeLog('Edit order', JSON.stringify(cart), ['cart'], req.session.userId);
     res.redirect('/users/cart');
   }).catch(function(error) {
     next(error);
@@ -441,7 +448,7 @@ router.post('/checkout_cart', function(req, res, next) {
     }
     return Promise.all(promises);
   }).then(function(ings) {
-    //logs.makeLog('Checked out cart and updated report', { cart: cart_instance, inventory: inventories, production_report: production_report }, ['cart', 'inventory'], req.session.userId);
+    logs.makeLog('Check out cart', JSON.stringify({ cart: cart, ingredients: ings }), ['cart', 'inventory'], req.session.userId);
     res.redirect('/users/cart');
   }).catch(function(error) {
     next(error);
