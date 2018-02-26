@@ -3,29 +3,95 @@ block link
   -var selected = 'Report';
 
 block content
-  .row
-    .card
-      .card-header(data-background-color='purple')
-        h2.title Spending Report
-      .card-content
-        .row
-          .col-md-12
-            form(action="/users/report" method="get")
-              input.btn.btn-primary.pull-left(type="submit" name="overall" value="Overall Report" style="padding: 10px; background-color:#66c2ff; display: inline-block; ")
-            form(action="/users/production_report" method="get")
-              input.btn.btn-primary(type="submit" name="production" value="Production Report" style="padding: 10px; background-color:#66c2ff; display: inline-block;")
-        .col-md-12
-          h3(style="padding: 0px 0px 10px; text-decoration: underline") Ingredients
-          p
-            br
-          each ingredient in ingredients
-            .col-md-12
-              p(style="text-align:left;")
-                a(href='/ingredients/' + ingredient.ingredient)= ingredient.ingredient
-                span(style="float:right;") Cost: $#{ingredient.cost}
-          div.previous
-            form(action="/users/report/" + (parseInt(page)-1).toString(), method="get")
-              button.btn.btn-white.btn-round.btn-just-icon.pull-left(type="submit" style="display: inline-block;") Prev
-          div.next
-            form(action="/users/report/" + (parseInt(page)+1).toString(), method="get")
-              button.btn.btn-white.btn-round.btn-just-icon.pull-right(type="submit" style="display: inline-block;") Next
+  div#tabs
+    ul.nav.nav-tabs
+      li.active
+        a(data-toggle='tab', href='#spending-table') Spending
+      li
+        a(data-toggle='tab', href='#production-table') Production
+      li
+        a(data-toggle='tab', href='#formula-table') Formula Production
+
+  .tab-content
+    #spending-table.tab-pane.fade.in.active
+      div.card
+        div.card-header(data-background-color='purple')
+          h4.title Spending Report
+        div.card-content.table-response
+          input.form-control#spendingInput(type='text',onkeyup='filterTable(\'spending\')', placeholder='Search for ingredients..', title='Type in some search text')
+          table.table#spendingTable
+            thead.text-primary
+              th(onclick='sortTable(0, \'spending\')') Ingredient
+              th(onclick='sortTable(1, \'spending\')') Total Spending
+            tbody
+            if spending
+              each tuple in spending
+                tr
+                  td
+                    a(href='/ingredients/' + encodeURIComponent(tuple.ingredient))= tuple.ingredient
+                  td= tuple.totalSpent
+            else
+    #production-table.card-content.tab-pane.fade
+      div.card
+        div.card-header(data-background-color='purple')
+          h4.title Spending Report: Production
+        div.card-content.table-response
+          input.form-control#productionInput(type='text',onkeyup='filterTable(\'production\')', placeholder='Search for ingredients..', title='Type in some search text')
+          table.table#productionTable
+            thead.text-primary
+              th(onclick='sortTable(0, \'production\')') Ingredient
+              th(onclick='sortTable(1, \'production\')') Total Spending
+            tbody
+            if production
+              each tuple in production
+                tr
+                  td
+                    a(href='/ingredients/' + encodeURIComponent(tuple.ingredient))= tuple.ingredient
+                  td= tuple.totalSpent
+            else
+    #formula-table.card-content.tab-pane.fade
+      div.card
+        div.card-header(data-background-color='purple')
+          h4.title Production Report by Formula
+        div.card-content.table-response
+          input.form-control#productionInput(type='text',onkeyup='filterTable(\'formula\')', placeholder='Search for ingredients..', title='Type in some search text')
+          table.table#formulaTable
+            thead.text-primary
+              th(onclick='sortTable(0, \'formula\')') Formula
+              th(onclick='sortTable(1, \'formula\')') Total Units Produced
+              th(onclick='sortTable(2, \'formula\')') Total Ingredient Cost
+            tbody
+            if formula
+              each tuple in formula
+                tr
+                  td
+                    a(href='/formulas/' + encodeURIComponent(tuple.formula))= tuple.formula
+                  td= tuple.unitsProduced
+                  td= tuple.totalCost
+            else
+  //- .row
+  //-   .card
+  //-     .card-header(data-background-color='purple')
+  //-       h2.title Spending Report
+  //-     .card-content
+  //-       .row
+  //-         .col-md-12
+  //-           form(action="/users/report" method="get")
+  //-             input.btn.btn-primary.pull-left(type="submit" name="overall" value="Overall Report" style="padding: 10px; background-color:#66c2ff; display: inline-block; ")
+  //-           form(action="/users/production_report" method="get")
+  //-             input.btn.btn-primary(type="submit" name="production" value="Production Report" style="padding: 10px; background-color:#66c2ff; display: inline-block;")
+  //-       .col-md-12
+  //-         h3(style="padding: 0px 0px 10px; text-decoration: underline") Ingredients
+  //-         p
+  //-           br
+  //-         each ingredient in ingredients
+  //-           .col-md-12
+  //-             p(style="text-align:left;")
+  //-               a(href='/ingredients/' + ingredient.ingredient)= ingredient.ingredient
+  //-               span(style="float:right;") Cost: $#{ingredient.cost}
+  //-         div.previous
+  //-           form(action="/users/report/" + (parseInt(page)-1).toString(), method="get")
+  //-             button.btn.btn-white.btn-round.btn-just-icon.pull-left(type="submit" style="display: inline-block;") Prev
+  //-         div.next
+  //-           form(action="/users/report/" + (parseInt(page)+1).toString(), method="get")
+  //-             button.btn.btn-white.btn-round.btn-just-icon.pull-right(type="submit" style="display: inline-block;") Next
