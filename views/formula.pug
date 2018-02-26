@@ -32,7 +32,7 @@ block content
             form(action='/formulas/' + formula.name + '/delete', method='post')
               button.btn.btn-primary.pull-left(style="margin: 30px 15px;" type='submit') Delete Formula
         .col-md-6
-          form(action="/formulas/" + formula.name + '/order/', method="post")
+          form.manager.hide(action="/formulas/" + formula.name + '/order/', method="post")
             input.form-control(type="hidden" name="ingredient" value=formula.name)
             input.form-control(type="hidden" name="amount" value=0)
             .row
@@ -66,10 +66,18 @@ block content
                         option(disabled="" selected="" value="") Select an Ingredient
                         each ingredient in ingredients
                           option(value=ingredient._id)= ingredient['name']
-                    .col-md-6
+                    .col-md-4
                       .form-group
                       label.control-label Quantity
                       input.form-control(type='number', id='quantity'+tuple.index, name='quantity'+tuple.index, min='0', step='0.01', value=tuple.quantity, required='')
+                    .col-md-2
+                      p
+                        br
+                        br
+                        br
+                        br
+                      button#btn1.btn.btn-round.btn-just-icon.remove(type='button', value='remove', style='background-color:red;')
+                        i.material-icons delete
               .col-md-1
                 p
                   br
@@ -89,4 +97,3 @@ block scripts
     var ingredients = document.getElementById('data').dataset.ingredients;
     var start = #{formula.tuples.length};
     addTuples(ingredients, start);
-

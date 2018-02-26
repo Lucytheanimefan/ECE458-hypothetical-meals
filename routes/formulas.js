@@ -37,7 +37,7 @@ router.get('/home/:page?', function(req, res, next) {
           formula.tuples = underscore.sortBy(formula.tuples, "index");
         }
         res.render('formulas', { formulas: formulas, ingredients: ingredients, page: page });
-      }).catch(function(error){
+      }).catch(function(error) {
         reject(error);
       })
     }
@@ -63,6 +63,17 @@ router.get('/:name', function(req, res, next) {
   });
 })
 
+router.post('/:name/delete', function(req, res, next) {
+  let name = req.params.name;
+  var promise = FormulaHelper.deleteFormula(name);
+  promise.then(function(result) {
+    logs.makeLog('Delete formula', JSON.stringify({formula:{name: name}}), ['formula'], req.session.userId);
+    res.redirect(req.baseUrl + '/');
+  }).catch(function(error) {
+    next(error);
+  });
+})
+
 router.post('/:name/update', function(req, res, next) {
   let name = req.params.name;
   let newName = req.body.name;
@@ -73,14 +84,15 @@ router.post('/:name/update', function(req, res, next) {
     var index = 1;
     var ingredient, quantity;
     let tuplePromises = [];
-    while (req.body["ingredient"+index] != undefined) {
-      ingredient = req.body["ingredient"+index];
-      quantity = req.body["quantity"+index];
+    while (req.body["ingredient" + index] != undefined) {
+      ingredient = req.body["ingredient" + index];
+      quantity = req.body["quantity" + index];
       tuplePromises.push(FormulaHelper.updateTuple(name, index, ingredient, quantity));
       index = index + 1;
     }
     return Promise.all(tuplePromises);
   }).then(function(tuples) {
+    logs.makeLog('Update formula', JSON.stringify({formula:tuples[0]}), ['formula'], req.session.userId);
     res.redirect(req.baseUrl + '/' + name);
   }).catch(function(error) {
     next(error);
@@ -95,7 +107,7 @@ router.post('/:name/order', function(req, res, next) {
       return IngredientHelper.compareAmount(mongoose.Types.ObjectId(ingTuple['id']), ingTuple['amount']);
     }));
   }).then(function(results) {
-    let tuples = [];
+    var tuples = [];
     for (let object of results) {
       let orderAmount = parseFloat(object.neededAmount) - parseFloat(object.currentAmount);
       if (orderAmount > 0) {
@@ -107,6 +119,7 @@ router.post('/:name/order', function(req, res, next) {
     }
     console.log(tuples);
     console.log(results);
+    logs.makeLog('Create formula', JSON.stringify(tuples), ['formula'], req.session.userId);
     res.render('formula-confirmation', { formula: formulaName, formulaObjects: results, orderAmounts: tuples, amount: amount });
   }).catch(function(error) {
     next(error);
@@ -127,6 +140,7 @@ router.post('/:name/order/:amount', function(req, res, next) {
       return IngredientHelper.sendIngredientsToProduction(formulaId, mongoose.Types.ObjectId(ingTuple['id']), parseFloat(ingTuple['amount']));
     }));
   }).then(function(results) {
+    logs.makeLog('Log formula for production log', JSON.stringify(results), ['formula'], req.session.userId);
     res.redirect('/formulas');
   }).catch(function(error) {
     next(error);
@@ -139,20 +153,20 @@ router.post('/new', async function(req, res, next) {
   let units = req.body.units;
   var promise = FormulaHelper.createFormula(name, description, units);
   promise.then(function(result) {
-  	console.log('Formula result:')
-  	console.log(result);
-  	logs.makeLog('New formula', result, ['formula'], req.session.userId); 
+    console.log('Formula result:')
+    console.log(result);
     var index = 1;
     var ingredient, quantity;
     let tuplePromises = [];
-    while (req.body["ingredient"+index] != undefined) {
-      ingredient = req.body["ingredient"+index];
-      quantity = req.body["quantity"+index];
+    while (req.body["ingredient" + index] != undefined) {
+      ingredient = req.body["ingredient" + index];
+      quantity = req.body["quantity" + index];
       tuplePromises.push(FormulaHelper.addTuple(name, index, ingredient, quantity));
       index = index + 1;
     }
     return Promise.all(tuplePromises);
-  }).then(function() {
+  }).then(function(formula) {
+    logs.makeLog('Create formula', JSON.stringify({formula:formula[0]}), ['formula'], req.session.userId);
     res.redirect(req.baseUrl + '/' + name);
   }).catch(function(error) {
     next(error);

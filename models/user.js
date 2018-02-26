@@ -41,7 +41,8 @@ var UserSchema = new mongoose.Schema({
   },
   cart: [{
     ingredient: {
-      type: String,
+      type: mongoose.Schema.Types.ObjectId,
+      ref:'Ingredient',
       required: true
     },
     quantity: {
@@ -258,19 +259,21 @@ module.exports.getUserById = function(id) {
   return User.findOne({'_id':id}).exec();
 }
 
-module.exports.addToCart = function(id, ingredient, quantity, vendors) {
-  let entry = {ingredient:ingredient, quantity:quantity, vendors:vendors};
+module.exports.addToCart = function(id, ingId, quantity, vendors) {
+  ingId = mongoose.Types.ObjectId(ingId.toString());
+  let entry = {ingredient:ingId, quantity:quantity, vendors:vendors};
   return User.findOneAndUpdate({'_id':id},{'$push':{'cart':entry}}).exec();
 }
 
-module.exports.removeOrder = function(id, ingredient) {
-  return User.findOneAndUpdate({'_id':id},{'$pull':{'cart':{'ingredient':ingredient}}}).exec();
+module.exports.removeOrder = function(id, ingId) {
+  ingId = mongoose.Types.ObjectId(ingId.toString());
+  return User.findOneAndUpdate({'_id':id},{'$pull':{'cart':{'ingredient':ingId}}}).exec();
 }
 
-module.exports.updateCart = function(id, ingredient, quantity, vendors) {
+module.exports.updateCart = function(id, ingId, quantity, vendors) {
   return new Promise(function(resolve, reject) {
-    User.removeOrder(id,ingredient).then(function(result){
-      return User.addToCart(id,ingredient,quantity,vendors);
+    User.removeOrder(id,ingId).then(function(result){
+      return User.addToCart(id,ingId,quantity,vendors);
     }).then(function(tuple) {
       resolve(tuple);
     }).catch(function(error) {
