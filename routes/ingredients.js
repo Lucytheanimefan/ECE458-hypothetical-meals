@@ -3,6 +3,7 @@ var queryString = require('query-string');
 var router = express.Router();
 var Ingredient = require('../models/ingredient');
 var IngredientHelper = require('../helpers/ingredients');
+var UserHelper = require('../helpers/users');
 var VendorHelper = require('../helpers/vendor');
 var Vendor = require('../models/vendor');
 var Formula = require('../models/formula');
@@ -112,7 +113,10 @@ router.post('/:name/delete', function(req, res, next) {
         parseFloat(ing['amount'])
       );
     }
-  }).then(function() {
+  }).then(function(ing) {
+    var promise = UserHelper.updateCart(req.session.userId);
+    return promise;
+  }).then(function(result) {
     res.redirect(req.baseUrl + '/');
   }).catch(function(error) {
     next(error);

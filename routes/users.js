@@ -6,6 +6,7 @@ var Vendor = require('../models/vendor');
 var Inventory = require('../models/inventory').model;
 var Token = require('../models/token');
 var UserHelper = require('../helpers/users');
+var IngredientHelper = require('../helpers/ingredients');
 var crypto = require('crypto');
 var nodemailer = require('nodemailer');
 var underscore = require('underscore');
@@ -279,38 +280,33 @@ router.get('/cart/:page?', function(req, res, next) {
   var cart;
   var orders = [];
   var ingredients = [];
+  var ids = [];
   userQuery.then(function(user) {
     cart = user.cart;
-    cart = underscore.sortBy(cart, "ingredient");
     var promises = [];
     for (let order of cart) {
-      promises.push(Ingredient.getIngredient(order.ingredient));
-      ingredients.push(order.ingredient);
+      promises.push(Ingredient.getIngredientById(order.ingredient));
     }
     return Promise.all(promises);
-  }).then(function(ingResults) {
-    var promises = [];
-    for (let ing of ingResults) {
-      if (ing != null) {
-        var index = ingredients.indexOf(ing);
-        ingredients.splice(index, 1);
-      }
+  }).then(function(ings) {
+    for (let ing of ings) {
+      ingredients.push(ing.name);
+      ids.push(ing._id.toString());
     }
-    console.log("INGREDIENTS");
-    for (i = 0; i < ingredients.length; i++) {
-      console.log(ingredients[i]);
-      promises.push(UserHelper.removeOrder(req.session.userId, ingredients[i]));
-    }
-    return Promise.all(promises);
-  }).then(function(results) {
     var start = perPage * (page - 1);
     for (i = start; i < start + perPage; i++) {
-      var order = cart[i];
-      if (order == undefined) {
+      var order = {};
+      if (cart[i] == undefined) {
         break;
       }
+      var index = ids.indexOf(cart[i].ingredient.toString());
+      var ingName = ingredients[index];
+      order['ingredient'] = ingName;
+      order['vendors'] = cart[i].vendors;
+      order['quantity'] = cart[i].quantity;
       orders.push(order);
     }
+  }).then(function(result) {
     res.render('cart', { orders: orders, page: page });
   }).catch(function(error) {
     next(error);
@@ -322,25 +318,45 @@ router.get('/edit_order/:ingredient/:page?', function(req, res, next) {
   var page = req.params.page || 1;
   page = (page < 1) ? 1 : page;
 
-  var userQuery = User.getUserById(req.session.userId);
-  var cart;
+  var cart, id;
   var orders = [];
   var ingredient = req.params.ingredient;
-  userQuery.then(function(user) {
+  var ingQuery = Ingredient.getIngredient(ingredient);
+  var ingredients = [];
+  var ids = [];
+  ingQuery.then(function(ing) {
+    id = ing._id;
+    var userQuery = User.getUserById(req.session.userId);
+    return userQuery;
+  }).then(function(user) {
     cart = user.cart;
-    cart = underscore.sortBy(cart, "ingredient");
+    var promises = [];
+    for (let order of cart) {
+      promises.push(Ingredient.getIngredientById(order.ingredient));
+    }
+    return Promise.all(promises);
+  }).then(function(ings) {
+    for (let ing of ings) {
+      ingredients.push(ing.name);
+      ids.push(ing._id.toString());
+    }
     var start = perPage * (page - 1);
     for (i = start; i < start + perPage; i++) {
-      var order = cart[i];
-      if (order == undefined) {
+      var order = {};
+      if (cart[i] == undefined) {
         break;
       }
       var show;
-      if (order.ingredient === ingredient) {
+      if (cart[i].ingredient.toString() === id.toString()) {
         show = "visible";
       } else {
         show = "hidden";
       }
+      var index = ids.indexOf(cart[i].ingredient.toString());
+      var ingName = ingredients[index];
+      order['ingredient'] = ingName;
+      order['vendors'] = cart[i].vendors;
+      order['quantity'] = cart[i].quantity;
       order['show'] = show;
       orders.push(order);
     }
@@ -351,10 +367,14 @@ router.get('/edit_order/:ingredient/:page?', function(req, res, next) {
 });
 
 router.post('/remove_ingredient', function(req, res, next) {
-  let id = req.session.userId;
   let ingredient = req.body.ingredient;
-  var promise = UserHelper.removeOrder(id, ingredient);
-  promise.then(function(result) {
+  var id;
+  var ingQuery = Ingredient.getIngredient(ingredient);
+  ingQuery.then(function(ing) {
+    id = ing._id;
+    var promise = UserHelper.removeOrder(req.session.userId, id);
+    return promise;
+  }).then(function(result) {
     res.redirect(req.baseUrl + '/cart');
   }).catch(function(error) {
     next(error);
@@ -372,30 +392,34 @@ router.post('/edit_order', function(req, res, next) {
     names = [req.body.names];
     codes = [req.body.codes];
   }
-  var userQuery = User.getUserById(req.session.userId);
-  userQuery.then(function(user) {
+  var id;
+  var ingQuery = Ingredient.getIngredient(ingredient);
+  ingQuery.then(function(ing) {
+    id = ing._id;
+    var userQuery = User.getUserById(req.session.userId);
+    return userQuery;
+  }).then(async function(user) {
     cart = user.cart;
-    var promises = [];
+    //var promises = [];
     for (i = 0; i < names.length; i++) {
       var vendor = names[i];
       var quantity = quantities[i];
       var newQuantity;
       for (let order of cart) {
-        if (ingredient === order.ingredient) {
-          for (let vend of order.vendors) {
+        if (id.toString() === order.ingredient.toString()) {
+          for (i = 0; i < order.vendors.length; i++) {
+            var vend = order.vendors[i];
             if (vendor === vend.name) {
               newQuantity = quantity - vend.quantity;
-              promises.push(UserHelper.addToCart(req.session.userId, ingredient, newQuantity, vendor));
+              await UserHelper.addToCart(req.session.userId, id, newQuantity, vendor);
+              break;
             }
-            break;
           }
           break;
         }
       }
-      console.log("vendor = " + vendor);
-      console.log("quantity = " + quantity);
     }
-    return Promise.all(promises);
+    //return Promise.all(promises);
   }).then(function(results) {
     res.redirect('/users/cart');
   }).catch(function(error) {
@@ -404,102 +428,22 @@ router.post('/edit_order', function(req, res, next) {
 });
 
 router.post('/checkout_cart', function(req, res, next) {
-  User.count({ _id: req.session.userId }, async function(err, count) {
-    if (err) return next(err);
-
-    var invdb;
-    await Inventory.findOne({ type: "master" }, function(err, inv) {
-      if (err) { return next(err); }
-      invdb = inv;
-    });
-
-    if (count > 0) {
-      await User.findOne({ "_id": req.session.userId }, async function(err, user) {
-        if (err) return next(err);
-
-        var cart = user.cart[0];
-        var production_report;
-
-        await User.findOne({ "_id": req.session.userId }, function(err, user) {
-          if (err) return next(err);
-
-          production_report = user.production_report;
-          if (production_report === null | production_report === undefined | production_report == []) {
-            production_report = [];
-            production_report.push({});
-          }
-          production_report = production_report[0];
-        });
-
-        for (ingredient in cart) {
-          var ingObj;
-          var quantity = cart[ingredient];
-          var amount;
-          var inventories;
-          var ingQuery = Ingredient.findOne({ name: ingredient });
-          var invQuery = Inventory.findOne({ type: "master" });
-          invQuery.then(function(invs) {
-            inventories = invs;
-            return ingQuery;
-          }).then(function(ings, invs) {
-            let temp = ings['temperature'].split(" ")[0];
-            inventories['current'][temp] -= parseInt(quantity);
-          });
-
-          await Ingredient.find({ name: ingredient }, function(err, instance) {
-            if (err) return next(err);
-            amount = Number(instance[0].amount);
-          });
-          amount = amount - quantity;
-          await Ingredient.findOneAndUpdate({
-            name: ingredient
-          }, {
-            $set: {
-              amount: amount
-            }
-          }, function(err, cart_instance) {
-            if (err) return next(err);
-          });
-
-          await User.findOne({ "_id": req.session.userId }, function(err, user) {
-            if (err) return next(err);
-
-            let report = user.report;
-            if (report === null | report === undefined | report == []) {
-              report = [];
-              report.push({});
-            }
-            report = report[0];
-
-            var new_cost = (ingredient in report) ? report[ingredient] : 0;
-            production_report[ingredient] = new_cost;
-          });
-          delete cart[ingredient];
-
-        }
-
-        if (inventories != undefined) {
-          await inventories.save(function(err) {
-            if (err) return next(err);
-          });
-        }
-
-        await User.findByIdAndUpdate({
-          _id: req.session.userId
-        }, {
-          $set: {
-            cart: cart,
-            production_report: production_report
-          }
-        }, function(err, cart_instance) {
-          if (err) return next(err);
-        });
-
-        logs.makeLog('Checked out cart and updated report', { cart: cart_instance, inventory: inventories, production_report: production_report }, ['cart', 'inventory'], req.session.userId);
-        return res.redirect(req.baseUrl + '/report');
-      });
+  var cart;
+  var userQuery = User.getUserById(req.session.userId);
+  userQuery.then(function(user) {
+    cart = user.cart;
+    var promises = [];
+    for (let order of cart) {
+      promises.push(IngredientHelper.incrementAmount(order.ingredient, order.quantity));
+      promises.push(UserHelper.removeOrder(req.session.userId, order.ingredient));
     }
-  });
+    return Promise.all(promises);
+  }).then(function(ings) {
+    //logs.makeLog('Checked out cart and updated report', { cart: cart_instance, inventory: inventories, production_report: production_report }, ['cart', 'inventory'], req.session.userId);
+    res.redirect('/users/cart');
+  }).catch(function(error) {
+    next(error);
+  })
 });
 
 router.get('/report/:page?', function(req, res, next) {
