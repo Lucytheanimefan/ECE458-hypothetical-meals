@@ -6,7 +6,8 @@ block content
   .row
     h1 #{title}
     h3 #{time}
-    h3 Initiating user: #{user}
+    h3 Initiating user: 
+      a(href='/users/user/'+user) user
     h3 Entities: #{entities}
     h4 Description: 
     ul#description

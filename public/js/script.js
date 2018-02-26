@@ -233,7 +233,7 @@ function loadPugView() {
         getIngredientForID(description[key], function(ingredient) {
           text = 'Ingredient: <ul>';
           for (var ingKey in ingredient) {
-            if (ingKey != '_id' && ingKey != '__v' /*&& ingKey != 'vendors'*/ ) {
+            if (ingKey != '_id' && ingKey != '__v' && ingKey != 'vendors' ) {
               value = ingredient[ingKey]
               if (ingKey == 'name') {
                 value = '<a href="/ingredients/' + encodeURIComponent(value) + '">' + value + '</a>';
@@ -245,7 +245,7 @@ function loadPugView() {
           text += '</ul>';
           text = "<li>" + text + "</li>";
           $("#description").append(text);
-          appendText = false;
+          //appendText = false;
         })
       } else if (keyLower == 'ingredient_name') {
         value = '<a href="/ingredients/' + encodeURIComponent(description[key]) + '">' + description[key] + '</a>';
@@ -261,6 +261,10 @@ function loadPugView() {
           text = '<li>Vendor code: ' + value + '</li>';
           $("#description").append(text);
         })
+      } else if (keyLower == "vendor_code") {
+        let code = description[key];
+        let value = '<a href="/vendors/' + encodeURIComponent(code) + '">' + code + '</a>';
+        text = '<li>Vendor code: ' + value + '</li>';
       } else if (keyLower == "array_description") {
         for (var i in description[key]) {
           console.log(description[key]);
