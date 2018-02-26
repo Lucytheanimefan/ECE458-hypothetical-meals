@@ -10,6 +10,14 @@ function dropDownInteractivity() {
   }
 }
 
+function onLogout() {
+  $("#logout").click(function() {
+    console.log("Log out, clear session storage");
+    // clear session storage
+    sessionStorage.removeItem("role");
+  })
+}
+
 function filterTable(type) {
   console.log('Filter users!');
   var input, filter, table, tr, td, i;
@@ -168,7 +176,7 @@ function loadContent(my_role) {
   if (my_role === 'admin') {
     $('.manager').removeClass('hide');
     $('.adminOnly').removeClass('hide');
-    $('.admin').removeClass('hide');
+    ('.admin').removeClass('hide');
   } else if (my_role === 'manager') {
     $('.manager').removeClass('hide');
   }
@@ -203,6 +211,144 @@ function loadSideBar() {
   })
 }
 
+function loadPugView() {
+  var description = $("#descriptionValues").data("description");
+  console.log(description);
+
+  if (typeof description == 'string') {
+    $("#description").append(description);
+    return;
+  }
+
+  var appendText = true;
+  for (var key in description) {
+    if (description.hasOwnProperty(key) && (description instanceof Object)) {
+      var text = '';
+      //console.log(key.toLowerCase());
+      var keyLower = key.toLowerCase()
+      if (keyLower == 'vendor code') {
+        text = key + ': <a href=\'/vendors/' + description[key] + '\'>' + description[key] + '</a>';
+        text = "<li>" + text + "</li>";
+        //$("#description").append("<li>" + text + "</li>");
+      } else if (keyLower == 'ingredient_id' || keyLower == 'ingredient id') {
+        console.log('get ingredient for id');
+        getIngredientForID(description[key], function(ingredient) {
+          text = 'Ingredient: <ul>';
+          for (var ingKey in ingredient) {
+            if (ingKey != '_id' && ingKey != '__v' && ingKey != 'vendors' ) {
+              value = ingredient[ingKey]
+              if (ingKey == 'name') {
+                value = '<a href="/ingredients/' + encodeURIComponent(value) + '">' + value + '</a>';
+              }
+
+              text += '<li>' + ingKey + ': ' + value + '</li>';
+            }
+          }
+          text += '</ul>';
+          text = "<li>" + text + "</li>";
+          $("#description").append(text);
+          //appendText = false;
+        })
+      } else if (keyLower == 'ingredient_name') {
+        value = '<a href="/ingredients/' + encodeURIComponent(description[key]) + '">' + description[key] + '</a>';
+
+        text = '<li>Ingredient: ' + value + '</li>';
+
+      }else if (keyLower == 'ingredient_names'){
+        var ingredients = description[keyLower];
+        for (var i in ingredients){
+          value = '<a href="/ingredients/' + encodeURIComponent(ingredients[i]) + '">' + ingredients[i] + '</a>';
+          text += '<li>Ingredient: ' + value + '</li>';
+        }
+      } 
+      else if (keyLower == "vendor_id") {
+        var vendor_id = description[key];
+        getVendorForID(vendor_id, function(vendor) {
+          console.log(vendor);
+          let code = vendor['code'];
+          value = '<a href="/vendors/' + encodeURIComponent(code) + '">' + code + '</a>';
+          text = '<li>Vendor code: ' + value + '</li>';
+          $("#description").append(text);
+        })
+      } else if (keyLower == "vendor_code") {
+        let code = description[key];
+        let value = '<a href="/vendors/' + encodeURIComponent(code) + '">' + code + '</a>';
+        text = '<li>Vendor code: ' + value + '</li>';
+      } else if (keyLower == "array_description") {
+        for (var i in description[key]) {
+          console.log(description[key]);
+          var result = description[key][i];
+          if (result != null) {
+            if (result.hasOwnProperty('package')) { // it's an ingredient
+              text += '<li>Ingredient: <a href=\'/ingredients/' + result['name'] + '\'>' + result['name'] + '</a></li>';
+            } else if (result.hasOwnProperty('code')) { // it's a vendor
+              text += '<li>Vendor: <a href=\'/vendors/' + result['code'] + '\'>' + result['code'] + '</a></li>';
+            }
+          }
+        }
+        //$("#description").append(text);
+      } else if (keyLower == "formula") {
+        for (var formulaKey in description[key]) {
+          if (formulaKey != '_id' && formulaKey != '__v') {
+            value = description[key][formulaKey]
+            if (formulaKey == 'tuples') {
+              value = JSON.stringify(value);
+            } else if (formulaKey == 'name') {
+              value = '<a href="/formulas/' + encodeURIComponent(value) + '">' + value + '</a>';
+            }
+            text += '<li>' + formulaKey + ': ' + value + '</li>';
+          }
+        }
+      } else if (keyLower == 'formula_names'){
+        var formulas = description[keyLower];
+        for (var i in formulas){
+          value = '<a href="/formulas/' + encodeURIComponent(formulas[i]) + '">' + formulas[i] + '</a>';
+          text += '<li>Formula: ' + value + '</li>';
+        }
+      } 
+      else if (keyLower == 'username'){
+        let username = description[key];
+        value = '<a href="/users/user/' + encodeURIComponent(username) + '">' + username + '</a>';
+        text = '<li>User: ' + value + '</li>';
+      }
+      else {
+        text = '<li>' + key + ': ' + JSON.stringify(description[key]) + '</li>';
+        //$("#description").append(text);
+      }
+      $("#description").append(text);
+    }
+  }
+}
+
+function getIngredientForID(id, callback) {
+  console.log("Get ingredient for id");
+  $.ajax({
+    type: 'GET',
+    url: '/ingredients/id/' + id,
+    contentType: 'application/json; charset=utf-8',
+    dataType: 'json',
+    success: function(response) {
+      console.log(response);
+      callback(response);
+    }
+  });
+
+}
+
+function getVendorForID(id, callback) {
+  console.log("Get vendor for id");
+  $.ajax({
+    type: 'GET',
+    url: '/vendors/vendor/id/' + id,
+    contentType: 'application/json; charset=utf-8',
+    dataType: 'json',
+    success: function(response) {
+      console.log(response);
+      callback(response);
+    }
+  });
+
+}
 
 function getAccessTokenHash() {
   let hash = window.location.hash;
@@ -241,12 +387,73 @@ function createOrLoginAccountNetID(userdata) {
     success: function(result) {
       console.log('createOrLoginAccount returned');
       console.log(result);
+
       if (result['success']) {
         window.location.href = '/users';
+      } else {
+        console.log('Error creating user: ' + result['error']);
       }
       //console.log(result);
       // TODO: trigger success UI
 
+    }
+  });
+}
+
+function addTuples(ingredients, start) {
+  var next = start;
+  ingredients = JSON.parse(ingredients);
+  $(".add-more").click(function(e) {
+    e.preventDefault();
+    var addTo = "#tuple" + next;
+    next = next + 1;
+
+    var newHTML = '<div id="tuple' + next + '" class="row">';
+    newHTML += '<div class="col-md-6"><div class="form-group"></div><label class="control-label">Ingredient</label>';
+    newHTML += '<select class="form-control" id="ingredient' + next + '" name="ingredient' + next + '"><option disabled="" selected="" value="">Select an Ingredient</option>';
+
+    var i;
+    for (i = 0; i < ingredients.length; i++) {
+      var ing = ingredients[i];
+      newHTML += '<option value=' + ing._id + '>' + ing.name + '</option>';
+    }
+    newHTML += '</select></div>';
+    newHTML += '<div class="col-md-6"><div class="form-group"></div><label class="control-label">Quantity</label>';
+    newHTML += '<input class="form-control" id="quantity' + next + '" type="number" name="quantity' + next + '" min="0" step="0.01"/></div></div>';
+    var newInput = $(newHTML);
+    $(addTo).after(newInput);
+    $("#tuple" + next).attr('data-source', $(addTo).attr('data-source'));
+  });
+}
+
+function selectTuple(tuples) {
+  tuples = JSON.parse(tuples);
+  for (i = 0; i < tuples.length; i++) {
+    var id = tuples[i].ingredientID;
+    $("#ingredient" + (i + 1)).val(id).attr("selected", "true");
+  }
+}
+
+//'top','center
+function displayFileAlert() {
+  var alertMessage = $("#alertData").data('alert');
+  if (alertMessage != null) {
+    displayNotification('top', 'center', alertMessage);
+  }
+
+}
+
+function displayNotification(from, align, alertMessage) {
+  $.notify({
+    icon: "notifications",
+    message: alertMessage
+
+  }, {
+    type: "success",
+    timer: 4000,
+    placement: {
+      from: from,
+      align: align
     }
   });
 }
