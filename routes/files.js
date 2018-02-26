@@ -137,7 +137,7 @@ router.post('/upload/ingredients', function(req, res, next) {
       csvData = data.data;
       console.log(csvData);
       return Promise.all(csvData.map(function(row, index) {
-        return Promise.all([Upload.checkIngredientHeader(row), Upload.checkIngredient(row), Upload.checkVendor(row['VENDOR FREIGHT CODE'])]);
+        return Promise.all([Upload.checkIngredientHeader(row), Upload.checkIngredient(row), Upload.checkVendor(row)]);
       }));
     }).then(function() {
       return Promise.all(csvData.map(function(row, index) {

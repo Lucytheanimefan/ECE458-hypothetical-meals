@@ -1,3 +1,8 @@
 NAME,PRODUCT UNITS,DESCRIPTION,INGREDIENT,INGREDIENT UNITS
+formula1,3,this is a cake,Apples,1
+formula1,,,Oranges,3
+formula2,3,this is a cake,Bananas,400
+formula3,2,This is soup,Carrots,4
+formula4,3,this is a cake,Ice cream,1
 formula5,1,description1,Carrots - pail,1
 formula6,1,description2,Potatoes - drum,1
