@@ -75,7 +75,10 @@ router.post('/upload/formulas', function(req, res, next) {
     }).then(function() {
       return Upload.addFormulas(csvData);
     }).then(function(results) {
-      logs.makeLog('Bulk import formula file uploaded', JSON.stringify(results), ['file'], req.session.userId);
+      // let logResults = results.map(function(currentValue, index, arr){
+      //   return currentValue['FORMULA'];
+      // })
+      logs.makeLog('Bulk import formula file uploaded', 'Successfully uploaded file'/*JSON.stringify({'formula_names':logResults})*/, ['file'], req.session.userId);
       res.render('uploads', { alert: 'Successfully uploaded file' });
     }).catch(function(error) {
       if (Array.isArray(error)) {
@@ -141,7 +144,10 @@ router.post('/upload/ingredients', function(req, res, next) {
         return Upload.addToDatabase(index, row);
       }));
     }).then(function(results) {
-      logs.makeLog('Bulk import ingredients file uploaded', JSON.stringify(results), ['file'], req.session.userId);
+      let logResults = results.map(function(currentValue, index, arr){
+        return currentValue['INGREDIENT'];
+      })
+      logs.makeLog('Bulk import ingredients file uploaded', JSON.stringify({'ingredient_names':logResults}), ['file'], req.session.userId);
       res.render('uploads', { alert: 'Successfully uploaded file' });
     }).catch(function(error) {
       console.log(error);
