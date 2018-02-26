@@ -252,7 +252,14 @@ function loadPugView() {
 
         text = '<li>Ingredient: ' + value + '</li>';
 
-      } else if (keyLower == "vendor_id") {
+      }else if (keyLower == 'ingredient_names'){
+        var ingredients = description[keyLower];
+        for (var i in ingredients){
+          value = '<a href="/ingredients/' + encodeURIComponent(ingredients[i]) + '">' + ingredients[i] + '</a>';
+          text += '<li>Ingredient: ' + value + '</li>';
+        }
+      } 
+      else if (keyLower == "vendor_id") {
         var vendor_id = description[key];
         getVendorForID(vendor_id, function(vendor) {
           console.log(vendor);
@@ -290,8 +297,14 @@ function loadPugView() {
             text += '<li>' + formulaKey + ': ' + value + '</li>';
           }
         }
-
-      } else {
+      } else if (keyLower == 'formula_names'){
+        var formulas = description[keyLower];
+        for (var i in formulas){
+          value = '<a href="/formulas/' + encodeURIComponent(formulas[i]) + '">' + formulas[i] + '</a>';
+          text += '<li>Formula: ' + value + '</li>';
+        }
+      } 
+      else {
         text = '<li>' + key + ': ' + JSON.stringify(description[key]) + '</li>';
         //$("#description").append(text);
       }
