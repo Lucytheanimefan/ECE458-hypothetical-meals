@@ -164,7 +164,7 @@ router.post('/:code/order', async function(req, res, next) {
     return ingQuery;
   }).then(function(ingResult) {
     ingredient = ingResult.name;
-    return UserHelper.addToCart(req.session.userId, ingredient, amount, vendor);
+    return UserHelper.addToCart(req.session.userId, ingId, amount, vendor);
   }).then(function(cartResult) {
     res.redirect('/users/cart');
   }).catch(function(error) {

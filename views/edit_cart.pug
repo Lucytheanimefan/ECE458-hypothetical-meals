@@ -47,8 +47,3 @@ block content
             p(style="padding: 10px; display: inline-block;") Page #{parseInt(page)}
             form(action="/users/cart/" + (parseInt(page)+1).toString(), method="get" style="display: inline-block;")
               button.btn.btn-white(type="submit" style="padding: 5px;") >
-      .row
-        .col-md-10
-        .col-md-2
-          form(action="/users/checkout_cart" method="post")
-            input.btn.btn-primary(type="submit" name="checkout" value="Checkout Cart" style="float:right;")
