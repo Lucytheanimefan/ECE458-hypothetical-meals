@@ -149,6 +149,7 @@ function loadLoggedInContent() {
     } else {
       $('#profile').text('Login');
       $('#logout').addClass('hide');
+      sessionStorage.removeItem("role");
     }
   })
 }
@@ -175,6 +176,7 @@ function loadContent(my_role) {
   if (my_role === 'admin') {
     $('.manager').removeClass('hide');
     $('.adminOnly').removeClass('hide');
+    ('.admin').removeClass('hide');
   } else if (my_role === 'manager') {
     $('.manager').removeClass('hide');
   }
@@ -200,7 +202,7 @@ function loadSideBar() {
         // Users
         let tmp = $(this).find('a')[0];
         let category = $($(tmp).find('p')[0]).text();
-        if (category !== 'Inventory' && category !== 'Users' && category !== "Uploads") {
+        if (category !== 'Users' && category !== "Uploads") {
           $(this).removeClass('hide');
         }
       }
