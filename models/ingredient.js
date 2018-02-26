@@ -36,6 +36,9 @@ var IngredientSchema = new mongoose.Schema({
     type: Number,
     required: true
   },
+  averageCost: {
+    type: Number
+  },
   vendors: [{
     vendorId: {
       type: String,
@@ -53,6 +56,7 @@ module.exports.createIngredient = function(name, package, temp, nativeUnit, unit
     'temperature': temp.toLowerCase(),
     'nativeUnit': nativeUnit,
     'unitsPerPackage': parseFloat(unitsPerPackage),
+    'averageCost': 0,
     'amount': parseFloat(amount)
   });
 }

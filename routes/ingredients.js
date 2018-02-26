@@ -135,8 +135,8 @@ router.post('/:name/update', function(req, res, next) {
     parseFloat(req.body.amount)
   );
   updatePromise.then(function(ingredient) {
-    logs.makeIngredientLog('Update', {'ingredient_id': ingredient[0]._id}, ['ingredient'], initiating_user);
-    res.redirect(req.baseUrl + '/' + ingName);
+    logs.makeIngredientLog('Update', {'ingredient_id': ingredient._id}, ['ingredient'], initiating_user);
+    res.redirect(req.baseUrl + '/' + encodeURIComponent(ingName));
   }).catch(function(error) {
     next(error);
   });
@@ -156,7 +156,7 @@ router.post('/new', function(req, res, next) {
   );
   promise.then(function(ingredient) {
     logs.makeIngredientLog('Creation', {'ingredient_id': ingredient._id}, ['ingredient'], initiating_user);
-    res.redirect(req.baseUrl + '/' + ingName);
+    res.redirect(req.baseUrl + '/' + encodeURIComponent(ingName));
   }).catch(function(error) {
     next(error);
   });
@@ -169,7 +169,7 @@ router.post('/:name/add-vendor', function(req, res, next) {
   let initiating_user = req.session.userId;
   IngredientHelper.addVendor(ingName, req.body.vendor, req.body.cost).then(function(results) {
     logs.makeIngredientLog('Add vendor to ingredient', {'array_description':results}, ['ingredient','vendor'], initiating_user);
-    res.redirect(req.baseUrl + '/' + ingName);
+    res.redirect(req.baseUrl + '/' + encodeURIComponent(ingName));
   }).catch(function(error) {
     next(error);
   })
