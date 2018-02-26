@@ -78,7 +78,8 @@ app.use('/formulas', formulas);
 app.use('/reports', users.requireLogin(), reports);
 
 app.use('/files', users.requireRole('admin'),files);
-app.use('/inventory',users.requireRole("admin"),inventory);
+app.use('/inventory',inventory);
+
 
 app.use('/duke_oauth', oauth);
 app.use('/logs', logs);
