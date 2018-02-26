@@ -225,7 +225,8 @@ function loadPugView() {
       var keyLower = key.toLowerCase()
       if (keyLower == 'vendor code') {
         text = key + ': <a href=\'/vendors/' + description[key] + '\'>' + description[key] + '</a>';
-        $("#description").append("<li>" + text + "</li>");
+        text = "<li>" + text + "</li>";
+        //$("#description").append("<li>" + text + "</li>");
       } else if (keyLower == 'ingredient_id' || keyLower == 'ingredient id') {
         console.log('get ingredient for id');
         getIngredientForID(description[key], function(ingredient) {
@@ -236,7 +237,8 @@ function loadPugView() {
             }
           }
           text += '</ul>';
-          $("#description").append("<li>" + text + "</li>");
+          text = "<li>" + text + "</li>";
+          //$("#description").append("<li>" + text + "</li>");
         })
       } else if (keyLower == "array_description") {
         for (var i in description[key]) {
@@ -249,13 +251,23 @@ function loadPugView() {
             text += '<li>Vendor: <a href=\'/vendors/' + result['code'] + '\'>' + result['code'] + '</a></li>';
           }
         }
-        $("#description").append(text);
-        //text = '<a href=\'/vendors/' + description[key] + '\'>' + '<b>' + key + '</b>: ' + description[key] + '</a>'
+        //$("#description").append(text);
+      } else if (keyLower == "formula") {
+        for (var formulaKey in description[key]) {
+          if (formulaKey != '_id' && formulaKey != '__v') {
+            value = description[key][formulaKey]
+            if (formulaKey == 'tuples'){
+              value = JSON.stringify(value);
+            }
+            text += '<li>' + formulaKey + ': ' + value + '</li>';
+          }
+        }
 
       } else {
         text = '<li>' + key + ': ' + JSON.stringify(description[key]) + '</li>';
-        $("#description").append(text);
+        //$("#description").append(text);
       }
+      $("#description").append(text);
     }
   }
 }
