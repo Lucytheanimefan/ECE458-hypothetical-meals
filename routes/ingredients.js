@@ -189,12 +189,18 @@ router.post('/order/add/to/cart', function(req, res, next) {
   let checkVendorArray = [];
   for (let ingredient in order) {
     checkVendorArray.push(IngredientHelper.checkIfVendorSells(ingredient));
-    orderArray.push(IngredientHelper.addOrderToCart(userId, ingredient, order[ingredient]));
   }
   Promise.all(checkVendorArray).then(function(vendors){
+    for (let ingredient in order) {
+      orderArray.push(IngredientHelper.addOrderToCart(userId, ingredient, order[ingredient]));
+    }
     return Promise.all(orderArray);
   }).then(function(results) {
-    logs.makeLog('Add to cart', JSON.stringify(results), ['cart'], req.session.userId);
+    for (let result of results) {
+      let vendor = result[0];
+      let ing = result[1];
+      logs.makeVendorLog('Add to cart', { 'vendor_code': vendor.code, 'Ingredient_ID': mongoose.Types.ObjectId(ing['_id']) }, entities = ['vendor', 'ingredient'], userId);
+    }
     res.redirect('/users/cart');
   }).catch(function(error) {
     next(error);

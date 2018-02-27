@@ -117,9 +117,6 @@ router.post('/:name/order', function(req, res, next) {
         tuples.push(tuple);
       }
     }
-    console.log(tuples);
-    console.log(results);
-    logs.makeLog('Create formula', JSON.stringify(tuples), ['formula'], req.session.userId);
     res.render('formula-confirmation', { formula: formulaName, formulaObjects: results, orderAmounts: tuples, amount: amount });
   }).catch(function(error) {
     next(error);
