@@ -189,6 +189,9 @@ router.get('/order/add/to/cart', function(req, res, next) {
     orderArray.push(IngredientHelper.addOrderToCart(userId, ingredient, order[ingredient]));
   }
   Promise.all(orderArray).then(function() {
+    console.log('orderArray:');
+    console.log(orderArray);
+    logs.makeLog('Add to cart', JSON.stringify(orderArray), ['cart'], req.session.userId);
     res.redirect('/users/cart');
   }).catch(function(error) {
     next(error);
