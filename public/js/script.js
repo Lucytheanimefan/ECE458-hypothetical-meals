@@ -235,7 +235,7 @@ function loadPugView() {
         getIngredientForID(description[key], function(ingredient) {
           text = 'Ingredient: <ul>';
           for (var ingKey in ingredient) {
-            if (ingKey != '_id' && ingKey != '__v' && ingKey != 'vendors' ) {
+            if (ingKey != '_id' && ingKey != '__v' && ingKey != 'vendors') {
               value = ingredient[ingKey]
               if (ingKey == 'name') {
                 value = '<a href="/ingredients/' + encodeURIComponent(value) + '">' + value + '</a>';
@@ -254,14 +254,13 @@ function loadPugView() {
 
         text = '<li>Ingredient: ' + value + '</li>';
 
-      }else if (keyLower == 'ingredient_names'){
+      } else if (keyLower == 'ingredient_names') {
         var ingredients = description[keyLower];
-        for (var i in ingredients){
+        for (var i in ingredients) {
           value = '<a href="/ingredients/' + encodeURIComponent(ingredients[i]) + '">' + ingredients[i] + '</a>';
           text += '<li>Ingredient: ' + value + '</li>';
         }
-      } 
-      else if (keyLower == "vendor_id") {
+      } else if (keyLower == "vendor_id") {
         var vendor_id = description[key];
         getVendorForID(vendor_id, function(vendor) {
           console.log(vendor);
@@ -299,19 +298,17 @@ function loadPugView() {
             text += '<li>' + formulaKey + ': ' + value + '</li>';
           }
         }
-      } else if (keyLower == 'formula_names'){
+      } else if (keyLower == 'formula_names') {
         var formulas = description[keyLower];
-        for (var i in formulas){
+        for (var i in formulas) {
           value = '<a href="/formulas/' + encodeURIComponent(formulas[i]) + '">' + formulas[i] + '</a>';
           text += '<li>Formula: ' + value + '</li>';
         }
-      } 
-      else if (keyLower == 'username'){
+      } else if (keyLower == 'username') {
         let username = description[key];
         value = '<a href="/users/user/' + encodeURIComponent(username) + '">' + username + '</a>';
         text = '<li>User: ' + value + '</li>';
-      }
-      else {
+      } else {
         text = '<li>' + key + ': ' + JSON.stringify(description[key]) + '</li>';
         //$("#description").append(text);
       }
@@ -422,7 +419,8 @@ function addTuples(ingredients, start) {
     newHTML += '<input class="form-control" id="quantity' + next + '" type="number" name="quantity' + next + '" min="0" step="0.01"/></div>';
     newHTML += '<div class="col-md-2"><p><br/><br/><br/><br/></p>';
     //newHTML += '<div class="removeBtn" id="dataBtn">';
-    newHTML += '<button class="btn btn-round btn-just-icon remove" type="button" value="remove" onclick=deleteTuple('+next+') style="background-color:red;"><i class="material-icons">delete</i></button></div>';
+    console.log($("#ingredientSelect" + next).val());
+    newHTML += '<button class="btn btn-round btn-just-icon remove" type="button" value="remove" onclick=deleteTuple(' + next + ') style="background-color:red;"><i class="material-icons">delete</i></button></div>';
     newHTML += '</div>'
     var newInput = $(newHTML);
     $(addTo).after(newInput);
@@ -431,7 +429,40 @@ function addTuples(ingredients, start) {
 }
 
 function deleteTuple(index) {
+  if ($('#tuple' + index).hasClass('preexists')) {
+    console.log("Delete tuple from db");
+    // Delete the thing from the db
+    var ingredientID = $("#ingredient" + index).val();
+    var name = $("#ingredient" + index).data("ingredientname");
+
+    console.log(name);
+    console.log(ingredientID);
+    if (name != null && ingredientID != null) {
+      var tupleData = { "name": name, "id": ingredientID }
+      console.log(name);
+      $.ajax({
+        type: 'POST',
+        url: '/formulas/' + name + '/delete_tuple',
+        data: JSON.stringify(tupleData),
+        contentType: 'application/json; charset=utf-8',
+        dataType: 'json',
+        success: function(result) {
+          if (!result['success']) {
+            console.log('Error deleting tuple: ' + result['error']);
+          } else {
+            // var tupleName = "tuple"+index;
+            // var delElem = document.getElementById(tupleName);
+            // delElem.remove();
+            $('#' + id).remove();
+          }
+
+        }
+      });
+    }
+  }
   $('#tuple' + index).remove();
+
+
   // let name = element.name;
   // let id = element.id;
   // console.log(ingredients);
@@ -471,6 +502,8 @@ function selectTuple(tuples) {
   for (i = 0; i < tuples.length; i++) {
     var id = tuples[i].ingredientID;
     $("#ingredient" + (i + 1)).val(id).attr("selected", "true");
+    let name = $("#ingredient" + (i + 1) + " option:selected").text()
+    $("#ingredient" + (i + 1)).attr('data-ingredientname', name);
   }
 }
 
