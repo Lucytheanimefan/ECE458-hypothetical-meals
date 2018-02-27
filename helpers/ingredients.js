@@ -221,14 +221,16 @@ module.exports.addOrderToCart = function(userId, ingredient, amount) {
   console.log(amount);
   return new Promise(function(resolve, reject) {
     var ing;
+    var vendor;
     Ingredient.getIngredient(ingredient).then(function(result) {
       ing = result;
       return findCheapestVendor(ingredient)
-    }).then(function(vendor) {
+    }).then(function(result) {
+      vendor = result;
       let packages = Math.ceil(parseFloat(amount) / parseFloat(ing['unitsPerPackage']));
       return UserHelper.addToCart(userId, mongoose.Types.ObjectId(ing['_id']), packages, vendor.name);
     }).then(function(result) {
-      resolve(result);
+      resolve([vendor, ing]);
     }).catch(function(error) {
       reject(error);
     })
