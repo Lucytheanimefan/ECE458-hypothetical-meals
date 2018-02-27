@@ -181,9 +181,9 @@ router.post('/:name/add-vendor', function(req, res, next) {
 })
 
 
-router.get('/order/add/to/cart', function(req, res, next) {
+router.post('/order/add/to/cart', function(req, res, next) {
   let userId = req.session.userId;
-  let order = req.query;
+  let order = req.body;//.query;
   let orderArray = [];
   for (let ingredient in order) {
     orderArray.push(IngredientHelper.addOrderToCart(userId, ingredient, order[ingredient]));
