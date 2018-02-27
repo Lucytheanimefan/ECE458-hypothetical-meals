@@ -181,14 +181,19 @@ router.post('/:name/add-vendor', function(req, res, next) {
 })
 
 
-router.get('/order/add/to/cart', function(req, res, next) {
+router.post('/order/add/to/cart', function(req, res, next) {
   let userId = req.session.userId;
-  let order = req.query;
+  let order = req.body;//.query;
   let orderArray = [];
+  let checkVendorArray = [];
   for (let ingredient in order) {
+    checkVendorArray.push(IngredientHelper.checkIfVendorSells(ingredient));
     orderArray.push(IngredientHelper.addOrderToCart(userId, ingredient, order[ingredient]));
   }
-  Promise.all(orderArray).then(function() {
+  Promise.all(checkVendorArray).then(function(vendors){
+    return Promise.all(orderArray);
+  }).then(function(results) {
+    logs.makeLog('Add to cart', JSON.stringify(results), ['cart'], req.session.userId);
     res.redirect('/users/cart');
   }).catch(function(error) {
     next(error);

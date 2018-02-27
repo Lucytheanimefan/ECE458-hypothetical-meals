@@ -171,15 +171,29 @@ vendorQuery = function(ing) {
   return Vendor.model.find({ 'catalogue.ingredient': ing });
 }
 
-findCheapestVendor = function(ing) {
+module.exports.checkIfVendorSells = function(ingName) {
   return new Promise(function(resolve, reject) {
-    vendorQuery(ing).then(function(vendors) {
+    Ingredient.getIngredient(ingName).then(function(result) {
+      return vendorQuery(result);
+    }).then(function(vendors) {
+      if (vendors.length == 0) {
+        reject(new Error('No vendor(s) sell ' + ingName + '!'));
+      } else {
+        resolve(vendors);
+      }
+    }).catch(function(error) {
+      reject(error);
+    });
+  });
+}
+
+findCheapestVendor = function(ingName) {
+  return new Promise(function(resolve, reject) {
+    Promise.all([exports.checkIfVendorSells(ingName), Ingredient.getIngredient(ingName)]).then(function(results) {
+      let vendors = results[0];
+      let ing = results[1];
       let min = Number.MAX_SAFE_INTEGER;
       let minVendor;
-      if (vendors.length == 0) {
-        reject(new Error('No vendors sell ' + ing.name + '!'));
-        return;
-      }
       minVendor = vendors[0];
       for (let vendor of vendors) {
         for (j = 0; j < vendor['catalogue'].length; j++) {
@@ -203,12 +217,12 @@ module.exports.addOrderToCart = function(userId, ingredient, amount) {
     var ing;
     Ingredient.getIngredient(ingredient).then(function(result) {
       ing = result;
-      return findCheapestVendor(ing)
+      return findCheapestVendor(ingredient)
     }).then(function(vendor) {
       let packages = Math.ceil(parseFloat(amount) / parseFloat(ing['unitsPerPackage']));
       return UserHelper.addToCart(userId, mongoose.Types.ObjectId(ing['_id']), packages, vendor.name);
     }).then(function(result) {
-      resolve();
+      resolve(result);
     }).catch(function(error) {
       reject(error);
     })
