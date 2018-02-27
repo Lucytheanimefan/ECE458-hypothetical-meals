@@ -114,6 +114,7 @@ router.post('/:name/delete', function(req, res, next) {
       );
     }
   }).then(function(ing) {
+    ing = ing;
     var promise = UserHelper.updateCart(req.session.userId);
     return promise;
   }).then(function(result) {

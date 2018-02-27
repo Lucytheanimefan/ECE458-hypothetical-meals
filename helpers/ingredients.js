@@ -42,6 +42,7 @@ module.exports.createIngredient = function(name, package, temp, nativeUnit, unit
 }
 
 module.exports.updateIngredient = function(name, newName, package, temp, nativeUnit, unitsPerPackage, amount) {
+  var returnIng;
   return new Promise(function(resolve, reject) {
     if (amount < 0) {
       var error = new Error('Storage amount must be a non-negative number');
@@ -66,9 +67,10 @@ module.exports.updateIngredient = function(name, newName, package, temp, nativeU
         var ingQuery = Ingredient.getIngredient(newName);
         return ingQuery;
       }).then(function(ing) {
+        returnIng = ing;
         return FormulaHelper.updateTuples(newName, ing._id);
       }).then(function(result) {
-        resolve(result);
+        resolve(returnIng);
       }).catch(function(error) {
         reject(error);
       });
@@ -111,14 +113,18 @@ module.exports.incrementAmount = function(id, amount) {
 
 module.exports.sendIngredientsToProduction = function(formulaId, ingId, amount) {
   return new Promise(function(resolve, reject) {
+    var ing;
     Promise.all([Ingredient.getIngredientById(ingId), Formula.model.findById(formulaId)]).then(function(results) {
-      let ing = results[0];
+      ing = results[0];
       let formula = results[1];
       let spent = parseFloat(ing.averageCost) * parseFloat(amount);
       return Promise.all([exports.incrementAmount(ingId, -amount), Spending.updateReport(ingId, ing.name, spent, 'production'),
         Production.updateReport(formulaId, formula, 0, spent)]);
     }).then(function(results) {
-      resolve(results);
+      let productionObject = {}
+      productionObject['ingredient'] = ing;
+      productionObject['unitsProduced'] = amount;
+      resolve(productionObject);
     }).catch(function(error) {
       reject(error);
     });
