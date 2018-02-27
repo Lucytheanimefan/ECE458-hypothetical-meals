@@ -114,7 +114,7 @@ router.post('/:name/delete', function(req, res, next) {
       );
     }
   }).then(function(ing) {
-    ing = ing;
+    logs.makeIngredientLog('Delete ingredient', {ingredient:req.params.name}, ['ingredient'], req.session.userId);
     var promise = UserHelper.updateCart(req.session.userId);
     return promise;
   }).then(function(result) {
@@ -140,7 +140,7 @@ router.post('/:name/update', function(req, res, next) {
     parseFloat(req.body.amount)
   );
   updatePromise.then(function(ingredient) {
-    logs.makeIngredientLog('Update', {'ingredient_id': ingredient._id}, ['ingredient'], initiating_user);
+    logs.makeIngredientLog('Update ingredient', {'ingredient_id': ingredient._id}, ['ingredient'], initiating_user);
     res.redirect(req.baseUrl + '/' + encodeURIComponent(ingName));
   }).catch(function(error) {
     next(error);
@@ -160,7 +160,7 @@ router.post('/new', function(req, res, next) {
     parseFloat(req.body.amount)
   );
   promise.then(function(ingredient) {
-    logs.makeIngredientLog('Creation', {'ingredient_id': ingredient._id}, ['ingredient'], initiating_user);
+    logs.makeIngredientLog('Create ingredient', {'ingredient_id': ingredient._id}, ['ingredient'], initiating_user);
     res.redirect(req.baseUrl + '/' + encodeURIComponent(ingName));
   }).catch(function(error) {
     next(error);
