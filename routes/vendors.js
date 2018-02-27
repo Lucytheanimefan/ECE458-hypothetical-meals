@@ -169,16 +169,11 @@ router.post('/:code/order', async function(req, res, next) {
   let amount = parseFloat(req.body.quantity);
   var vendor, ingredient;
   vendQuery.then(function(vend) {
-    let oid = vend._id;
-    let vendId = mongoose.Types.ObjectId(oid);
     vendor = vend.name;
-    return VendorHelper.makeOrder(ingId, vendId, amount);
-  }).then(function(result) {
-    logs.makeVendorLog('Make order from vendor and add to cart', { 'vendor_code': req.params.code, 'Ingredient_ID': ingId }, entities = ['vendor', 'ingredient'], req.session.userId);
-    let ingQuery = Ingredient.getIngredientById(ingId);
-    return ingQuery;
+    return Ingredient.getIngredientById(ingId);
   }).then(function(ingResult) {
     ingredient = ingResult.name;
+    logs.makeVendorLog('Add to cart', { 'vendor_code': req.params.code, 'Ingredient_ID': ingId }, entities = ['vendor', 'ingredient'], req.session.userId);
     return UserHelper.addToCart(req.session.userId, ingId, amount, vendor);
   }).then(function(cartResult) {
     res.redirect('/users/cart');
