@@ -55,7 +55,7 @@ router.post('/upload/formulas', function(req, res, next) {
   form.parse(req, (err, fields, files) => {
     if (err) return res.status(500).json({ error: err });
     console.log('Uploaded true!');
-    let filepath = files.file.path;
+    var filepath = files.file.path;
     console.log('File path: ' + filepath);
 
     if (error) {
@@ -78,7 +78,7 @@ router.post('/upload/formulas', function(req, res, next) {
       // let logResults = results.map(function(currentValue, index, arr){
       //   return currentValue['FORMULA'];
       // })
-      logs.makeLog('Bulk import formula file uploaded', 'Successfully uploaded file'/*JSON.stringify({'formula_names':logResults})*/, ['file'], req.session.userId);
+      logs.makeLog('Bulk import formula file uploaded', 'Successfully uploaded file ' + filepath/*JSON.stringify({'formula_names':logResults})*/, ['file'], req.session.userId);
       res.render('uploads', { alert: 'Successfully uploaded file' });
     }).catch(function(error) {
       if (Array.isArray(error)) {
@@ -121,7 +121,7 @@ router.post('/upload/ingredients', function(req, res, next) {
   form.parse(req, (err, fields, files) => {
     if (err) return res.status(500).json({ error: err });
     console.log('Uploaded true!');
-    let filepath = files.file.path;
+    var filepath = files.file.path;
     console.log('File path: ' + filepath);
 
     if (error) {
@@ -147,7 +147,7 @@ router.post('/upload/ingredients', function(req, res, next) {
       let logResults = results.map(function(currentValue, index, arr){
         return currentValue['INGREDIENT'];
       })
-      logs.makeLog('Bulk import ingredients file uploaded', JSON.stringify({'ingredient_names':logResults}), ['file'], req.session.userId);
+      logs.makeLog('Bulk import ingredients file uploaded', JSON.stringify({'file':filepath,'ingredient_names':logResults}), ['file'], req.session.userId);
       res.render('uploads', { alert: 'Successfully uploaded file' });
     }).catch(function(error) {
       console.log(error);

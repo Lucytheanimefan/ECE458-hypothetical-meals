@@ -174,7 +174,7 @@ router.post('/:code/order', async function(req, res, next) {
     vendor = vend.name;
     return VendorHelper.makeOrder(ingId, vendId, amount);
   }).then(function(result) {
-    logs.makeVendorLog('Order', { 'vendor_code': req.params.code, 'Ingredient_ID': ingId }, entities = ['vendor', 'ingredient'], req.session.userId);
+    logs.makeVendorLog('Make order from vendor and add to cart', { 'vendor_code': req.params.code, 'Ingredient_ID': ingId }, entities = ['vendor', 'ingredient'], req.session.userId);
     let ingQuery = Ingredient.getIngredientById(ingId);
     return ingQuery;
   }).then(function(ingResult) {
