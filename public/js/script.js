@@ -358,6 +358,7 @@ function addTuples(ingredients, start) {
 function deleteTuple(element, index, ingredients) {
   let name = element.name;
   let id = element.id;
+  console.log(ingredients);
   ingredients = JSON.parse(ingredients);
   console.log(name);
   console.log(id);
