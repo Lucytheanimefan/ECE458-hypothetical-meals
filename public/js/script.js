@@ -343,12 +343,49 @@ function addTuples(ingredients, start) {
       newHTML += '<option value=' + ing._id + '>' + ing.name + '</option>';
     }
     newHTML += '</select></div>';
-    newHTML += '<div class="col-md-6"><div class="form-group"></div><label class="control-label">Quantity</label>';
-    newHTML += '<input class="form-control" id="quantity' + next + '" type="number" name="quantity' + next + '" min="0" step="0.01"/></div></div>';
+    newHTML += '<div class="col-md-4"><div class="form-group"></div><label class="control-label">Quantity</label>';
+    newHTML += '<input class="form-control" id="quantity' + next + '" type="number" name="quantity' + next + '" min="0" step="0.01"/></div>';
+    newHTML += '<div class="col-md-2"><p><br/><br/><br/><br/></p>';
+    //newHTML += '<div class="removeBtn" id="dataBtn">';
+    newHTML += '<button class="btn btn-round btn-just-icon remove" id="id" type="button" value="remove" onclick=deleteTuple('+ null + ',' + 0 + ',' + null +') style="background-color:red;"><i class="material-icons">delete</i></button></div>';
+    newHTML += '</div>'
     var newInput = $(newHTML);
     $(addTo).after(newInput);
     $("#tuple" + next).attr('data-source', $(addTo).attr('data-source'));
   });
+}
+
+function deleteTuple(element, index, ingredients) {
+  let name = element.name;
+  let id = element.id;
+  ingredients = JSON.parse(ingredients);
+  console.log(name);
+  console.log(id);
+  console.log(index);
+  var tupleData = {};
+  tupleData['name'] = name;
+  tupleData['id'] = id;
+  if (element != null) {
+    $.ajax({
+      type: 'POST',
+      url: '/formulas/' + element.name + '/delete_tuple',
+      data: JSON.stringify(tupleData),
+      contentType: 'application/json; charset=utf-8',
+      dataType: 'json',
+      success: function(result) {
+        if (!result['success']) {
+          console.log('Error deleting tuple: ' + result['error']);
+        } else {
+          var tupleName = "tuple"+index;
+          var delElem = document.getElementById(tupleName);
+          delElem.remove();
+        }
+      }
+    });
+  } else {
+    document.getElementById("id").remove();
+    addTuples(ingredients, 1);
+  }
 }
 
 function selectTuple(tuples) {
