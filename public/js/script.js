@@ -420,7 +420,7 @@ function addTuples(ingredients, start) {
     newHTML += '<div class="col-md-2"><p><br/><br/><br/><br/></p>';
     //newHTML += '<div class="removeBtn" id="dataBtn">';
     console.log($("#ingredientSelect" + next).val());
-    newHTML += '<button class="btn btn-round btn-just-icon remove" type="button" value="remove" onclick=deleteTuple(' + next + ',"' + $("#ingredient" + next) + '") style="background-color:red;"><i class="material-icons">delete</i></button></div>';
+    newHTML += '<button class="btn btn-round btn-just-icon remove" type="button" value="remove" onclick=deleteTuple(' + next + ') style="background-color:red;"><i class="material-icons">delete</i></button></div>';
     newHTML += '</div>'
     var newInput = $(newHTML);
     $(addTo).after(newInput);

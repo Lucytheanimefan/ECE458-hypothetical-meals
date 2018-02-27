@@ -142,6 +142,7 @@ module.exports.removeTupleById = function(name, id){
   return new Promise(function(resolve,reject){
     var formula = Formula.findFormulaByName(name);
     formula.then(function(form) {
+      console.log(form)
       if(form.tuples.length == 1){
         var error = new Error('A formula must contain at least one {ingredient, quantity} tuple.');
         error.status = 400;

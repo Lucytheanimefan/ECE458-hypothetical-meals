@@ -154,7 +154,8 @@ router.post('/:name/delete_tuple', function(req, res, next) {
   promise.then(function(results) {
     res.send({'success':true});
   }).catch(function(error) {
-    next(error);
+    console.log(error);
+    res.send({'success':false, 'error': error});
   })
 })
 
