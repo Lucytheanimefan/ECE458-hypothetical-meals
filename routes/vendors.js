@@ -81,6 +81,7 @@ router.get('/vendor/id/:vendor_id', function(req, res, next) {
 //refactored
 router.post('/:code/delete', function(req, res, next) {
   VendorHelper.deleteVendor(req.params.code);
+  //UserHelper.deleteVendor(req.session.userId);
   logs.makeVendorLog('Delete', { 'vendor_code': req.params.code }, entities = ['vendor'], req.session.userId);
   return res.redirect(req.baseUrl);
 });

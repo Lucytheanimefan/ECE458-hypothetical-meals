@@ -14,10 +14,9 @@ module.exports.encryptUserData = function(req, res, next) {
 }
 
 module.exports.addToCart = function(id, ingId, quantity, vendor) {
-  console.log("add");
   return new Promise(function(resolve,reject) {
     var userQuery = User.getUserById(id);
-    var user, vendors, code;
+    var user, vendors;
     userQuery.then(function(userResult) {
       user = userResult;
       if (userResult == null) {
@@ -37,7 +36,7 @@ module.exports.addToCart = function(id, ingId, quantity, vendor) {
       return vendQuery;
     }).then(function(vendResult) {
       code = vendResult.code;
-      var entry = {'name': vendor, 'code': code, 'quantity': quantity};
+      var entry = {'vendID': vendResult._id, 'quantity': quantity};
       for (let ing of user.cart) {
         if (ingId.toString() === ing.ingredient.toString()) {
           var total = quantity + ing.quantity;
@@ -156,6 +155,65 @@ module.exports.updateIngredientOnCheckout = function(ingId, vendors) {
       return Promise.all([ingUpdate, ingCostUpdate, spendingUpdate]);
     }).then(function(results) {
       resolve();
+    }).catch(function(error) {
+      reject(error);
+    })
+  })
+}
+
+module.exports.getCartVendors = function(orderVendors) {
+  return new Promise(function(resolve, reject) {
+    var promises = [];
+    var vendors = [];
+    var quantities = [];
+    for (i = 0; i < orderVendors.length; i++) {
+      quantities.push(orderVendors[i].quantity);
+      promises.push(Vendor.model.findById(orderVendors[i].vendID));
+    }
+    Promise.all(promises).then(function(vends) {
+      for (i = 0; i < vends.length; i++) {
+        if (vends[i] != null) {
+          var entry = {'name': vends[i].name, 'code': vends[i].code, 'quantity': quantities[i]};
+          vendors.push(entry);
+        }
+      }
+      return vendors;
+    }).then(function(result) {
+      resolve(result);
+    }).catch(function(error) {
+      reject(error);
+    })
+  })
+}
+
+module.exports.deleteVendor = function(id) {
+  return new Promise(function(resolve, reject) {
+    var userQuery = User.getUserById(id);
+    var cart;
+    userQuery.then(function(user) {
+      cart = user.cart;
+      //var promises = [];
+      for (i = 0; i < cart.length; i++) {
+        var order = cart[i];
+        for (j = 0; j < order.length; j++) {
+          var vendor = order[j];
+          var promise = Vendor.model.findById(vendor);
+          promise.then(function(result) {
+            if (result == null) {
+              console.log("deleting order");
+              delete order[j];
+              j--;
+            }
+          }).catch(function(error) {
+            next(error);
+          })
+        }
+        if (order.length == 0) {
+          delete cart[i];
+        }
+      }
+    }).then(function(result) {
+      resolve(result);
     }).catch(function(error) {
       reject(error);
     })

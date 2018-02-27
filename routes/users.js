@@ -296,6 +296,7 @@ router.get('/cart/:page?', function(req, res, next) {
       ingredients.push(ing.name);
       ids.push(ing._id.toString());
     }
+    var promises = [];
     var start = perPage * (page - 1);
     for (i = start; i < start + perPage; i++) {
       var order = {};
@@ -305,11 +306,17 @@ router.get('/cart/:page?', function(req, res, next) {
       var index = ids.indexOf(cart[i].ingredient.toString());
       var ingName = ingredients[index];
       order['ingredient'] = ingName;
-      order['vendors'] = cart[i].vendors;
+      //order['vendors'] = cart[i].vendors;
       order['quantity'] = cart[i].quantity;
       orders.push(order);
+      promises.push(UserHelper.getCartVendors(cart[i].vendors));
     }
-  }).then(function(result) {
+    return Promise.all(promises);
+  }).then(function(results) {
+    for (i = 0; i < results.length; i++) {
+      console.log("ORDER");
+      orders[i]['vendors'] = results[i];
+    }
     res.render('cart', { orders: orders, page: page });
   }).catch(function(error) {
     next(error);
@@ -408,7 +415,6 @@ router.post('/edit_order', function(req, res, next) {
     return userQuery;
   }).then(async function(user) {
     cart = user.cart;
-    //var promises = [];
     for (i = 0; i < names.length; i++) {
       var vendor = names[i];
       var quantity = quantities[i];
