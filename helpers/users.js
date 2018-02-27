@@ -13,6 +13,21 @@ module.exports.encryptUserData = function(req, res, next) {
 
 }
 
+module.exports.getVendorID = function(vendorName) {
+  return new Promise(function(resolve, reject) {
+    var id;
+    var vendQuery = Vendor.findVendorByName(vendorName);
+    vendQuery.then(function(vendor) {
+      id = vendor._id;
+      return id;
+    }).then(function(result) {
+      resolve(result);
+    }).catch(function(error) {
+      next(error);
+    })
+  })
+}
+
 module.exports.addToCart = function(id, ingId, quantity, vendor) {
   return new Promise(function(resolve,reject) {
     var userQuery = User.getUserById(id);

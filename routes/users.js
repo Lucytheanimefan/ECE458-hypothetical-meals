@@ -314,7 +314,6 @@ router.get('/cart/:page?', function(req, res, next) {
     return Promise.all(promises);
   }).then(function(results) {
     for (i = 0; i < results.length; i++) {
-      console.log("ORDER");
       orders[i]['vendors'] = results[i];
     }
     res.render('cart', { orders: orders, page: page });
@@ -351,6 +350,7 @@ router.get('/edit_order/:ingredient/:page?', function(req, res, next) {
       ids.push(ing._id.toString());
     }
     var start = perPage * (page - 1);
+    var promises = [];
     for (i = start; i < start + perPage; i++) {
       var order = {};
       if (cart[i] == undefined) {
@@ -365,12 +365,17 @@ router.get('/edit_order/:ingredient/:page?', function(req, res, next) {
       var index = ids.indexOf(cart[i].ingredient.toString());
       var ingName = ingredients[index];
       order['ingredient'] = ingName;
-      order['vendors'] = cart[i].vendors;
+      //order['vendors'] = cart[i].vendors;
       order['quantity'] = cart[i].quantity;
       order['show'] = show;
       orders.push(order);
+      promises.push(UserHelper.getCartVendors(cart[i].vendors));
     }
-
+    return Promise.all(promises);
+  }).then(function(results) {
+    for (i = 0; i < results.length; i++) {
+      orders[i]['vendors'] = results[i];
+    }
     res.render('edit_cart', { orders: orders, page: page });
   }).catch(function(error) {
     next(error);
@@ -417,13 +422,14 @@ router.post('/edit_order', function(req, res, next) {
     cart = user.cart;
     for (i = 0; i < names.length; i++) {
       var vendor = names[i];
+      var id = UserHelper.getVendorID(vendor);
       var quantity = quantities[i];
       var newQuantity;
       for (let order of cart) {
         if (id.toString() === order.ingredient.toString()) {
           for (i = 0; i < order.vendors.length; i++) {
             var vend = order.vendors[i];
-            if (vendor === vend.name) {
+            if (id.toString() === vend.vendID.toString()) {
               newQuantity = quantity - vend.quantity;
               await UserHelper.addToCart(req.session.userId, id, newQuantity, vendor);
               break;
@@ -433,7 +439,6 @@ router.post('/edit_order', function(req, res, next) {
         }
       }
     }
-    //return Promise.all(promises);
   }).then(function(results) {
     console.log(cart);
     logs.makeLog('Edit order', JSON.stringify(cart), ['cart'], req.session.userId);
