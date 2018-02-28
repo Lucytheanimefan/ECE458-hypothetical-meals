@@ -80,10 +80,19 @@ router.get('/vendor/id/:vendor_id', function(req, res, next) {
 //POST request to delete an existing ingredient
 //refactored
 router.post('/:code/delete', function(req, res, next) {
-  VendorHelper.deleteVendor(req.params.code);
-  //UserHelper.deleteVendor(req.session.userId);
-  logs.makeVendorLog('Delete', { 'vendor_code': req.params.code }, entities = ['vendor'], req.session.userId);
-  return res.redirect(req.baseUrl);
+  var vendID;
+  var vendQuery = Vendor.findVendorByCode(req.params.code);
+  vendQuery.then(function(vend) {
+    vendID = vend._id;
+    return VendorHelper.deleteVendor(req.params.code);
+  }).then(function(result) {
+    return UserHelper.deleteVendor(req.session.userId, vendID);
+  }).then(function(result) {
+    logs.makeVendorLog('Delete', { 'vendor_code': req.params.code }, entities = ['vendor'], req.session.userId);
+    return res.redirect(req.baseUrl);
+  }).catch(function(error) {
+    next(error);
+  })
 });
 
 //bare bones done, more implementation needed for adding other ingredients, currently hardcoded

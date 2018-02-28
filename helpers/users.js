@@ -31,7 +31,7 @@ module.exports.getVendorID = function(vendorName) {
 module.exports.addToCart = function(id, ingId, quantity, vendor) {
   return new Promise(function(resolve,reject) {
     var userQuery = User.getUserById(id);
-    var user, vendors;
+    var user, vendors, vendID;
     userQuery.then(function(userResult) {
       user = userResult;
       if (userResult == null) {
@@ -50,15 +50,15 @@ module.exports.addToCart = function(id, ingId, quantity, vendor) {
       var vendQuery = Vendor.findVendorByName(vendor);
       return vendQuery;
     }).then(function(vendResult) {
-      code = vendResult.code;
-      var entry = {'vendID': vendResult._id, 'quantity': quantity};
+      vendID = vendResult._id;
+      var entry = {'vendID': vendID, 'quantity': quantity};
       for (let ing of user.cart) {
         if (ingId.toString() === ing.ingredient.toString()) {
           var total = quantity + ing.quantity;
           vendors = ing.vendors;
           var addVend = true;
           for (let vend of vendors) {
-            if (vendor === vend.name) {
+            if (vendID.toString() === vend.vendID.toString()) {
               var vendTotal = quantity + vend.quantity;
               vend['quantity'] = vendTotal;
               addVend = false;
@@ -181,9 +181,9 @@ module.exports.getCartVendors = function(orderVendors) {
     var promises = [];
     var vendors = [];
     var quantities = [];
-    for (i = 0; i < orderVendors.length; i++) {
-      quantities.push(orderVendors[i].quantity);
-      promises.push(Vendor.model.findById(orderVendors[i].vendID));
+    for (j = 0; j < orderVendors.length; j++) {
+      quantities.push(orderVendors[j].quantity);
+      promises.push(Vendor.model.findById(orderVendors[j].vendID));
     }
     Promise.all(promises).then(function(vends) {
       for (i = 0; i < vends.length; i++) {
@@ -201,32 +201,41 @@ module.exports.getCartVendors = function(orderVendors) {
   })
 }
 
-module.exports.deleteVendor = function(id) {
+module.exports.deleteVendor = function(id, vendID) {
   return new Promise(function(resolve, reject) {
     var userQuery = User.getUserById(id);
     var cart;
-    userQuery.then(function(user) {
+    userQuery.then(async function(user) {
       cart = user.cart;
-      //var promises = [];
       for (i = 0; i < cart.length; i++) {
         var order = cart[i];
-        for (j = 0; j < order.length; j++) {
-          var vendor = order[j];
-          var promise = Vendor.model.findById(vendor);
-          promise.then(function(result) {
-            if (result == null) {
-              console.log("deleting order");
-              delete order[j];
-              j--;
-            }
-          }).catch(function(error) {
-            next(error);
-          })
+        for (j = 0; j < order.vendors.length; j++) {
+          var vendor = order.vendors[j];
+          if (vendor.vendID.toString() === vendID.toString()) {
+            var index = order.vendors.indexOf(vendor);
+            order.vendors.splice(index,1);
+            j--;
+            var newQuantity = order.quantity - vendor.quantity;
+            await User.updateCart(id, order.ingredient, newQuantity, order.vendors);
+          }
         }
-        if (order.length == 0) {
-          delete cart[i];
+        if (order.vendors.length == 0) {
+          await User.removeOrder(id, order.ingredient);
         }
       }
+    }).then(function(result) {
+      resolve(result);
+    }).catch(function(error) {
+      reject(error);
+    })
+  })
+}
+
+module.exports.isVendorNull = function(vendID) {
+  return new Promise(function(resolve, reject) {
+    var promise = Vendor.model.findById(vendID);
+    promise.then(function(vend) {
+      return (vend == null);
     }).then(function(result) {
       resolve(result);
     }).catch(function(error) {

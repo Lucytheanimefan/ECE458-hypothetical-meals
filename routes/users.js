@@ -296,8 +296,8 @@ router.get('/cart/:page?', function(req, res, next) {
       ingredients.push(ing.name);
       ids.push(ing._id.toString());
     }
-    var promises = [];
     var start = perPage * (page - 1);
+    var promises = [];
     for (i = start; i < start + perPage; i++) {
       var order = {};
       if (cart[i] == undefined) {
@@ -306,10 +306,9 @@ router.get('/cart/:page?', function(req, res, next) {
       var index = ids.indexOf(cart[i].ingredient.toString());
       var ingName = ingredients[index];
       order['ingredient'] = ingName;
-      //order['vendors'] = cart[i].vendors;
+      promises.push(UserHelper.getCartVendors(cart[i].vendors));
       order['quantity'] = cart[i].quantity;
       orders.push(order);
-      promises.push(UserHelper.getCartVendors(cart[i].vendors));
     }
     return Promise.all(promises);
   }).then(function(results) {
@@ -365,11 +364,10 @@ router.get('/edit_order/:ingredient/:page?', function(req, res, next) {
       var index = ids.indexOf(cart[i].ingredient.toString());
       var ingName = ingredients[index];
       order['ingredient'] = ingName;
-      //order['vendors'] = cart[i].vendors;
+      promises.push(UserHelper.getCartVendors(cart[i].vendors));
       order['quantity'] = cart[i].quantity;
       order['show'] = show;
       orders.push(order);
-      promises.push(UserHelper.getCartVendors(cart[i].vendors));
     }
     return Promise.all(promises);
   }).then(function(results) {
@@ -406,32 +404,40 @@ router.post('/edit_order', function(req, res, next) {
   var quantities = req.body.quantities;
   var names = req.body.names;
   var codes = req.body.codes;
-  var vendor, cart;
+  var vendor, cart, user;
   if (!Array.isArray(names)) {
     quantities = [req.body.quantities];
     names = [req.body.names];
     codes = [req.body.codes];
   }
-  var id;
+  var ingID, vendID;
   var ingQuery = Ingredient.getIngredient(ingredient);
   ingQuery.then(function(ing) {
-    id = ing._id;
+    ingID = ing._id;
     var userQuery = User.getUserById(req.session.userId);
     return userQuery;
-  }).then(async function(user) {
+  }).then(function(userResult) {
+    user = userResult;
+    var promises = [];
+    for (i = 0; i < names.length; i++) {
+      var vendor = names[i];
+      promises.push(UserHelper.getVendorID(vendor));
+    }
+    return Promise.all(promises);
+  }).then(async function(results) {
     cart = user.cart;
     for (i = 0; i < names.length; i++) {
       var vendor = names[i];
-      var id = UserHelper.getVendorID(vendor);
+      var vendID = results[i];
       var quantity = quantities[i];
       var newQuantity;
       for (let order of cart) {
-        if (id.toString() === order.ingredient.toString()) {
+        if (ingID.toString() === order.ingredient.toString()) {
           for (i = 0; i < order.vendors.length; i++) {
             var vend = order.vendors[i];
-            if (id.toString() === vend.vendID.toString()) {
+            if (vendID.toString() === vend.vendID.toString()) {
               newQuantity = quantity - vend.quantity;
-              await UserHelper.addToCart(req.session.userId, id, newQuantity, vendor);
+              await UserHelper.addToCart(req.session.userId, ingID, newQuantity, vendor);
               break;
             }
           }
