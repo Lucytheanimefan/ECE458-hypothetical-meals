@@ -144,6 +144,18 @@ router.post('/:name/order/:amount', function(req, res, next) {
   });
 })
 
+router.post('/:name/delete_tuple', function(req, res, next) {
+  let name = req.body.name;
+  let id = req.body.id;
+  var promise = FormulaHelper.removeTupleById(name, id);
+  promise.then(function(results) {
+    res.send({'success':true});
+  }).catch(function(error) {
+    console.log(error);
+    res.send({'success':false, 'error': error});
+  })
+})
+
 router.post('/new', async function(req, res, next) {
   let name = req.body.name;
   let description = req.body.description;

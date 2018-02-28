@@ -50,7 +50,7 @@ module.exports.updateFormula = function(name, newName, description, units) {
   });
 }
 
-module.exports.deleteTuples = function(ingredient) {
+/*module.exports.deleteTuples = function(ingredient) {
   return new Promise(function(resolve, reject) {
     var formQuery = Formula.getAllFormulas();
     formQuery.then(function(formulas) {
@@ -70,7 +70,7 @@ module.exports.deleteTuples = function(ingredient) {
       reject(error);
     })
   });
-}
+}*/
 
 module.exports.updateTuples = function(ingredient, ingredientID) {
   return new Promise(function(resolve, reject) {
@@ -131,6 +131,40 @@ module.exports.removeTuple = function(name, ingredient){
   return new Promise(function(resolve,reject){
     var result = Formula.removeIngredient(name,ingredient);
     result.then(function(success){
+      resolve(success);
+    }).catch(function(error){
+      reject(error);
+    })
+  })
+}
+
+module.exports.removeTupleById = function(name, id){
+  return new Promise(function(resolve,reject){
+    var formula = Formula.findFormulaByName(name);
+    formula.then(function(form) {
+      console.log(form)
+      if(form.tuples.length == 1){
+        var error = new Error('A formula must contain at least one {ingredient, quantity} tuple.');
+        error.status = 400;
+        throw(error);
+      }
+      var promises = [];
+      var index;
+      for (let tuple of form.tuples) {
+        if (tuple._id.toString() === id.toString()) {
+          index = tuple.index;
+        }
+      }
+      for (let tuple of form.tuples) {
+        if (tuple.index > index) {
+          var newIndex = tuple.index - 1;
+          promises.push(exports.updateTuple(name, newIndex, tuple.ingredientID, tuple.quantity));
+        }
+      }
+      return Promise.all(promises);
+    }).then(function(results) {
+      return Formula.removeTupleById(name,id);
+    }).then(function(success) {
       resolve(success);
     }).catch(function(error){
       reject(error);

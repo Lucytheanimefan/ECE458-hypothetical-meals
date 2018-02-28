@@ -75,8 +75,12 @@ module.exports.addTuple = function(name, index, ingredient, ingredientID, quanti
 }
 
 module.exports.removeTuple = function(name, ingredient){
-  console.log("removed");
   return Formula.findOneAndUpdate({'name':name},{'$pull':{'tuples':{'ingredient':ingredient}}}).exec();
+}
+
+module.exports.removeTupleById = function(name, id){
+  id = mongoose.Types.ObjectId(id.toString());
+  return Formula.findOneAndUpdate({'name':name},{'$pull':{'tuples':{'_id':id}}}).exec();
 }
 
 module.exports.updateTuple = function(name, index, oldIngredient, ingredient, ingredientID, quantity){
