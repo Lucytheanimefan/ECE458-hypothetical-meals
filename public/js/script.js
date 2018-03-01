@@ -433,6 +433,42 @@ function addTuples(ingredients, start) {
   });
 }
 
+function createTuples(ingredients, start) {
+  var next;
+  $("#btn1").click(function(e) {
+    e.preventDefault();
+    next = Number(document.getElementById('index2').dataset.start);
+    var addTo = "#tuple" + next;
+    next = next + 1;
+
+    console.log(next);
+    var newHTML = '<div id="tuple' + next + '" class="row">';
+    newHTML += '<div class="col-md-6"><div class="form-group"></div><label class="control-label">Ingredient</label>';
+    newHTML += '<select class="form-control" id="ingredient' + next + '" name="ingredient' + next + '"><option disabled="" selected="" value="">Select an Ingredient</option>';
+
+    var i;
+    for (i = 0; i < ingredients.length; i++) {
+      var ing = ingredients[i];
+      newHTML += '<option value=' + ing._id + '>' + ing.name + '</option>';
+    }
+    newHTML += '</select></div>';
+    newHTML += '<div class="col-md-4"><div class="form-group"></div><label class="control-label">Quantity</label>';
+    newHTML += '<input class="form-control" id="quantity' + next + '" type="number" name="quantity' + next + '" min="0" step="0.01"/></div>';
+    newHTML += '<div class="col-md-2"><p><br/><br/><br/><br/></p>';
+    //newHTML += '<div class="removeBtn" id="dataBtn">';
+    //console.log($("#ingredientSelect" + next).val());
+    newHTML += '<button class="btn btn-round btn-just-icon remove" type="button" value="remove" onclick=deleteTuple2(' + next + ') style="background-color:red;"><i class="material-icons">delete</i></button></div>';
+    newHTML += '</div>'
+    var newInput = $(newHTML);
+    $(addTo).after(newInput);
+    $("#tuple" + next).attr('data-source', $(addTo).attr('data-source'));
+
+    //var start = document.getElementById('index').dataset.start;
+    next = next - 1;
+    document.getElementById('index2').dataset.start = Number(next)+1;
+  });
+}
+
 function deleteTuple(index) {
   if ($('#tuple' + index).hasClass('preexists')) {
     console.log("Delete tuple from db");
@@ -503,6 +539,36 @@ function deleteTuple(index) {
   //   document.getElementById("id").remove();
   //   addTuples(ingredients, 1);
   // }
+}
+
+function deleteTuple2(index) {
+  if ($('#tuple' + index).hasClass('preexists')) {
+    var name = document.getElementById('data2').dataset.formula;
+    var ingredientID = $("#ingredient" + index).val();
+
+    if (name != null && ingredientID != null) {
+      var tupleData = { "name": name, "id": ingredientID }
+      $.ajax({
+        type: 'POST',
+        url: '/formulas/' + name + '/delete_tuple',
+        data: JSON.stringify(tupleData),
+        contentType: 'application/json; charset=utf-8',
+        dataType: 'json',
+        success: function(result) {
+          if (!result['success']) {
+            console.log('Error deleting tuple: ' + result['error']);
+          } 
+        }
+      });
+    }
+  }
+  if (index > 1) {
+    $('#tuple' + index).remove();
+    var start = document.getElementById('index2').dataset.start;
+    if (start == index) {
+      document.getElementById('index2').dataset.start = Number(start)-1;
+    }
+  }
 }
 
 function selectTuple(tuples) {
