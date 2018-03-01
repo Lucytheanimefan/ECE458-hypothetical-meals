@@ -437,7 +437,11 @@ router.post('/edit_order', function(req, res, next) {
             var vend = order.vendors[i];
             if (vendID.toString() === vend.vendID.toString()) {
               newQuantity = quantity - vend.quantity;
-              await UserHelper.addToCart(req.session.userId, ingID, newQuantity, vendor);
+              if (newQuantity == -vend.quantity) {
+                await UserHelper.deleteVendor(req.session.userId, vendID);
+              } else {
+                await UserHelper.addToCart(req.session.userId, ingID, newQuantity, vendor);
+              }
               break;
             }
           }
