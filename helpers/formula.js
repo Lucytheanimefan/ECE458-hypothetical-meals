@@ -81,7 +81,6 @@ module.exports.updateTuples = function(ingredient, ingredientID) {
         var tuples = formula.tuples;
         for (let tuple of tuples) {
           if (tuple.ingredientID.toString() === ingredientID.toString() && tuple.ingredient !== ingredient) {
-            console.log("yay");
             promises.push(exports.updateTuple(formula.name, tuple.index, tuple.ingredientID, tuple.quantity));
           }
         }
@@ -180,6 +179,7 @@ module.exports.removeTupleById = function(name, id){
 }
 
 module.exports.updateTuple = function(name, index, ingredient, quantity){
+  console.log("ingredient = " + ingredient);
   return new Promise(function(resolve,reject){
     var formQuery = Formula.findFormulaByName(name);
     var formula;
@@ -203,6 +203,7 @@ module.exports.updateTuple = function(name, index, ingredient, quantity){
         error.status = 400;
         throw(error);
       }
+      console.log("name = " +ingResult.name);
       var tuples = formula.tuples;
       for (i = 0; i < tuples.length; i++) {
         let tuple = tuples[i];
@@ -211,11 +212,10 @@ module.exports.updateTuple = function(name, index, ingredient, quantity){
             quantity = Number(quantity) + tuple.quantity;
             index = tuple.index;
           }
-          console.log("index = " + index);
-          console.log("tuple index = " + tuple.index);
           return Formula.updateTuple(name, index, tuple.ingredient, ingResult['name'], ingredient, quantity);
         }
       }
+      console.log("add");
       return Formula.addTuple(name, index, ingResult['name'], ingredient, quantity);
     }).then(function(tuple) {
       resolve(tuple);
