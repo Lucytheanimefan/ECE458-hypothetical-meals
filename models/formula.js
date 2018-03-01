@@ -80,9 +80,6 @@ module.exports.removeTuple = function(name, ingredient){
 
 module.exports.removeTupleById = function(name, id){
   id = mongoose.Types.ObjectId(id.toString());
-  console.log("remove");
-  console.log(name);
-  console.log(id);
   return Formula.findOneAndUpdate({'name':name},{'$pull':{'tuples':{'ingredientID':id}}}).exec();
 }
 

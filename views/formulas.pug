@@ -44,7 +44,7 @@ block content
           .form-group
             label.control-label Description
             textarea.form-control(name='description' rows='5' cols='100')
-          div.tupleRow#data(data-ingredients=ingredients)
+          div.tupleRow#data2(data-ingredients=ingredients)
             .row
               .col-md-11
                 .row#tuple1
@@ -76,10 +76,10 @@ block content
             label.control-label Number of Units Produced
             input.form-control(type='number', name='units', min='0', required='')
           button.btn.btn-primary.pull-right(type='submit', value='add vendor') Add Formula
-  div#index(data-start=1)
+  div#index2(data-start=1)
 
 block scripts
   script.
-    var ingredients = document.getElementById('data').dataset.ingredients;
+    var ingredients = document.getElementById('data2').dataset.ingredients;
     ingredients = JSON.parse(ingredients);
-    addTuples(ingredients, 1);
+    createTuples(ingredients, 1);
