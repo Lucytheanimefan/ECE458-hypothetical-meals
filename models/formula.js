@@ -62,7 +62,7 @@ module.exports.deleteFormula = function(name) {
 module.exports.updateFormula = function(name, newName, description, units) {
   return Formula.findOneAndUpdate({ 'name': name }, {
     '$set': {
-      'name': name,
+      'name': newName,
       'description': description,
       'units': units
     }
