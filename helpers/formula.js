@@ -50,7 +50,7 @@ module.exports.updateFormula = function(name, newName, description, units) {
   });
 }
 
-module.exports.deleteTuples = function(ingredient) {
+/*module.exports.deleteTuples = function(ingredient) {
   return new Promise(function(resolve, reject) {
     var formQuery = Formula.getAllFormulas();
     formQuery.then(function(formulas) {
@@ -70,7 +70,7 @@ module.exports.deleteTuples = function(ingredient) {
       reject(error);
     })
   });
-}
+}*/
 
 module.exports.updateTuples = function(ingredient, ingredientID) {
   return new Promise(function(resolve, reject) {
@@ -97,6 +97,7 @@ module.exports.updateTuples = function(ingredient, ingredientID) {
 
 module.exports.addTuple = function(name, index, ingredientID, quantity) {
   return new Promise(function(resolve,reject){
+    var formula;
     var formQuery = Formula.findFormulaByName(name);
     formQuery.then(function(form){
       if(form==null){
@@ -104,6 +105,7 @@ module.exports.addTuple = function(name, index, ingredientID, quantity) {
         error.status = 400;
         throw(error);
       }
+      formula = form;
       if(parseFloat(quantity) < 0){
         var error = new Error('Invalid quantity: ${quantity}. Please enter a valid quantity.');
         error.status = 400;
@@ -118,6 +120,12 @@ module.exports.addTuple = function(name, index, ingredientID, quantity) {
         error.status = 400;
         throw(error);
       }
+      /*for (let tuple of formula.tuples) {
+        if (tuple.ingredientID.toString() === ingredientID) {
+          var newQuantity = tuple.quantity + Number(quantity);
+          return Formula.updateTuple(name, tuple.index, tuple.ingredientID, newQuantity);
+        }
+      }*/
       return Formula.addTuple(name,index,ingResult.name,ingredientID,quantity);
     }).then(function(formula) {
       resolve(formula);
@@ -131,6 +139,39 @@ module.exports.removeTuple = function(name, ingredient){
   return new Promise(function(resolve,reject){
     var result = Formula.removeIngredient(name,ingredient);
     result.then(function(success){
+      resolve(success);
+    }).catch(function(error){
+      reject(error);
+    })
+  })
+}
+
+module.exports.removeTupleById = function(name, id){
+  return new Promise(function(resolve,reject){
+    var formula = Formula.findFormulaByName(name);
+    formula.then(function(form) {
+      if(form.tuples.length == 1){
+        var error = new Error('A formula must contain at least one {ingredient, quantity} tuple.');
+        error.status = 400;
+        throw(error);
+      }
+      var promises = [];
+      var index;
+      for (let tuple of form.tuples) {
+        if (tuple._id.toString() === id.toString()) {
+          index = tuple.index;
+        }
+      }
+      for (let tuple of form.tuples) {
+        if (tuple.index > index) {
+          var newIndex = tuple.index - 1;
+          promises.push(exports.updateTuple(name, newIndex, tuple.ingredientID, tuple.quantity));
+        }
+      }
+      return Promise.all(promises);
+    }).then(function(results) {
+      return Formula.removeTupleById(name,id);
+    }).then(function(success) {
       resolve(success);
     }).catch(function(error){
       reject(error);
@@ -166,6 +207,12 @@ module.exports.updateTuple = function(name, index, ingredient, quantity){
       for (i = 0; i < tuples.length; i++) {
         let tuple = tuples[i];
         if (ingResult['_id'].toString() === tuple['ingredientID'].toString()) {
+          if (index != tuple.index) {
+            quantity = Number(quantity) + tuple.quantity;
+            index = tuple.index;
+          }
+          console.log("index = " + index);
+          console.log("tuple index = " + tuple.index);
           return Formula.updateTuple(name, index, tuple.ingredient, ingResult['name'], ingredient, quantity);
         }
       }

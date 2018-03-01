@@ -62,7 +62,7 @@ module.exports.deleteFormula = function(name) {
 module.exports.updateFormula = function(name, newName, description, units) {
   return Formula.findOneAndUpdate({ 'name': name }, {
     '$set': {
-      'name': name,
+      'name': newName,
       'description': description,
       'units': units
     }
@@ -75,8 +75,15 @@ module.exports.addTuple = function(name, index, ingredient, ingredientID, quanti
 }
 
 module.exports.removeTuple = function(name, ingredient){
-  console.log("removed");
   return Formula.findOneAndUpdate({'name':name},{'$pull':{'tuples':{'ingredient':ingredient}}}).exec();
+}
+
+module.exports.removeTupleById = function(name, id){
+  id = mongoose.Types.ObjectId(id.toString());
+  console.log("remove");
+  console.log(name);
+  console.log(id);
+  return Formula.findOneAndUpdate({'name':name},{'$pull':{'tuples':{'ingredientID':id}}}).exec();
 }
 
 module.exports.updateTuple = function(name, index, oldIngredient, ingredient, ingredientID, quantity){

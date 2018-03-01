@@ -13,11 +13,25 @@ module.exports.encryptUserData = function(req, res, next) {
 
 }
 
+module.exports.getVendorID = function(vendorName) {
+  return new Promise(function(resolve, reject) {
+    var id;
+    var vendQuery = Vendor.findVendorByName(vendorName);
+    vendQuery.then(function(vendor) {
+      id = vendor._id;
+      return id;
+    }).then(function(result) {
+      resolve(result);
+    }).catch(function(error) {
+      next(error);
+    })
+  })
+}
+
 module.exports.addToCart = function(id, ingId, quantity, vendor) {
-  console.log("add");
   return new Promise(function(resolve,reject) {
     var userQuery = User.getUserById(id);
-    var user, vendors, code;
+    var user, vendors, vendID;
     userQuery.then(function(userResult) {
       user = userResult;
       if (userResult == null) {
@@ -36,15 +50,15 @@ module.exports.addToCart = function(id, ingId, quantity, vendor) {
       var vendQuery = Vendor.findVendorByName(vendor);
       return vendQuery;
     }).then(function(vendResult) {
-      code = vendResult.code;
-      var entry = {'name': vendor, 'code': code, 'quantity': quantity};
+      vendID = vendResult._id;
+      var entry = {'vendID': vendID, 'quantity': quantity};
       for (let ing of user.cart) {
         if (ingId.toString() === ing.ingredient.toString()) {
           var total = quantity + ing.quantity;
           vendors = ing.vendors;
           var addVend = true;
           for (let vend of vendors) {
-            if (vendor === vend.name) {
+            if (vendID.toString() === vend.vendID.toString()) {
               var vendTotal = quantity + vend.quantity;
               vend['quantity'] = vendTotal;
               addVend = false;
@@ -156,6 +170,74 @@ module.exports.updateIngredientOnCheckout = function(ingId, vendors) {
       return Promise.all([ingUpdate, ingCostUpdate, spendingUpdate]);
     }).then(function(results) {
       resolve();
+    }).catch(function(error) {
+      reject(error);
+    })
+  })
+}
+
+module.exports.getCartVendors = function(orderVendors) {
+  return new Promise(function(resolve, reject) {
+    var promises = [];
+    var vendors = [];
+    var quantities = [];
+    for (j = 0; j < orderVendors.length; j++) {
+      quantities.push(orderVendors[j].quantity);
+      promises.push(Vendor.model.findById(orderVendors[j].vendID));
+    }
+    Promise.all(promises).then(function(vends) {
+      for (i = 0; i < vends.length; i++) {
+        if (vends[i] != null) {
+          var entry = {'name': vends[i].name, 'code': vends[i].code, 'quantity': quantities[i]};
+          vendors.push(entry);
+        }
+      }
+      return vendors;
+    }).then(function(result) {
+      resolve(result);
+    }).catch(function(error) {
+      reject(error);
+    })
+  })
+}
+
+module.exports.deleteVendor = function(id, vendID) {
+  return new Promise(function(resolve, reject) {
+    var userQuery = User.getUserById(id);
+    var cart;
+    userQuery.then(async function(user) {
+      cart = user.cart;
+      for (i = 0; i < cart.length; i++) {
+        var order = cart[i];
+        for (j = 0; j < order.vendors.length; j++) {
+          var vendor = order.vendors[j];
+          if (vendor.vendID.toString() === vendID.toString()) {
+            var index = order.vendors.indexOf(vendor);
+            order.vendors.splice(index,1);
+            j--;
+            var newQuantity = order.quantity - vendor.quantity;
+            await User.updateCart(id, order.ingredient, newQuantity, order.vendors);
+          }
+        }
+        if (order.vendors.length == 0) {
+          await User.removeOrder(id, order.ingredient);
+        }
+      }
+    }).then(function(result) {
+      resolve(result);
+    }).catch(function(error) {
+      reject(error);
+    })
+  })
+}
+
+module.exports.isVendorNull = function(vendID) {
+  return new Promise(function(resolve, reject) {
+    var promise = Vendor.model.findById(vendID);
+    promise.then(function(vend) {
+      return (vend == null);
+    }).then(function(result) {
+      resolve(result);
     }).catch(function(error) {
       reject(error);
     })

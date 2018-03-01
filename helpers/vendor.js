@@ -91,11 +91,11 @@ module.exports.deleteVendor = function(code){
         error.status = 400;
         throw(error);
       }
-      else{
+      else {
         var result = Vendor.deleteVendor(code);
       }
     }).then(function(result){
-      resolve(result.exec());
+      resolve(result);
     }).catch(function(error){
       reject(error);
     })

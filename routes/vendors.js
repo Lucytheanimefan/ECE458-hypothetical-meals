@@ -80,9 +80,19 @@ router.get('/vendor/id/:vendor_id', function(req, res, next) {
 //POST request to delete an existing ingredient
 //refactored
 router.post('/:code/delete', function(req, res, next) {
-  VendorHelper.deleteVendor(req.params.code);
-  logs.makeVendorLog('Delete', { 'vendor_code': req.params.code }, entities = ['vendor'], req.session.userId);
-  return res.redirect(req.baseUrl);
+  var vendID;
+  var vendQuery = Vendor.findVendorByCode(req.params.code);
+  vendQuery.then(function(vend) {
+    vendID = vend._id;
+    return VendorHelper.deleteVendor(req.params.code);
+  }).then(function(result) {
+    return UserHelper.deleteVendor(req.session.userId, vendID);
+  }).then(function(result) {
+    logs.makeVendorLog('Delete', { 'vendor_code': req.params.code }, entities = ['vendor'], req.session.userId);
+    return res.redirect(req.baseUrl);
+  }).catch(function(error) {
+    next(error);
+  })
 });
 
 //bare bones done, more implementation needed for adding other ingredients, currently hardcoded
@@ -169,16 +179,11 @@ router.post('/:code/order', async function(req, res, next) {
   let amount = parseFloat(req.body.quantity);
   var vendor, ingredient;
   vendQuery.then(function(vend) {
-    let oid = vend._id;
-    let vendId = mongoose.Types.ObjectId(oid);
     vendor = vend.name;
-    return VendorHelper.makeOrder(ingId, vendId, amount);
-  }).then(function(result) {
-    logs.makeVendorLog('Make order from vendor and add to cart', { 'vendor_code': req.params.code, 'Ingredient_ID': ingId }, entities = ['vendor', 'ingredient'], req.session.userId);
-    let ingQuery = Ingredient.getIngredientById(ingId);
-    return ingQuery;
+    return Ingredient.getIngredientById(ingId);
   }).then(function(ingResult) {
     ingredient = ingResult.name;
+    logs.makeVendorLog('Add to cart', { 'vendor_code': req.params.code, 'Ingredient_ID': ingId }, entities = ['vendor', 'ingredient'], req.session.userId);
     return UserHelper.addToCart(req.session.userId, ingId, amount, vendor);
   }).then(function(cartResult) {
     res.redirect('/users/cart');

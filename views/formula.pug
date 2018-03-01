@@ -54,29 +54,26 @@ block content
           .form-group
             label.control-label Description
             input.form-control(type='text', name='description', value = formula.description, required='')
-          div.tupleRow#data(data-ingredients=ingredients, data-tuples=formula.tuples)
+          div.tupleRow#data(data-ingredients=ingredients, data-tuples=formula.tuples, data-formula=formula.name)
             .row
               .col-md-11
                 each tuple in formula.tuples
-                  .row(id='tuple'+tuple.index)
+                  .row.preexists(id='tuple'+tuple.index)
                     .col-md-6
                       .form-group
-                      label.control-label Ingredient
-                      select.form-control(id='ingredient'+tuple.index, name='ingredient'+tuple.index)
-                        option(disabled="" selected="" value="") Select an Ingredient
-                        each ingredient in ingredients
-                          option(value=ingredient._id)= ingredient['name']
+                        label.control-label Ingredient
+                        select.form-control(id='ingredient'+tuple.index, name='ingredient'+tuple.index)
+                          option(disabled="" selected="" value="") Select an Ingredient
+                          each ingredient in ingredients
+                            option(value=ingredient._id)= ingredient['name']
                     .col-md-4
                       .form-group
-                      label.control-label Quantity
-                      input.form-control(type='number', id='quantity'+tuple.index, name='quantity'+tuple.index, min='0', step='0.01', value=tuple.quantity, required='')
+                        label.control-label Quantity
+                        input.form-control(type='number', id='quantity'+tuple.index, name='quantity'+tuple.index, min='0', step='0.01', value=tuple.quantity, required='')
                     .col-md-2
                       p
                         br
-                        br
-                        br
-                        br
-                      button#btn1.btn.btn-round.btn-just-icon.remove(type='button', value='remove', style='background-color:red;')
+                      button.btn.btn-round.btn-just-icon.remove(id=tuple.id, name=formula.name, type='button', value='remove', onclick='deleteTuple('+tuple.index+')', style='background-color:red;')
                         i.material-icons delete
               .col-md-1
                 p
@@ -88,12 +85,28 @@ block content
             input.form-control(type='number', name='units', min='0', value = formula.units, required='')
 
           button.btn.btn-primary.pull-right(type='submit') Update Formula
+  div#index(data-start=formula.tuples.length)
 
 block scripts
   script.
     var tuples = document.getElementById('data').dataset.tuples;
+    tuples = JSON.parse(tuples);
     selectTuple(tuples);
 
     var ingredients = document.getElementById('data').dataset.ingredients;
-    var start = #{formula.tuples.length};
+    ingredients = JSON.parse(ingredients);
+    console.log(ingredients);
+    for (let tuple of tuples) {
+      for (i = 0; i < ingredients.length; i++) {
+        var ing = ingredients[i];
+        if (ing._id.toString() === tuple.ingredientID.toString()) {
+          ingredients.splice(i, 1);
+          break;
+        }
+      }
+      //var entry = {'_id': tuple.ingredientID, 'name': tuple.ingredient};
+    }
+
+    console.log(ingredients);
+    var start = document.getElementById('index').dataset.start;
     addTuples(ingredients, start);
