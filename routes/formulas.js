@@ -171,20 +171,26 @@ router.post('/new', async function(req, res, next) {
   let name = req.body.name;
   let description = req.body.description;
   let units = req.body.units;
+  var body = req.body;
+  delete body['name'];
+  delete body['description'];
+  delete body['units'];
+  var length = Object.keys(body).length;
   var promise = FormulaHelper.createFormula(name, description, units);
+  console.log(body);
   promise.then(async function(result) {
-    console.log('Formula result:')
-    console.log(result);
     var index = 1;
+    var count = 1;
     var ingredient, quantity;
-    //let tuplePromises = [];
-    while (req.body["ingredient" + index] != undefined) {
-      ingredient = req.body["ingredient" + index];
-      quantity = req.body["quantity" + index];
-      await FormulaHelper.updateTuple(name, index, ingredient, quantity);
+    while (req.body["ingredient" + index] != undefined || count <= length/2) {
+      if (req.body["ingredient" + index] != undefined) {
+        ingredient = req.body["ingredient" + index];
+        quantity = req.body["quantity" + index];
+        await FormulaHelper.updateTuple(name, count, ingredient, quantity);
+        count = count + 1;
+      }
       index = index + 1;
     }
-    //return Promise.all(tuplePromises);
   }).then(function(formula) {
     logs.makeLog('Create formula', JSON.stringify({formula_name:name}), ['formula'], req.session.userId);
     res.redirect(req.baseUrl + '/' + name);
