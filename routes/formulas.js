@@ -80,19 +80,18 @@ router.post('/:name/update', function(req, res, next) {
   let description = req.body.description;
   let units = req.body.units;
   var promise = FormulaHelper.updateFormula(name, newName, description, units);
-  promise.then(function() {
+  promise.then(async function() {
     var index = 1;
     var ingredient, quantity;
-    let tuplePromises = [];
     while (req.body["ingredient" + index] != undefined) {
       ingredient = req.body["ingredient" + index];
       quantity = req.body["quantity" + index];
-      tuplePromises.push(FormulaHelper.updateTuple(name, index, ingredient, quantity));
+      await FormulaHelper.updateTuple(name, index, ingredient, quantity);
       index = index + 1;
     }
-    return Promise.all(tuplePromises);
+    //return Promise.all(tuplePromises);
   }).then(function(tuples) {
-    logs.makeLog('Update formula', JSON.stringify({formula:tuples[0]}), ['formula'], req.session.userId);
+    //logs.makeLog('Update formula', JSON.stringify({formula:tuples[0]}), ['formula'], req.session.userId);
     res.redirect(req.baseUrl + '/' + name);
   }).catch(function(error) {
     next(error);
@@ -147,6 +146,7 @@ router.post('/:name/order/:amount', function(req, res, next) {
 router.post('/:name/delete_tuple', function(req, res, next) {
   let name = req.body.name;
   let id = req.body.id;
+  console.log("name = " + name);
   var promise = FormulaHelper.removeTupleById(name, id);
   promise.then(function(results) {
     res.send({'success':true});
@@ -161,21 +161,21 @@ router.post('/new', async function(req, res, next) {
   let description = req.body.description;
   let units = req.body.units;
   var promise = FormulaHelper.createFormula(name, description, units);
-  promise.then(function(result) {
+  promise.then(async function(result) {
     console.log('Formula result:')
     console.log(result);
     var index = 1;
     var ingredient, quantity;
-    let tuplePromises = [];
+    //let tuplePromises = [];
     while (req.body["ingredient" + index] != undefined) {
       ingredient = req.body["ingredient" + index];
       quantity = req.body["quantity" + index];
-      tuplePromises.push(FormulaHelper.addTuple(name, index, ingredient, quantity));
+      await FormulaHelper.updateTuple(name, index, ingredient, quantity);
       index = index + 1;
     }
-    return Promise.all(tuplePromises);
+    //return Promise.all(tuplePromises);
   }).then(function(formula) {
-    logs.makeLog('Create formula', JSON.stringify({formula:formula[0]}), ['formula'], req.session.userId);
+    //logs.makeLog('Create formula', JSON.stringify({formula:formula[0]}), ['formula'], req.session.userId);
     res.redirect(req.baseUrl + '/' + name);
   }).catch(function(error) {
     next(error);

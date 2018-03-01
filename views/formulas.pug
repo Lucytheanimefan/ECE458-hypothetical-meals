@@ -55,10 +55,18 @@ block content
                       option(disabled="" selected="" value="") Select an Ingredient
                       each ingredient in ingredients
                         option(value=ingredient._id)= ingredient['name']
-                  .col-md-6
+                  .col-md-4
                     .form-group
                     label.control-label Quantity
                     input#quantity1.form-control(type='number', name='quantity1', min='0', step='0.01', required='')
+                  .col-md-2
+                    p
+                      br
+                      br
+                      br
+                      br
+                    button.btn.btn-round.btn-just-icon.remove(type='button', value='remove', onclick='deleteTuple(1)', style='background-color:red;')
+                      i.material-icons delete
               .col-md-1
                 p
                   br
@@ -68,8 +76,10 @@ block content
             label.control-label Number of Units Produced
             input.form-control(type='number', name='units', min='0', required='')
           button.btn.btn-primary.pull-right(type='submit', value='add vendor') Add Formula
+  div#index(data-start=1)
 
 block scripts
   script.
     var ingredients = document.getElementById('data').dataset.ingredients;
+    ingredients = JSON.parse(ingredients);
     addTuples(ingredients, 1);

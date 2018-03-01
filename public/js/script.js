@@ -398,13 +398,14 @@ function createOrLoginAccountNetID(userdata) {
 }
 
 function addTuples(ingredients, start) {
-  var next = start;
-  ingredients = JSON.parse(ingredients);
+  var next;
   $("#btn1").click(function(e) {
     e.preventDefault();
+    next = Number(document.getElementById('index').dataset.start);
     var addTo = "#tuple" + next;
     next = next + 1;
 
+    console.log(next);
     var newHTML = '<div id="tuple' + next + '" class="row">';
     newHTML += '<div class="col-md-6"><div class="form-group"></div><label class="control-label">Ingredient</label>';
     newHTML += '<select class="form-control" id="ingredient' + next + '" name="ingredient' + next + '"><option disabled="" selected="" value="">Select an Ingredient</option>';
@@ -419,12 +420,16 @@ function addTuples(ingredients, start) {
     newHTML += '<input class="form-control" id="quantity' + next + '" type="number" name="quantity' + next + '" min="0" step="0.01"/></div>';
     newHTML += '<div class="col-md-2"><p><br/><br/><br/><br/></p>';
     //newHTML += '<div class="removeBtn" id="dataBtn">';
-    console.log($("#ingredientSelect" + next).val());
+    //console.log($("#ingredientSelect" + next).val());
     newHTML += '<button class="btn btn-round btn-just-icon remove" type="button" value="remove" onclick=deleteTuple(' + next + ') style="background-color:red;"><i class="material-icons">delete</i></button></div>';
     newHTML += '</div>'
     var newInput = $(newHTML);
     $(addTo).after(newInput);
     $("#tuple" + next).attr('data-source', $(addTo).attr('data-source'));
+
+    //var start = document.getElementById('index').dataset.start;
+    next = next - 1;
+    document.getElementById('index').dataset.start = Number(next)+1;
   });
 }
 
@@ -432,14 +437,12 @@ function deleteTuple(index) {
   if ($('#tuple' + index).hasClass('preexists')) {
     console.log("Delete tuple from db");
     // Delete the thing from the db
+    //var name = $("#ingredient" + index).data("ingredientname");
+    var name = document.getElementById('data').dataset.formula;
     var ingredientID = $("#ingredient" + index).val();
-    var name = $("#ingredient" + index).data("ingredientname");
 
-    console.log(name);
-    console.log(ingredientID);
     if (name != null && ingredientID != null) {
       var tupleData = { "name": name, "id": ingredientID }
-      console.log(name);
       $.ajax({
         type: 'POST',
         url: '/formulas/' + name + '/delete_tuple',
@@ -453,7 +456,7 @@ function deleteTuple(index) {
             // var tupleName = "tuple"+index;
             // var delElem = document.getElementById(tupleName);
             // delElem.remove();
-            $('#' + id).remove();
+            //$('#' + id).remove();
           }
 
         }
@@ -461,7 +464,10 @@ function deleteTuple(index) {
     }
   }
   $('#tuple' + index).remove();
-
+  var start = document.getElementById('index').dataset.start;
+  if (start == index) {
+    document.getElementById('index').dataset.start = Number(start)-1;
+  }
 
   // let name = element.name;
   // let id = element.id;
@@ -498,7 +504,6 @@ function deleteTuple(index) {
 }
 
 function selectTuple(tuples) {
-  tuples = JSON.parse(tuples);
   for (i = 0; i < tuples.length; i++) {
     var id = tuples[i].ingredientID;
     $("#ingredient" + (i + 1)).val(id).attr("selected", "true");
