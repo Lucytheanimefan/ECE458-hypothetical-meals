@@ -80,19 +80,19 @@ router.post('/:name/update', function(req, res, next) {
   let description = req.body.description;
   let units = req.body.units;
   var promise = FormulaHelper.updateFormula(name, newName, description, units);
-  promise.then(async function() {
+  promise.then(async function(result) {
     var index = 1;
     var ingredient, quantity;
     while (req.body["ingredient" + index] != undefined) {
       ingredient = req.body["ingredient" + index];
       quantity = req.body["quantity" + index];
-      await FormulaHelper.updateTuple(name, index, ingredient, quantity);
+      await FormulaHelper.updateTuple(newName, index, ingredient, quantity);
       index = index + 1;
     }
     //return Promise.all(tuplePromises);
-  }).then(function(tuples) {
-    //logs.makeLog('Update formula', JSON.stringify({formula:tuples[0]}), ['formula'], req.session.userId);
-    res.redirect(req.baseUrl + '/' + name);
+  }).then(function(result) {
+    logs.makeLog('Update formula', JSON.stringify({formula_name:newName}), ['formula'], req.session.userId);
+    res.redirect(req.baseUrl + '/' + newName);
   }).catch(function(error) {
     next(error);
   });
@@ -175,7 +175,7 @@ router.post('/new', async function(req, res, next) {
     }
     //return Promise.all(tuplePromises);
   }).then(function(formula) {
-    //logs.makeLog('Create formula', JSON.stringify({formula:formula[0]}), ['formula'], req.session.userId);
+    logs.makeLog('Create formula', JSON.stringify({formula_name:name}), ['formula'], req.session.userId);
     res.redirect(req.baseUrl + '/' + name);
   }).catch(function(error) {
     next(error);

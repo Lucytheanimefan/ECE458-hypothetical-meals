@@ -463,10 +463,12 @@ function deleteTuple(index) {
       });
     }
   }
-  $('#tuple' + index).remove();
-  var start = document.getElementById('index').dataset.start;
-  if (start == index) {
-    document.getElementById('index').dataset.start = Number(start)-1;
+  if (index > 1) {
+    $('#tuple' + index).remove();
+    var start = document.getElementById('index').dataset.start;
+    if (start == index) {
+      document.getElementById('index').dataset.start = Number(start)-1;
+    }
   }
 
   // let name = element.name;
