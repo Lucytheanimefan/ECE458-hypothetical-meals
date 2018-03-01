@@ -152,7 +152,6 @@ module.exports.updateIngredientOnCheckout = function(ingId, vendors) {
       let totalCost = 0;
       let averageCost = 0;
       let totalPackages = 0;
-      console.log(results);
       for (let tuple of results) {
         let vendor = tuple['vendor'];
         for (j = 0; j < vendor['catalogue'].length; j++) {
