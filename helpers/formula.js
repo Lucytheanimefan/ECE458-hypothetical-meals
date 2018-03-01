@@ -97,6 +97,7 @@ module.exports.updateTuples = function(ingredient, ingredientID) {
 
 module.exports.addTuple = function(name, index, ingredientID, quantity) {
   return new Promise(function(resolve,reject){
+    var formula;
     var formQuery = Formula.findFormulaByName(name);
     formQuery.then(function(form){
       if(form==null){
@@ -104,6 +105,7 @@ module.exports.addTuple = function(name, index, ingredientID, quantity) {
         error.status = 400;
         throw(error);
       }
+      formula = form;
       if(parseFloat(quantity) < 0){
         var error = new Error('Invalid quantity: ${quantity}. Please enter a valid quantity.');
         error.status = 400;
@@ -118,6 +120,12 @@ module.exports.addTuple = function(name, index, ingredientID, quantity) {
         error.status = 400;
         throw(error);
       }
+      /*for (let tuple of formula.tuples) {
+        if (tuple.ingredientID.toString() === ingredientID) {
+          var newQuantity = tuple.quantity + Number(quantity);
+          return Formula.updateTuple(name, tuple.index, tuple.ingredientID, newQuantity);
+        }
+      }*/
       return Formula.addTuple(name,index,ingResult.name,ingredientID,quantity);
     }).then(function(formula) {
       resolve(formula);
@@ -142,7 +150,6 @@ module.exports.removeTupleById = function(name, id){
   return new Promise(function(resolve,reject){
     var formula = Formula.findFormulaByName(name);
     formula.then(function(form) {
-      console.log(form)
       if(form.tuples.length == 1){
         var error = new Error('A formula must contain at least one {ingredient, quantity} tuple.');
         error.status = 400;
@@ -200,6 +207,12 @@ module.exports.updateTuple = function(name, index, ingredient, quantity){
       for (i = 0; i < tuples.length; i++) {
         let tuple = tuples[i];
         if (ingResult['_id'].toString() === tuple['ingredientID'].toString()) {
+          if (index != tuple.index) {
+            quantity = Number(quantity) + tuple.quantity;
+            index = tuple.index;
+          }
+          console.log("index = " + index);
+          console.log("tuple index = " + tuple.index);
           return Formula.updateTuple(name, index, tuple.ingredient, ingResult['name'], ingredient, quantity);
         }
       }
