@@ -102,9 +102,11 @@ module.exports.incrementAmount = function(id, amount) {
         throw error;
       }
     }).then(function(result) {
-      Ingredient.incrementAmount(ing.name, amount);
+      return Ingredient.incrementAmount(ing.name, amount);
     }).then(function(result) {
-      resolve("updated ingredient!");
+      return Ingredient.updateSpace(ing.name);
+    }).then(function(result) {
+      resolve(result);
     }).catch(function(error) {
       reject(error);
     })
