@@ -58,7 +58,7 @@ module.exports.makeVendorLog = function(title, vendor, initiating_user) {
 
 // General purpose
 module.exports.makeLog = function(title, description, initiating_user) {
-  makeLog(title, description, entities, initiating_user);
+  makeLog(title, description, initiating_user);
 }
 
 
