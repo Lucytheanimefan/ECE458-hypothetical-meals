@@ -3,6 +3,7 @@ mongoose.Promise = global.Promise;
 var path = require('path');
 var User = require(path.resolve(__dirname, "./user.js"));
 var Log = require(path.resolve(__dirname, "./log.js"));
+var InventoryHelper = require('../helpers/inventory');
 
 var IngredientSchema = new mongoose.Schema({
   name: {
@@ -39,6 +40,10 @@ var IngredientSchema = new mongoose.Schema({
   averageCost: {
     type: Number
   },
+  space: {
+    type: Number,
+    required:true
+  },
   vendors: [{
     vendorId: {
       type: String,
@@ -57,6 +62,7 @@ module.exports.createIngredient = function(name, package, temp, nativeUnit, unit
     'nativeUnit': nativeUnit,
     'unitsPerPackage': parseFloat(unitsPerPackage),
     'averageCost': 0,
+    'space': InventoryHelper.calculateSpace(package.toLowerCase(), parseFloat(unitsPerPackage), parseFloat(amount)),
     'amount': parseFloat(amount)
   });
 }
@@ -86,6 +92,7 @@ module.exports.updateIngredient = function(name, newName, package, temp, nativeU
       'temperature': temp.toLowerCase(),
       'nativeUnit': nativeUnit,
       'unitsPerPackage': parseFloat(unitsPerPackage),
+      'space': InventoryHelper.calculateSpace(package.toLowerCase(), parseFloat(unitsPerPackage), parseFloat(amount)),
       'amount': parseFloat(amount)
     }
   }).exec();
@@ -97,6 +104,18 @@ module.exports.incrementAmount = function(name, amount) {
       'amount': parseFloat(amount)
     }
   }).exec();
+}
+
+module.exports.updateSpace = function(name) {
+  return new Promise(function(resolve, reject) {
+    exports.getIngredient(name).then(function(ing) {
+      return exports.updateIngredient(ing.name, ing.name, ing.package. ing.temperature, ing.nativeUnit, ing.unitsPerPackage, ing.amount);
+    }).then(function(ing) {
+      resolve(ing);
+    }).catch(function(error) {
+      reject(error);
+    })
+  })
 }
 
 module.exports.deleteIngredient = function(name) {
