@@ -53,7 +53,7 @@ module.exports.makeUserLog = function(title, user, initiating_user) {
 }
 
 module.exports.makeVendorLog = function(title, vendor, initiating_user) {
-  makeLog('Vendor Action: ' + title, vendor, entities, initiating_user);
+  makeLog('Vendor Action: ' + title, vendor, initiating_user);
 }
 
 // General purpose
