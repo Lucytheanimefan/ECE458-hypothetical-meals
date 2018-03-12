@@ -4,9 +4,10 @@ block link
   -var selected = 'Vendors';
 
 block content
-  form.adminOnly.hide(action='/vendors/' + vendor.code + '/delete', method='post')
-    button.btn.btn-primary.pull-right(type='submit', value = 'Delete vendor') Delete
+  form(action='/vendors')
+    button.btn.btn-primary.pull-right(type='submit') Back to Vendors
   h1= vendor.name
+
   p(style='white-space: pre;').
     Code:
     #{vendor.code}
@@ -16,6 +17,8 @@ block content
   p(style='white-space: pre;').
     Location:
     #{vendor.location}
+  form.adminOnly.hide(action='/vendors/' + vendor.code + '/delete', method='post')
+    button.btn.btn-primary.pull-left(type='submit', value = 'Delete vendor') Delete Vendor 
   div.card
     div.card-header(data-background-color='purple')
       h4.title Catalogue
