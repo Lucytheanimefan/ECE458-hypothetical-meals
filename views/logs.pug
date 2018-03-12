@@ -22,7 +22,7 @@ block content
           each log in logs
             tr(id=log._id)
               td
-                a(href='/logs/log/'+log.initiating_user+'?title='+log.title+'&description=' + log.description + '&time='+log.time+'&entities=' + log.entities)= log.title
+                a(href='/logs/log/'+log._id)= log.title
               td= log.time
               if log.description
                 td!= log.description

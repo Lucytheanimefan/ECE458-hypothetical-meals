@@ -15,25 +15,29 @@ router.get('/', (req, res, next) => {
   });
 });
 
-router.get('/log/:userid', (req, res, next) => {
+router.get('/log/:id', (req, res, next) => {
   console.log(req.query)
   let title = req.query.title
-  User.findById(req.params.userid)
-    .exec(function(error, user) {
-      res.render('log', {
-        title: req.query.title,
-        time: req.query.time,
-        description: req.query.description,
-        entities: req.query.entities,
-        user:user.username
-      })
-    });
+  // User.findById(req.params.userid)
+  //   .exec(function(error, user) {
+  Log.findOne({ '_id': req.params.id }).exec(function(err, log) {
+    if (err) {
+      callback(err);
+    }
+    res.render('log', {
+      title: log.title,
+      time: log.time,
+      description: log.description,
+      user: log.initiating_user
+    })
+  })
+  // });
 })
 
 router.post('/delete', (req, res, next) => {
   console.log('Delete logs!');
-  Log.remove({}, function(err){
-    if (err){
+  Log.remove({}, function(err) {
+    if (err) {
       console.log(err);
       next(err);
     }
