@@ -114,7 +114,7 @@ router.post('/:name/delete', function(req, res, next) {
       );
     }
   }).then(function(ing) {
-    logs.makeIngredientLog('Delete ingredient', {ingredient:req.params.name}, ['ingredient'], req.session.userId);
+    logs.makeIngredientLog('Delete ingredient', 'Deleted <a href="/ingredients/' + req.params.name + '">' + req.params.name + '</a>'/*{ingredient:req.params.name}*/, req.session.username);
     var promise = UserHelper.updateCart(req.session.userId);
     return promise;
   }).then(function(result) {
@@ -127,7 +127,7 @@ router.post('/:name/delete', function(req, res, next) {
 
 router.post('/:name/update', function(req, res, next) {
   let ingName = req.body.name;
-  let initiating_user = req.session.userId;
+  let initiating_user = req.session.username;
   console.log(initiating_user)
 
   var updatePromise = IngredientHelper.updateIngredient(
@@ -140,7 +140,7 @@ router.post('/:name/update', function(req, res, next) {
     parseFloat(req.body.amount)
   );
   updatePromise.then(function(ingredient) {
-    logs.makeIngredientLog('Update ingredient', {'ingredient_id': ingredient._id}, ['ingredient'], initiating_user);
+    logs.makeIngredientLog('Update ingredient', 'Updated <a href="/ingredients/' + req.params.name + '">' + req.params.name + '</a>', initiating_user);
     res.redirect(req.baseUrl + '/' + encodeURIComponent(ingName));
   }).catch(function(error) {
     next(error);
@@ -149,8 +149,8 @@ router.post('/:name/update', function(req, res, next) {
 });
 
 router.post('/new', function(req, res, next) {
-  let ingName = req.body.name;
-  let initiating_user = req.session.userId;
+  var ingName = req.body.name;
+  var initiating_user = req.session.username;
   var promise = IngredientHelper.createIngredient(
     ingName,
     req.body.package,
@@ -160,7 +160,7 @@ router.post('/new', function(req, res, next) {
     parseFloat(req.body.amount)
   );
   promise.then(function(ingredient) {
-    logs.makeIngredientLog('Create ingredient', {'ingredient_id': ingredient._id}, ['ingredient'], initiating_user);
+    logs.makeIngredientLog('Create ingredient','Created <a href="/ingredients/' + ingName + '">' + ingName + '</a>'/*{'ingredient_id': ingredient._id}*/, initiating_user);
     res.redirect(req.baseUrl + '/' + encodeURIComponent(ingName));
   }).catch(function(error) {
     next(error);
@@ -171,10 +171,12 @@ router.post('/new', function(req, res, next) {
 
 router.post('/:name/add-vendor', function(req, res, next) {
   let ingName = req.params.name;
-  let initiating_user = req.session.userId;
+  let initiating_user = req.session.username;
   //addVendor = function(name, vendorId, cost) 
   IngredientHelper.addVendor(ingName, req.body.vendor, req.body.cost).then(function(results) {
-    logs.makeIngredientLog('Add vendor to ingredient', {'ingredient_name':ingName, 'vendor_id': req.body.vendor}, ['ingredient','vendor'], initiating_user);
+    logs.makeIngredientLog('Add vendor to ingredient', 
+      'Added <a href="/vendors/' + encodeURIComponent(req.body.vendor)+'">'+vendor+'</a> '+ to +
+      ' ingredient <a href="/ingredients/' + req.params.name + '">' + req.params.name + '</a>' /*{'ingredient_name':ingName, 'vendor_id': req.body.vendor}*/, initiating_user);
     res.redirect(req.baseUrl + '/' + encodeURIComponent(ingName));
   }).catch(function(error) {
     next(error);
@@ -196,11 +198,15 @@ router.post('/order/add/to/cart', function(req, res, next) {
     }
     return Promise.all(orderArray);
   }).then(function(results) {
+    var logResults = "";
     for (let result of results) {
       let vendor = result[0];
       let ing = result[1];
-      logs.makeVendorLog('Add to cart', { 'vendor_code': vendor.code, 'Ingredient_ID': mongoose.Types.ObjectId(ing['_id']) }, entities = ['vendor', 'ingredient'], userId);
+      logResults += '<li>Vendor <a href="/vendors/' + encodeURIComponent(vendor.code)+'">'+vendor.code+')</a> with '+
+      'ingredient <a href="/ingredients/' + ing['name'] + '">' + ing['name'] + '</a></li>'
     }
+    logs.makeLog('Add to cart', 
+      'Added the following to cart: <ul>' + logResults + '</ul>'/*{ 'vendor_code': vendor.code, 'Ingredient_ID': mongoose.Types.ObjectId(ing['_id']) }*/, req.session.username);
     res.redirect('/users/cart');
   }).catch(function(error) {
     next(error);

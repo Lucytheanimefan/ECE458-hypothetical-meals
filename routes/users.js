@@ -84,6 +84,7 @@ router.post('/', function(req, res, next) {
         return next(err);
       } else {
         req.session.userId = user._id;
+        req.session.username = user.username;
         req.session.role = user.role.toLowerCase();
         return res.redirect(req.baseUrl + '/profile');
       }
@@ -109,6 +110,7 @@ router.post('/', function(req, res, next) {
           logs.makeUserLog('Created user', {username:user.username}, ['user'], req.session.userId);
 
           req.session.userId = user._id;
+          req.session.username = user.username;
           console.log('Render message');
           return res.send({ 'success': true, 'netid': user.netid });
 
@@ -116,6 +118,7 @@ router.post('/', function(req, res, next) {
 
       } else {
         req.session.userId = user._id;
+        req.session.username = user.username;
         res.send({ 'success': true, 'netid': user.netid });
       }
     });

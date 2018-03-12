@@ -28,6 +28,7 @@
     "formidable": "^1.1.1",
     "js-popup": "^1.0.4",
     "mongodb": "^3.0.1",
+    "mongodb-backup": "^1.6.9",
     "mongoose": "^4.13.9",
     "mongoose-double": "0.0.1",
     "mongoose-paginate": "^5.0.3",

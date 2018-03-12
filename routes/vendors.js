@@ -104,7 +104,10 @@ router.post('/:code/add_ingredients', function(req, res, next) {
       return next(err);
     }
     let ingId = mongoose.Types.ObjectId(result._id);
-    logs.makeVendorLog('Add ingredients', { 'Vendor code': req.params.code, 'Ingredient_ID': ingId, 'Cost': req.body.cost }, entities = ['vendor', 'ingredient'], req.session.userId);
+    let vendor_code = req.params.code;
+    let ingredient_name = result.name;
+    logs.makeVendorLog('Add ingredients to vendor', 'Added ingredient '+'<a href="/ingredients/' + ingredient_name + '">' + ingredient_name + '</a> '+ 
+      'to vendor <a href="/vendors/' + vendor_code + '">' + vendor_code + '</a>'/*{ 'Vendor code': req.params.code, 'Ingredient_ID': ingId, 'Cost': req.body.cost }*/, req.session.username);
 
     return vend = VendorHelper.addIngredient(req.params.code, result._id, req.body.cost);
 
