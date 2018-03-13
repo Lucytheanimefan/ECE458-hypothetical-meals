@@ -9,4 +9,4 @@ env.json
 .dbshell
 /uploads/*.csv
 /uploads/*.js
-backups/*
+backups/*.tar
