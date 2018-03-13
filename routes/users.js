@@ -63,7 +63,7 @@ router.post('/', function(req, res, next) {
         console.log(error);
         return next(error);
       } else {
-        logs.makeUserLog('Creation', {username:user.username}, 'user', req.session.userId);
+        logs.makeUserLog('Created user', 'Created user <a href="/users/user/' + user.username + '">' + user.username + '</a>', req.session.username);
 
         console.log('Hash the password');
         res.redirect(req.baseUrl + '/admin');
@@ -84,6 +84,7 @@ router.post('/', function(req, res, next) {
         return next(err);
       } else {
         req.session.userId = user._id;
+        req.session.username = user.username;
         req.session.role = user.role.toLowerCase();
         return res.redirect(req.baseUrl + '/profile');
       }
@@ -99,16 +100,18 @@ router.post('/', function(req, res, next) {
       } else if (user == null) {
 
         // Create a user if it doesn't exist
-        let user_data = { 'netid': req.body.netid, 'email': req.body.email,'username': req.body.netid, 'isDukePerson': true };
+        let user_data = { 'netid': req.body.netid, 'email': req.body.email, 'username': req.body.netid, 'isDukePerson': true };
         User.create(user_data, function(error, user) {
           if (error) {
             console.log("Error creating user: " + error);
             return res.send({ 'success': false, 'error': 'Error creating user for this Duke netid' });
           }
 
-          logs.makeUserLog('Created user', {username:user.username}, ['user'], req.session.userId);
+
+          logs.makeUserLog('Created user', 'Created user <a href="/users/user/' + user.username + '">' + user.username + '</a>', req.session.username);
 
           req.session.userId = user._id;
+          req.session.username = user.username;
           console.log('Render message');
           return res.send({ 'success': true, 'netid': user.netid });
 
@@ -116,6 +119,7 @@ router.post('/', function(req, res, next) {
 
       } else {
         req.session.userId = user._id;
+        req.session.username = user.username;
         res.send({ 'success': true, 'netid': user.netid });
       }
     });
@@ -180,7 +184,8 @@ router.post('/delete/:username', function(req, res, next) {
       err.status = 400;
       return next(err);
     } else {
-      logs.makeUserLog('Deleted user', {username:result.username}, ['user'], req.session.userId);
+      let username = result.username;
+      logs.makeUserLog('Deleted user', 'Deleted user ' + username, req.session.username);
       //alert user the ingredient has been deleted.
       return res.redirect(req.baseUrl + '/admin');
     }
@@ -204,7 +209,7 @@ router.post('/update', async function(req, res, next) {
       //logs.makeUserLog('Update error', user, 'user', req.session.userId);
       return next(err);
     }
-    logs.makeUserLog('Updated user', user, ['user'], req.session.userId);
+    logs.makeUserLog('Updated user', 'Updated user <a href="/users/user/' + user.username + '">' + user.username + '</a>', req.session.username);
     return res.redirect(req.baseUrl + '/profile');
   })
 });
@@ -224,7 +229,8 @@ router.post('/update/:username', async function(req, res, next) {
     if (err) {
       return next(err);
     }
-    logs.makeUserLog('Updated user', {username:user.username}, ['user'], req.session.userId);
+
+    logs.makeUserLog('Updated user', 'Updated user <a href="/users/user/' + user.username + '">' + user.username + '</a>', req.session.username);
     return res.redirect(req.baseUrl + '/admin');
   })
 });
@@ -384,14 +390,16 @@ router.post('/remove_ingredient', function(req, res, next) {
   console.log('POST remove_ingredient')
   let ingredient = req.body.ingredient;
   var id;
+  var ingredient_name;
   var ingQuery = Ingredient.getIngredient(ingredient);
   ingQuery.then(function(ing) {
     id = ing._id;
+    ingredient_name = ing.name;
     var promise = UserHelper.removeOrder(req.session.userId, id);
     return promise;
   }).then(function(result) {
     console.log(result);
-    logs.makeLog('Remove ingredient from cart', JSON.stringify({ ingredient_id: id }), ['cart'], req.session.userId);
+    logs.makeLog('Remove ingredient from cart', 'Removed ingredient <a href="/ingredients/' + ingredient_name + '">' + ingredient_name + '</a> from cart' /*JSON.stringify({ ingredient_id: id })*/ , req.session.username);
     res.redirect(req.baseUrl + '/cart');
   }).catch(function(error) {
     next(error);
@@ -450,8 +458,9 @@ router.post('/edit_order', function(req, res, next) {
       }
     }
   }).then(function(results) {
+    console.log("Edit cart results: ");
     console.log(cart);
-    logs.makeLog('Edit order', JSON.stringify(cart), ['cart'], req.session.userId);
+    logs.makeLog('Edit cart order', 'Edited cart', req.session.username);
     res.redirect('/users/cart');
   }).catch(function(error) {
     next(error);
@@ -471,7 +480,16 @@ router.post('/checkout_cart', function(req, res, next) {
     }
     return Promise.all(promises);
   }).then(function(ings) {
-    logs.makeLog('Check out cart', JSON.stringify({ cart: cart, ingredients: ings }), ['cart', 'inventory'], req.session.userId);
+    console.log(ings);
+    console.log(cart);
+    var checkoutIngredientLog = '';
+    if (ings != null) {
+      for (var i = 0; i < ings.length; i++) {
+        console.log(ings[i]);
+        checkoutIngredientLog += '<li><a href="/ingredients/' + ings[i].name + '">' + ings[i].name + '</a></li>'
+      }
+    }
+    logs.makeLog('Check out cart', 'Checked out cart' /*'Checkout cart with ingredients: <ul>' + checkoutIngredientLog + '</ul>'*/ , req.session.username);
     res.redirect('/users/cart');
   }).catch(function(error) {
     next(error);

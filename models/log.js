@@ -18,12 +18,8 @@ var LogSchema = new mongoose.Schema({
     default: Date.now,
     required: true
   },
-  entities: {
-    type: Array, //an array of strings (the entities involved)
-    required: true
-  },
   initiating_user: { //the initiating user
-    type: ObjectId,
+    type: String,
     // unique: true,
     // required: true
   }

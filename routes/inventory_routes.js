@@ -27,7 +27,9 @@ router.get('/', function(req, res) {
 
 router.post('/update_limits', function(req, res, next) {
   InventoryHelper.updateLimits(req.body.frozen, req.body.room, req.body.refrigerated).then(function(inv) {
-    logs.makeLog('Update inventory limits', inv, ['inventory'], req.session.userId); 
+    console.log('Inventory: ');
+    console.log(inv);
+    logs.makeLog('Update inventory limits', 'Update successful', req.session.username); 
     res.redirect(req.baseUrl + '/');
   }).catch(function(error) {
     next(error);
