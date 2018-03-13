@@ -5,4 +5,7 @@ block content
 	.row
 	each file in files
 		li
-			a(href='/backups/'+file.filename)= file.filename
+			a(href='/backups/file/'+file.filename)= file.filename
+			//- button.btn.btn-primary(onclick='doBackup("'+file.filename+'")') Do Backup
+			form(method='POST', action='/backups/restore/' + file.filename)
+				button.btn.btn-primary.pull-right(type='submit', value='Restore') Restore
