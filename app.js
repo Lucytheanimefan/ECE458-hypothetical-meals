@@ -86,6 +86,7 @@ app.use('/inventory',inventory);
 
 app.use('/duke_oauth', oauth);
 app.use('/logs', logs);
+app.use('/backups', backups);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -107,13 +108,17 @@ app.use(function(err, req, res, next) {
 });
 
 
-var rule5minute = new schedule.RecurrenceRule();
-rule5minute.second = 1;
+var dailyRule = new schedule.RecurrenceRule();
+dailyRule.hour = 7
+dailyRule.dayOfWeek = new schedule.Range(0,6);
+
+var testRule = new schedule.RecurrenceRule();
+testRule.second = 5;
 
 // Every 5 minutes
-var job = schedule.scheduleJob(rule5minute, function(){
+var job = schedule.scheduleJob(testRule, function(){
   console.log('Run this every 5 seconds!');
-  backups.makeBackup();
+  //backups.makeBackup();
 });
 
 module.exports = app;
