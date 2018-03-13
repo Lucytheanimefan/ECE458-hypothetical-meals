@@ -8,6 +8,8 @@ var bodyParser = require('body-parser');
 var mongoose = require('mongoose');
 var session = require('express-session');
 
+var schedule = require('node-schedule');
+
 var index = require('./routes/index');
 var users = require('./routes/users');
 var ingredients = require('./routes/ingredients');
@@ -17,6 +19,7 @@ var inventory = require('./routes/inventory_routes');
 var formulas = require('./routes/formulas');
 var reports = require('./routes/reports');
 var logs = require('./routes/logs');
+var backups = require('./routes/backups');
 var MongoStore = require('connect-mongo')(session);
 
 var oauth = require('./routes/duke_oauth');
@@ -104,6 +107,12 @@ app.use(function(err, req, res, next) {
 });
 
 
+var rule5minute = new schedule.RecurrenceRule();
+rule5minute.second = 5;
 
+// Every 5 minutes
+var job = schedule.scheduleJob(rule5minute, function(){
+  console.log('Run this every 5 seconds!');
+});
 
 module.exports = app;
