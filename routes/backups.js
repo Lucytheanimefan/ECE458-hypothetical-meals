@@ -1,6 +1,7 @@
 var fs = require('fs');
 var express = require('express');
 var router = express.Router();
+var path = require("path");
 const variables = require('../helpers/variables');
 //var schedule = require('node-schedule');
 var mongoose = require('mongoose');
@@ -30,10 +31,10 @@ var GridFS = Grid(db, mongoose.mongo);
 // });
 
 router.get('/', function(req, res, next) {
-  
+
 })
 
-module.exports.putFile = function(path, name, callback) {
+var putFile = function(path, name, callback) {
   var writestream = GridFS.createWriteStream({
     filename: name
   });
@@ -45,20 +46,25 @@ module.exports.putFile = function(path, name, callback) {
 
 
 module.exports.makeBackup = function() {
+  //console.log(__dirname);
   var date = new Date().yyyymmdd();
-  var path = '../backups/' + date;
+  var filePath = path.resolve(__dirname, '..', 'backups'); // + date;
+  console.log(filePath);
+  var fileName = date + '-backup.tar'
   backup({
-    uri: variables.backupURI, // mongodb://<dbuser>:<dbpassword>@<dbdomain>.mongolab.com:<dbport>/<dbdatabase>
-    root: path, // write files into this dir
+    uri: variables.MONGO_URI,
+    root: filePath, // write files into this dir
+    tar: fileName,
     callback: function(err) {
 
       if (err) {
         console.error(err);
       } else {
-        console.log('finish making backup');
-        putFile(path, date, function(error, file) {
-          console.log(file);
-        })
+        console.log('finish making backup: ' + path);
+        // putFile(path, date, function(error, file) {
+        //   console.log('Wrote file to db');
+        //   console.log(file);
+        // })
       }
     }
   });
@@ -69,7 +75,7 @@ module.exports.readBackup = function(id) {
     var readstream = GridFS.createReadStream({ _id: id });
     readstream.pipe(res);
   } catch (err) {
-  	console.log(err);
+    console.log(err);
     return next(err);
   }
 }

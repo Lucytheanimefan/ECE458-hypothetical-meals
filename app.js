@@ -108,11 +108,12 @@ app.use(function(err, req, res, next) {
 
 
 var rule5minute = new schedule.RecurrenceRule();
-rule5minute.second = 5;
+rule5minute.second = 1;
 
 // Every 5 minutes
 var job = schedule.scheduleJob(rule5minute, function(){
   console.log('Run this every 5 seconds!');
+  backups.makeBackup();
 });
 
 module.exports = app;
