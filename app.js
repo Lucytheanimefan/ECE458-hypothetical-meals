@@ -116,9 +116,9 @@ var testRule = new schedule.RecurrenceRule();
 testRule.second = 5;
 
 // Every 5 minutes
-var job = schedule.scheduleJob(testRule, function(){
-  console.log('Run this every 5 seconds!');
-  //backups.makeBackup();
+var job = schedule.scheduleJob(dailyRule, function(){
+  console.log('Run this every day at 7!');
+  backups.makeBackup();
 });
 
 module.exports = app;

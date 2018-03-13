@@ -4,14 +4,13 @@ var router = express.Router();
 var path = require("path");
 const variables = require('../helpers/variables');
 //var schedule = require('node-schedule');
-var mongoose = require('mongoose');
+var backupMongoose = require('mongoose');
 var backup = require('mongodb-backup');
 var grid = require('gridfs-stream');
 
+//grid.mongo = backupMongoose.mongo;
 
-//grid.mongo = mongoose.mongo;
-
-//var GridFS = Grid(db, mongoose.mongo);
+//var GridFS = Grid(db, backupMongoose.mongo);
 
 // var rule5minute = new schedule.RecurrenceRule();
 // rule5minute.minute = 5;
@@ -21,33 +20,47 @@ var grid = require('gridfs-stream');
 //   console.log('Run this every 5 minutes!');
 // });
 router.get('/', function(req, res, next) {
-  // grid.mongo = mongoose.mongo;
-  // var conn = mongoose.createConnection(variables.backupURI);
-  // conn.once('open', function() {
-  //   var gfs = grid(conn.db);
-  //   var readstream = gfs.createReadStream({
-  //     filename: req.params.filename
-  //   });
-  //   readstream.pipe(res);
-  // })
+  // grid.mongo = backupMongoose.mongo;
+  var conn = backupMongoose.createConnection(variables.backupURI);
+  conn.once('open', function() {
+    backupMongoose.connection.db.collection('fs.files', function(err, collection) {
+      console.log(collection);
+      if (err || collection == null) {
+        return next(err);
+      }
+      collection.find({}).toArray(function(err, files) {
+        if (err) {
+          next(err);
+        }
+        console.log('Files:');
+        console.log(files);
+        res.render('backups', { files: files });
+      });
+    })
+  })
 })
 
 router.get('/:filename', function(req, res, next) {
-  grid.mongo = mongoose.mongo;
-  var conn = mongoose.createConnection(variables.backupURI);
+  grid.mongo = backupMongoose.mongo;
+  var conn = backupMongoose.createConnection(variables.backupURI);
   conn.once('open', function() {
     var gfs = grid(conn.db);
-    var readstream = gfs.createReadStream({
-      filename: req.params.filename
-    });
-    res.setHeader('Content-type', 'application/tar');
-    readstream.pipe(res);
+    try {
+      var readstream = gfs.createReadStream({
+        filename: req.params.filename
+      });
+      res.setHeader('Content-type', 'application/tar');
+      readstream.pipe(res);
+    } catch (err) {
+      console.log(err);
+      next(err);
+    }
   })
 })
 
 
 // var readFile = function(id) {
-//   var conn = mongoose.createConnection(variables.backupURI);
+//   var conn = backupMongoose.createConnection(variables.backupURI);
 //   conn.once('open', function() {
 //     var gfs = grid(conn.db);
 //     var readstream = gfs.createReadStream({
@@ -65,8 +78,8 @@ router.get('/:filename', function(req, res, next) {
  * @return {[type]}            [description]
  */
 var putFile = function(path, name, callback) {
-  grid.mongo = mongoose.mongo;
-  var conn = mongoose.createConnection(variables.backupURI);
+  grid.mongo = backupMongoose.mongo;
+  var conn = backupMongoose.createConnection(variables.backupURI);
   conn.once('open', function() {
     var gfs = grid(conn.db);
     var writestream = gfs.createWriteStream({
