@@ -26,6 +26,7 @@
     "express": "~4.15.5",
     "express-session": "^1.15.6",
     "formidable": "^1.1.1",
+    "gridfs-stream": "^1.1.1",
     "js-popup": "^1.0.4",
     "mongodb": "^3.0.1",
     "mongodb-backup": "^1.6.9",
