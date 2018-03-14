@@ -54,14 +54,18 @@ router.get('/file/:filename', function(req, res, next) {
   })
 })
 
-router.post('/restore/:backupPath', function(req, res, next) {
+router.post('/restore', function(req, res, next) {
+  console.log('File: ');
+  console.log(req.body.file)
   var filePath = path.resolve(__dirname, '..', 'backups');
   restore({
     uri: variables.MONGO_URI, // mongodb://<dbuser>:<dbpassword>@<dbdomain>.mongolab.com:<dbport>/<dbdatabase>
     root: filePath,
-    tar: req.params.backupPath + '.tar',
+    tar: req.body.file,
     callback: function(err) {
       if (err) {
+        let err = new Error('Backup file is inconsistent with current system. Please try another file.');
+        err.status = 400;
         return next(err);
       } else {
         console.log('Successful restore');
