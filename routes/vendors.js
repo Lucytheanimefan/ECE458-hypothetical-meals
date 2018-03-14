@@ -43,13 +43,17 @@ router.get('/:code/:page?', async function(req, res, next) {
   var ingList;
   var ingQuery = Ingredient.getAllIngredients();
   var query = Vendor.findVendorByCode(req.params.code);
+  var pageCount;
   ingQuery.then(function(result) {
     ingList = result;
     return query;
   }).then(function(vendQuery) {
     var page = req.params.page || 1;
-    page = (page < 1) ? 1 : page;
     let fullMenu = processMenu(vendQuery.catalogue, req.params.code);
+    pageCount = Math.ceil(fullMenu.length/pageSize);
+    pageCount = (pageCount < 1) ? 1 : pageCount;
+    page = (page < 1) ? 1 : page;
+    page = (page > pageCount) ? pageCount : page;
     let name = vendQuery.name;
     let contact = vendQuery.contact;
     let location = vendQuery.location;
@@ -59,17 +63,16 @@ router.get('/:code/:page?', async function(req, res, next) {
       catalogue: menu,
       page: page,
       code: req.params.code,
-      ingredientList: ingList
+      ingredientList: ingList,
+      pageCount: pageCount
     });
   })
 })
 
 
 router.get('/vendor/id/:vendor_id', function(req, res, next) {
-  console.log('Get vendor for id: ' + req.params.vendor_id);
   var findVendor = Vendor.model.findOne({ _id: req.params.vendor_id }).exec();
   findVendor.then(function(vendor) {
-    console.log(vendor);
     res.send(vendor);
   }).catch(function(error){
     res.send({'error': error});
@@ -107,7 +110,7 @@ router.post('/:code/add_ingredients', function(req, res, next) {
     let ingId = mongoose.Types.ObjectId(result._id);
     let vendor_code = req.params.code;
     let ingredient_name = result.name;
-    logs.makeVendorLog('Add ingredients to vendor', 'Added ingredient '+'<a href="/ingredients/' + ingredient_name + '">' + ingredient_name + '</a> '+ 
+    logs.makeVendorLog('Add ingredients to vendor', 'Added ingredient '+'<a href="/ingredients/' + ingredient_name + '">' + ingredient_name + '</a> '+
       'to vendor <a href="/vendors/' + vendor_code + '">' + vendor_code + '</a>'/*{ 'Vendor code': req.params.code, 'Ingredient_ID': ingId, 'Cost': req.body.cost }*/, req.session.username);
 
     return vend = VendorHelper.addIngredient(req.params.code, result._id, req.body.cost);
@@ -125,7 +128,7 @@ router.post('/:code/update_ingredients', function(req, res, next) {
   console.log('Ingredient id: ' + ingId);
   let vendor_code = req.params.code;
   VendorHelper.updateIngredient(req.params.code, ingId, req.body.cost).then(function(result) {
-    logs.makeVendorLog('Update vendor ingredients',  
+    logs.makeVendorLog('Update vendor ingredients',
       'Updated ingredients for vendor <a href="/vendors/' + vendor_code + '">' + vendor_code + '</a>'/*{ 'Vendor code': req.params.code, 'Ingredient_ID': ingId, 'Cost': req.body.cost }*/, req.session.username);
     res.redirect(req.baseUrl + '/' + req.params.code);
   }).catch(function(err) {
@@ -154,7 +157,6 @@ router.post('/:code/update', async function(req, res, next) {
   let contact = req.body.contact;
   var update = VendorHelper.updateVendor(currCode, name, code, contact, location);
   update.then(function(result) {
-    console.log(result);
     logs.makeVendorLog('Update vendor', 'Updated vendor <a href="/vendors/' + code + '">' + code + '</a>' /*{'vendor_code': code}*/, req.session.username);
     return res.redirect(req.baseUrl + '/' + req.body.code);
   }).catch(function(error) {
@@ -172,7 +174,6 @@ router.post('/new', function(req, res, next) {
   let location = req.body.location;
   var create = VendorHelper.createVendor(name, code, contact, location);
   create.then(function(result) {
-    console.log(result)
     let vendor_code = result.code;
     logs.makeVendorLog('Create vendor', 'Created vendor <a href="/vendors/' + vendor_code + '">' + vendor_code + '</a>' /*{'vendor_code':result.code}*/, req.session.username);
     return res.redirect(req.baseUrl + '/' + req.body.code);
@@ -186,6 +187,7 @@ router.post('/:code/order', async function(req, res, next) {
   var vendQuery = Vendor.findVendorByCode(req.params.code);
   let amount = parseFloat(req.body.quantity);
   var vendor, ingredient;
+  let date = new Date();
   vendQuery.then(function(vend) {
     vendor = vend.name;
     return Ingredient.getIngredientById(ingId);
