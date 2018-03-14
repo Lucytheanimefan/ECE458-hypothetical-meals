@@ -14,7 +14,7 @@ var logs = require(path.resolve(__dirname, "./logs.js"));
 var uniqid = require('uniqid')
 let packageTypes = ['sack', 'pail', 'drum', 'supersack', 'truckload', 'railcar'];
 let temperatures = ['frozen', 'refrigerated', 'room temperature'];
-let pageSize = 10;
+let pageSize = 5;
 
 
 //no need for now

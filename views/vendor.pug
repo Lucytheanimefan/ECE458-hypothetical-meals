@@ -44,11 +44,11 @@ block content
                   a(href='/vendors/' + vendor.code + '/' + 'remove_ingredient' + '/' +  ing['ingredient']['_id']) Remove
       div.previous
         form(action='/vendors/' + vendor.code + '/' + (parseInt(page)-1).toString(), method='get')
-        button.btn.btn-white(type="submit" style="padding: 5px;") <
-        p(style="padding: 10px; display: inline-block;") Page #{parseInt(page)}
+          button.btn.btn-white(type="submit" style="padding: 5px;") <
+          p(style="padding: 10px; display: inline-block;") Page #{parseInt(page)}
       div.next
         form(action='/vendors/' + vendor.code + '/' + (parseInt(page)+1).toString(), method='get')
-        button.btn.btn-white(type="submit" style="padding: 5px;") >
+          button.btn.btn-white(type="submit" style="padding: 5px;") >
 
 
 
