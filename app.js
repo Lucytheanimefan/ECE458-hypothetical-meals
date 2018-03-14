@@ -8,6 +8,8 @@ var bodyParser = require('body-parser');
 var mongoose = require('mongoose');
 var session = require('express-session');
 
+var schedule = require('node-schedule');
+
 var index = require('./routes/index');
 var users = require('./routes/users');
 var ingredients = require('./routes/ingredients');
@@ -17,6 +19,7 @@ var inventory = require('./routes/inventory_routes');
 var formulas = require('./routes/formulas');
 var reports = require('./routes/reports');
 var logs = require('./routes/logs');
+var backups = require('./routes/backups');
 var MongoStore = require('connect-mongo')(session);
 
 var oauth = require('./routes/duke_oauth');
@@ -83,6 +86,7 @@ app.use('/inventory',inventory);
 
 app.use('/duke_oauth', oauth);
 app.use('/logs', logs);
+app.use('/backups', backups);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -104,6 +108,17 @@ app.use(function(err, req, res, next) {
 });
 
 
+var dailyRule = new schedule.RecurrenceRule();
+dailyRule.hour = 7
+dailyRule.dayOfWeek = new schedule.Range(0,6);
 
+var testRule = new schedule.RecurrenceRule();
+testRule.second = 5;
+
+// Every 5 minutes
+var job = schedule.scheduleJob(dailyRule, function(){
+  console.log('Run this every day at 7!');
+  backups.makeBackup();
+});
 
 module.exports = app;

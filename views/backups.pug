@@ -1,0 +1,8 @@
+extends layout
+
+block content
+	h1 Backups
+	.row
+	each file in files
+		li
+			a(href='/backups/'+file.filename)= file.filename
