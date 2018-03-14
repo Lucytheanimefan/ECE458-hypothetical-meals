@@ -17,14 +17,14 @@ block content
             th(onclick='sortTable(0, \'log\')') Time
             th(onclick='sortTable(0, \'log\')') Description
             th(onclick='sortTable(0, \'log\')') Initiating User
-            th(onclick='sortTable(0, \'log\')') Related entities
+            //- th(onclick='sortTable(0, \'log\')') Related entities
           tbody
           each log in logs
             tr(id=log._id)
               td
-                a(href='/logs/log/'+log.initiating_user+'?title='+log.title+'&description=' + log.description + '&time='+log.time+'&entities=' + log.entities)= log.title
+                a(href='/logs/log/'+log._id)= log.title
               td= log.time
               if log.description
-                td= log.description.substr(1,100) + '...'
+                td!= log.description
               td= log.initiating_user
-              td= log.entities
+              //- td= log.entities

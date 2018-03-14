@@ -88,7 +88,8 @@ router.post('/:code/delete', function(req, res, next) {
   }).then(function(result) {
     return UserHelper.deleteVendor(req.session.userId, vendID);
   }).then(function(result) {
-    logs.makeVendorLog('Delete', { 'vendor_code': req.params.code }, entities = ['vendor'], req.session.userId);
+    let vendor_code = req.params.code;
+    logs.makeVendorLog('Delete', 'Deleted vendor <a href="/vendors/' + vendor_code + '">' + vendor_code + '</a>', req.session.username);
     return res.redirect(req.baseUrl);
   }).catch(function(error) {
     next(error);
@@ -104,7 +105,10 @@ router.post('/:code/add_ingredients', function(req, res, next) {
       return next(err);
     }
     let ingId = mongoose.Types.ObjectId(result._id);
-    logs.makeVendorLog('Add ingredients', { 'Vendor code': req.params.code, 'Ingredient_ID': ingId, 'Cost': req.body.cost }, entities = ['vendor', 'ingredient'], req.session.userId);
+    let vendor_code = req.params.code;
+    let ingredient_name = result.name;
+    logs.makeVendorLog('Add ingredients to vendor', 'Added ingredient '+'<a href="/ingredients/' + ingredient_name + '">' + ingredient_name + '</a> '+ 
+      'to vendor <a href="/vendors/' + vendor_code + '">' + vendor_code + '</a>'/*{ 'Vendor code': req.params.code, 'Ingredient_ID': ingId, 'Cost': req.body.cost }*/, req.session.username);
 
     return vend = VendorHelper.addIngredient(req.params.code, result._id, req.body.cost);
 
@@ -119,8 +123,10 @@ router.post('/:code/add_ingredients', function(req, res, next) {
 router.post('/:code/update_ingredients', function(req, res, next) {
   let ingId = mongoose.Types.ObjectId(req.body.ingredient);
   console.log('Ingredient id: ' + ingId);
+  let vendor_code = req.params.code;
   VendorHelper.updateIngredient(req.params.code, ingId, req.body.cost).then(function(result) {
-    logs.makeVendorLog('Update ingredients', { 'Vendor code': req.params.code, 'Ingredient_ID': ingId, 'Cost': req.body.cost }, entities = ['vendor', 'ingredient'], req.session.userId);
+    logs.makeVendorLog('Update vendor ingredients',  
+      'Updated ingredients for vendor <a href="/vendors/' + vendor_code + '">' + vendor_code + '</a>'/*{ 'Vendor code': req.params.code, 'Ingredient_ID': ingId, 'Cost': req.body.cost }*/, req.session.username);
     res.redirect(req.baseUrl + '/' + req.params.code);
   }).catch(function(err) {
     next(err);
@@ -135,7 +141,8 @@ router.get('/:code/remove_ingredient/:ingredient', function(req, res, next) {
   }).catch(function(error) {
     next(error);
   });
-  logs.makeVendorLog('Remove ingredient from vendor', { 'vendor_code': req.params.code, 'ingredient_id': ingId}, entities = ['vendor', 'ingredient'], req.session.userId);
+  let vendor_code = req.params.code;
+  logs.makeVendorLog('Remove ingredient from vendor', 'Removed ingredient from vendor <a href="/vendors/' + vendor_code + '">' + vendor_code + '</a>'/*{ 'vendor_code': req.params.code, 'ingredient_id': ingId}*/, req.session.username);
 });
 
 //refactored
@@ -148,7 +155,7 @@ router.post('/:code/update', async function(req, res, next) {
   var update = VendorHelper.updateVendor(currCode, name, code, contact, location);
   update.then(function(result) {
     console.log(result);
-    logs.makeVendorLog('Update', {'vendor_code': code}, entities = ['vendor'], req.session.userId);
+    logs.makeVendorLog('Update vendor', 'Updated vendor <a href="/vendors/' + code + '">' + code + '</a>' /*{'vendor_code': code}*/, req.session.username);
     return res.redirect(req.baseUrl + '/' + req.body.code);
   }).catch(function(error) {
     next(error);
@@ -166,7 +173,8 @@ router.post('/new', function(req, res, next) {
   var create = VendorHelper.createVendor(name, code, contact, location);
   create.then(function(result) {
     console.log(result)
-    logs.makeVendorLog('Creation', {'vendor_code':result.code}, entities = ['vendor'], req.session.userId);
+    let vendor_code = result.code;
+    logs.makeVendorLog('Create vendor', 'Created vendor <a href="/vendors/' + vendor_code + '">' + vendor_code + '</a>' /*{'vendor_code':result.code}*/, req.session.username);
     return res.redirect(req.baseUrl + '/' + req.body.code);
   }).catch(function(error) {
     next(error);
@@ -183,7 +191,8 @@ router.post('/:code/order', async function(req, res, next) {
     return Ingredient.getIngredientById(ingId);
   }).then(function(ingResult) {
     ingredient = ingResult.name;
-    logs.makeVendorLog('Add to cart', { 'vendor_code': req.params.code, 'Ingredient_ID': ingId }, entities = ['vendor', 'ingredient'], req.session.userId);
+    let vendor_code = req.params.code
+    logs.makeVendorLog('Make order from vendor', 'Ordered ingredient <a href="/ingredients/' + ingredient +'">' +ingredient + '</a> from vendor <a href="/vendors/' + vendor_code + '">' + vendor_code + '</a>'/*{ 'vendor_code': req.params.code, 'Ingredient_ID': ingId }*/, req.session.username);
     return UserHelper.addToCart(req.session.userId, ingId, amount, vendor);
   }).then(function(cartResult) {
     res.redirect('/users/cart');
