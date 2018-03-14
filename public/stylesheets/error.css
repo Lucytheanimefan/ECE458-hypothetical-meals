@@ -1,0 +1,25 @@
+.wrap {
+    width: 100%;
+}
+
+.floatleft {
+  float:left;
+  width: 50%;
+}
+
+.floatright {
+  float: right;
+  width: 50%;
+}
+.error-text{
+  text-align: center;
+  vertical-align: middle;
+  transform: translateY(200%);
+}
+img{
+  max-width: 900px;
+  min-width: 300px;
+}
+p{
+  font-size: 15px;
+}
