@@ -70,8 +70,14 @@ router.post('/restore', function(req, res, next) {
 
 var sendEmail = function(receiver, subject, html_message, callback) {
   // create reusable transporter object using the default SMTP transport
-  var transporter = nodemailer.createTransport('smtps://user%40gmail.com:pass@smtp.gmail.com');
-
+  var transporter = nodemailer.createTransport({
+    host: 'smtp.gmail.com',
+    port: 465,
+    auth: {
+      user: variables.EMAIL,
+      pass: variables.PASSWORD
+    }
+  });
   // setup e-mail data with unicode symbols
   var mailOptions = {
     from: variables.EMAIL, // sender address
@@ -86,8 +92,8 @@ var sendEmail = function(receiver, subject, html_message, callback) {
       callback(error)
       //return console.log(error);
     }
-    console.log('Message sent: ' + info.response);
-    callback(null, info.response);
+    console.log('Message sent: ' + info);
+    callback(null, info);
   });
 }
 
@@ -129,6 +135,15 @@ module.exports.makeBackup = function() {
     callback: function(err) {
       if (err) {
         console.error(err);
+        sendEmail('spothorse9.lucy@gmail.com', 'Backup Status', emailMessage, function(error, result) {
+          if (error) {
+            console.log('ERROR SENDING EMAIL:');
+            console.log(error);
+          } else {
+            console.log('SUCCESS SENDING EMAIL');
+            console.log(result);
+          }
+        })
       } else {
         var emailMessage = '';
         console.log('finish making backup');
@@ -138,19 +153,18 @@ module.exports.makeBackup = function() {
             emailMessage += 'but failed to save backup to server.<br>Encountered the error: ' + error;
             console.log(error);
           } else {
-          	emailMessage += 'and saved to server';
+            emailMessage += 'and saved to server';
             console.log('Wrote file to db');
             console.log(file);
           }
-          sendEmail('spothorse9.lucy@gmail.com', 'Backup Status', emailMessage, function(error, result){
-          	if (error){
-          		console.log('ERROR SENDING EMAIL:');
-          		console.log(error);
-          	}
-          	else{
-          		console.log('SUCCESS SENDING EMAIL');
-          		console.log(result);
-          	}
+          sendEmail('spothorse9.lucy@gmail.com', 'Backup Status', emailMessage, function(error, result) {
+            if (error) {
+              console.log('ERROR SENDING EMAIL:');
+              console.log(error);
+            } else {
+              console.log('SUCCESS SENDING EMAIL');
+              console.log(result);
+            }
           })
         })
       }
