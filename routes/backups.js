@@ -8,18 +8,10 @@ var backupMongoose = require('mongoose');
 var backup = require('mongodb-backup');
 var restore = require('mongodb-restore');
 var grid = require('gridfs-stream');
+var nodemailer = require('nodemailer');
 
-//grid.mongo = backupMongoose.mongo;
 
-//var GridFS = Grid(db, backupMongoose.mongo);
 
-// var rule5minute = new schedule.RecurrenceRule();
-// rule5minute.minute = 5;
-
-// // Every 5 minutes
-// var job = schedule.scheduleJob(rule5minute, function(){
-//   console.log('Run this every 5 minutes!');
-// });
 router.get('/', function(req, res, next) {
   grid.mongo = backupMongoose.mongo;
   var conn = backupMongoose.createConnection(variables.backupURI);
@@ -76,27 +68,33 @@ router.post('/restore', function(req, res, next) {
   });
 })
 
-
-
-var readFile = function(filename, callback) {
-  grid.mongo = backupMongoose.mongo;
-  var conn = backupMongoose.createConnection(variables.backupURI);
-  conn.once('open', function() {
-    var gfs = grid(conn.db);
-    try {
-      var readstream = gfs.createReadStream({
-        filename: filename
-      });
-      callback(null, readstream);
-      //res.setHeader('Content-type', 'application/tar');
-      //readstream.pipe(res);
-    } catch (err) {
-      console.log('FAILED to read');
-      console.log(err);
-      //next(err);
-      callback(err);
+var sendEmail = function(receiver, subject, html_message, callback) {
+  // create reusable transporter object using the default SMTP transport
+  var transporter = nodemailer.createTransport({
+    host: 'smtp.gmail.com',
+    port: 465,
+    auth: {
+      user: variables.EMAIL,
+      pass: variables.PASSWORD
     }
-  })
+  });
+  // setup e-mail data with unicode symbols
+  var mailOptions = {
+    from: variables.EMAIL, // sender address
+    to: receiver, // list of receivers
+    subject: subject, // Subject line
+    html: html_message // html body
+  };
+
+  // send mail with defined transport object
+  transporter.sendMail(mailOptions, function(error, info) {
+    if (error) {
+      callback(error)
+      //return console.log(error);
+    }
+    console.log('Message sent: ' + info);
+    callback(null, info);
+  });
 }
 
 /**
@@ -119,15 +117,6 @@ var putFile = function(path, name, callback) {
       callback(null, file);
     });
   })
-
-  // var writestream = GridFS.createWriteStream({
-  //   filename: name
-  // });
-
-  // writestream.on('close', function(file) {
-  //   callback(null, file);
-  // });
-  // fs.createReadStream(path).pipe(writestream);
 }
 
 module.exports = router;
@@ -146,15 +135,38 @@ module.exports.makeBackup = function() {
     callback: function(err) {
       if (err) {
         console.error(err);
-      } else {
-        console.log('finish making backup');
-
-        putFile(filePath + '/' + fileName + '.tar', fileName, function(error, file) {
-          console.log('Wrote file to db');
-          console.log(file);
+        emailMessage = Date() +': Failed to create backup ' + fileName + ' due to error: ' + err;
+        sendEmail('spothorse9.lucy@gmail.com', 'Backup Status', emailMessage, function(error, result) {
           if (error) {
+            console.log('ERROR SENDING EMAIL:');
             console.log(error);
+          } else {
+            console.log('SUCCESS SENDING EMAIL');
+            console.log(result);
           }
+        })
+      } else {
+        var emailMessage = '';
+        console.log('finish making backup');
+        emailMessage += Date() + ': Successfully created backup ' + fileName + ' ';
+        putFile(filePath + '/' + fileName + '.tar', fileName, function(error, file) {
+          if (error) {
+            emailMessage += 'but failed to save backup to server.<br>Encountered the error: ' + error;
+            console.log(error);
+          } else {
+            emailMessage += 'and saved to server';
+            console.log('Wrote file to db');
+            console.log(file);
+          }
+          sendEmail('spothorse9.lucy@gmail.com', 'Backup Status', emailMessage, function(error, result) {
+            if (error) {
+              console.log('ERROR SENDING EMAIL:');
+              console.log(error);
+            } else {
+              console.log('SUCCESS SENDING EMAIL');
+              console.log(result);
+            }
+          })
         })
       }
     }
