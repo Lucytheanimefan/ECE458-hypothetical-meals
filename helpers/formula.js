@@ -213,6 +213,10 @@ module.exports.updateTuple = function(name, index, ingredient, quantity){
             index = tuple.index;
           }
           return Formula.updateTuple(name, index, tuple.ingredient, ingResult['name'], ingredient, quantity);
+        } else {
+          if (index == tuple.index) {
+            await Formula.remove 
+          }
         }
       }
       console.log("add");
