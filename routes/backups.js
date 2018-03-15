@@ -6,6 +6,7 @@ const variables = require('../helpers/variables');
 //var schedule = require('node-schedule');
 var backupMongoose = require('mongoose');
 var backup = require('mongodb-backup');
+var restore = require('mongodb-restore');
 var grid = require('gridfs-stream');
 
 //grid.mongo = backupMongoose.mongo;
@@ -20,27 +21,22 @@ var grid = require('gridfs-stream');
 //   console.log('Run this every 5 minutes!');
 // });
 router.get('/', function(req, res, next) {
-  // grid.mongo = backupMongoose.mongo;
+  grid.mongo = backupMongoose.mongo;
   var conn = backupMongoose.createConnection(variables.backupURI);
   conn.once('open', function() {
-    backupMongoose.connection.db.collection('fs.files', function(err, collection) {
-      console.log(collection);
-      if (err || collection == null) {
-        return next(err);
+    var gfs = grid(conn.db);
+    gfs.files.find({}).toArray(function(err, files) {
+      if (err) {
+        next(err);
       }
-      collection.find({}).toArray(function(err, files) {
-        if (err) {
-          next(err);
-        }
-        console.log('Files:');
-        console.log(files);
-        res.render('backups', { files: files });
-      });
-    })
+      console.log('Files:');
+      console.log(files);
+      res.render('backups', { files: files });
+    });
   })
 })
 
-router.get('/:filename', function(req, res, next) {
+router.get('/file/:filename', function(req, res, next) {
   grid.mongo = backupMongoose.mongo;
   var conn = backupMongoose.createConnection(variables.backupURI);
   conn.once('open', function() {
@@ -58,17 +54,50 @@ router.get('/:filename', function(req, res, next) {
   })
 })
 
+router.post('/restore', function(req, res, next) {
+  console.log('File: ');
+  console.log(req.body.file)
+  var filePath = path.resolve(__dirname, '..', 'backups');
+  restore({
+    uri: variables.MONGO_URI, // mongodb://<dbuser>:<dbpassword>@<dbdomain>.mongolab.com:<dbport>/<dbdatabase>
+    root: filePath,
+    tar: req.body.file,
+    callback: function(err) {
+      if (err) {
+        let err = new Error('Backup file is inconsistent with current system. Please try another file.');
+        err.status = 400;
+        return next(err);
+      } else {
+        console.log('Successful restore');
+        // TODO: change rendered
+        res.redirect(req.baseUrl) //render('index', { alert: 'Successfully uploaded file' });
+      }
+    }
+  });
+})
 
-// var readFile = function(id) {
-//   var conn = backupMongoose.createConnection(variables.backupURI);
-//   conn.once('open', function() {
-//     var gfs = grid(conn.db);
-//     var readstream = gfs.createReadStream({
-//       _id: id
-//     });
-//     readstream.pipe(res);
-//   })
-// }
+
+
+var readFile = function(filename, callback) {
+  grid.mongo = backupMongoose.mongo;
+  var conn = backupMongoose.createConnection(variables.backupURI);
+  conn.once('open', function() {
+    var gfs = grid(conn.db);
+    try {
+      var readstream = gfs.createReadStream({
+        filename: filename
+      });
+      callback(null, readstream);
+      //res.setHeader('Content-type', 'application/tar');
+      //readstream.pipe(res);
+    } catch (err) {
+      console.log('FAILED to read');
+      console.log(err);
+      //next(err);
+      callback(err);
+    }
+  })
+}
 
 /**
  * Write the file to the database

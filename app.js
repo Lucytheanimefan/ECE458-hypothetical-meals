@@ -8,7 +8,8 @@ var bodyParser = require('body-parser');
 var mongoose = require('mongoose');
 var session = require('express-session');
 
-var schedule = require('node-schedule');
+var schedule = require('node-schedule'); // no longer necessary probably
+var cron = require('cron');
 
 var index = require('./routes/index');
 var users = require('./routes/users');
@@ -39,7 +40,7 @@ var app = express();
 // connect to mongoDB
 // TODO: use env variables, either way this is a throwaway database URI
 
-mongoose.connect(variables.MONGO_URI, {useMongoClient: true});
+mongoose.connect(variables.MONGO_URI, { useMongoClient: true });
 mongoose.Promise = global.Promise;
 var db = mongoose.connection;
 
@@ -72,16 +73,16 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/',index);
+app.use('/', index);
 app.use('/users', users);
-app.use('/ingredients', users.requireLogin(),ingredients); //This is not ideal
+app.use('/ingredients', users.requireLogin(), ingredients); //This is not ideal
 app.post('/ingredients/*', users.requireRole("admin"), ingredients);
 app.use('/vendors', users.requireLogin(), vendors);
 app.use('/formulas', formulas);
 app.use('/reports', users.requireLogin(), reports);
 
-app.use('/files', users.requireRole('admin'),files);
-app.use('/inventory',inventory);
+app.use('/files', users.requireRole('admin'), files);
+app.use('/inventory', inventory);
 
 
 app.use('/duke_oauth', oauth);
@@ -108,17 +109,90 @@ app.use(function(err, req, res, next) {
 });
 
 
-var dailyRule = new schedule.RecurrenceRule();
-dailyRule.hour = 7
-dailyRule.dayOfWeek = new schedule.Range(0,6);
+var CronJob = require('cron').CronJob;
 
-var testRule = new schedule.RecurrenceRule();
-testRule.second = 5;
+// test
+var testsJob = new CronJob('00 * * * * *', function() {
+    /*
+     * Runs every month on Monday
+     * at 11:30:00 AM. 
+     */
+    console.log('Run this every minute');
+  }, function() {
+    /* This function is executed when the job stops */
+    console.log('Job done');
+  },
+  true, /* Start the job right now */
+  'America/Los_Angeles' /* Time zone of this job. */
+);
 
-// Every 5 minutes
-var job = schedule.scheduleJob(dailyRule, function(){
-  console.log('Run this every day at 7!');
-  backups.makeBackup();
-});
+
+var startJobNow = false;
+var dailyJob = new CronJob('00 30 11 * * 0-6', function() {
+    /*
+     * Runs everyday
+     * at 11:30:00 AM. It does not run on Saturday
+     * or Sunday.
+     */
+    console.log('Make daily backup'); // TODO: send an email or something
+    backups.makeBackup();
+  }, function() {
+    /* This function is executed when the job stops */
+  },
+  startJobNow, /* Start the job right now */
+  'America/Los_Angeles' /* Time zone of this job. */
+);
+
+var weeklyJob = new CronJob('00 30 11 * * 1', function() {
+    /*
+     * Runs every week on Monday
+     * at 11:30:00 AM. 
+     */
+    console.log('Make weekly backup'); // TODO: send an email or something
+    backups.makeBackup();
+  }, function() {
+    /* This function is executed when the job stops */
+  },
+  startJobNow, /* Start the job right now */
+  'America/Los_Angeles' /* Time zone of this job. */
+);
+
+var monthlyJob = new CronJob('00 30 11 1 * 1', function() {
+    /*
+     * Runs every month on Monday
+     * at 11:30:00 AM. 
+     */
+    console.log('Make monthly backup'); // TODO: send an email or something
+    backups.makeBackup();
+  }, function() {
+    /* This function is executed when the job stops */
+  },
+  startJobNow, /* Start the job right now */
+  'America/Los_Angeles' /* Time zone of this job. */
+);
+
+// var dailyRule = new schedule.RecurrenceRule();
+// dailyRule.hour = 7
+// dailyRule.dayOfWeek = new schedule.Range(0, 6);
+
+// var testRule = new schedule.RecurrenceRule();
+// testRule.second = 5;
+
+// // Every 5 minutes
+// var job = schedule.scheduleJob(dailyRule, function() {
+//   console.log('Run this every day at 7!');
+//   backups.makeBackup();
+// });
+
+// // Once a month
+// var monthlyRule = new schedule.RecurrenceRule();
+// monthlyRule.month = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+// monthlyRule.hour = 0;
+// monthlyRule.minute = 0;
+
+// var monthlyJob = schedule.scheduleJob(monthlyRule, function() {
+//   console.log('Your scheduled job at beginning of month');
+//   backups.makeBackup();
+// });
 
 module.exports = app;
