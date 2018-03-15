@@ -34,6 +34,18 @@ router.get('/log/:id', (req, res, next) => {
   // });
 })
 
+router.get('/date', (req, res, next) => {
+  let startDate = req.query.start;
+  let endDate = req.query.end;
+  //new Date(2012, 7, 14)
+  Log.find({ 'time': { "$gte": startDate, "$lt": endDate } }).exec(function(err, logs) {
+    if (err){
+      return next(err);
+    }
+    res.render('logs', { logs: logs });
+  })
+})
+
 router.post('/delete', (req, res, next) => {
   console.log('Delete logs!');
   Log.remove({}, function(err) {
