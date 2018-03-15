@@ -135,6 +135,7 @@ module.exports.makeBackup = function() {
     callback: function(err) {
       if (err) {
         console.error(err);
+        emailMessage = Date() +': Failed to create backup ' + fileName + ' due to error: ' + err;
         sendEmail('spothorse9.lucy@gmail.com', 'Backup Status', emailMessage, function(error, result) {
           if (error) {
             console.log('ERROR SENDING EMAIL:');
@@ -147,7 +148,7 @@ module.exports.makeBackup = function() {
       } else {
         var emailMessage = '';
         console.log('finish making backup');
-        emailMessage += 'Successfully created backup ';
+        emailMessage += Date() + ': Successfully created backup ' + fileName + ' ';
         putFile(filePath + '/' + fileName + '.tar', fileName, function(error, file) {
           if (error) {
             emailMessage += 'but failed to save backup to server.<br>Encountered the error: ' + error;
