@@ -7,7 +7,9 @@ block link
   -var selected = 'Ingredients';
 
 block content
-  h1= ingredient.name
+  h1(style='margin-top: 0px; display: inline-block; float: left')= ingredient.name
+  form(action='/ingredients')
+    button.btn.btn-primary.pull-right(type='submit', style='display: inline-block; float: right') Back to Ingredients
   div#tabs
     ul.nav.nav-tabs
       li.active
@@ -35,6 +37,9 @@ block content
             tr
               th Units in Storage
               td= ingredient.amount
+            tr
+              th Space in Storage (Sq ft)
+              td= ingredient.space
           div.delete-form.adminOnly.hide
             form(action='/ingredients/' + encodeURIComponent(ingredient.name) + '/delete', method='post')
               button.btn.btn-primary.pull-right(style="margin: 30px 15px;" type='submit') Delete ingredient
@@ -53,10 +58,11 @@ block content
                     th= vendor.record.cost
             div.previous
               form(action='/ingredients/' + encodeURIComponent(ingredient.name) + '/' + amount + '/' + (parseInt(page)-1).toString(), method='get')
-                button.btn.btn-white.btn-round.btn-just-icon(type='submit') Prev
+                button.btn.btn-white(type="submit" style="padding: 5px;") <
+                p(style="padding: 10px; display: inline-block;") Page #{parseInt(page)}
             div.next
               form(action='/ingredients/' + encodeURIComponent(ingredient.name) + '/' + amount + '/' + (parseInt(page)+1).toString(), method='get')
-                button.btn.btn-white.btn-round.btn-just-icon(type='submit') Next
+                button.btn.btn-white(type="submit" style="padding: 5px;") >
 
       .adminOnly.hide.card-content.tab-pane.fade#update-form
         h1= 'Update ingredient'

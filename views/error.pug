@@ -1,6 +1,12 @@
 extends layout
 
+block css
+  link(href='/stylesheets/error.css', rel='stylesheet')
+
 block content
-  h1= message
-  h2= error.status
-  pre #{error.stack}
+  .floatleft
+    img(src="/img/broken-plate.png")
+  .floatright
+    .error-text
+      h1= "Something went wrong!"
+      p #{message}

@@ -18,6 +18,8 @@ calculateSpace = function(package, unitsPerPackage, amount) {
   return parseFloat(numberOfPackages * spaceMapping[package]);
 }
 
+module.exports.calculateSpace = calculateSpace;
+
 //this checks and updates the inventory
 
 module.exports.checkInventory = function(name, package, temp, unitsPerPackage, amount) {

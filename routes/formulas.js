@@ -67,7 +67,7 @@ router.post('/:name/delete', function(req, res, next) {
   let name = req.params.name;
   var promise = FormulaHelper.deleteFormula(name);
   promise.then(function(result) {
-    logs.makeLog('Delete formula', JSON.stringify({formula:{name: name}}), ['formula'], req.session.userId);
+    logs.makeLog('Delete formula', 'Deleted <a href="/formulas/' + encodeURIComponent(name) + '">' + name + '</a>', req.session.username);
     res.redirect(req.baseUrl + '/');
   }).catch(function(error) {
     next(error);
@@ -103,7 +103,7 @@ router.post('/:name/update', function(req, res, next) {
     }
     //return Promise.all(tuplePromises);
   }).then(function(result) {
-    logs.makeLog('Update formula', JSON.stringify({formula_name:newName}), ['formula'], req.session.userId);
+    logs.makeLog('Update formula', 'Updated ' + '<a href="/formulas/' + encodeURIComponent(newName) + '">' + newName + '</a>'/*JSON.stringify({formula_name:newName})*/, req.session.userId);
     res.redirect(req.baseUrl + '/' + newName);
   }).catch(function(error) {
     next(error);
@@ -148,7 +148,7 @@ router.post('/:name/order/:amount', function(req, res, next) {
       return IngredientHelper.sendIngredientsToProduction(formulaId, mongoose.Types.ObjectId(ingTuple['id']), parseFloat(ingTuple['amount']));
     }));
   }).then(function(results) {
-    logs.makeLog('Log formula for production log', JSON.stringify(results), ['formula'], req.session.userId);
+    logs.makeLog('Production', 'Send ingredients to production', req.session.username);
     res.redirect('/formulas');
   }).catch(function(error) {
     next(error);
@@ -193,7 +193,7 @@ router.post('/new', async function(req, res, next) {
       index = index + 1;
     }
   }).then(function(formula) {
-    logs.makeLog('Create formula', JSON.stringify({formula_name:name}), ['formula'], req.session.userId);
+    logs.makeLog('Create formula', 'Created <a href="/formulas/' + encodeURIComponent(name) + '">' + name + '</a>'/*JSON.stringify({formula_name:name})*/, req.session.username);
     res.redirect(req.baseUrl + '/' + name);
   }).catch(function(error) {
     next(error);

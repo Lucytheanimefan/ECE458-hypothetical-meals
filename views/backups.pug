@@ -1,0 +1,17 @@
+extends layout
+
+block content
+	h1 Backups
+	.row
+		h2 Restore
+		form(method='POST', action='/backups/restore')
+			input(type='file', name='file', required='')
+			button.btn.btn-primary(type='submit', value='Restore') Restore
+	.row
+		h2 Download (Click to download tar)
+		each file in files
+			li
+				a(href='/backups/file/'+file.filename)= file.filename
+				//- button.btn.btn-primary(onclick='doBackup("'+file.filename+'")') Do Backup
+
+				
