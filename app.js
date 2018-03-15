@@ -112,22 +112,22 @@ app.use(function(err, req, res, next) {
 var CronJob = require('cron').CronJob;
 
 // test
-var testsJob = new CronJob('00 * * * * *', function() {
-    /*
-     * Runs every month on Monday
-     * at 11:30:00 AM. 
-     */
-    console.log('Run this every minute');
-  }, function() {
-    /* This function is executed when the job stops */
-    console.log('Job done');
-  },
-  true, /* Start the job right now */
-  'America/Los_Angeles' /* Time zone of this job. */
-);
+// var testsJob = new CronJob('00 * * * * *', function() {
+//     /*
+//      * Runs every month on Monday
+//      * at 11:30:00 AM. 
+//      */
+//     console.log('Run this every minute');
+//   }, function() {
+//     /* This function is executed when the job stops */
+//     console.log('Job done');
+//   },
+//   true, /* Start the job right now */
+//   'America/Los_Angeles' /* Time zone of this job. */
+// );
 
 
-var startJobNow = false;
+var startJobNow = true;
 var dailyJob = new CronJob('00 30 11 * * 0-6', function() {
     /*
      * Runs everyday
