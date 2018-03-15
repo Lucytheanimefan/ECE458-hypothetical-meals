@@ -13,7 +13,7 @@ block content
         a(data-toggle='tab', href='#ing-table') Ingredients
       li.adminOnly.hide
         a(data-toggle='tab', href='#create_form') Create
-  
+
     .tab-content
       #ing-table.tab-pane.fade.in.active
         form(action='/ingredients/search_results/1' method='get')
@@ -63,10 +63,12 @@ block content
                       button.btn.btn-primary(type='submit', style='margin:0px; padding: 5px 10px;') Remove
             div.previous
               form(action='/ingredients/search_results/' + (parseInt(page)-1).toString() + '/' + searchQuery, method='get')
-                button.btn.btn-white.btn-round.btn-just-icon(type='submit') Prev
+                button.btn.btn-white(type="submit" style="padding: 5px;") <
+                p(style="padding: 10px; display: inline-block;") Page #{parseInt(page)}
             div.next
               form(action='/ingredients/search_results/' + (parseInt(page)+1).toString() + '/' + searchQuery, method='get')
-                button.btn.btn-white.btn-round.btn-just-icon(type='submit') Next
+                button.btn.btn-white(type="submit" style="padding: 5px;") >
+
 
       .card-content.tab-pane.fade#create_form.adminOnly.hide
         h1= 'Create new ingredient'

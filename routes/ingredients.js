@@ -172,10 +172,10 @@ router.post('/new', function(req, res, next) {
 router.post('/:name/add-vendor', function(req, res, next) {
   let ingName = req.params.name;
   let initiating_user = req.session.username;
-  //addVendor = function(name, vendorId, cost) 
+  //addVendor = function(name, vendorId, cost)
   IngredientHelper.addVendor(ingName, req.body.vendor, req.body.cost).then(function(results) {
-    logs.makeIngredientLog('Add vendor to ingredient', 
-      'Associated <a href="/vendors/' + encodeURIComponent(req.body.vendor)+'">vendor</a> with' + 
+    logs.makeIngredientLog('Add vendor to ingredient',
+      'Associated <a href="/vendors/' + encodeURIComponent(req.body.vendor)+'">vendor</a> with' +
       ' ingredient <a href="/ingredients/' + ingName + '">' + ingName + '</a>' /*{'ingredient_name':ingName, 'vendor_id': req.body.vendor}*/, initiating_user);
     res.redirect(req.baseUrl + '/' + encodeURIComponent(ingName));
   }).catch(function(error) {
@@ -205,7 +205,7 @@ router.post('/order/add/to/cart', function(req, res, next) {
       logResults += '<li>Vendor <a href="/vendors/' + encodeURIComponent(vendor.code)+'">'+vendor.code+')</a> with '+
       'ingredient <a href="/ingredients/' + ing['name'] + '">' + ing['name'] + '</a></li>'
     }
-    logs.makeLog('Add to cart', 
+    logs.makeLog('Add to cart',
       'Added the following to cart: <ul>' + logResults + '</ul>'/*{ 'vendor_code': vendor.code, 'Ingredient_ID': mongoose.Types.ObjectId(ing['_id']) }*/, req.session.username);
     res.redirect('/users/cart');
   }).catch(function(error) {
