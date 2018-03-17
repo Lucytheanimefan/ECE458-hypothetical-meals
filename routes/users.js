@@ -251,14 +251,11 @@ router.get('/user/:username', function(req, res, next) {
 
 
 router.get('/role', function(req, res, next) {
-  User.findById(req.session.userId)
-    .exec(function(error, user) {
-      if (error || user == null) {
-        res.send({ 'role': 'none' });
-      } else {
-        res.send({ 'role': user.role });
-      }
-    });
+  return res.send({'role':req.session.role});
+});
+
+router.get('/username', function(req, res, next) {
+  return res.send({'username':req.session.username});
 });
 
 router.get('/isLoggedIn', function(req, res, next) {
