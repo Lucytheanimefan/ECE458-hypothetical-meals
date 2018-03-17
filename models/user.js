@@ -64,7 +64,7 @@ var UserSchema = new mongoose.Schema({
 
 //authenticate input against database
 UserSchema.statics.authenticate = function(email, password, callback) {
-  User.findOne({ email: email })
+  User.findOne({ username: email })
     .exec(function(err, user) {
       console.log('authenticate: ' + user);
       if (err) {
@@ -243,7 +243,7 @@ UserSchema.pre('save', function(next) {
           return next(err);
         }
         user.password = hash;
-        //makeUserLog(user);
+        console.log('Saved password successfully');
         next(null, user);
       });
     }
