@@ -243,7 +243,7 @@ UserSchema.pre('save', function(next) {
           return next(err);
         }
         user.password = hash;
-        //makeUserLog(user);
+        console.log('Saved password successfully');
         next(null, user);
       });
     }

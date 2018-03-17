@@ -112,6 +112,7 @@ router.post('/', function(req, res, next) {
 
           req.session.userId = user._id;
           req.session.username = user.username;
+          req.session.role = user.role.toLowerCase();
           console.log('Render message');
           return res.send({ 'success': true, 'netid': user.netid });
 
@@ -120,6 +121,7 @@ router.post('/', function(req, res, next) {
       } else {
         req.session.userId = user._id;
         req.session.username = user.username;
+        req.session.role = user.role.toLowerCase();
         res.send({ 'success': true, 'netid': user.netid });
       }
     });

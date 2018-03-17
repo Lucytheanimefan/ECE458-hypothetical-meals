@@ -21,6 +21,11 @@ var grid = require('gridfs-stream');
 //   console.log('Run this every 5 minutes!');
 // });
 router.get('/', function(req, res, next) {
+  if (req.session.role !== 'it_person') {
+    let err = new Error('This user does not have permissions to access backups');
+    err.status = 403;
+    return next(err);
+  }
   grid.mongo = backupMongoose.mongo;
   var conn = backupMongoose.createConnection(variables.backupURI);
   conn.once('open', function() {
@@ -34,9 +39,15 @@ router.get('/', function(req, res, next) {
       res.render('backups', { files: files });
     });
   })
+
 })
 
 router.get('/file/:filename', function(req, res, next) {
+  if (req.session.role !== 'it_person') {
+    let err = new Error('This user does not have permissions to access backups');
+    err.status = 403;
+    return next(err);
+  }
   grid.mongo = backupMongoose.mongo;
   var conn = backupMongoose.createConnection(variables.backupURI);
   conn.once('open', function() {
@@ -55,8 +66,13 @@ router.get('/file/:filename', function(req, res, next) {
 })
 
 router.post('/restore', function(req, res, next) {
+  if (req.session.role !== 'it_person') {
+    let err = new Error('This user does not have permissions to access backups');
+    err.status = 403;
+    return next(err);
+  }
   console.log('File: ');
-  console.log(req.body.file)
+  console.log(req.body.file);
   var filePath = path.resolve(__dirname, '..', 'backups');
   restore({
     uri: variables.MONGO_URI, // mongodb://<dbuser>:<dbpassword>@<dbdomain>.mongolab.com:<dbport>/<dbdatabase>
