@@ -59,6 +59,8 @@ html(lang='en')
       .main-panel
         nav.navbar.navbar-transparent.navbar-absolute
           .container-fluid
+            div Logged in as 
+              span#username
             .navbar-header
               button.navbar-toggle(type='button', data-toggle='collapse')
                 span.sr-only Toggle navigation
@@ -67,7 +69,6 @@ html(lang='en')
                 span.icon-bar
             .collapse.navbar-collapse
               ul.nav.navbar-nav.navbar-right
-
                 li.dropdown
                   a.dropdown-toggle(href='#', data-toggle='dropdown')
                     i.material-icons person

@@ -115,15 +115,32 @@ function getUserRole(callback) {
     contentType: 'application/json; charset=utf-8',
     dataType: 'json',
     success: function(response) {
-      console.log(response);
+      console.log('GetUserrole return success')
+      //console.log(response);
       callback(response['role']);
     }
   });
 }
 
+function getUsername(callback) {
+  console.log('Get username:')
+  $.ajax({
+    type: 'GET',
+    url: '/users/username',
+    contentType: 'application/json; charset=utf-8',
+    dataType: 'json',
+    success: function(response) {
+      console.log(response);
+      callback(response['username']);
+    }
+  });
+}
+
 function checkIsAdmin(callback) {
+  console.log('checkisadmin');
   getUserRole(function(role) {
-    callback(role.toUpperCase() === "ADMIN");
+    //console.log(role);
+    callback(role == "admin");
   })
 }
 
@@ -145,6 +162,7 @@ function loadLoggedInContent() {
   console.log('Load logged in content');
   checkLoggedIn(function(loggedIn) {
     if (loggedIn) {
+      console.log('Load sidebar!')
       loadSideBar();
     } else {
       $('#profile').text('Login');
@@ -170,10 +188,18 @@ function loadRelevantContent() {
       loadContent(my_role)
     })
   }
+
+  // Username
+  getUsername(function(username) {
+    console.log("Got username");
+    //console.log(username);
+    $('#username').text(username);
+  })
 }
 
 function loadContent(my_role) {
   if (my_role === 'admin') {
+    console.log('Show everything');
     $('.manager').removeClass('hide');
     $('.adminOnly').removeClass('hide');
     $('.admin').removeClass('hide');
@@ -182,17 +208,18 @@ function loadContent(my_role) {
   }
 }
 
-function loadAdminContent() {
-  checkIsAdmin(function(isAdmin) {
-    if (!isAdmin) return;
-    $('.manager').removeClass('hide');
-    // Is admin
-    $('.adminOnly').removeClass('hide');
-  });
-}
+// function loadAdminContent() {
+//   checkIsAdmin(function(isAdmin) {
+//     if (!isAdmin) return;
+//     $('.manager').removeClass('hide');
+//     // Is admin
+//     $('.adminOnly').removeClass('hide');
+//   });
+// }
 
 function loadSideBar() {
-  checkIsAdmin(function(isAdmin) {
+  checkIsAdmin(function(isAdmin){
+    console.log('isAdmin: ' + isAdmin);
     // Is admin
     $('.meal-category').each(function() {
       if (isAdmin) {
@@ -211,11 +238,11 @@ function loadSideBar() {
   })
 }
 
-function doBackup(backupFile, callback=null) {
+function doBackup(backupFile, callback = null) {
   console.log('Do backup called!');
   $.ajax({
     type: 'GET',
-    url: '/backups/file/'+backupFile,
+    url: '/backups/file/' + backupFile,
     contentType: 'application/json; charset=utf-8',
     dataType: 'json',
     success: function(response) {
@@ -224,112 +251,6 @@ function doBackup(backupFile, callback=null) {
     }
   });
 }
-
-// function loadPugView() {
-//   var description = $("#descriptionValues").data("description");
-//   console.log(description);
-
-//   if (typeof description == 'string') {
-//     $("#description").append(description);
-//     return;
-//   }
-
-//   var appendText = true;
-//   for (var key in description) {
-//     if (description.hasOwnProperty(key) && (description instanceof Object)) {
-//       var text = '';
-//       //console.log(key.toLowerCase());
-//       var keyLower = key.toLowerCase()
-//       if (keyLower == 'vendor code') {
-//         text = key + ': <a href=\'/vendors/' + description[key] + '\'>' + description[key] + '</a>';
-//         text = "<li>" + text + "</li>";
-//         //$("#description").append("<li>" + text + "</li>");
-//       } else if (keyLower == 'ingredient_id' || keyLower == 'ingredient id') {
-//         console.log('get ingredient for id');
-//         getIngredientForID(description[key], function(ingredient) {
-//           text = 'Ingredient: <ul>';
-//           for (var ingKey in ingredient) {
-//             if (ingKey != '_id' && ingKey != '__v' && ingKey != 'vendors') {
-//               value = ingredient[ingKey]
-//               if (ingKey == 'name') {
-//                 value = '<a href="/ingredients/' + encodeURIComponent(value) + '">' + value + '</a>';
-//               }
-
-//               text += '<li>' + ingKey + ': ' + value + '</li>';
-//             }
-//           }
-//           text += '</ul>';
-//           text = "<li>" + text + "</li>";
-//           $("#description").append(text);
-//           //appendText = false;
-//         })
-//       } else if (keyLower == 'ingredient_name') {
-//         value = '<a href="/ingredients/' + encodeURIComponent(description[key]) + '">' + description[key] + '</a>';
-
-//         text = '<li>Ingredient: ' + value + '</li>';
-
-//       } else if (keyLower == 'ingredient_names') {
-//         var ingredients = description[keyLower];
-//         for (var i in ingredients) {
-//           value = '<a href="/ingredients/' + encodeURIComponent(ingredients[i]) + '">' + ingredients[i] + '</a>';
-//           text += '<li>Ingredient: ' + value + '</li>';
-//         }
-//       } else if (keyLower == "vendor_id") {
-//         var vendor_id = description[key];
-//         getVendorForID(vendor_id, function(vendor) {
-//           console.log(vendor);
-//           let code = vendor['code'];
-//           value = '<a href="/vendors/' + encodeURIComponent(code) + '">' + code + '</a>';
-//           text = '<li>Vendor code: ' + value + '</li>';
-//           $("#description").append(text);
-//         })
-//       } else if (keyLower == "vendor_code") {
-//         let code = description[key];
-//         let value = '<a href="/vendors/' + encodeURIComponent(code) + '">' + code + '</a>';
-//         text = '<li>Vendor code: ' + value + '</li>';
-//       } else if (keyLower == "array_description") {
-//         for (var i in description[key]) {
-//           console.log(description[key]);
-//           var result = description[key][i];
-//           if (result != null) {
-//             if (result.hasOwnProperty('package')) { // it's an ingredient
-//               text += '<li>Ingredient: <a href=\'/ingredients/' + result['name'] + '\'>' + result['name'] + '</a></li>';
-//             } else if (result.hasOwnProperty('code')) { // it's a vendor
-//               text += '<li>Vendor: <a href=\'/vendors/' + result['code'] + '\'>' + result['code'] + '</a></li>';
-//             }
-//           }
-//         }
-//         //$("#description").append(text);
-//       } else if (keyLower == "formula") {
-//         for (var formulaKey in description[key]) {
-//           if (formulaKey != '_id' && formulaKey != '__v') {
-//             value = description[key][formulaKey]
-//             if (formulaKey == 'tuples') {
-//               value = JSON.stringify(value);
-//             } else if (formulaKey == 'name') {
-//               value = '<a href="/formulas/' + encodeURIComponent(value) + '">' + value + '</a>';
-//             }
-//             text += '<li>' + formulaKey + ': ' + value + '</li>';
-//           }
-//         }
-//       } else if (keyLower == 'formula_names') {
-//         var formulas = description[keyLower];
-//         for (var i in formulas) {
-//           value = '<a href="/formulas/' + encodeURIComponent(formulas[i]) + '">' + formulas[i] + '</a>';
-//           text += '<li>Formula: ' + value + '</li>';
-//         }
-//       } else if (keyLower == 'username') {
-//         let username = description[key];
-//         value = '<a href="/users/user/' + encodeURIComponent(username) + '">' + username + '</a>';
-//         text = '<li>User: ' + value + '</li>';
-//       } else {
-//         text = '<li>' + key + ': ' + JSON.stringify(description[key]) + '</li>';
-//         //$("#description").append(text);
-//       }
-//       $("#description").append(text);
-//     }
-//   }
-// }
 
 function getIngredientForID(id, callback) {
   console.log("Get ingredient for id");
@@ -443,7 +364,7 @@ function addTuples(ingredients, start) {
 
     //var start = document.getElementById('index').dataset.start;
     next = next - 1;
-    document.getElementById('index').dataset.start = Number(next)+1;
+    document.getElementById('index').dataset.start = Number(next) + 1;
   });
 }
 
@@ -479,7 +400,7 @@ function createTuples(ingredients, start) {
 
     //var start = document.getElementById('index').dataset.start;
     next = next - 1;
-    document.getElementById('index2').dataset.start = Number(next)+1;
+    document.getElementById('index2').dataset.start = Number(next) + 1;
   });
 }
 
@@ -517,42 +438,10 @@ function deleteTuple(index) {
     $('#tuple' + index).remove();
     var start = document.getElementById('index').dataset.start;
     if (start == index) {
-      document.getElementById('index').dataset.start = Number(start)-1;
+      document.getElementById('index').dataset.start = Number(start) - 1;
     }
   }
 
-  // let name = element.name;
-  // let id = element.id;
-  // console.log(ingredients);
-  // ingredients = JSON.parse(ingredients);
-  // console.log(name);
-  // console.log(id);
-  // console.log(index);
-  // var tupleData = {};
-  // tupleData['name'] = name;
-  // tupleData['id'] = id;
-  // if (name != null && id != null) {
-  //   $.ajax({
-  //     type: 'POST',
-  //     url: '/formulas/' + name + '/delete_tuple',
-  //     data: JSON.stringify(tupleData),
-  //     contentType: 'application/json; charset=utf-8',
-  //     dataType: 'json',
-  //     success: function(result) {
-  //       if (!result['success']) {
-  //         console.log('Error deleting tuple: ' + result['error']);
-  //       } else {
-  //         // var tupleName = "tuple"+index;
-  //         // var delElem = document.getElementById(tupleName);
-  //         // delElem.remove();
-  //         $('#' + id).remove();
-  //       }
-  //     }
-  //   });
-  // } else {
-  //   document.getElementById("id").remove();
-  //   addTuples(ingredients, 1);
-  // }
 }
 
 function deleteTuple2(index) {
@@ -571,7 +460,7 @@ function deleteTuple2(index) {
         success: function(result) {
           if (!result['success']) {
             console.log('Error deleting tuple: ' + result['error']);
-          } 
+          }
         }
       });
     }
@@ -580,7 +469,7 @@ function deleteTuple2(index) {
     $('#tuple' + index).remove();
     var start = document.getElementById('index2').dataset.start;
     if (start == index) {
-      document.getElementById('index2').dataset.start = Number(start)-1;
+      document.getElementById('index2').dataset.start = Number(start) - 1;
     }
   }
 }
