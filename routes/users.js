@@ -495,6 +495,60 @@ router.post('/checkout_cart', function(req, res, next) {
   })
 });
 
+router.get('/lot_assignment/:page?', function(req, res, next){
+  var perPage = 10;
+  var page = req.params.page || 1;
+  page = (page < 1) ? 1 : page;
+
+  var userQuery = User.getUserById(req.session.userId);
+  var cart;
+  var orders = [];
+  var ingredients = [];
+  var ids = [];
+  userQuery.then(function(user) {
+    cart = user.cart;
+    var promises = [];
+    for (let order of cart) {
+      promises.push(Ingredient.getIngredientById(order.ingredient));
+    }
+    return Promise.all(promises);
+  }).then(function(ings) {
+    for (let ing of ings) {
+      ingredients.push(ing.name);
+      ids.push(ing._id.toString());
+    }
+    var start = perPage * (page - 1);
+    var promises = [];
+    for (i = start; i < start + perPage; i++) {
+      var order = {};
+      if (cart[i] == undefined) {
+        break;
+      }
+      var index = ids.indexOf(cart[i].ingredient.toString());
+      var ingName = ingredients[index];
+      order['ingredient'] = ingName;
+      promises.push(UserHelper.getCartVendors(cart[i].vendors));
+      order['quantity'] = cart[i].quantity;
+      orders.push(order);
+    }
+    return Promise.all(promises);
+  }).then(function(results) {
+    for (i = 0; i < results.length; i++) {
+      orders[i]['vendors'] = results[i];
+    }
+    page = (page > orders.length) ? orders.length : page;
+
+    res.render('lot_selection', { orders: orders[page-1], page: page });
+  }).catch(function(error) {
+    next(error);
+  })
+
+});
+
+router.post('/lot_assignment/assign', function(req, res, next){
+  res.render()
+})
+
 router.get('/report/:page?', function(req, res, next) {
   var perPage = 10;
   var page = req.params.page || 1;
