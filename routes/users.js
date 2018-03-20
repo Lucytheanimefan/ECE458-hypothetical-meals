@@ -112,6 +112,7 @@ router.post('/', function(req, res, next) {
 
           req.session.userId = user._id;
           req.session.username = user.username;
+          req.session.role = user.role.toLowerCase();
           console.log('Render message');
           return res.send({ 'success': true, 'netid': user.netid });
 
@@ -120,6 +121,7 @@ router.post('/', function(req, res, next) {
       } else {
         req.session.userId = user._id;
         req.session.username = user.username;
+        req.session.role = user.role.toLowerCase();
         res.send({ 'success': true, 'netid': user.netid });
       }
     });
@@ -249,14 +251,11 @@ router.get('/user/:username', function(req, res, next) {
 
 
 router.get('/role', function(req, res, next) {
-  User.findById(req.session.userId)
-    .exec(function(error, user) {
-      if (error || user == null) {
-        res.send({ 'role': 'none' });
-      } else {
-        res.send({ 'role': user.role });
-      }
-    });
+  return res.send({'role':req.session.role});
+});
+
+router.get('/username', function(req, res, next) {
+  return res.send({'username':req.session.username});
 });
 
 router.get('/isLoggedIn', function(req, res, next) {

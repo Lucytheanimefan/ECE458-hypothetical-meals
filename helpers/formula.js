@@ -178,8 +178,8 @@ module.exports.removeTupleById = function(name, id){
   })
 }
 
-module.exports.updateTuple = function(name, index, ingredient, quantity){
-  console.log("ingredient = " + ingredient);
+module.exports.updateTuple = function(name, index, ingredientID, quantity){
+  console.log("ingredient = " + ingredientID);
   return new Promise(function(resolve,reject){
     var formQuery = Formula.findFormulaByName(name);
     var formula;
@@ -195,11 +195,11 @@ module.exports.updateTuple = function(name, index, ingredient, quantity){
         error.status = 400;
         throw(error);
       }
-      var ingQuery = Ingredient.getIngredientById(ingredient);
+      var ingQuery = Ingredient.getIngredientById(ingredientID);
       return ingQuery;
-    }).then(function(ingResult) {
+    }).then(async function(ingResult) {
       if (ingResult == null) {
-        var error = new Error('The ingredient ' + ingredient + ' does not exist!');
+        var error = new Error('The ingredient does not exist!');
         error.status = 400;
         throw(error);
       }
@@ -212,11 +212,16 @@ module.exports.updateTuple = function(name, index, ingredient, quantity){
             quantity = Number(quantity) + tuple.quantity;
             index = tuple.index;
           }
-          return Formula.updateTuple(name, index, tuple.ingredient, ingResult['name'], ingredient, quantity);
+          return Formula.updateTuple(name, index, tuple.ingredient, ingResult['name'], ingredientID, quantity);
+        } else {
+          if (index == tuple.index) {
+            console.log(tuple.ingredient);
+            await Formula.removeTuple(name, tuple.ingredient);
+          }
         }
       }
       console.log("add");
-      return Formula.addTuple(name, index, ingResult['name'], ingredient, quantity);
+      return Formula.addTuple(name, index, ingResult['name'], ingredientID, quantity);
     }).then(function(tuple) {
       resolve(tuple);
     }).catch(function(error){

@@ -85,6 +85,7 @@ router.post('/:name/update', function(req, res, next) {
   delete body['description'];
   delete body['units'];
   var length = Object.keys(body).length;
+  console.log(body);
   promise.then(function(formula) {
     return FormulaHelper.updateFormula(name, newName, description, units);
   }).then(async function(result) {

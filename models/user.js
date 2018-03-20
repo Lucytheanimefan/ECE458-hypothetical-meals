@@ -64,7 +64,7 @@ var UserSchema = new mongoose.Schema({
 
 //authenticate input against database
 UserSchema.statics.authenticate = function(email, password, callback) {
-  User.findOne({ email: email })
+  User.findOne({ username: email })
     .exec(function(err, user) {
       console.log('authenticate: ' + user);
       if (err) {
@@ -99,25 +99,6 @@ UserSchema.statics.authenticate_netid = function(netid, email, callback) {
         user_data['email'] = email;
       }
       callback(null, null);
-      // TODO this should happen in the route, not here
-      // User not found, create an account associated with netid
-
-      // User.create(user_data, function(error, user) {
-      //   if (error) {
-      //     console.log("Error creating user: ");
-      //     console.log(error);
-      //     return callback(error);
-      //   }
-      //   // Try logging in again
-      //   findUserByNetid(netid, function(err, user) {
-      //     if (err) {
-      //       console.log('Error finding user by netid: ');
-      //       console.log(err);
-      //       return callback(err);
-      //     }
-      //     return callback(null, user);
-      //   });
-      // })
 
     } else {
       console.log('Found the user!');
@@ -128,9 +109,6 @@ UserSchema.statics.authenticate_netid = function(netid, email, callback) {
 }
 
 UserSchema.statics.update = function(userdata, newdata, callback) {
-
-  //console.log(userdata);
-
   console.log('NEW DATA: ');
   console.log(newdata)
 
@@ -210,25 +188,6 @@ findUserByNetid = function(netid, callback) {
     })
 }
 
-// makeUserLog = function(user) {
-//   let log_data = {
-//     'title': 'User created',
-//     'description': user.username + ', ' + user.email + ', ' + user.role,
-//     'entities': 'user',
-//     'initiating_user' : ''
-//     ,
-//         'user': user.username + ', ' + user.role
-//   }
-//   Log.create(log_data, function(error, log) {
-//     if (error) {
-//       console.log('Error logging user data: ');
-//       console.log(error);
-//       //return next();
-//     }
-//     console.log('Logged user: ' + log);
-//     //return next();
-//   })
-// }
 
 //hashing a password before saving it to the database
 UserSchema.pre('save', function(next) {
@@ -243,7 +202,7 @@ UserSchema.pre('save', function(next) {
           return next(err);
         }
         user.password = hash;
-        //makeUserLog(user);
+        console.log('Saved password successfully');
         next(null, user);
       });
     }
