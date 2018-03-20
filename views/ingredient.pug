@@ -19,30 +19,39 @@ block content
       li.manager.hide
         a(data-toggle='tab', href='#vendor-form') Associate Vendor
     .tab-content
-      .row.tab-pane.fade.in.active#ingredient-info
-        .col-md-6
-          table.table
+      .tab-pane.fade.in.active#ingredient-info
+        table.table
+          tr
+            th Package Type
+            td= ingredient.package
+          tr
+            th Storage Temperature
+            td= ingredient.temperature
+          tr
+            th Native Unit
+            td= ingredient.nativeUnit
+          tr
+            th Units per Package
+            td= ingredient.unitsPerPackage
+          tr
+            th Units in Storage
+            td= ingredient.amount
+          tr
+            th Space in Storage (Sq ft)
+            td= ingredient.space
+        table.table
+          th Lot Number
+          th Units
+          th Timestamp
+          for set in sets
+
             tr
-              th Package Type
-              td= ingredient.package
-            tr
-              th Storage Temperature
-              td= ingredient.temperature
-            tr
-              th Native Unit
-              td= ingredient.nativeUnit
-            tr
-              th Units per Package
-              td= ingredient.unitsPerPackage
-            tr
-              th Units in Storage
-              td= ingredient.amount
-            tr
-              th Space in Storage (Sq ft)
-              td= ingredient.space
-          div.delete-form.adminOnly.hide
-            form(action='/ingredients/' + encodeURIComponent(ingredient.name) + '/delete', method='post')
-              button.btn.btn-primary.pull-right(style="margin: 30px 15px;" type='submit') Delete ingredient
+              td= set.lotNumber
+              td= set.units
+              td= set._id.getTimestamp()
+        div.delete-form.adminOnly.hide
+          form(action='/ingredients/' + encodeURIComponent(ingredient.name) + '/delete', method='post')
+            button.btn.btn-primary.pull-right(style="margin: 30px 15px;" type='submit') Delete ingredient
         div.card#vendor-info
           div.card-header(data-background-color='purple')
             h4.title Vendor Information

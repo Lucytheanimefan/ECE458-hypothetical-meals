@@ -11,7 +11,7 @@ var Production = require('../models/production');
 var mongoose = require('mongoose');
 mongoose.Promise = global.Promise;
 
-module.exports.createIngredient = function(name, package, temp, nativeUnit, unitsPerPackage, amount=0) {
+module.exports.createIngredient = function(name, package, temp, nativeUnit, unitsPerPackage, amount=0, lotNumber) {
   return new Promise(function(resolve, reject) {
     if (amount < 0) {
       var error = new Error('Storage amount must be a non-negative number');
@@ -31,7 +31,7 @@ module.exports.createIngredient = function(name, package, temp, nativeUnit, unit
           throw error;
         }
       }).then(function(result) {
-        return Ingredient.createIngredient(name, package, temp, nativeUnit, unitsPerPackage, amount);
+        return Ingredient.createIngredient(name, package, temp, nativeUnit, unitsPerPackage, amount, lotNumber);
       }).then(function(result) {
         resolve(result);
       }).catch(function(error) {

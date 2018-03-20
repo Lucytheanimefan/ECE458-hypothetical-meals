@@ -84,11 +84,22 @@ router.get('/:name/:amt/:page?', function(req, res, next) {
     console.log(vendors);
     return createCatalogue(vendors, ingredient['_id']);
   }).then(function(catalogue) {
+    let lots = ingredient['vendorLots']
+    lots.sort(function(a,b) {Ingredient.sortLots(a,b)});
     res.render('ingredient', { ingredient: ingredient, packages: packageTypes, temps: temperatures, vendors: catalogue, page: page, amount: req.params.amt, existingVendors: vendorObjects });
   }).catch(function(error) {
     next(error)
   });
 })
+
+displayTimestamps = function(sets) {
+  let newSets = [];
+  for (let set of sets) {
+    set['timestamp'] = mongoose.Types.ObjectId(set['_id']).getTimestamp().toString();
+    newSets.push(set);
+  }
+  return newSets
+}
 
 //POST request to delete an existing ingredient
 router.post('/:name/delete', function(req, res, next) {
@@ -157,7 +168,8 @@ router.post('/new', function(req, res, next) {
     req.body.temperature,
     req.body.nativeUnit,
     parseFloat(req.body.unitsPerPackage),
-    parseFloat(req.body.amount)
+    parseFloat(req.body.amount),
+    0
   );
   promise.then(function(ingredient) {
     logs.makeIngredientLog('Create ingredient','Created <a href="/ingredients/' + ingName + '">' + ingName + '</a>'/*{'ingredient_id': ingredient._id}*/, initiating_user);
