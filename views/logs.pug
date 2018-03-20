@@ -6,6 +6,15 @@ block content
   .row
     form.hide(action='/logs/delete/', method='post')
       button.btn.btn-primary.pull-right(type='submit', value='Delete') Clear all
+    form(action='/logs/date', method='get')
+      h4 Sort logs by date
+      .form-group
+        label.control-label Start date
+        input.form-control(type='date' name='start')
+      .form-group
+        label.control-label End date
+        input.form-control(type='date' name='end')
+      button.btn.btn-primary.pull-right(type='submit', value='Filter') Filter
     div.card
       div.card-header(data-background-color='purple')
         h4.title Logs
@@ -17,14 +26,18 @@ block content
             th(onclick='sortTable(0, \'log\')') Time
             th(onclick='sortTable(0, \'log\')') Description
             th(onclick='sortTable(0, \'log\')') Initiating User
-            th(onclick='sortTable(0, \'log\')') Related entities
+            //- th(onclick='sortTable(0, \'log\')') Related entities
           tbody
           each log in logs
             tr(id=log._id)
               td
-                a(href='/logs/log/'+log.initiating_user+'?title='+log.title+'&description=' + log.description + '&time='+log.time+'&entities=' + log.entities)= log.title
+                a(href='/logs/log/'+log._id)= log.title
               td= log.time
               if log.description
-                td= log.description.substr(1,100)
+                td!= log.description
               td= log.initiating_user
-              td= log.entities
+              //- td= log.entities
+
+block scripts
+  script.
+    $('#datetimepicker1').datepicker();

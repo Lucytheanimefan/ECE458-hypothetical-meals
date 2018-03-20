@@ -15,25 +15,41 @@ router.get('/', (req, res, next) => {
   });
 });
 
-router.get('/log/:userid', (req, res, next) => {
+router.get('/log/:id', (req, res, next) => {
   console.log(req.query)
   let title = req.query.title
-  User.findById(req.params.userid)
-    .exec(function(error, user) {
-      res.render('log', {
-        title: req.query.title,
-        time: req.query.time,
-        description: req.query.description,
-        entities: req.query.entities,
-        user:user.username
-      })
-    });
+  // User.findById(req.params.userid)
+  //   .exec(function(error, user) {
+  Log.findOne({ '_id': req.params.id }).exec(function(err, log) {
+    if (err) {
+      callback(err);
+    }
+    res.render('log', {
+      title: log.title,
+      time: log.time,
+      description: log.description,
+      user: log.initiating_user
+    })
+  })
+  // });
+})
+
+router.get('/date', (req, res, next) => {
+  let startDate = req.query.start;
+  let endDate = req.query.end;
+  //new Date(2012, 7, 14)
+  Log.find({ 'time': { "$gte": startDate, "$lt": endDate } }).exec(function(err, logs) {
+    if (err){
+      return next(err);
+    }
+    res.render('logs', { logs: logs });
+  })
 })
 
 router.post('/delete', (req, res, next) => {
   console.log('Delete logs!');
-  Log.remove({}, function(err){
-    if (err){
+  Log.remove({}, function(err) {
+    if (err) {
       console.log(err);
       next(err);
     }
@@ -43,30 +59,29 @@ router.post('/delete', (req, res, next) => {
 
 module.exports = router;
 
-module.exports.makeIngredientLog = function(title, ingredient, entities = ['ingredient'], initiating_user) {
-  makeLog('Ingredient Action: ' + title, JSON.stringify(ingredient), entities, initiating_user);
+module.exports.makeIngredientLog = function(title, ingredient, initiating_user) {
+  makeLog('Ingredient Action: ' + title, ingredient, initiating_user);
 }
 
-module.exports.makeUserLog = function(title, user, entities = ['user'], initiating_user) {
+module.exports.makeUserLog = function(title, user, initiating_user) {
   delete user['password'];
-  makeLog('User Action: ' + title, JSON.stringify(user), entities, initiating_user);
+  makeLog('User Action: ' + title, user, initiating_user);
 }
 
-module.exports.makeVendorLog = function(title, vendor, entities = ['vendor'], initiating_user) {
-  makeLog('Vendor Action: ' + title, JSON.stringify(vendor), entities, initiating_user);
+module.exports.makeVendorLog = function(title, vendor, initiating_user) {
+  makeLog('Vendor Action: ' + title, vendor, initiating_user);
 }
 
 // General purpose
-module.exports.makeLog = function(title, description, entities = [], initiating_user) {
-  makeLog(title, description, entities, initiating_user);
+module.exports.makeLog = function(title, description, initiating_user) {
+  makeLog(title, description, initiating_user);
 }
 
 
-makeLog = function(title, description, entities, initiating_user) {
+makeLog = function(title, description, initiating_user) {
   let log_data = {
     'title': title,
     'description': description,
-    'entities': entities,
     'initiating_user': initiating_user
   }
   Log.create(log_data, function(error, log) {

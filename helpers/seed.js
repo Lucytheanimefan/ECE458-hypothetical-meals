@@ -17,27 +17,30 @@ var user = {
   password: 'admin'
 }
 
-User.create(user, function(error, user) {
+var ituser = {
+  username: 'it_person',
+  email: 'it_person',
+  role: 'it_person',
+  password: 'it_person'
+}
+
+// User.create(user, function(error, user) {
+//   if (error) {
+//     console.log('Error creating user: ' + error);
+//     return;
+//   } else {
+//     console.log("done");
+    
+//   };
+// })
+
+User.create(ituser, function(error, user) {
   if (error) {
     console.log('Error creating user: ' + error);
     return;
   } else {
     console.log("done");
-    //console.log('Hash the password');
-    // bcrypt.hash(user.password, 10, function(err, hash) {
-    //   if (err) {
-    //     return;
-    //   }
-
-    //   console.log('Successful hash');
-    //   user.password = hash;
-    //   user.save(function(err) {
-    //     if (err) { return res.status(500).send({ msg: err.message }); }
-
-    //     console.log('Done');
-
-    //   });
-    // });
+    
   };
 })
 
