@@ -475,21 +475,18 @@ router.post('/checkout_cart', function(req, res, next) {
     for (let order of cart) {
       promises.push(UserHelper.updateIngredientOnCheckout(mongoose.Types.ObjectId(order.ingredient), order.vendors));
       //promises.push(Spending.updateReport(order.ingredient, ingName, spent, reportType));
-      promises.push(UserHelper.removeOrder(req.session.userId, order.ingredient));
+      //promises.push(UserHelper.removeOrder(req.session.userId, order.ingredient));
     }
     return Promise.all(promises);
   }).then(function(ings) {
-    console.log(ings);
-    console.log(cart);
     var checkoutIngredientLog = '';
     if (ings != null) {
       for (var i = 0; i < ings.length; i++) {
-        console.log(ings[i]);
         checkoutIngredientLog += '<li><a href="/ingredients/' + ings[i].name + '">' + ings[i].name + '</a></li>'
       }
     }
     logs.makeLog('Check out cart', 'Checked out cart' /*'Checkout cart with ingredients: <ul>' + checkoutIngredientLog + '</ul>'*/ , req.session.username);
-    res.redirect('/users/cart');
+    res.redirect('/users/lot_assignment');
   }).catch(function(error) {
     next(error);
   })
@@ -537,8 +534,8 @@ router.get('/lot_assignment/:page?', function(req, res, next){
       orders[i]['vendors'] = results[i];
     }
     page = (page > orders.length) ? orders.length : page;
-
-    res.render('lot_selection', { orders: orders[page-1], page: page });
+    console.log(orders);
+    res.render('lot_selection', { orders: orders, page: page });
   }).catch(function(error) {
     next(error);
   })
