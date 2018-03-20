@@ -109,7 +109,7 @@ module.exports.incrementAmount = function(name, amount) {
 module.exports.updateSpace = function(name) {
   return new Promise(function(resolve, reject) {
     exports.getIngredient(name).then(function(ing) {
-      return exports.updateIngredient(ing.name, ing.name, ing.package. ing.temperature, ing.nativeUnit, ing.unitsPerPackage, ing.amount);
+      return exports.updateIngredient(ing.name, ing.name, ing.package, ing.temperature, ing.nativeUnit, ing.unitsPerPackage, ing.amount);
     }).then(function(ing) {
       resolve(ing);
     }).catch(function(error) {

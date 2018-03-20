@@ -136,6 +136,9 @@ module.exports.updateCart = function(id) {
 module.exports.updateIngredientOnCheckout = function(ingId, vendors) {
   return new Promise(function(resolve, reject) {
     var ing;
+    var totalCost;
+    var averageCost;
+    var totalPackages;
     Ingredient.getIngredientById(ingId).then(function(result){
       ing = result;
       return Promise.all(vendors.map(function(tuple) {
@@ -149,9 +152,9 @@ module.exports.updateIngredientOnCheckout = function(ingId, vendors) {
         });
       }));
     }).then(function(results) {
-      let totalCost = 0;
-      let averageCost = 0;
-      let totalPackages = 0;
+      totalCost = 0;
+      averageCost = 0;
+      totalPackages = 0;
       for (let tuple of results) {
         let vendor = tuple['vendor'];
         for (j = 0; j < vendor['catalogue'].length; j++) {
