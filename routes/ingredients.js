@@ -69,6 +69,7 @@ router.get('/:name/:amt/:page?', function(req, res, next) {
   var findAllVendors = Vendor.model.find().exec();
   var ingredient;
   var vendorObjects;
+  var catalogue;
   findAllVendors.then(function(vendors) {
     vendorObjects = vendors;
     return ingQuery;
@@ -84,13 +85,69 @@ router.get('/:name/:amt/:page?', function(req, res, next) {
     console.log(vendors);
     return createCatalogue(vendors, ingredient['_id']);
   }).then(function(catalogue) {
-    let lots = ingredient['vendorLots']
-    lots.sort(function(a,b) {Ingredient.sortLots(a,b)});
-    res.render('ingredient', { ingredient: ingredient, packages: packageTypes, temps: temperatures, vendors: catalogue, page: page, amount: req.params.amt, existingVendors: vendorObjects });
+    catalogue = catalogue;
+    let lots = ingredient['vendorLots'];
+    return joinEntriesTogether(lots);
+  }).then(function(lots) {
+    lots.sort(function(a,b) {
+      if (a.vendor.name < b.vendor.name) {
+        return -1;
+      } else if (a.vendor.name > b.vendor.name) {
+        return 1;
+      } else {
+        return 0;
+      }
+    });
+    res.render('ingredient', { ingredient: ingredient, packages: packageTypes, temps: temperatures, vendors: catalogue, page: page, amount: req.params.amt, existingVendors: vendorObjects, sets: lots });
   }).catch(function(error) {
     next(error)
   });
 })
+
+joinEntriesTogether = function(lots) {
+  return new Promise(function(resolve, reject) {
+    let results = [];
+    for (let lot of lots) {
+      let updated = false;
+      for (let result of results) {
+        if (result['vendorID'] == lot['vendorID'] && result['lotNumber'] == lot['lotNumber']) {
+          result['units'] = parseFloat(result['units']) + parseFloat(lot['units']);
+          updated = true;
+        }
+      }
+      if (!updated) {
+        results.push(lot);
+      }
+    }
+    fillEntries(results).then(function(lots) {
+      resolve(lots);
+    }).catch(function(error) {
+      reject(error);
+    })
+  })
+}
+
+fillEntries = function(lots) {
+  return Promise.all(lots.map(function(lot) {
+    return getVendor(lot);
+  }));
+}
+
+getVendor = function(lot) {
+  return new Promise(function(resolve, reject) {
+    Vendor.findVendorById(lot['vendorID']).then(function(vendor) {
+      if (lot['vendorID'] == 'admin') {
+        lot['vendor'] = {'name': 'admin'};
+      }
+      lot['vendor'] = vendor;
+      return lot;
+    }).then(function(lot) {
+      resolve(lot);
+    }).catch(function(error) {
+      reject(error);
+    })
+  })
+}
 
 displayTimestamps = function(sets) {
   let newSets = [];
@@ -98,7 +155,7 @@ displayTimestamps = function(sets) {
     set['timestamp'] = mongoose.Types.ObjectId(set['_id']).getTimestamp().toString();
     newSets.push(set);
   }
-  return newSets
+  return newSets;
 }
 
 //POST request to delete an existing ingredient

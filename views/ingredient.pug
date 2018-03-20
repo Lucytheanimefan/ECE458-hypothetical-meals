@@ -46,9 +46,13 @@ block content
           for set in sets
 
             tr
+              if set.vendor.name == 'admin'
+                td= set.vendor.name
+              else
+                td
+                  a(href="/vendors/" + set.vendor.code)= set.vendor.name
               td= set.lotNumber
               td= set.units
-              td= set._id.getTimestamp()
         div.delete-form.adminOnly.hide
           form(action='/ingredients/' + encodeURIComponent(ingredient.name) + '/delete', method='post')
             button.btn.btn-primary.pull-right(style="margin: 30px 15px;" type='submit') Delete ingredient
