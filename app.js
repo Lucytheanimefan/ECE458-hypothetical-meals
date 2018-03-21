@@ -119,7 +119,7 @@ var CronJob = require('cron').CronJob;
 //      */
 //     console.log('Run this every minute');
 //     //backups.makeBackup();
-//     backups.delete_daily_prior(Date());
+//     backups.deletePriorBackup(Date(), 6);
 //   }, function() {
 //     /* This function is executed when the job stops */
 //     console.log('Job done');
@@ -154,7 +154,7 @@ var weeklyJob = new CronJob('00 30 11 * * 1', function() {
     backups.makeBackup();
 
     // delete all daily backups that occurred last week
-    backups.delete_daily_prior(Date());
+    backups.deletePriorBackup(Date(), 6);
   }, function() {
     /* This function is executed when the job stops */
   },

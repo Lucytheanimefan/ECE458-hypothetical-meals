@@ -220,11 +220,11 @@ module.exports.makeBackup = function() {
   });
 }
 
-module.exports.delete_daily_prior = function(weeklyDate) {
-  var date = new Date(Date.parse(weeklyDate));
+module.exports.deletePriorBackup = function(endDate, daysBefore) {
+  var date = new Date(Date.parse(endDate));
   console.log('Date: ' + date);
   var oneWeekPriorDate = new Date();
-  oneWeekPriorDate.setDate(date.getDate() - 6);
+  oneWeekPriorDate.setDate(date.getDate() - daysBefore);
   console.log('One week prior date: ' + oneWeekPriorDate);
 
   var backUpDates = getDates(oneWeekPriorDate, date);
