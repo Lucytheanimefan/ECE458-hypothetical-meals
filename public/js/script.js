@@ -226,7 +226,7 @@ function loadSideBar() {
       var tmp = $(this).find('a')[0];
       var category = $($(tmp).find('p')[0]).text();
       if (role == "it_person") {
-        if (category == 'Backups') {
+        if (category == 'Backups' || category == 'Home' || category == 'Profile') {
           $(this).removeClass('hide');
         }
       } else if (role == "admin") {

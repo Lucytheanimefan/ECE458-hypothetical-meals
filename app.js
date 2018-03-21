@@ -112,20 +112,21 @@ app.use(function(err, req, res, next) {
 var CronJob = require('cron').CronJob;
 
 // test the cron job
-// var testsJob = new CronJob('00 * * * * *', function() {
-//     /*
-//      * Runs every month on Monday
-//      * at 11:30:00 AM. 
-//      */
-//     console.log('Run this every minute');
-//     backups.makeBackup();
-//   }, function() {
-//     /* This function is executed when the job stops */
-//     console.log('Job done');
-//   },
-//   true, /* Start the job right now */
-//   'America/Los_Angeles' /* Time zone of this job. */
-// );
+var testsJob = new CronJob('00 * * * * *', function() {
+    /*
+     * Runs every month on Monday
+     * at 11:30:00 AM. 
+     */
+    console.log('Run this every minute');
+    //backups.makeBackup();
+    backups.delete_daily_prior(Date());
+  }, function() {
+    /* This function is executed when the job stops */
+    console.log('Job done');
+  },
+  true, /* Start the job right now */
+  'America/Los_Angeles' /* Time zone of this job. */
+);
 
 
 var startJobNow = true;
@@ -135,7 +136,7 @@ var dailyJob = new CronJob('00 30 11 * * 0-6', function() {
      * at 11:30:00 AM. It does not run on Saturday
      * or Sunday.
      */
-    console.log('Make daily backup'); // TODO: send an email or something
+    console.log('Make daily backup'); 
     backups.makeBackup();
   }, function() {
     /* This function is executed when the job stops */
@@ -149,8 +150,10 @@ var weeklyJob = new CronJob('00 30 11 * * 1', function() {
      * Runs every week on Monday
      * at 11:30:00 AM. 
      */
-    console.log('Make weekly backup'); // TODO: send an email or something
+    console.log('Make weekly backup'); 
     backups.makeBackup();
+
+    // TODO: delete previous daily backups
   }, function() {
     /* This function is executed when the job stops */
   },
@@ -163,7 +166,7 @@ var monthlyJob = new CronJob('00 30 11 1 * 1', function() {
      * Runs every month on Monday
      * at 11:30:00 AM. 
      */
-    console.log('Make monthly backup'); // TODO: send an email or something
+    console.log('Make monthly backup'); 
     backups.makeBackup();
   }, function() {
     /* This function is executed when the job stops */

@@ -31,8 +31,39 @@ router.get('/', function(req, res, next) {
       res.render('backups', { files: files });
     });
   })
-
 })
+
+/**
+ * Deletes all of the daily backups 1 week prior to the date parameter
+ * @param  {[type]} req   [description]
+ * @param  {[type]} res   [description]
+ * @param  {[type]} next) [description]
+ * @return {[type]}       [description]
+ */
+// router.post('/delete_daily_prior/:date', function(req, res, next)) {
+//   if (req.session.role !== 'it_person') {
+//     let err = new Error('This user does not have permissions to access backups');
+//     err.status = 403;
+//     return next(err);
+//   }
+//   var date = Date.parse(req.params.date);
+//   console.log('Date: ' + date);
+//   var oneWeekPriorDate = date - 6;
+//   console.log('One week prior date: ' + oneWeekPriorDate);
+//   grid.mongo = backupMongoose.mongo;
+//   var conn = backupMongoose.createConnection(variables.backupURI);
+//   conn.once('open', function() {
+//     var gfs = grid(conn.db);
+//     gfs.remove({ 'filename': { "$gte": oneWeekPriorDate, "$lt": date } }, function(err) {
+//       if (err) {
+//         console.log(err);
+//         next(err);
+//       }
+//       console.log('Successfully deleted!');
+//       res.render('backups', { files: files });
+//     });
+//   })
+// }
 
 router.get('/file/:filename', function(req, res, next) {
   if (req.session.role !== 'it_person') {
@@ -151,7 +182,7 @@ module.exports.makeBackup = function() {
     callback: function(err) {
       if (err) {
         console.error(err);
-        emailMessage = Date() +': Failed to create backup ' + fileName + ' due to error: ' + err;
+        emailMessage = Date() + ': Failed to create backup ' + fileName + ' due to error: ' + err;
         sendEmail('spothorse9.lucy@gmail.com', 'Backup Status', emailMessage, function(error, result) {
           if (error) {
             console.log('ERROR SENDING EMAIL:');
@@ -189,6 +220,47 @@ module.exports.makeBackup = function() {
   });
 }
 
+module.exports.delete_daily_prior = function(weeklyDate) {
+  var date = new Date(Date.parse(weeklyDate));
+  console.log('Date: ' + date);
+  var oneWeekPriorDate = new Date();
+  oneWeekPriorDate.setDate(date.getDate() - 6);
+  console.log('One week prior date: ' + oneWeekPriorDate);
+
+  var backUpDates = getDates(oneWeekPriorDate, date);
+  console.log(backUpDates);
+  grid.mongo = backupMongoose.mongo;
+  var conn = backupMongoose.createConnection(variables.backupURI);
+  conn.once('open', function() {
+    var gfs = grid(conn.db);
+
+    for (var i = 0; i < backUpDates.length; i++) {
+      (function(i) {
+        gfs.remove({ filename: backUpDates[i] }, function(err, gridStore) {
+          if (err) return handleError(err);
+          console.log('success deleting ' + backUpDates[i]);
+        });
+      })(i);
+    }
+  })
+}
+
+var getDates = function(startDate, stopDate) {
+  var dateArray = new Array();
+  var currentDate = startDate;
+  while (currentDate <= stopDate) {
+    dateArray.push(new Date(currentDate).yyyymmdd() + '-backup');
+    currentDate = currentDate.addDays(1);
+  }
+  return dateArray;
+}
+
+
+Date.prototype.addDays = function(days) {
+  let date = new Date(this.valueOf());
+  date.setDate(date.getDate() + days);
+  return date;
+}
 
 Date.prototype.yyyymmdd = function() {
   var mm = this.getMonth() + 1; // getMonth() is zero-based
@@ -197,5 +269,5 @@ Date.prototype.yyyymmdd = function() {
   return [this.getFullYear(),
     (mm > 9 ? '' : '0') + mm,
     (dd > 9 ? '' : '0') + dd
-  ].join('');
+  ].join(''); //join('-');
 };
