@@ -218,17 +218,24 @@ function loadContent(my_role) {
 // }
 
 function loadSideBar() {
-  checkIsAdmin(function(isAdmin){
-    console.log('isAdmin: ' + isAdmin);
-    // Is admin
+  //checkIsAdmin(function(isAdmin){
+  getUserRole(function(role) {
+
     $('.meal-category').each(function() {
-      if (isAdmin) {
-        console.log('loadAdminOnlySideBar');
-        $(this).removeClass('hide');
+      // Users
+      var tmp = $(this).find('a')[0];
+      var category = $($(tmp).find('p')[0]).text();
+      if (role == "it_person") {
+        if (category == 'Backups') {
+          $(this).removeClass('hide');
+        }
+      } else if (role == "admin") {
+        //console.log('loadAdminOnlySideBar');
+        if (category !== 'Backups') {
+          $(this).removeClass('hide');
+        }
       } else {
         // Users
-        let tmp = $(this).find('a')[0];
-        let category = $($(tmp).find('p')[0]).text();
         if (category !== 'Users' && category !== "Uploads") {
           $(this).removeClass('hide');
         }
