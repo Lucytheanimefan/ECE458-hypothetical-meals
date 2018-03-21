@@ -37,6 +37,13 @@ block content
                 td!= log.description
               td= log.initiating_user
               //- td= log.entities
+      div.pages(style="text-align:center;")
+        .col-md-12
+          form(action="/logs/" + (parseInt(page)-1).toString(), method="get" style="display: inline-block;")
+            button.btn.btn-white(type="submit" style="padding: 5px;") <
+          p(style="padding: 10px; display: inline-block;") Page #{parseInt(page)}
+          form(action="/logs/" + (parseInt(page)+1).toString(), method="get" style="display: inline-block;")
+            button.btn.btn-white(type="submit" style="padding: 5px;") >
 
 block scripts
   script.
