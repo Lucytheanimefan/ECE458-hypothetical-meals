@@ -11,28 +11,14 @@ var Production = require('../models/production');
 var mongoose = require('mongoose');
 mongoose.Promise = global.Promise;
 
-module.exports.createIngredient = function(name, package, temp, nativeUnit, unitsPerPackage, amount=0, lotNumber) {
+module.exports.createIngredient = function(name, package, temp, nativeUnit, unitsPerPackage) {
   return new Promise(function(resolve, reject) {
-    if (amount < 0) {
-      var error = new Error('Storage amount must be a non-negative number');
-      error.status = 400;
-      reject(error);
-    } else if (unitsPerPackage <= 0) {
+    if (unitsPerPackage <= 0) {
       var error = new Error('Units per package must be a positive number');
       error.status = 400;
       reject(error);
     } else {
-      InventoryHelper.checkInventory(name, package, temp, unitsPerPackage, amount).then(function(update) {
-        if (update) {
-          return InventoryHelper.updateInventory(name, package, temp, unitsPerPackage, amount);
-        } else {
-          var error = new Error('Not enough room in inventory!');
-          error.status = 400;
-          throw error;
-        }
-      }).then(function(result) {
-        return Ingredient.createIngredient(name, package, temp, nativeUnit, unitsPerPackage, amount, lotNumber);
-      }).then(function(result) {
+      Ingredient.createIngredient(name, package, temp, nativeUnit, unitsPerPackage).then(function(result) {
         resolve(result);
       }).catch(function(error) {
         reject(error);
@@ -41,34 +27,30 @@ module.exports.createIngredient = function(name, package, temp, nativeUnit, unit
   });
 }
 
-module.exports.updateIngredient = function(name, newName, package, temp, nativeUnit, unitsPerPackage, amount) {
+module.exports.updateIngredient = function(name, newName, package, temp, nativeUnit, unitsPerPackage) {
   var returnIng;
+  var currentIng;
   return new Promise(function(resolve, reject) {
-    if (amount < 0) {
-      var error = new Error('Storage amount must be a non-negative number');
-      error.status = 400;
-      reject(error);
-    } else if (unitsPerPackage <= 0) {
+    if (unitsPerPackage <= 0) {
       var error = new Error('Units per package must be a positive number');
       error.status = 400;
       reject(error);
     } else {
-      InventoryHelper.checkInventory(name, package, temp, unitsPerPackage, amount).then(function(update) {
+      Ingredient.getIngredient(name).then(function(ing) {
+        currentIng = ing;
+        return InventoryHelper.checkInventory(name, package, temp, unitsPerPackage, parseFloat(currentIng.amount))
+      }).then(function(update) {
         if (update) {
-          return InventoryHelper.updateInventory(name, package, temp, unitsPerPackage, amount);
+          return InventoryHelper.updateInventory(name, package, temp, unitsPerPackage, parseFloat(currentIng.amount));
         } else {
           var error = new Error('Not enough room in inventory!');
           error.status = 400;
           throw error;
         }
       }).then(function(result) {
-        return Ingredient.updateIngredient(name, newName, package, temp, nativeUnit, unitsPerPackage, amount);
+        return Ingredient.updateIngredient(name, newName, package, temp, nativeUnit, unitsPerPackage);
       }).then(function(result) {
-        var ingQuery = Ingredient.getIngredient(newName);
-        return ingQuery;
-      }).then(function(ing) {
-        returnIng = ing;
-        return FormulaHelper.updateTuples(newName, ing._id);
+        return FormulaHelper.updateTuples(newName, result._id);
       }).then(function(result) {
         resolve(returnIng);
       }).catch(function(error) {
@@ -79,12 +61,13 @@ module.exports.updateIngredient = function(name, newName, package, temp, nativeU
 }
 
 //TODO: remove inventory check/update
-module.exports.incrementAmount = function(id, amount) {
+module.exports.incrementAmount = function(id, amount, vendorID='admin', lotNumber=0) {
   return new Promise(function(resolve, reject) {
     var newAmount;
     var ing;
     Ingredient.getIngredientById(id).then(function(result) {
       ing = result;
+      console.log(ing);
       newAmount = parseFloat(ing.amount) + parseFloat(amount);
       if (newAmount < 0) {
         var error = new Error('Storage amount must be a non-negative number');
@@ -102,7 +85,11 @@ module.exports.incrementAmount = function(id, amount) {
         throw error;
       }
     }).then(function(result) {
-      return Ingredient.incrementAmount(ing.name, amount);
+      if (amount > 0) {
+        return Ingredient.incrementAmount(ing.name, amount, vendorID, lotNumber);
+      } else if (amount < 0) {
+        return Ingredient.decrementAmount(ing.name, -amount);
+      }
     }).then(function(result) {
       return Ingredient.updateSpace(ing.name);
     }).then(function(result) {

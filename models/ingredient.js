@@ -60,21 +60,7 @@ var IngredientSchema = new mongoose.Schema({
 
 var Ingredient = mongoose.model('Ingredient', IngredientSchema);
 
-module.exports.createIngredient = function(name, package, temp, nativeUnit, unitsPerPackage, amount, lotNumber) {
-  return Ingredient.create({
-    'name': name,
-    'package': package.toLowerCase(),
-    'temperature': temp.toLowerCase(),
-    'nativeUnit': nativeUnit,
-    'unitsPerPackage': parseFloat(unitsPerPackage),
-    'amount': amount,
-    'averageCost': 0,
-    'space': InventoryHelper.calculateSpace(package.toLowerCase(), parseFloat(unitsPerPackage), parseFloat(amount)),
-    'vendorLots': [{'vendorID': 'admin', 'lotNumber': lotNumber, 'units': amount, 'timestamp': Date.now()}]
-  });
-}
-
-module.exports.createIngredientNoAmount = function(name, package, temp, nativeUnit, unitsPerPackage) {
+module.exports.createIngredient = function(name, package, temp, nativeUnit, unitsPerPackage) {
   return Ingredient.create({
     'name': name,
     'package': package.toLowerCase(),
@@ -105,7 +91,27 @@ module.exports.searchIngredients = function() {
   return Ingredient.find();
 }
 
-module.exports.updateIngredient = function(name, newName, package, temp, nativeUnit, unitsPerPackage, amount) {
+module.exports.updateIngredient = function(name, newName, package, temp, nativeUnit, unitsPerPackage) {
+  return new Promise(function(resolve, reject) {
+    Ingredient.findOneAndUpdate({ 'name':  name }, {
+      '$set': {
+        'name': newName,
+        'package': package.toLowerCase(),
+        'temperature': temp.toLowerCase(),
+        'nativeUnit': nativeUnit,
+        'unitsPerPackage': parseFloat(unitsPerPackage)
+      }
+    }).exec().then(function(ing) {
+      return exports.updateSpace(ing.name);
+    }).then(function(ing) {
+      resolve(ing);
+    }).catch(function(error) {
+      reject(error);
+    });
+  });
+}
+
+module.exports.updateIngredientAndAmount = function(name, newName, package, temp, nativeUnit, unitsPerPackage, amount) {
   return Ingredient.findOneAndUpdate({ 'name':  name }, {
     '$set': {
       'name': newName,
@@ -163,7 +169,7 @@ module.exports.removeLot = function(name, lotID) {
 module.exports.updateSpace = function(name) {
   return new Promise(function(resolve, reject) {
     exports.getIngredient(name).then(function(ing) {
-      return exports.updateIngredient(ing.name, ing.name, ing.package. ing.temperature, ing.nativeUnit, ing.unitsPerPackage, ing.amount);
+      return exports.updateIngredientAndAmount(ing.name, ing.name, ing.package, ing.temperature, ing.nativeUnit, ing.unitsPerPackage, ing.amount);
     }).then(function(ing) {
       resolve(ing);
     }).catch(function(error) {

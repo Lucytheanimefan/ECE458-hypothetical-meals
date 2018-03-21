@@ -83,9 +83,7 @@ router.get('/:name/:amt/:page?', function(req, res, next) {
     return vendorQuery(ing);
   }).then(function(vendors) {
     console.log(vendors);
-    return createCatalogue(vendors, ingredient['_id']);
-  }).then(function(catalogue) {
-    catalogue = catalogue;
+    catalogue = createCatalogue(vendors, ingredient['_id']);
     let lots = ingredient['vendorLots'];
     return joinEntriesTogether(lots);
   }).then(function(lots) {
@@ -135,17 +133,19 @@ fillEntries = function(lots) {
 
 getVendor = function(lot) {
   return new Promise(function(resolve, reject) {
-    Vendor.findVendorById(lot['vendorID']).then(function(vendor) {
-      if (lot['vendorID'] == 'admin') {
-        lot['vendor'] = {'name': 'admin'};
-      }
-      lot['vendor'] = vendor;
-      return lot;
-    }).then(function(lot) {
+    if (lot['vendorID'] == 'admin') {
+      lot['vendor'] = {'name': 'admin'};
       resolve(lot);
-    }).catch(function(error) {
-      reject(error);
-    })
+    } else {
+      Vendor.findVendorById(lot['vendorID']).then(function(vendor) {
+        lot['vendor'] = vendor;
+        return lot;
+      }).then(function(lot) {
+        resolve(lot);
+      }).catch(function(error) {
+        reject(error);
+      })
+    }
   })
 }
 
@@ -204,8 +204,7 @@ router.post('/:name/update', function(req, res, next) {
     req.body.package,
     req.body.temperature,
     req.body.nativeUnit,
-    parseFloat(req.body.unitsPerPackage),
-    parseFloat(req.body.amount)
+    parseFloat(req.body.unitsPerPackage)
   );
   updatePromise.then(function(ingredient) {
     logs.makeIngredientLog('Update ingredient', 'Updated <a href="/ingredients/' + req.params.name + '">' + req.params.name + '</a>', initiating_user);
@@ -213,7 +212,48 @@ router.post('/:name/update', function(req, res, next) {
   }).catch(function(error) {
     next(error);
   });
+});
 
+router.post('/:name/updateamount', function(req, res, next) {
+  let ingName = req.params.name;
+  let initiating_user = req.session.username;
+  console.log(initiating_user)
+
+  Ingredient.getIngredient(ingName).then(function(ingredient) {
+    let updateAmount = parseFloat(req.body.amount)-parseFloat(ingredient.amount);
+    var updatePromise = IngredientHelper.incrementAmount(
+      ingredient._id,
+      updateAmount
+    );
+    return updatePromise;
+  }).then(function(ing) {
+    logs.makeIngredientLog('Update ingredient', 'Updated <a href="/ingredients/' + req.params.name + '">' + req.params.name + '</a>', initiating_user);
+    res.redirect(req.baseUrl + '/' + encodeURIComponent(ingName));
+  }).catch(function(error) {
+    next(error);
+  });
+});
+
+router.post('/:name/updatelot', function(req, res, next) {
+  let ingName = req.params.name;
+  let initiating_user = req.session.username;
+  console.log(initiating_user)
+
+  Ingredient.getIngredient(ingName).then(function(ingredient) {
+    let updateAmount = parseFloat(req.body.amount);
+    var updatePromise = IngredientHelper.incrementAmount(
+      ingredient._id,
+      updateAmount,
+      req.body.vendor,
+      req.body.lotNumber
+    );
+    return updatePromise;
+  }).then(function(ing) {
+    logs.makeIngredientLog('Update ingredient', 'Updated <a href="/ingredients/' + req.params.name + '">' + req.params.name + '</a>', initiating_user);
+    res.redirect(req.baseUrl + '/' + encodeURIComponent(ingName));
+  }).catch(function(error) {
+    next(error);
+  });
 });
 
 router.post('/new', function(req, res, next) {
@@ -225,8 +265,6 @@ router.post('/new', function(req, res, next) {
     req.body.temperature,
     req.body.nativeUnit,
     parseFloat(req.body.unitsPerPackage),
-    parseFloat(req.body.amount),
-    0
   );
   promise.then(function(ingredient) {
     logs.makeIngredientLog('Create ingredient','Created <a href="/ingredients/' + ingName + '">' + ingName + '</a>'/*{'ingredient_id': ingredient._id}*/, initiating_user);
