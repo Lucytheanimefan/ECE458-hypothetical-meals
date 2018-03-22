@@ -136,8 +136,8 @@ var dailyJob = new CronJob('00 30 11 * * 0-6', function() {
      * at 11:30:00 AM. It does not run on Saturday
      * or Sunday.
      */
-    console.log('Make daily backup'); 
-    backups.makeBackup();
+    console.log('Make daily backup');
+    backups.makeBackup('daily');
   }, function() {
     /* This function is executed when the job stops */
   },
@@ -150,8 +150,8 @@ var weeklyJob = new CronJob('00 30 11 * * 1', function() {
      * Runs every week on Monday
      * at 11:30:00 AM. 
      */
-    console.log('Make weekly backup'); 
-    backups.makeBackup();
+    console.log('Make weekly backup');
+    backups.makeBackup('weekly');
 
     // delete all daily backups that occurred last week
     backups.deletePriorBackup(Date(), 6);
@@ -167,8 +167,8 @@ var monthlyJob = new CronJob('00 30 11 1 * 1', function() {
      * Runs every month on Monday
      * at 11:30:00 AM. 
      */
-    console.log('Make monthly backup'); 
-    backups.makeBackup();
+    console.log('Make monthly backup');
+    backups.makeBackup('monthly');
   }, function() {
     /* This function is executed when the job stops */
   },
