@@ -36,6 +36,10 @@ var VendorSchema = new mongoose.Schema({
 
 var Vendor = mongoose.model('Vendor', VendorSchema);
 
+module.exports.findVendorById = function(id) {
+  return Vendor.findById(id).exec();
+}
+
 module.exports.findVendorByName = function(name){
   return Vendor.findOne({'name':name}).exec();
 }

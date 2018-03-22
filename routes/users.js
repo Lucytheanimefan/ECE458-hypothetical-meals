@@ -251,11 +251,11 @@ router.get('/user/:username', function(req, res, next) {
 
 
 router.get('/role', function(req, res, next) {
-  return res.send({'role':req.session.role});
+  return res.send({ 'role': req.session.role });
 });
 
 router.get('/username', function(req, res, next) {
-  return res.send({'username':req.session.username});
+  return res.send({ 'username': req.session.username });
 });
 
 router.get('/isLoggedIn', function(req, res, next) {
@@ -566,19 +566,26 @@ module.exports.requireRole = function(role) {
   console.log("----Call user requireRole: for " + role);
   return function(req, res, next) {
     console.log('In require role callback function');
-    User.findById(req.session.userId).exec(function(error, user) {
-      if (user === null) {
-        var err = new Error('Not authorized. Please ask your admin to gain administrator privileges.');
-        err.status = 403;
-        return next(err);
-      }
-      if (user.role.toUpperCase() === role.toUpperCase()) {
-        console.log("YES YOU ARE AN " + role + ", go forth and access");
-        next();
-      } else if (error) {
-        res.send(403);
-      }
-    });
+    if (role.toLowerCase() == req.session.role) {
+      next();
+    } else {
+      var err = new Error('Not authorized. Please ask your admin to gain administrator privileges.');
+      err.status = 403;
+      return next(err);
+    }
+    // User.findById(req.session.userId).exec(function(error, user) {
+    //   if (user === null) {
+    //     var err = new Error('Not authorized. Please ask your admin to gain administrator privileges.');
+    //     err.status = 403;
+    //     return next(err);
+    //   }
+    //   if (user.role.toUpperCase() === role.toUpperCase()) {
+    //     console.log("YES YOU ARE AN " + role + ", go forth and access");
+    //     next();
+    //   } else if (error) {
+    //     res.send(403);
+    //   }
+    // });
   }
 }
 

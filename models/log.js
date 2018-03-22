@@ -25,6 +25,27 @@ var LogSchema = new mongoose.Schema({
   }
 });
 
+LogSchema.statics.paginate = function(perPage, page, callback) {
+  Log.find({}).limit(perPage).skip(perPage * page).sort({ time: -1 }).exec(function(err, logs) {
+    if (err) {
+      console.log(err);
+      callback(err);
+    } else {
+      callback(null, logs);
+    }
+  })
+}
+
+LogSchema.statics.count = function(callback) {
+  Log.count({}).exec(function(err, count) {
+    if (err) {
+      console.log(err);
+      callback(err);
+    } else {
+      callback(null, count);
+    }
+  })
+}
 
 LogSchema.statics.all = function(callback) {
   Log.find({}).sort({ time: -1 }).exec(function(err, logs) {

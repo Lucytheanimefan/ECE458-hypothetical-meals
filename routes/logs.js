@@ -4,15 +4,26 @@ var express = require('express');
 var router = express.Router();
 
 
-router.get('/', (req, res, next) => {
-  Log.all(function(err, logs) {
+router.get('/:page?', (req, res, next) => {
+  var page = parseInt(req.params.page);
+  if (page == null || isNaN(page) || page < 0) {
+    page = 0;
+  }
+  Log.paginate( /*perPage*/ 10, page, function(err, logs) {
     if (err) {
-      console.log('Error getting logs: ');
-      console.log(err);
-      return next(err);
+      next(err);
     }
-    res.render('logs', { logs: logs });
-  });
+    res.render('logs', { logs: logs, page: page });
+  })
+
+  // Log.all(function(err, logs) {
+  //   if (err) {
+  //     console.log('Error getting logs: ');
+  //     console.log(err);
+  //     return next(err);
+  //   }
+  //   res.render('logs', { logs: logs });
+  // });
 });
 
 router.get('/log/:id', (req, res, next) => {
@@ -39,7 +50,7 @@ router.get('/date', (req, res, next) => {
   let endDate = req.query.end;
   //new Date(2012, 7, 14)
   Log.find({ 'time': { "$gte": startDate, "$lt": endDate } }).exec(function(err, logs) {
-    if (err){
+    if (err) {
       return next(err);
     }
     res.render('logs', { logs: logs });

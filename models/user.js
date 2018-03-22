@@ -35,7 +35,7 @@ var UserSchema = new mongoose.Schema({
     default: false
   },
   role: {
-    type: String, // "Admin" or "User" or "Manager"
+    type: String, // "Admin" or "User" or "Manager" or "it_person"
     default: 'user',
     required: true,
   },

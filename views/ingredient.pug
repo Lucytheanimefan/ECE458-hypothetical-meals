@@ -16,43 +16,55 @@ block content
         a(data-toggle='tab', href='#ingredient-info') Ingredient Information
       li.adminOnly.hide
         a(data-toggle='tab', href='#update-form') Update Ingredient
+      li.adminOnly.hide
+        a(data-toggle='tab', href='#update-stock-form') Stock
       li.manager.hide
         a(data-toggle='tab', href='#vendor-form') Associate Vendor
     .tab-content
-      .row.tab-pane.fade.in.active#ingredient-info
-        .col-md-6
-          table.table
+      .tab-pane.fade.in.active#ingredient-info
+        table.table
+          tr
+            th Package Type
+            td= ingredient.package
+          tr
+            th Storage Temperature
+            td= ingredient.temperature
+          tr
+            th Native Unit
+            td= ingredient.nativeUnit
+          tr
+            th Units per Package
+            td= ingredient.unitsPerPackage
+          tr
+            th Units in Storage
+            td= ingredient.amount
+          tr
+            th Space in Storage (Sq ft)
+            td= ingredient.space
+        div#add-to-cart
+          form(action='/ingredients/order/add/to/cart', method='post')
+            .form-group.pull-left(style='margin: 10px 15px;')
+              input.form-control(type="hidden" name="ingredient" value=ingredient.name)
+              label.control-label Quantity (Number of Packages)
+              input.form-control(type='number', name='quantity', min='0', required='', style='width: 200px;')
+            button.btn.btn-primary(style="margin: 30px 15px;" type='submit') Add to Cart
+        table.table
+          th Vendor Name
+          th Lot Number
+          th Native Units
+          for set in sets
+
             tr
-              th Package Type
-              td= ingredient.package
-            tr
-              th Storage Temperature
-              td= ingredient.temperature
-            tr
-              th Native Unit
-              td= ingredient.nativeUnit
-            tr
-              th Units per Package
-              td= ingredient.unitsPerPackage
-            tr
-              th Units in Storage
-              td= ingredient.amount
-            tr
-              th Space in Storage (Sq ft)
-              td= ingredient.space
-          div.delete-form.adminOnly.hide
-            form(action='/ingredients/' + encodeURIComponent(ingredient.name) + '/delete', method='post')
-              button.btn.btn-primary.pull-left(style="margin: 30px 15px;" type='submit') Delete ingredient
-        .col-md-6
-          .col-md-3
-          .col-md-9
-            div#add-to-cart
-              form(action='/ingredients/order/add/to/cart', method='post')
-                .form-group.pull-left(style='margin: 10px 15px;')
-                  input.form-control(type="hidden" name="ingredient" value=ingredient.name)
-                  label.control-label Quantity (Number of Packages)
-                  input.form-control(type='number', name='quantity', min='0', required='', style='width: 200px;')
-                button.btn.btn-primary.pull-right(style="margin: 30px 15px;" type='submit') Add to Cart
+              if set.vendor.name == 'admin'
+                td= set.vendor.name
+              else
+                td
+                  a(href="/vendors/" + set.vendor.code)= set.vendor.name
+              td= set.lotNumber
+              td= set.units
+        div.delete-form.adminOnly.hide
+          form(action='/ingredients/' + encodeURIComponent(ingredient.name) + '/delete', method='post')
+            button.btn.btn-primary.pull-right(style="margin: 30px 15px;" type='submit') Delete ingredient
         div.card#vendor-info
           div.card-header(data-background-color='purple')
             h4.title Vendor Information
@@ -76,8 +88,8 @@ block content
 
       .adminOnly.hide.card-content.tab-pane.fade#update-form
         h1= 'Update ingredient'
+        h3= 'Note: If you want to add stock, go to the \'stock\' tab.'
         form.form-group(action='/ingredients/' + encodeURIComponent(ingredient.name) + '/update', method='post')
-
           .form-group
             label.control-label Ingredient Name
             input.form-control(type='text', name='name', value = ingredient.name, required='')
@@ -103,11 +115,34 @@ block content
           .form-group
             label.control-label Units per Package
             input.form-control(type='number', step='any', name='unitsPerPackage', value = ingredient.unitsPerPackage, required='')
-          .form-group
-            label.control-label Units in Storage
-            input.form-control(type='number', step="any", name='amount', value = ingredient.amount, required='')
 
           button.btn.btn-primary.pull-right(type='submit') Update ingredient
+
+      .adminOnly.hide.card-content.tab-pane.fade#update-stock-form
+        h1 Update ingredient stock
+        form.form-group(action='/ingredients/' + encodeURIComponent(ingredient.name) + '/updatelot', method='post')
+          h3 Add Lot
+          .form-group
+            label.control-label Native Units in Lot
+            input.form-control(type='number', step='any', min='0', name='amount', placeholder='Number of Native Units', required='')
+          .form-group
+            label.control-label Vendor
+            select.form-control(name='vendor', placeholder = '', required='')
+              option(disabled='', selected='', value='') Select a vendor
+              each vendor in existingVendors
+                option(value=vendor._id)= vendor.name + ' (' + vendor.code + ')'
+          .form-group
+            label.control-label Lot Number
+            input.form-control(type='number', step='1', name='lotNumber', placeholder='Lot Number')
+          button.btn.btn-primary.pull-right(type='submit') Add Lot
+
+        form.form-group(style='margin-top: 50px;',action='/ingredients/' + encodeURIComponent(ingredient.name) + '/updateamount', method='post')
+          h3 Edit Stock
+          .form-group
+            label.control-label Amount (Must be lower than current amount; The oldest lot(s) will be consumed)
+            input.form-control(type='number', step='any', min='0', max = ingredient.amount, name='amount', value = ingredient.amount, required='')
+          button.btn.btn-primary.pull-right(type='submit') Update Stock
+
 
       .manager.hide.card-content.tab-pane.fade#vendor-form
         h1= 'Associate Vendor'
