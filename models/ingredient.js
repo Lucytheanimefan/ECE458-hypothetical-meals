@@ -184,8 +184,8 @@ module.exports.updateSpace = function(name) {
 }
 
 module.exports.sortLots = function(a, b) {
-  let aTime = a['timestamp'];
-  let bTime = b['timestamp'];
+  let aTime = parseFloat(a['timestamp']);
+  let bTime = parseFloat(b['timestamp']);
   if (aTime < bTime) {
     return -1;
   } else if (aTime > bTime) {
@@ -212,13 +212,23 @@ module.exports.consumeLots = function(name, amount) {
     exports.getIngredient(name).then(function(ing) {
       ingredient = ing;
       let lots = ing['vendorLots'];
-      lots.sort(function(a,b) {exports.sortLots(a,b)});
+      lots.sort(function(a,b) {
+        if (parseInt(a.timestamp) < parseInt(a.timestamp)) {
+          return -1;
+        } else if (parseInt(a.timestamp) > parseInt(b.timestamp)) {
+          return 1;
+        } else {
+          return 0;
+        }
+      });
+      console.log("i'm here");
+      console.log(lots);
       let pullIDs = [];
       let remaining = parseFloat(amount);
       for (let lot of lots) {
-        if (remaining <= 0) break;
-        pullIDs.push(lot['_id']);
-        if (parseFloat(lot['units']) <= remaining) {
+        if (remaining == 0) break;
+        pullIDs.push(mongoose.Types.ObjectId(lot['_id']));
+        if (remaining >= parseFloat(lot['units'])) {
           remaining -= parseFloat(lot['units']);
         } else {
           newEntry = copyLotEntry(lot, remaining);

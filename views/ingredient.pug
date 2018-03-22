@@ -121,7 +121,7 @@ block content
           .form-group
             label.control-label Vendor
             select.form-control(name='vendor', placeholder = '', required='')
-              option(selected='' value='admin') Admin (no vendor)
+              option(disabled='', selected='', value='') Select a vendor
               each vendor in existingVendors
                 option(value=vendor._id)= vendor.name + ' (' + vendor.code + ')'
           .form-group
@@ -130,9 +130,9 @@ block content
           button.btn.btn-primary.pull-right(type='submit') Add Lot
 
         form.form-group(style='margin-top: 50px;',action='/ingredients/' + encodeURIComponent(ingredient.name) + '/updateamount', method='post')
-          h3 Remove Stock
+          h3 Edit Stock
           .form-group
-            label.control-label Amount (The oldest lot(s) will be consumed)
+            label.control-label Amount (Must be lower than current amount; The oldest lot(s) will be consumed)
             input.form-control(type='number', step='any', min='0', max = ingredient.amount, name='amount', value = ingredient.amount, required='')
           button.btn.btn-primary.pull-right(type='submit') Update Stock
 
