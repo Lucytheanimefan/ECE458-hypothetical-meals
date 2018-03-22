@@ -290,16 +290,48 @@ router.post('/:name/add-vendor', function(req, res, next) {
   })
 })
 
+router.post('/:name/add_to_cart', async function(req, res, next) {
+  let ingId = mongoose.Types.ObjectId(req.body.ingredient);
+  let amount = parseFloat(req.body.quantity);
+  var vendor, ingredient;
+  vendQuery.then(function(vend) {
+    vendor = vend.name;
+    return Ingredient.getIngredientById(ingId);
+  }).then(function(ingResult) {
+    ingredient = ingResult.name;
+    return UserHelper.addToCart(req.session.userId, ingId, amount, vendor);
+  }).then(function(cartResult) {
+    res.redirect('/users/cart');
+  }).catch(function(error) {
+    next(error);
+  })
+});
 
 router.post('/order/add/to/cart', function(req, res, next) {
   let userId = req.session.userId;
   let order = req.body;//.query;
+  let ingredient = req.body.ingredient;
+  let quantity = req.body.quantity;
   let orderArray = [];
   let checkVendorArray = [];
-  for (let ingredient in order) {
-    checkVendorArray.push(IngredientHelper.checkIfVendorSells(ingredient));
+  let date = new Date();
+  var promise;
+  if (ingredient != null) {
+    promise = Ingredient.getIngredient(ingredient);
+  } else {
+    promise = Ingredient.getIngredient(order[0]);
   }
-  Promise.all(checkVendorArray).then(function(vendors){
+  promise.then(function(ingResult) {
+    if (ingredient != null) {
+      order = {};
+      quantity = quantity*ingResult.unitsPerPackage;
+      order[ingredient] = quantity;
+    }
+    for (let ingredient in order) {
+      checkVendorArray.push(IngredientHelper.checkIfVendorSells(ingredient));
+    }
+    return Promise.all(checkVendorArray);
+  }).then(function(vendors){
     for (let ingredient in order) {
       orderArray.push(IngredientHelper.addOrderToCart(userId, ingredient, order[ingredient]));
     }

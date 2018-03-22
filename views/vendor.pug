@@ -59,8 +59,6 @@ block content
       a(data-toggle='tab', href='#add') Add Ingredient
     li.adminOnly.hide
       a(data-toggle='tab', href='#updateing') Update Ingredient
-    li.manager.hide
-      a(data-toggle='tab', href='#order') Make Order
   .tab-content
     #update.tab-pane.fade.in.active.adminOnly.hide
       h1= 'Update vendor'
@@ -105,18 +103,3 @@ block content
           label.control-label Cost (per unit)
           input.form-control(type='number', name='cost', min='0', step="any",required='')
         button.btn.btn-primary.pull-right(type='submit', value='ingredient added') Update
-
-
-    #order.tab-pane.manager.fade.in
-      h1= 'Make Order'
-      form(action='/vendors/' + vendor.code + '/order', method='post')
-        .form-group
-          label.control-label Ingredient
-          select.form-control(name='ingredient', placeholder = '', required='')
-            option(disabled="" selected="" value="") Select an option
-            each ing in catalogue
-              option(value=ing['ingredient']['_id'])= ing['ingredient']['name']
-        .form-group
-          label.control-label Quantity (Number of storage units)
-          input.form-control(type='number', name='quantity', min='0', required='')
-        button.btn.btn-primary.pull-right(type='submit', value='order made') Add to Cart

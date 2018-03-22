@@ -11,19 +11,13 @@ block content
       table.table#orderTable
         thead.text-primary
           th(onclick='sortTable(0, \'order\')') Ingredient
-          th(onclick='sortTable(1, \'order\')') Vendors (Quantity)
-          th(onclick='sortTable(2, \'order\')') Total Quantity (Number of Packages)
+          th(onclick='sortTable(1, \'order\')') Total Quantity (Number of Packages)
           th
         tbody
         each order in orders
           tr
             td
               a(href='/ingredients/' + order.ingredient)= order.ingredient
-            td
-              each vendor in order.vendors
-                a(href='/vendors/' + vendor.code)= vendor.name
-                |  (#{vendor.quantity})
-                br
             td= order.quantity
             td
               form(action="/users/remove_ingredient" method="post")
@@ -31,8 +25,8 @@ block content
                 input(type="hidden" name="quantity" value=order.quantity)
                 span(style="float:right;")
                   a(href='/users/edit_order/' + order.ingredient)
-                    button(class="btn btn-secondary" type="button" style="margin-right: 20px; padding: 5px; background-color:#66c2ff; color: white; display:inline;") Edit
-                  input.btn.btn-secondary(type="submit" value="Remove" style="padding: 5px; background-color:#66c2ff; color: white; display:inline;")
+                    button(class="btn btn-secondary" type="button" style="margin-right: 20px; padding: 5px 20px; background-color:#66c2ff; color: white; display:inline;") Edit
+                  input.btn.btn-secondary(type="submit" value="Remove" style="padding: 5px 20px; background-color:#66c2ff; color: white; display:inline;")
       .row
         .col-md-12
           p
@@ -49,4 +43,4 @@ block content
         .col-md-10
         .col-md-2
           form(action="/users/checkout_cart" method="post")
-            input.btn.btn-primary(type="submit" name="checkout" value="Place Order" style="float:right;")
+            input.btn.btn-primary(type="submit" name="checkout" value="Checkout" style="float:right;")

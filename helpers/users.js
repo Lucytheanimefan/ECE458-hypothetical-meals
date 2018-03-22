@@ -30,54 +30,31 @@ module.exports.getVendorID = function(vendorName) {
 
 module.exports.addToCart = function(id, ingId, quantity, vendor) {
   return new Promise(function(resolve,reject) {
-    var userQuery = User.getUserById(id);
-    var user, vendors, vendID;
-    userQuery.then(function(userResult) {
+    var user, vendorID;
+    Vendor.findVendorByName(vendor).then(function(vend) {
+      vendorID = vend._id;
+      return User.getUserById(id)
+    }).then(function(userResult) {
       user = userResult;
       if (userResult == null) {
         var error = new Error('Specified user doesn\'t exist');
         error.status = 400;
         throw(error);
       }
-      var ingQuery = Ingredient.getIngredientById(ingId);
-      return ingQuery;
+      return Ingredient.getIngredientById(ingId);
     }).then(function(ingResult) {
       if (ingResult == null) {
         var error = new Error('The ingredient ${ingredient} does not exist!');
         error.status = 400;
         throw(error);
       }
-      var vendQuery = Vendor.findVendorByName(vendor);
-      return vendQuery;
-    }).then(function(vendResult) {
-      vendID = vendResult._id;
-      var entry = {'vendID': vendID, 'quantity': quantity};
       for (let ing of user.cart) {
         if (ingId.toString() === ing.ingredient.toString()) {
           var total = quantity + ing.quantity;
-          vendors = ing.vendors;
-          var addVend = true;
-          for (let vend of vendors) {
-            if (vendID.toString() === vend.vendID.toString()) {
-              var vendTotal = quantity + vend.quantity;
-              vend['quantity'] = vendTotal;
-              addVend = false;
-              break;
-            }
-          }
-          if (addVend) {
-            vendors.push(entry);
-          }
-          console.log("VENDORS");
-          console.log(vendors);
-          //vendors = underscore.sortBy(vendors, "ingredient");
-          return User.updateCart(id, ingId, total, vendors);
+          return User.updateCart(id, ingId, total, vendorID);
         }
       }
-      vendors = [];
-      vendors.push(entry);
-      //vendors = underscore.sortBy(vendors, "ingredient");
-      return User.addToCart(id, ingId, quantity, vendors);
+      return User.addToCart(id, ingId, quantity, vendorID);
     }).then(function(result) {
       resolve(result);
     }).catch(function(error){
