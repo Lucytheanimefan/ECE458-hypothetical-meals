@@ -44,6 +44,10 @@ var IngredientSchema = new mongoose.Schema({
     type: Number,
     required:true
   },
+  isIntermediate: {
+    type: Boolean,
+    required: true
+  },
   vendors: [{
     vendorId: {
       type: String,
@@ -70,6 +74,7 @@ module.exports.createIngredient = function(name, package, temp, nativeUnit, unit
     'amount': 0,
     'averageCost': 0,
     'space': 0,
+    'isIntermediate': false,
     'vendorLots': []
   });
 }
@@ -183,48 +188,56 @@ module.exports.sortLots = function(a, b) {
   let bTime = b['timestamp'];
   if (aTime < bTime) {
     return -1;
-  } else if (aTime > btime) {
+  } else if (aTime > bTime) {
     return 1;
   } else {
     return 0;
   }
 }
 
-copyLotEntry = function(entry) {
+copyLotEntry = function(entry, remaining) {
   let newEntry = {};
   newEntry['vendorID'] = entry['vendorID'];
   newEntry['lotNumber'] = entry['lotNumber'];
-  newEntry['units'] = parseFloat(entry['lotNumber']);
+  newEntry['units'] = parseFloat(entry['units']) - parseFloat(remaining);
   newEntry['timestamp'] = entry['timestamp'];
   return newEntry;
 }
 
 module.exports.consumeLots = function(name, amount) {
   return new Promise(function(resolve, reject) {
+    var newEntry = {};
+    var update = false;
+    var ingredient;
     exports.getIngredient(name).then(function(ing) {
+      ingredient = ing;
       let lots = ing['vendorLots'];
       lots.sort(function(a,b) {exports.sortLots(a,b)});
       let pullIDs = [];
       let remaining = parseFloat(amount);
-      let newEntry = {};
       for (let lot of lots) {
         if (remaining <= 0) break;
         pullIDs.push(lot['_id']);
-        if (parseFloat(lot['units']) > remaining) {
+        if (parseFloat(lot['units']) <= remaining) {
           remaining -= parseFloat(lot['units']);
         } else {
-          newEntry = copyLotEntry(lot);
-          newEntry['units'] -= remaining;
+          newEntry = copyLotEntry(lot, remaining);
+          update = true;
           break;
         }
       }
       let removeLots = Promise.all(pullIDs.map(function(id) {
         return exports.removeLot(name, id);
       }));
-      let addLot = exports.addLotEntry(name, newEntry);
-      return Promise.all([removeLots, addLot]);
+      return removeLots;
     }).then(function() {
-      resolve('lots consumed');
+      if (update) {
+        return exports.addLotEntry(name, newEntry);
+      } else {
+        return ingredient;
+      }
+    }).then(function(ing) {
+      resolve(ing);
     }).catch(function(error) {
       reject(error);
     })

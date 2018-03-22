@@ -129,7 +129,7 @@ block content
             input.form-control(type='number', step='1', name='lotNumber', placeholder='Lot Number')
           button.btn.btn-primary.pull-right(type='submit') Add Lot
 
-        form.form-group(action='/ingredients/' + encodeURIComponent(ingredient.name) + '/updateamount', method='post')
+        form.form-group(style='margin-top: 50px;',action='/ingredients/' + encodeURIComponent(ingredient.name) + '/updateamount', method='post')
           h3 Remove Stock
           .form-group
             label.control-label Amount (The oldest lot(s) will be consumed)

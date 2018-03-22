@@ -89,6 +89,8 @@ module.exports.incrementAmount = function(id, amount, vendorID='admin', lotNumbe
         return Ingredient.incrementAmount(ing.name, amount, vendorID, lotNumber);
       } else if (amount < 0) {
         return Ingredient.decrementAmount(ing.name, -amount);
+      } else {
+        return result;
       }
     }).then(function(result) {
       return Ingredient.updateSpace(ing.name);
