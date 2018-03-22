@@ -213,7 +213,7 @@ module.exports.consumeLots = function(name, amount) {
       ingredient = ing;
       let lots = ing['vendorLots'];
       lots.sort(function(a,b) {
-        if (parseInt(a.timestamp) < parseInt(a.timestamp)) {
+        if (parseInt(a.timestamp) < parseInt(b.timestamp)) {
           return -1;
         } else if (parseInt(a.timestamp) > parseInt(b.timestamp)) {
           return 1;
