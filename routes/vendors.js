@@ -182,27 +182,6 @@ router.post('/new', function(req, res, next) {
   });
 });
 
-router.post('/:code/order', async function(req, res, next) {
-  let ingId = mongoose.Types.ObjectId(req.body.ingredient);
-  var vendQuery = Vendor.findVendorByCode(req.params.code);
-  let amount = parseFloat(req.body.quantity);
-  var vendor, ingredient;
-  let date = new Date();
-  vendQuery.then(function(vend) {
-    vendor = vend.name;
-    return Ingredient.getIngredientById(ingId);
-  }).then(function(ingResult) {
-    ingredient = ingResult.name;
-    let vendor_code = req.params.code
-    logs.makeVendorLog('Make order from vendor', 'Ordered ingredient <a href="/ingredients/' + ingredient +'">' +ingredient + '</a> from vendor <a href="/vendors/' + vendor_code + '">' + vendor_code + '</a>'/*{ 'vendor_code': req.params.code, 'Ingredient_ID': ingId }*/, req.session.username);
-    return UserHelper.addToCart(req.session.userId, ingId, amount, vendor);
-  }).then(function(cartResult) {
-    res.redirect('/users/cart');
-  }).catch(function(error) {
-    next(error);
-  })
-});
-
 processMenu = function(list, code) {
   var newList = list.slice();
   for (var i = 0; i < newList.length; i++) {

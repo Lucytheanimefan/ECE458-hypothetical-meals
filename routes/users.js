@@ -311,14 +311,9 @@ router.get('/cart/:page?', function(req, res, next) {
       var index = ids.indexOf(cart[i].ingredient.toString());
       var ingName = ingredients[index];
       order['ingredient'] = ingName;
-      promises.push(UserHelper.getCartVendors(cart[i].vendors));
       order['quantity'] = cart[i].quantity;
+      order ['vendor'] = cart[i].vendor;
       orders.push(order);
-    }
-    return Promise.all(promises);
-  }).then(function(results) {
-    for (i = 0; i < results.length; i++) {
-      orders[i]['vendors'] = results[i];
     }
     res.render('cart', { orders: orders, page: page });
   }).catch(function(error) {
@@ -369,15 +364,10 @@ router.get('/edit_order/:ingredient/:page?', function(req, res, next) {
       var index = ids.indexOf(cart[i].ingredient.toString());
       var ingName = ingredients[index];
       order['ingredient'] = ingName;
-      promises.push(UserHelper.getCartVendors(cart[i].vendors));
       order['quantity'] = cart[i].quantity;
+      order ['vendor'] = cart[i].vendor;
       order['show'] = show;
       orders.push(order);
-    }
-    return Promise.all(promises);
-  }).then(function(results) {
-    for (i = 0; i < results.length; i++) {
-      orders[i]['vendors'] = results[i];
     }
     res.render('edit_cart', { orders: orders, page: page });
   }).catch(function(error) {

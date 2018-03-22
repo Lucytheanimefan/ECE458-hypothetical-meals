@@ -42,7 +42,17 @@ block content
               td= ingredient.space
           div.delete-form.adminOnly.hide
             form(action='/ingredients/' + encodeURIComponent(ingredient.name) + '/delete', method='post')
-              button.btn.btn-primary.pull-right(style="margin: 30px 15px;" type='submit') Delete ingredient
+              button.btn.btn-primary.pull-left(style="margin: 30px 15px;" type='submit') Delete ingredient
+        .col-md-6
+          .col-md-3
+          .col-md-9
+            div#add-to-cart
+              form(action='/ingredients/order/add/to/cart', method='post')
+                .form-group.pull-left(style='margin: 10px 15px;')
+                  input.form-control(type="hidden" name="ingredient" value=ingredient.name)
+                  label.control-label Quantity (Number of Packages)
+                  input.form-control(type='number', name='quantity', min='0', required='', style='width: 200px;')
+                button.btn.btn-primary.pull-right(style="margin: 30px 15px;" type='submit') Add to Cart
         div.card#vendor-info
           div.card-header(data-background-color='purple')
             h4.title Vendor Information
