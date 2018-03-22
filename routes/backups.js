@@ -169,7 +169,7 @@ var putFile = function(path, name, callback) {
 module.exports = router;
 
 
-module.exports.makeBackup = function() {
+module.exports.makeBackup = function(backupType='') {
   //console.log(__dirname);
   var date = new Date().yyyymmdd();
   var filePath = path.resolve(__dirname, '..', 'backups'); // + date;
@@ -182,8 +182,8 @@ module.exports.makeBackup = function() {
     callback: function(err) {
       if (err) {
         console.error(err);
-        emailMessage = Date() + ': Failed to create backup ' + fileName + ' due to error: ' + err;
-        sendEmail('spothorse9.lucy@gmail.com', 'Backup Status', emailMessage, function(error, result) {
+        emailMessage = Date() + ': Failed to create ' + backupType + ' backup ' + fileName + ' due to error: ' + err;
+        sendEmail(['spothorse9.lucy@gmail.com', 'hypotheticalfoods458@gmail.com'], 'Backup Status', emailMessage, function(error, result) {
           if (error) {
             console.log('ERROR SENDING EMAIL:');
             console.log(error);
@@ -195,7 +195,7 @@ module.exports.makeBackup = function() {
       } else {
         var emailMessage = '';
         console.log('finish making backup');
-        emailMessage += Date() + ': Successfully created backup ' + fileName + ' ';
+        emailMessage += Date() + ': Successfully created ' + backupType + ' backup ' + fileName + ' ';
         putFile(filePath + '/' + fileName + '.tar', fileName, function(error, file) {
           if (error) {
             emailMessage += 'but failed to save backup to server.<br>Encountered the error: ' + error;
