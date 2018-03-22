@@ -524,6 +524,7 @@ router.get('/lot_assignment/:page?', function(req, res, next){
       var index = ids.indexOf(cart[i].ingredient.toString());
       var ingName = ingredients[index];
       order['ingredient'] = ingName;
+      order['ingId'] = cart[i].ingredient.toString();
       promises.push(UserHelper.getCartVendors(cart[i].vendors));
       order['quantity'] = cart[i].quantity;
       orders.push(order);

@@ -19,7 +19,7 @@ block content
       #order-info.tab-pane.fade.in.active
         div.card
           div.card-header(data-background-color='purple')
-            h4.title Formulas
+            h4.title Assign Lot Numbers
           div.card-content.table-response
             table.table#formulaTable
               thead.text-primary
@@ -39,36 +39,54 @@ block content
                       br
                   td= order.quantity
       .card-content.tab-pane.fade#assign-lots.adminOnly.hide
-        h1= 'Assign Lot Numbers'
+        h1= "Lot Assignment"
         form(action='/users/lot_assignment/assign', method='post')
-          div.tupleRow#data2(data-ingredients=ingredients)
+          div.tupleRow#data2(data-ingredients=orders)
             .row
               .col-md-11
                 .row#tuple1
-                  .col-md-6
+                  .col-md-2
                     .form-group
                     label.control-label Lot Number
-                    input#lotnumber1.form-control(type='text', name='lotnumber1',required='')
-                  .col-md-4
-                    .form-group
-                    label.control-label Quantity
-                    input#quantity1.form-control(type='number', name='quantity1', min='0', step='0.01', required='')
-                  .col-md-2
-                    p
-                      br
-                      br
-                      br
-                      br
-                    button.btn.btn-round.btn-just-icon.remove(type='button', value='remove', onclick='deleteTuple(1)', style='background-color:red;')
-                      i.material-icons delete
+                    input#ingredient1.form-control(type='text', name='ingredient1',required='')
+                  .row#ing1
+                    .col-md-3
+                      .form-group
+                      label.control-label Ingredient
+                      select#ingredient1.form-control(name='ingredient1', required='')
+                        option(disabled="" selected="" value="") Select an Ingredient
+                        each order in orders
+                          option(value=order['ingId'])= order['ingredient']
+                    .col-md-3
+                      .form-group
+                      label.control-label Vendor
+                      select#ingredient1.form-control(name='vendor1', required='')
+                        option(disabled="" selected="" value="") Select an Ingredient
+                        each order in orders
+                          option(value=order['ingId'])= order['ingredient']
+                    .col-md-1
+                      .form-group
+                      label.control-label Quantity
+                      input#quantity1.form-control(type='number', name='quantity1', min='0', step='0.01', required='')
+                    .col-md-1
+                      p
+                        br
+                        br
+                        br
+                        br
+                    .col-md-1
+                      p
+                        br
+                        br
+                        br
+                        br
+                      button.btn.btn-round.btn-just-icon.add-more(type='button', value='add', onclick='addPackage(1)')
+                        i.material-icons add
               .col-md-1
                 p
                   br
-                button#btn1.btn.btn-round.btn-just-icon.add-more(type='button', value='add')
+                button#newlot.btn.btn-round.btn-just-icon.add-more(type='button', value='add')
                   i.material-icons add
-          .form-group
-            label.control-label Number of Units Produced
-            input.form-control(type='number', name='units', min='0', required='')
           button.btn.btn-primary.pull-right(type='submit', value='add vendor') Assign Lots
         div.previous
           form(action='/users/lot_assignment' + '/' + (parseInt(page)-1).toString(), method='get')
@@ -83,4 +101,4 @@ block scripts
   script.
     var ingredients = document.getElementById('data2').dataset.ingredients;
     ingredients = JSON.parse(ingredients);
-    createTuples(ingredients, 1);
+    createLotTuples(ingredients, 1);
