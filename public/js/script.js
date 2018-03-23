@@ -437,18 +437,20 @@ function createLotTuples(ingredients, start) {
     //console.log($("#ingredientSelect" + next).val());
     newHTML += '<div class="col-md-1"><div class="form-group"></div><label class="control-label">Quantity</label>';
     newHTML += '<input class="form-control" id="quantity' + next + '" type="number" name="quantity' + next + '" min="0" step="0.01"/></div>';
-    newHTML += '<div class="col-md-1"><p><br/><br/><br/><br/></p>';
+    newHTML += '<div class="col-md-1"><p><br/><br/></p>';
     newHTML += '</div>';
     //newHTML += '<div class="removeBtn" id="dataBtn">';
     //console.log($("#ingredientSelect" + next).val());
-    newHTML += '<div class="col-md-1"><p><br/><br/><br/><br/></p>';
+    newHTML += '<div class="col-md-1"><p><br/><br/></p>';
+    newHTML += '<button class="btn btn-round btn-just-icon remove" type="button" value="remove" onclick=deleteTuple2(' + next + ') style="background-color:red;"><i class="material-icons">delete</i></button></div>';
+
+    newHTML += '<div class="col-md-1"><p></p>';
     newHTML += '<button class="btn btn-round btn-just-icon add" type="button" value="remove" onclick=addPackage(' + next + ')><i class="material-icons">add</i></button></div>';
 
 
-    newHTML += '<div class="col-md-1"><p><br/><br/></p>';
-    newHTML += '<button class="btn btn-round btn-just-icon remove" type="button" value="remove" onclick=deleteTuple2(' + next + ') style="background-color:red;"><i class="material-icons">delete</i></button></div>';
+
     //newHTML += '<div class="removeBtn" id="dataBtn">';
-    newHTML += '<div id="start' + next + '" data-start=1>';
+    newHTML += '<div id="start' + next + '" data-start=1></div>';
     newHTML += '</div></div>';
     //newHTML += '<div class="removeBtn" id="dataBtn">';
     //console.log($("#ingredientSelect" + next).val());
