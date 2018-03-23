@@ -415,7 +415,7 @@ function createLotTuples(ingredients, start) {
     var newHTML = '<div id="tuple' + next + '" class="row">';
     newHTML += '<div class="col-md-2"><div class="form-group"></div><label class="control-label">Lot Number</label>';
     newHTML += '<input class="form-control" id="lotnumber' + next + '" type="number" name="lotnumber' + next + '" min="0" step="0.01"/></div>';
-    newHTML += '<id="ing' + 1 + '" class="row">';
+    newHTML += '<div class="row" id="ing' + 1 + '" class="row">';
     newHTML += '<div class="col-md-3"><div class="form-group"></div><label class="control-label">Ingredient</label>';
     newHTML += '<select class="form-control" id="ingredient' + next + '" name="ingredient' + next + '"><option disabled="" selected="" value="">Select an Ingredient</option>';
     var i;
@@ -449,7 +449,7 @@ function createLotTuples(ingredients, start) {
     newHTML += '<button class="btn btn-round btn-just-icon remove" type="button" value="remove" onclick=deleteTuple2(' + next + ') style="background-color:red;"><i class="material-icons">delete</i></button></div>';
     //newHTML += '<div class="removeBtn" id="dataBtn">';
     newHTML += '<div id="start' + next + '" data-start=1>';
-    newHTML += '</div>';
+    newHTML += '</div></div>';
     //newHTML += '<div class="removeBtn" id="dataBtn">';
     //console.log($("#ingredientSelect" + next).val());
     var newInput = $(newHTML);
@@ -535,13 +535,12 @@ function deleteTuple2(index) {
 
 function addPackage(index){
   var next = Number(document.getElementById('start'+index).dataset.start);
-  console.log(index);
   console.log(next);
   var addTo = "#ing" + next;
   next = next + 1;
 
-  var newHTML = '<id="ing' + next + '" class="row">';
-  newHTML += '<div class="col-md-1"><p><br/><br/><br/><br/></p>';
+  var newHTML = '<div class = row id="ing' + next + '" class="row">';
+  newHTML += '<div class="col-md-2"><p><br/><br/><br/><br/></p>';
   newHTML += '</div>';
   newHTML += '<div class="col-md-3"><div class="form-group"></div><label class="control-label">Ingredient</label>';
   newHTML += '<select class="form-control" id="ingredient' + next + '" name="ingredient' + next + '"><option disabled="" selected="" value="">Select an Ingredient</option>';
@@ -565,14 +564,16 @@ function addPackage(index){
   newHTML += '<div class="col-md-1"><div class="form-group"></div><label class="control-label">Quantity</label>';
   newHTML += '<input class="form-control" id="quantity' + next + '" type="number" name="quantity' + next + '" min="0" step="0.01"/></div>';
   newHTML += '<div class="col-md-1"><p><br/><br/><br/><br/></p>';
-  newHTML += '</div>';
+  newHTML += '<button class="btn btn-round btn-just-icon remove" type="button" value="remove" onclick=deleteTuple2(' + next + ') style="background-color:red;"><i class="material-icons">delete</i></button></div>';
+  newHTML += '</div></div>';
 
+  next = next - 1;
   var newInput = $(newHTML);
   $(addTo).after(newInput);
-  $("#tuple" + next).attr('data-source', $(addTo).attr('data-source'));
+  console.log(next);
+  $("#ing" + next).attr('data-source', $(addTo).attr('data-source'));
 
   //var start = document.getElementById('index').dataset.start;
-  next = next - 1;
   document.getElementById('start'+index).dataset.start = Number(next) + 1;
 }
 
