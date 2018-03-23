@@ -442,62 +442,16 @@ function createLotTuples(ingredients, start) {
     //newHTML += '<div class="removeBtn" id="dataBtn">';
     //console.log($("#ingredientSelect" + next).val());
     newHTML += '<div class="col-md-1"><p><br/><br/><br/><br/></p>';
-    newHTML += '<button class="btn btn-round btn-just-icon add" type="button" value="remove" onclick=deleteTuple2(' + next + ')><i class="material-icons">add</i></button></div>';
+    newHTML += '<button class="btn btn-round btn-just-icon add" type="button" value="remove" onclick=addPackage(' + next + ')><i class="material-icons">add</i></button></div>';
 
 
     newHTML += '<div class="col-md-1"><p><br/><br/></p>';
     newHTML += '<button class="btn btn-round btn-just-icon remove" type="button" value="remove" onclick=deleteTuple2(' + next + ') style="background-color:red;"><i class="material-icons">delete</i></button></div>';
     //newHTML += '<div class="removeBtn" id="dataBtn">';
-    newHTML += '</div>'
+    newHTML += '<div id="start' + next + '" data-start=1>';
+    newHTML += '</div>';
     //newHTML += '<div class="removeBtn" id="dataBtn">';
     //console.log($("#ingredientSelect" + next).val());
-    var newInput = $(newHTML);
-    $(addTo).after(newInput);
-    $("#tuple" + next).attr('data-source', $(addTo).attr('data-source'));
-
-    //var start = document.getElementById('index').dataset.start;
-    next = next - 1;
-    document.getElementById('index2').dataset.start = Number(next) + 1;
-  });
-}
-
-function createPackageTuples(ingredients, start) {
-  var next;
-  $("#newpackage").click(function(e) {
-    e.preventDefault();
-    next = Number(document.getElementById('index2').dataset.start);
-    var addTo = "#tuple" + next;
-    next = next + 1;
-
-    console.log(next);
-    var newHTML = '<div id="tuple' + next + '" class="row">';
-    newHTML += '<div class="col-md-2"><div class="form-group"></div><label class="control-label">Lot Number</label>';
-    newHTML += '<input class="form-control" id="lotnumber' + next + '" type="number" name="lotnumber' + next + '" min="0" step="0.01"/></div>';
-
-    newHTML += '<div class="col-md-3"><div class="form-group"></div><label class="control-label">Ingredient</label>';
-    newHTML += '<select class="form-control" id="ingredient' + next + '" name="ingredient' + next + '"><option disabled="" selected="" value="">Select an Ingredient</option>';
-    var i;
-    for (i = 0; i < ingredients.length; i++) {
-      var ing = ingredients[i];
-      newHTML += '<option value=' + ing._id + '>' + ing.name + '</option>';
-    }
-    newHTML += '</select></div>';
-
-    newHTML += '<div class="col-md-3"><div class="form-group"></div><label class="control-label">Vendor</label>';
-    newHTML += '<select class="form-control" id="vendor' + next + '" name="ingredient' + next + '"><option disabled="" selected="" value="">Select a Vendor</option>';
-    var i;
-    for (i = 0; i < ingredients.length; i++) {
-      var ing = ingredients[i];
-      newHTML += '<option value=' + ing._id + '>' + ing.name + '</option>';
-    }
-    newHTML += '</select></div>';
-    //newHTML += '<div class="removeBtn" id="dataBtn">';
-    //console.log($("#ingredientSelect" + next).val());
-    newHTML += '<div class="col-md-1"><div class="form-group"></div><label class="control-label">Quantity</label>';
-    newHTML += '<input class="form-control" id="quantity' + next + '" type="number" name="quantity' + next + '" min="0" step="0.01"/></div>';
-    newHTML += '<div class="col-md-1"><p><br/><br/><br/><br/></p>';
-    newHTML += '<button class="btn btn-round btn-just-icon remove" type="button" value="remove" onclick=deleteTuple2(' + next + ') style="background-color:red;"><i class="material-icons">delete</i></button></div>';
-    newHTML += '</div>'
     var newInput = $(newHTML);
     $(addTo).after(newInput);
     $("#tuple" + next).attr('data-source', $(addTo).attr('data-source'));
@@ -578,14 +532,51 @@ function deleteTuple2(index) {
   }
 }
 
-/*
+
 function addPackage(index){
-  if($('#tuple' + index).hasClass('preexists')){
+  var next = Number(document.getElementById('start'+index).dataset.start);
+  console.log(index);
+  console.log(next);
+  var addTo = "#ing" + next;
+  next = next + 1;
 
+  var newHTML = '<id="ing' + next + '" class="row">';
+  newHTML += '<div class="col-md-1"><p><br/><br/><br/><br/></p>';
+  newHTML += '</div>';
+  newHTML += '<div class="col-md-3"><div class="form-group"></div><label class="control-label">Ingredient</label>';
+  newHTML += '<select class="form-control" id="ingredient' + next + '" name="ingredient' + next + '"><option disabled="" selected="" value="">Select an Ingredient</option>';
+  var i;
+  for (i = 0; i < ingredients.length; i++) {
+    var ing = ingredients[i];
+    newHTML += '<option value=' + ing._id + '>' + ing.name + '</option>';
   }
+  newHTML += '</select></div>';
 
+  newHTML += '<div class="col-md-3"><div class="form-group"></div><label class="control-label">Vendor</label>';
+  newHTML += '<select class="form-control" id="vendor' + next + '" name="ingredient' + next + '"><option disabled="" selected="" value="">Select a Vendor</option>';
+  var i;
+  for (i = 0; i < ingredients.length; i++) {
+    var ing = ingredients[i];
+    newHTML += '<option value=' + ing._id + '>' + ing.name + '</option>';
+  }
+  newHTML += '</select></div>';
+  //newHTML += '<div class="removeBtn" id="dataBtn">';
+  //console.log($("#ingredientSelect" + next).val());
+  newHTML += '<div class="col-md-1"><div class="form-group"></div><label class="control-label">Quantity</label>';
+  newHTML += '<input class="form-control" id="quantity' + next + '" type="number" name="quantity' + next + '" min="0" step="0.01"/></div>';
+  newHTML += '<div class="col-md-1"><p><br/><br/><br/><br/></p>';
+  newHTML += '</div>';
+
+  var newInput = $(newHTML);
+  $(addTo).after(newInput);
+  $("#tuple" + next).attr('data-source', $(addTo).attr('data-source'));
+
+  //var start = document.getElementById('index').dataset.start;
+  next = next - 1;
+  document.getElementById('start'+index).dataset.start = Number(next) + 1;
 }
-*/
+
+
 function selectTuple(tuples) {
   for (i = 0; i < tuples.length; i++) {
     var id = tuples[i].ingredientID;
