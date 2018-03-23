@@ -534,6 +534,16 @@ function deleteTuple2(index) {
   }
 }
 
+function deletePackage(next, index) {
+  if (next > 1) {
+    $('#ing' + index+"_"+next).remove();
+    var start = document.getElementById('start'+index).dataset.start;
+    if (start == next) {
+      document.getElementById('start'+index).dataset.start = Number(start) - 1;
+    }
+  }
+}
+
 
 function addPackage(index){
   var next = Number(document.getElementById('start'+index).dataset.start);
@@ -566,7 +576,7 @@ function addPackage(index){
   newHTML += '<div class="col-md-1"><div class="form-group"></div><label class="control-label">Quantity</label>';
   newHTML += '<input class="form-control" id="quantity' + next + '" type="number" name="quantity' + next + '" min="0" step="0.01"/></div>';
   newHTML += '<div class="col-md-1"><p><br/><br/><br/><br/></p>';
-  newHTML += '<button class="btn btn-round btn-just-icon remove" type="button" value="remove" onclick=deleteTuple2(' + next + ') style="background-color:red;"><i class="material-icons">delete</i></button></div>';
+  newHTML += '<button class="btn btn-round btn-just-icon remove" type="button" value="remove" onclick=deletePackage(' + next + ","+ index + ') style="background-color:red;"><i class="material-icons">delete</i></button></div>';
   newHTML += '</div></div>';
 
   next = next - 1;
