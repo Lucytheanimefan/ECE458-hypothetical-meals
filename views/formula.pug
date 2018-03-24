@@ -19,6 +19,12 @@ block content
               th Description
               td= formula.description
             tr
+              th Type
+              if formula.intermediate
+                td Intermediate Product
+              else
+                td Final Product
+            tr
               th Ingredients (Quantity)
               td
                 each tuple in formula.tuples

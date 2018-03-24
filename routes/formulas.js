@@ -9,6 +9,9 @@ var underscore = require('underscore');
 var mongoose = require('mongoose');
 mongoose.Promise = global.Promise;
 
+var min = 10000000
+var max = 1000000000
+
 var path = require('path');
 var logs = require(path.resolve(__dirname, "./logs.js"));
 
@@ -139,7 +142,9 @@ router.post('/:name/order/:amount', function(req, res, next) {
   let formulaName = req.params.name;
   let amount = parseFloat(req.params.amount);
   var formulaId;
+  var globalFormula;
   Formula.findFormulaByName(formulaName).then(function(formula) {
+    globalFormula = formula;
     formulaId = mongoose.Types.ObjectId(formula['_id']);
     return Promise.all([FormulaHelper.createListOfTuples(formulaName, amount), Production.updateReport(formulaId, formulaName, amount, 0)]);
   }).then(function(results) {
@@ -149,6 +154,14 @@ router.post('/:name/order/:amount', function(req, res, next) {
     }));
   }).then(function(results) {
     logs.makeLog('Production', 'Send ingredients to production', req.session.username);
+    return Ingredient.getIngredient(formulaName);
+  }).then(function(ing) {
+    if (globalFormula.intermediate) {
+      return IngredientHelper.incrementAmount(ing._id, parseFloat(amount), 'admin', Math.floor(Math.random() * (max - min)) + min)
+    } else {
+      return globalFormula;
+    }
+  }).then(function(result) {
     res.redirect('/formulas');
   }).catch(function(error) {
     next(error);
