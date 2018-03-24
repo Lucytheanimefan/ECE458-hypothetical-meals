@@ -511,7 +511,7 @@ router.post('/place_order', function(req, res, next) {
   Promise.all(promises).then(function(ingIDs) {
     var promises = [];
     for (i = 0; i < ingIDs.length; i++) {
-      promises.push(UserHelper.addToCart(req.session.userId, ingIDs[i]._id, quantities[i], vendors[i]));
+      promises.push(UserHelper.addToCart(req.session.userId, ingIDs[i]._id, 0, vendors[i]));
     }
     return Promise.all(promises);
   }).then(function(results) {
@@ -521,7 +521,10 @@ router.post('/place_order', function(req, res, next) {
     cart = user.cart;
     var promises = [];
     for (let order of cart) {
-      promises.push(UserHelper.updateIngredientOnCheckout(mongoose.Types.ObjectId(order.ingredient), [order.vendor]));
+      var tuple = {};
+      tuple['vendor'] = order.vendor;
+      tuple['quantity'] = order.quantity;
+      promises.push(UserHelper.updateIngredientOnCheckout(mongoose.Types.ObjectId(order.ingredient), [tuple]));
       //promises.push(Spending.updateReport(order.ingredient, ingName, spent, reportType));
       //promises.push(UserHelper.removeOrder(req.session.userId, order.ingredient));
     }
