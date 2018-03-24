@@ -492,15 +492,13 @@ function selectTuple(tuples) {
 
 function selectVendor(orders) {
   for (o = 0; o < orders.length; o++) {
-    var vendors = orders[o];
-    console.log(vendors.length);
+    var order = orders[o];
+    var vendors = order.vendors;
     for (v = 0; v < vendors.length; v++) {
-      console.log(vendors[v]);
-      var id = vendors[v].id;
-      console.log("id = " + id);
-      $("#" + id).val(id).attr("selected", "true");
-      let name = $("#ingredient" + (i + 1) + " option:selected").text()
-      //$("#ingredient" + (i + 1)).attr('data-ingredientname', name);
+      var name = vendors[v].name;
+      $("#" + order.ingredient).val(name).attr("selected", "true");
+      name = $("#" + order.ingredient + " option:selected").text()
+      $("#" + order.ingredient).attr('data-ingredientname', name);
     }
   }
 }

@@ -24,7 +24,7 @@ block content
                 input(type="hidden" name="ingredient" value=order.ingredient)
                 input(type="hidden" name="quantity" value=order.quantity)
                 .form-group
-                  select.form-control(id=order.ingredient.vendor, name="vendor")
+                  select.form-control(id=order.ingredient, name="vendor")
                     option(disabled="" selected="" value="") Select a Vendor
                     each vendor in order.vendors
                       option(value=vendor.name)= vendor['name'] + ' - ' + vendor['cost']

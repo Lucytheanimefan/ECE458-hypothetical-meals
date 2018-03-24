@@ -51,6 +51,8 @@ module.exports.addToCart = function(id, ingId, quantity, vendor) {
       for (let ing of user.cart) {
         if (ingId.toString() === ing.ingredient.toString()) {
           var total = quantity + ing.quantity;
+          console.log(quantity);
+          console.log(ing.quantity);
           console.log("total = " + total);
           return User.updateCart(id, ingId, total, vendorID);
         }
@@ -117,11 +119,11 @@ module.exports.updateIngredientOnCheckout = function(ingId, vendors) {
     var totalCost;
     var averageCost;
     var totalPackages;
-    Ingredient.getIngredientById(ingId).then(function(result){
+    Ingredient.getIngredientById(ingId).then(function(result) {
       ing = result;
       return Promise.all(vendors.map(function(tuple) {
         return new Promise(function(resolve, reject) {
-          Vendor.model.findById(tuple.vendID).then(function(vendor) {
+          Vendor.model.findById(tuple.vendor).then(function(vendor) {
             tuple['vendor'] = vendor;
             resolve(tuple);
           }).catch(function(error) {
