@@ -18,6 +18,26 @@ block content
             tr
               th Description
               td= formula.description
+            if formula.intermediate
+              tr
+                th Type
+                  td Intermediate Product
+              tr
+                th Package
+                  td= ing.package
+              tr
+                th Temperature
+                  td= ing.temperature
+              tr
+                th Native Unit
+                  td= ing.nativeUnit
+              tr
+                th Units Per Package
+                  td= ing.unitsPerPackage
+            else
+              tr
+                th Type
+                  td Final Product
             tr
               th Ingredients (Quantity)
               td
@@ -38,7 +58,10 @@ block content
             .row
               .col-md-8
               .col-md-4
-                label.control-label(style="color:black;") Quantity (Product Units)
+                if formula.intermediate
+                  label.control-label(style="color:black;") Quantity (Native Units)
+                else
+                  label.control-label(style="color:black;") Quantity (Product Units)
                 input.form-control(id='select_amount', type='number', name='quantity', value=formula.units, min=formula.units)
             .row
               .col-md-8

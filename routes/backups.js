@@ -205,7 +205,7 @@ module.exports.makeBackup = function(backupType='') {
             console.log('Wrote file to db');
             console.log(file);
           }
-          sendEmail('spothorse9.lucy@gmail.com', 'Backup Status', emailMessage, function(error, result) {
+          sendEmail(['spothorse9.lucy@gmail.com', 'hypotheticalfoods458@gmail.com'], 'Backup Status', emailMessage, function(error, result) {
             if (error) {
               console.log('ERROR SENDING EMAIL:');
               console.log(error);
