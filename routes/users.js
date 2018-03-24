@@ -505,17 +505,12 @@ router.post('/place_order', function(req, res, next) {
     vendors = [vendors];
   }
   var promises = [];
-  console.log(ingredients);
   for (let ing of ingredients) {
-    console.log(ing);
     promises.push(Ingredient.getIngredient(ing));
   }
   Promise.all(promises).then(function(ingIDs) {
     var promises = [];
     for (i = 0; i < ingIDs.length; i++) {
-      console.log(ingIDs[i]._id);
-      console.log(quantities[i]);
-      console.log(vendors[i]);
       promises.push(UserHelper.addToCart(req.session.userId, ingIDs[i]._id, quantities[i], vendors[i]));
     }
     return Promise.all(promises);

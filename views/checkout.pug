@@ -27,7 +27,7 @@ block content
                   select.form-control(id=order.ingredient.vendor, name="vendor")
                     option(disabled="" selected="" value="") Select a Vendor
                     each vendor in order.vendors
-                      option(value=vendor.id)= vendor['name'] + ' - ' + vendor['cost']
+                      option(value=vendor.name)= vendor['name'] + ' - ' + vendor['cost']
           .col-md-12
             p
               br
