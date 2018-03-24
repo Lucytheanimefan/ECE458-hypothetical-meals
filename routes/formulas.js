@@ -169,15 +169,26 @@ router.post('/:name/delete_tuple', function(req, res, next) {
 })
 
 router.post('/new', async function(req, res, next) {
+  let ingInfo = {}
   let name = req.body.name;
   let description = req.body.description;
   let units = req.body.units;
+  ingInfo['package'] = req.body.package;
+  ingInfo['temperature'] = req.body.temperature;
+  ingInfo['nativeUnit'] = req.body.nativeUnit;
+  ingInfo['unitsPerPackage'] = req.body.unitsPerPackage;
+  let intermediate = (req.body.type == "intermediate");
   var body = req.body;
   delete body['name'];
   delete body['description'];
   delete body['units'];
+  delete body['package'];
+  delete body['temperature'];
+  delete body['nativeUnits'];
+  delete body['unitsPerPackage'];
+  delete body['type']
   var length = Object.keys(body).length;
-  var promise = FormulaHelper.createFormula(name, description, units);
+  var promise = FormulaHelper.createFormula(name, description, units, intermediate, ingInfo);
   console.log(body);
   promise.then(async function(result) {
     var index = 1;

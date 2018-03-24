@@ -79,6 +79,21 @@ module.exports.createIngredient = function(name, package, temp, nativeUnit, unit
   });
 }
 
+module.exports.createIngredientIntermediate = function(name, package, temp, nativeUnit, unitsPerPackage) {
+  return Ingredient.create({
+    'name': name,
+    'package': package.toLowerCase(),
+    'temperature': temp.toLowerCase(),
+    'nativeUnit': nativeUnit,
+    'unitsPerPackage': parseFloat(unitsPerPackage),
+    'amount': 0,
+    'averageCost': 0,
+    'space': 0,
+    'isIntermediate': true,
+    'vendorLots': []
+  });
+}
+
 module.exports.getIngredient = function(name) {
   return Ingredient.findOne({ 'name': name }).exec();
 }

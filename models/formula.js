@@ -50,11 +50,12 @@ module.exports.getAllFormulas = function() {
   return Formula.find().exec();
 }
 
-module.exports.createFormula = function(name, description, units) {
+module.exports.createFormula = function(name, description, units, intermediate) {
   return Formula.create({
     'name': name,
     'description': description,
     'tuples': [],
+    'intermediate': intermediate,
     'units': units
   });
 }
