@@ -221,8 +221,6 @@ module.exports.consumeLots = function(name, amount) {
           return 0;
         }
       });
-      console.log("i'm here");
-      console.log(lots);
       let pullIDs = [];
       let remaining = parseFloat(amount);
       for (let lot of lots) {

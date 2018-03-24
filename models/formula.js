@@ -11,6 +11,10 @@ var FormulaSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  intermediate: {
+    type: Boolean,
+    required: true
+  },
   tuples:[{
     index: {
       type: Number,
