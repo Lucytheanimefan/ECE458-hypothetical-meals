@@ -41,6 +41,13 @@ block content
           tr
             th Space in Storage (Sq ft)
             td= ingredient.space
+        div#add-to-cart
+          form(action='/ingredients/order/add/to/cart', method='post')
+            .form-group.pull-left(style='margin: 10px 15px;')
+              input.form-control(type="hidden" name="ingredient" value=ingredient.name)
+              label.control-label Quantity (Number of Packages)
+              input.form-control(type='number', name='quantity', min='0', required='', style='width: 200px;')
+            button.btn.btn-primary(style="margin: 30px 15px;" type='submit') Add to Cart
         table.table
           th Vendor Name
           th Lot Number
