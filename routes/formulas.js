@@ -49,9 +49,12 @@ router.get('/home/:page?', function(req, res, next) {
 
 router.get('/:name', function(req, res, next) {
   var formQuery = Formula.findFormulaByName(req.params.name);
+  var formIngQuery = Ingredient.getIngredient(req.params.name);
   var formula;
-  formQuery.then(function(form) {
-    formula = form;
+  var ing;
+  Promise.all([formQuery,formIngQuery]).then(function(result) {
+    formula = result[0];
+    ing = result[1];
     var ingQuery = Ingredient.getAllIngredients();
     return ingQuery;
   }).then(function(result) {
@@ -60,7 +63,7 @@ router.get('/:name', function(req, res, next) {
       ingredients.push({ _id: ing._id, name: ing.name });
     }
     formula.tuples = underscore.sortBy(formula.tuples, "index");
-    res.render('formula', { formula: formula, ingredients: ingredients });
+    res.render('formula', { formula: formula, ingredients: ingredients, ing: ing });
   }).catch(function(error) {
     next(error)
   });
