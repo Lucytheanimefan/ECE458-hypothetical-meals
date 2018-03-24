@@ -544,6 +544,32 @@ router.get('/lot_assignment/:page?', function(req, res, next){
 });
 
 router.post('/lot_assignment/assign', function(req, res, next){
+  req.body = JSON.parse(JSON.stringify(req.body));
+  //console.log(req.body);
+  var lotData = [{}];
+  var currLot = "no lot :(";
+  var currIng =  "default ing";
+  var currVend = "default vend";
+  for(var key in req.body) {
+    if(req.body.hasOwnProperty(key)){
+      if(key.indexOf("lotnumber")>=0){
+        currLot = req.body[key];
+      }
+      if(key.indexOf("ingId")>=0){
+        let ingVend = req.body[key].split("@");
+        currIng = ingVend[0];
+        currVend = ingVend[1];
+
+      }
+      if(key.indexOf("quantity")>=0){
+        console.log("order params");
+        console.log(currLot);
+        console.log(currIng);
+        console.log(currVend);
+        console.log(req.body[key]);
+      }
+  }
+}
   res.render()
 })
 
@@ -655,4 +681,8 @@ module.exports.requireLogin = function() {
       res.render('login'); // or render a form, etc.
     }
   }
+}
+
+function logMapElements(value, key, map) {
+  console.log(`m[${key}] = ${value}`);
 }
