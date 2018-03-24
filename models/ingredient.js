@@ -178,12 +178,20 @@ module.exports.addLotEntry = function(name, entry) {
   }).exec();
 }
 
+module.exports.editLot = function(name, amount, lotID) {
+  return Ingredient.findOneAndUpdate({ 'vendorLots.vendorID': mongoose.Types.ObjectId(lotID) }, {
+    '$set': {
+      'vendorLots.$.units': amount
+    }
+  }).exec();
+}
+
 module.exports.removeLot = function(name, lotID) {
   return Ingredient.findOneAndUpdate({ 'name': name }, {
     '$pull': {
       'vendorLots': {'_id': lotID}
     }
-  })
+  }).exec();
 }
 
 module.exports.updateSpace = function(name) {

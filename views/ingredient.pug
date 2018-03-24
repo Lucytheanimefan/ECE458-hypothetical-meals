@@ -55,7 +55,6 @@ block content
           th Lot Number
           th Native Units
           for set in sets
-
             tr
               if set.vendor.name == 'admin'
                 td= set.vendor.name
@@ -141,10 +140,27 @@ block content
 
         form.form-group(style='margin-top: 50px;',action='/ingredients/' + encodeURIComponent(ingredient.name) + '/updateamount', method='post')
           h3 Edit Stock
-          .form-group
-            label.control-label Amount (Must be lower than current amount; The oldest lot(s) will be consumed)
-            input.form-control(type='number', step='any', min='0', max = ingredient.amount, name='amount', value = ingredient.amount, required='')
-          button.btn.btn-primary.pull-right(type='submit') Update Stock
+          table.table
+            th Vendor Name
+            th Lot Number
+            th Timestamp
+            th Native Units
+            th Edit
+            for lot in lots
+              form.form-group(action='/ingredients/' + encodeURIComponent(ingredient.name) + '/edit-lot/' + lot.units + '/')
+                input.hide(type='checkbox', name='lotID', value=lot._id, checked)
+                tr
+                  if lot.vendor.name == 'admin'
+                    td= lot.vendor.name
+                  else
+                    td
+                      a(href="/vendors/" + lot.vendor.code)= lot.vendor.name + ' (' + lot.vendor.code + ')'
+                  td= lot.lotNumber
+                  td= lot.stringTimestamp
+                  td
+                    input(type='number', step='any', name='amount', value=lot.units, min='0')
+                  td
+                    button.btn.btn-primary(type='submit', style='margin:0px; padding: 5px 10px;') Edit
 
       unless ingredient.isIntermediate
         .manager.hide.card-content.tab-pane.fade#vendor-form
