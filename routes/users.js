@@ -595,7 +595,7 @@ router.get('/lot_assignment/:page?', function(req, res, next){
 router.post('/lot_assignment/assign', function(req, res, next){
   req.body = JSON.parse(JSON.stringify(req.body));
   //console.log(req.body);
-  var lotData = [{}];
+  var promises= [];
   var currLot = "no lot :(";
   var currIng =  "default ing";
   var currVend = "default vend";
@@ -616,9 +616,12 @@ router.post('/lot_assignment/assign', function(req, res, next){
         console.log(currIng);
         console.log(currVend);
         console.log(req.body[key]);
+        let currQuantity = req.body[key];
+        promises.push(IngredientHelper.incrementAmount(currIng,currQuantity,currVend,currLot));
       }
+    }
   }
-}
+  return Promise.all(promises);
   res.render()
 })
 
