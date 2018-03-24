@@ -3,10 +3,21 @@ var Ingredient = require('../models/ingredient');
 var mongoose = require('mongoose');
 mongoose.Promise = global.Promise;
 
-module.exports.createFormula = function(name, description, units) {
+module.exports.createFormula = function(name, description, units, intermediate, ingInfo=null) {
   return new Promise(function(resolve, reject) {
-    var result = Formula.createFormula(name, description, units);
-    resolve(result);
+    var formula;
+    Formula.createFormula(name, description, units, intermediate).then(function(form) {
+      formula = form;
+      if (intermediate) {
+        return Ingredient.createIngredientIntermediate(name, ingInfo.package, ingInfo.temperature, ingInfo.nativeUnit, ingInfo.unitsPerPackage)
+      } else {
+        return formula;
+      }
+    }).then(function(result) {
+      resolve(formula);
+    }).catch(function(error) {
+      reject(error);
+    })
   });
 }
 

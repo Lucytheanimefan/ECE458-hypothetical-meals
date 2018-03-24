@@ -44,6 +44,31 @@ block content
           .form-group
             label.control-label Description
             textarea.form-control(name='description' rows='5' cols='100')
+          .form-group
+            label.control-label Type of Product
+            select.form-control#type-selector(name='type', placeholder = '', required='', onclick='showIngredientInfo()')
+              option(disabled = '', selected='', value='') Select an Option
+              option(value='final') Final
+              option(value='intermediate') Intermediate
+          .div(style='display: none;')#ingredient-info
+            .form-group
+              label.control-label Package Type
+              select.form-control.ing-attr(name='package', placeholder = '', required='')
+                option(disabled='' selected='' value='') Select an option
+                each package in ['sack', 'pail', 'drum', 'supersack', 'truckload', 'railcar']
+                  option(value=package)= package
+            .form-group
+              label.control-label Storage Temperature
+              select.form-control.ing-attr(name='temperature', placeholder = '', required='')
+                option(disabled='' selected='' value='') Select an option
+                each temp in ['frozen', 'refrigerated', 'room temperature']
+                  option(value=temp)= temp
+            .form-group
+              label.control-label Native Unit
+              input.form-control.ing-attr(type='text', name='nativeUnit', placeholder = '', required='')
+            .form-group
+              label.control-label Units per Package
+              input.form-control.ing-attr(type='number', step='any', name='unitsPerPackage', required='')
           div.tupleRow#data2(data-ingredients=ingredients)
             .row
               .col-md-11
@@ -58,7 +83,7 @@ block content
                   .col-md-4
                     .form-group
                     label.control-label Quantity
-                    input#quantity1.form-control(type='number', name='quantity1', min='0', step='0.01', required='')
+                    input#quantity1.form-control(type='number', name='quantity1', min='0', step='any', required='')
                   .col-md-2
                     p
                       br
@@ -83,3 +108,4 @@ block scripts
     var ingredients = document.getElementById('data2').dataset.ingredients;
     ingredients = JSON.parse(ingredients);
     createTuples(ingredients, 1);
+
