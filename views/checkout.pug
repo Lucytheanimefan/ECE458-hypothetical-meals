@@ -1,0 +1,43 @@
+extends layout
+block link
+  -var selected = 'Cart';
+
+block content
+  .row
+  div.card
+    div.card-header(data-background-color='purple')
+      h4.title Checkout: Select Vendors
+    div.card-content.table-response#data(data-orders=orders)
+      form(action="/users/place_order" method="post")
+        table.table#orderTable
+          thead.text-primary
+            th(onclick='sortTable(0, \'order\')') Ingredient
+            th(onclick='sortTable(1, \'order\')') Total Quantity (Number of Packages)
+            th(onclick='sortTable(2, \'order\')') Vendor
+          tbody
+          each order in orders
+            tr
+              td
+                a(href='/ingredients/' + order.ingredient)= order.ingredient
+              td= order.quantity
+              td
+                input(type="hidden" name="ingredient" value=order.ingredient)
+                input(type="hidden" name="quantity" value=order.quantity)
+                .form-group
+                  select.form-control(id=order.ingredient.vendor, name="vendor")
+                    option(disabled="" selected="" value="") Select a Vendor
+                    each vendor in order.vendors
+                      option(value=vendor.id)= vendor['name'] + ' - ' + vendor['cost']
+          .col-md-12
+            p
+              br
+        .row
+          .col-md-10
+          .col-md-2
+            input.btn.btn-primary(type="submit" name="place_order" value="Place Order" style="float:right;")
+
+block scripts
+  script.
+    var orders = document.getElementById('data').dataset.orders;
+    orders = JSON.parse(orders);
+    selectVendor(orders);

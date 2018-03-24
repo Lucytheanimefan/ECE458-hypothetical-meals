@@ -398,54 +398,25 @@ router.post('/remove_ingredient', function(req, res, next) {
 router.post('/edit_order', function(req, res, next) {
   console.log('Call POST /edit_order');
   let ingredient = req.body.ingredient;
-  var quantities = req.body.quantities;
-  var names = req.body.names;
-  var codes = req.body.codes;
-  var vendor, cart, user;
-  if (!Array.isArray(names)) {
-    quantities = [req.body.quantities];
-    names = [req.body.names];
-    codes = [req.body.codes];
-  }
-  var ingID, vendID;
+  var quantity = req.body.quantity;
+  var cart, user, ingID, vendor, currentQuantity;
   var ingQuery = Ingredient.getIngredient(ingredient);
   ingQuery.then(function(ing) {
     ingID = ing._id;
-    var userQuery = User.getUserById(req.session.userId);
-    return userQuery;
+    return User.getUserById(req.session.userId);
   }).then(function(userResult) {
     user = userResult;
-    var promises = [];
-    for (i = 0; i < names.length; i++) {
-      var vendor = names[i];
-      promises.push(UserHelper.getVendorID(vendor));
-    }
-    return Promise.all(promises);
-  }).then(async function(results) {
     cart = user.cart;
-    for (i = 0; i < names.length; i++) {
-      var vendor = names[i];
-      var vendID = results[i];
-      var quantity = quantities[i];
-      var newQuantity;
-      for (let order of cart) {
-        if (ingID.toString() === order.ingredient.toString()) {
-          for (i = 0; i < order.vendors.length; i++) {
-            var vend = order.vendors[i];
-            if (vendID.toString() === vend.vendID.toString()) {
-              newQuantity = quantity - vend.quantity;
-              if (newQuantity <= -vend.quantity) {
-                await UserHelper.deleteVendor(req.session.userId, vendID);
-              } else {
-                await UserHelper.addToCart(req.session.userId, ingID, newQuantity, vendor);
-              }
-              break;
-            }
-          }
-          break;
-        }
+    for (let order of cart) {
+      if (ingID.toString() === order.ingredient.toString()) {
+        currentQuantity = order.quantity;
+        return Vendor.findVendorById(order.vendor);
       }
     }
+  }).then(function(vendResult) {
+    vendor = vendResult.name;
+    quantity = quantity - currentQuantity;
+    return UserHelper.addToCart(req.session.userId, ingID, quantity, vendor);
   }).then(function(results) {
     console.log("Edit cart results: ");
     console.log(cart);
@@ -456,14 +427,106 @@ router.post('/edit_order', function(req, res, next) {
   })
 });
 
-router.post('/checkout_cart', function(req, res, next) {
-  var cart;
+router.get('/checkout_cart/:page?', function(req, res, next) {
+  var perPage = 10;
+  var page = req.params.page || 1;
+  page = (page < 1) ? 1 : page;
+
   var userQuery = User.getUserById(req.session.userId);
+  var cart;
+  var orders = [];
+  var ingredients = [];
+  var ids = [];
+  var vendors = [];
   userQuery.then(function(user) {
     cart = user.cart;
     var promises = [];
     for (let order of cart) {
-      promises.push(UserHelper.updateIngredientOnCheckout(mongoose.Types.ObjectId(order.ingredient), order.vendors));
+      promises.push(Ingredient.getIngredientById(order.ingredient));
+    }
+    return Promise.all(promises);
+  }).then(function(ings) {
+    var promises = [];
+    for (let ing of ings) {
+      ingredients.push(ing.name);
+      ids.push(ing._id.toString());
+      promises.push(Vendor.findVendorsForIngredient(ing._id));
+    }
+    return Promise.all(promises);
+  }).then(function(vends) {
+    for (var v = 0; v < vends.length; v++) {
+      var vend = vends[v];
+      var item = [];
+      for (let entry of vend) {
+        var temp = {};
+        temp['id'] = entry._id;
+        temp['name'] = entry.name;
+        for (let ing of entry.catalogue) {
+          if (ing.ingredient.toString() === ids[v].toString()) {
+            temp['cost'] = ing.cost;
+            break;
+          }
+        }
+        item.push(temp);
+      }
+      vendors.push(item);
+    }
+
+    var start = perPage * (page - 1);
+    var promises = [];
+    for (i = start; i < start + perPage; i++) {
+      var order = {};
+      if (cart[i] == undefined) {
+        break;
+      }
+      var index = ids.indexOf(cart[i].ingredient.toString());
+      var ingName = ingredients[index];
+      var orderVendors = vendors[index];
+      order['ingredient'] = ingName;
+      order['quantity'] = cart[i].quantity;
+      order ['vendors'] = orderVendors;
+      orders.push(order);
+    }
+    console.log("ORDERS");
+    console.log(orders);
+    res.render('checkout', { orders: orders, page: page });
+  }).catch(function(error) {
+    next(error);
+  })
+});
+
+router.post('/place_order', function(req, res, next) {
+  var ingredients = req.body.ingredient;
+  var quantities = req.body.quantity;
+  var vendors = req.body.vendor;
+  if (!Array.isArray(ingredients)) {
+    ingredients = [ingredients];
+    quantities = [quantities];
+    vendors = [vendors];
+  }
+  var promises = [];
+  console.log(ingredients);
+  for (let ing of ingredients) {
+    console.log(ing);
+    promises.push(Ingredient.getIngredient(ing));
+  }
+  Promise.all(promises).then(function(ingIDs) {
+    var promises = [];
+    for (i = 0; i < ingIDs.length; i++) {
+      console.log(ingIDs[i]._id);
+      console.log(quantities[i]);
+      console.log(vendors[i]);
+      promises.push(UserHelper.addToCart(req.session.userId, ingIDs[i]._id, quantities[i], vendors[i]));
+    }
+    return Promise.all(promises);
+  }).then(function(results) {
+    var cart;
+    return User.getUserById(req.session.userId);
+  }).then(function(user) {
+    cart = user.cart;
+    var promises = [];
+    for (let order of cart) {
+      promises.push(UserHelper.updateIngredientOnCheckout(mongoose.Types.ObjectId(order.ingredient), [order.vendor]));
       //promises.push(Spending.updateReport(order.ingredient, ingName, spent, reportType));
       promises.push(UserHelper.removeOrder(req.session.userId, order.ingredient));
     }

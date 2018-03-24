@@ -20,7 +20,7 @@ block content
               a(href='/ingredients/' + order.ingredient)= order.ingredient
             form(action="/users/edit_order" method="post")
               td
-                form-group(style='margin-top: 10px;')
+                .form-group(style='margin-top: 10px;')
                   input.form-control(type='number', name='quantity', value=order.quantity, min='0', required='', style='width: 250px;')
               td
                 input(type="hidden" name="ingredient" value=order.ingredient)
