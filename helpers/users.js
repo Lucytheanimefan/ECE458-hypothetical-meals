@@ -154,6 +154,7 @@ module.exports.updateIngredientOnCheckout = function(ingId, vendors) {
       let spendingUpdate = Spending.updateReport(ingId, ing.name, totalCost, 'spending');
       return Promise.all([ingCostUpdate, spendingUpdate]);
     }).then(function(results) {
+      console.log("ING COST UPDATE");
       resolve(results);
     }).catch(function(error) {
       reject(error);

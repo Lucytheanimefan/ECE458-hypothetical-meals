@@ -13,7 +13,7 @@ block content
           thead.text-primary
             th(onclick='sortTable(0, \'order\')') Ingredient
             th(onclick='sortTable(1, \'order\')') Total Quantity (Number of Packages)
-            th(onclick='sortTable(2, \'order\')') Vendor
+            th(onclick='sortTable(2, \'order\')') Vendor and Cost Per Package (Cheapest is Selected)
           tbody
           each order in orders
             tr
@@ -24,10 +24,10 @@ block content
                 input(type="hidden" name="ingredient" value=order.ingredient)
                 input(type="hidden" name="quantity" value=order.quantity)
                 .form-group
-                  select.form-control(id=order.ingredient, name="vendor")
+                  select.form-control(id=(order.ingredient).split(' ').join(''), name="vendor")
                     option(disabled="" selected="" value="") Select a Vendor
                     each vendor in order.vendors
-                      option(value=vendor.name)= vendor['name'] + ' - ' + vendor['cost']
+                      option(value=vendor.name)= vendor['name'] + ': $' + vendor['cost']
           .col-md-12
             p
               br
@@ -35,6 +35,14 @@ block content
           .col-md-10
           .col-md-2
             input.btn.btn-primary(type="submit" name="place_order" value="Place Order" style="float:right;")
+        .row
+          div.pages(style="text-align:center;")
+            .col-md-12
+              form(action="/users/checkout_cart/" + (parseInt(page)-1).toString(), method="get" style="display: inline-block;")
+                button.btn.btn-white(type="submit" style="padding: 5px;") <
+              p(style="padding: 10px; display: inline-block;") Page #{parseInt(page)}
+              form(action="/users/checkout_cart/" + (parseInt(page)+1).toString(), method="get" style="display: inline-block;")
+                button.btn.btn-white(type="submit" style="padding: 5px;") >
 
 block scripts
   script.
