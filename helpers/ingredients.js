@@ -125,7 +125,7 @@ module.exports.updateIngredientByLot = function(name, oldAmount, newAmount, lotI
         return exports.checkAndUpdateInventory(ing.name, ing.package, ing.temperature, parseFloat(ing.unitsPerPackage), newIngAmount);
       }
     }).then(function(result) {
-      return Ingredient.editLot(name, newAmount, lotID);
+      return Promise.all([Ingredient.justIncrementAmount(name, parseFloat(newAmount - oldAmount)), Ingredient.editLot(name, newAmount, lotID)]);
     }).then(function(result) {
       resolve(ing);
     }).catch(function(error) {

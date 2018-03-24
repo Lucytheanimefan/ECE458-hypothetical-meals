@@ -137,30 +137,28 @@ block content
             label.control-label Lot Number
             input.form-control(type='number', step='1', name='lotNumber', placeholder='Lot Number')
           button.btn.btn-primary.pull-right(type='submit') Add Lot
-
-        form.form-group(style='margin-top: 50px;',action='/ingredients/' + encodeURIComponent(ingredient.name) + '/updateamount', method='post')
-          h3 Edit Stock
-          table.table
-            th Vendor Name
-            th Lot Number
-            th Timestamp
-            th Native Units
-            th Edit
-            for lot in lots
-              form.form-group(action='/ingredients/' + encodeURIComponent(ingredient.name) + '/edit-lot/' + lot.units + '/')
+        h3 Edit Stock
+        table.table
+          th Vendor Name
+          th Lot Number
+          th Timestamp
+          th Native Units
+          th Edit
+          for lot in lots
+            tr
+              form.form-group(action='/ingredients/' + encodeURIComponent(ingredient.name) + '/edit-lot/' + lot.units + '/', method='post')
                 input.hide(type='checkbox', name='lotID', value=lot._id, checked)
-                tr
-                  if lot.vendor.name == 'admin'
-                    td= lot.vendor.name
-                  else
-                    td
-                      a(href="/vendors/" + lot.vendor.code)= lot.vendor.name + ' (' + lot.vendor.code + ')'
-                  td= lot.lotNumber
-                  td= lot.stringTimestamp
+                if lot.vendor.name == 'admin'
+                  td= lot.vendor.name
+                else
                   td
-                    input(type='number', step='any', name='amount', value=lot.units, min='0')
-                  td
-                    button.btn.btn-primary(type='submit', style='margin:0px; padding: 5px 10px;') Edit
+                    a(href="/vendors/" + lot.vendor.code)= lot.vendor.name + ' (' + lot.vendor.code + ')'
+                td= lot.lotNumber
+                td= lot.stringTimestamp
+                td
+                  input(type='number', step='any', name='amount', value=lot.units, min='0')
+                td
+                  button.btn.btn-primary(type='submit', style='margin:0px; padding: 5px 10px;') Edit
 
       unless ingredient.isIntermediate
         .manager.hide.card-content.tab-pane.fade#vendor-form

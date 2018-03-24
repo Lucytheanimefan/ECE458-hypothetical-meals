@@ -153,6 +153,14 @@ module.exports.incrementAmount = function(name, amount, vendorID, lotNumber) {
   }).exec(), exports.addLot(name, amount, vendorID, lotNumber)]);
 }
 
+module.exports.justIncrementAmount = function(name, amount) {
+  return Ingredient.findOneAndUpdate({ 'name': name }, {
+    '$inc': {
+      'amount': parseFloat(amount)
+    }
+  }).exec();
+}
+
 module.exports.decrementAmount = function(name, amount) {
   return Promise.all([Ingredient.findOneAndUpdate({ 'name': name }, {
     '$inc': {
@@ -179,7 +187,8 @@ module.exports.addLotEntry = function(name, entry) {
 }
 
 module.exports.editLot = function(name, amount, lotID) {
-  return Ingredient.findOneAndUpdate({ 'vendorLots.vendorID': mongoose.Types.ObjectId(lotID) }, {
+  console.log('popp: ' + amount);
+  return Ingredient.update({ 'vendorLots._id': mongoose.Types.ObjectId(lotID) }, {
     '$set': {
       'vendorLots.$.units': amount
     }
