@@ -1,17 +1,33 @@
 extends layout
 
-block content
-	h1 Backups
-	.row
-		h2 Restore
-		form(method='POST', action='/backups/restore')
-			input(type='file', name='file', required='')
-			button.btn.btn-primary(type='submit', value='Restore') Restore
-	.row
-		h2 Download (Click to download tar)
-		each file in files
-			li
-				a(href='/backups/file/'+file.filename)= file.filename
-				//- button.btn.btn-primary(onclick='doBackup("'+file.filename+'")') Do Backup
+block link
+  -var selected = 'Backups';
 
-				
+block content
+  .row
+    h1 Backups
+    h3 Restore
+    form(method='POST', action='/backups/restore')
+      input(type='file', name='file', required='')
+      button.btn.btn-primary(type='submit', value='Restore') Restore
+
+  .row
+    h3 Download Backup
+    div.card
+      div.card-header(data-background-color='purple')
+          h4.title Backups
+      div.card-content.table-response
+        table.table#backupTable
+          thead.text-primary
+            th Backup Date
+            th Download File (Click to download tar)
+          tbody
+          each file in files
+            tr
+              td
+                p= file.uploadDate
+              td
+                a(href='/backups/file/'+file.filename)= file.filename
+
+
+        

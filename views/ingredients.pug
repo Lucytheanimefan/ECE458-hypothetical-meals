@@ -72,6 +72,7 @@ block content
 
       .card-content.tab-pane.fade#create_form.adminOnly.hide
         h1= 'Create new ingredient'
+        h3= 'Note: If you want to add stock, go to the \'stock\' tab after you create the ingredient.'
         form(action='/ingredients/new', method='post')
           .form-group
             label.control-label Ingredient Name
@@ -94,9 +95,6 @@ block content
           .form-group
             label.control-label Units per Package
             input.form-control(type='number', step='any', name='unitsPerPackage', required='')
-          .form-group
-            label.control-label Units in Storage
-            input.form-control(type='number', step="any", name='amount', placeholder = 'Units in storage', required='')
 
           button.btn.btn-primary.pull-right(type='submit', value='add ingredient') Create ingredient
 

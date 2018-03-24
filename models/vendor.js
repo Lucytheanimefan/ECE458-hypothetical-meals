@@ -36,6 +36,10 @@ var VendorSchema = new mongoose.Schema({
 
 var Vendor = mongoose.model('Vendor', VendorSchema);
 
+module.exports.findVendorById = function(id) {
+  return Vendor.findById(id).exec();
+}
+
 module.exports.findVendorByName = function(name){
   return Vendor.findOne({'name':name}).exec();
 }
@@ -46,6 +50,10 @@ module.exports.findVendorByCode = function(code){
 
 module.exports.findVendorByCodeAndName = function(code,name){
   return Vendor.findOne({'code':code, 'name':name})
+}
+
+module.exports.findVendorsForIngredient = function(ingredientID) {
+  return Vendor.find({ 'catalogue.ingredient': ingredientID });
 }
 
 module.exports.createVendor = function(name, code, contact, location) {

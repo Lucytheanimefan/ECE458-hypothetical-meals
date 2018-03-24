@@ -69,6 +69,7 @@ router.get('/:name/:amt/:page?', function(req, res, next) {
   var findAllVendors = Vendor.model.find().exec();
   var ingredient;
   var vendorObjects;
+  var catalogue;
   findAllVendors.then(function(vendors) {
     vendorObjects = vendors;
     return ingQuery;
@@ -82,13 +83,80 @@ router.get('/:name/:amt/:page?', function(req, res, next) {
     return vendorQuery(ing);
   }).then(function(vendors) {
     console.log(vendors);
-    return createCatalogue(vendors, ingredient['_id']);
-  }).then(function(catalogue) {
-    res.render('ingredient', { ingredient: ingredient, packages: packageTypes, temps: temperatures, vendors: catalogue, page: page, amount: req.params.amt, existingVendors: vendorObjects });
+    catalogue = createCatalogue(vendors, ingredient['_id']);
+    let lots = ingredient['vendorLots'];
+    return joinEntriesTogether(lots);
+  }).then(function(lots) {
+    lots.sort(function(a,b) {
+      if (a.vendor.name < b.vendor.name) {
+        return -1;
+      } else if (a.vendor.name > b.vendor.name) {
+        return 1;
+      } else {
+        return 0;
+      }
+    });
+    res.render('ingredient', { ingredient: ingredient, packages: packageTypes, temps: temperatures, vendors: catalogue, page: page, amount: req.params.amt, existingVendors: vendorObjects, sets: lots });
   }).catch(function(error) {
     next(error)
   });
 })
+
+joinEntriesTogether = function(lots) {
+  return new Promise(function(resolve, reject) {
+    let results = [];
+    for (let lot of lots) {
+      let updated = false;
+      for (let result of results) {
+        if (result['vendorID'] == lot['vendorID'] && result['lotNumber'] == lot['lotNumber']) {
+          result['units'] = parseFloat(result['units']) + parseFloat(lot['units']);
+          updated = true;
+        }
+      }
+      if (!updated) {
+        results.push(lot);
+      }
+    }
+    fillEntries(results).then(function(lots) {
+      resolve(lots);
+    }).catch(function(error) {
+      reject(error);
+    })
+  })
+}
+
+fillEntries = function(lots) {
+  return Promise.all(lots.map(function(lot) {
+    return getVendor(lot);
+  }));
+}
+
+getVendor = function(lot) {
+  return new Promise(function(resolve, reject) {
+    if (lot['vendorID'] == 'admin') {
+      lot['vendor'] = {'name': 'admin'};
+      resolve(lot);
+    } else {
+      Vendor.findVendorById(lot['vendorID']).then(function(vendor) {
+        lot['vendor'] = vendor;
+        return lot;
+      }).then(function(lot) {
+        resolve(lot);
+      }).catch(function(error) {
+        reject(error);
+      })
+    }
+  })
+}
+
+displayTimestamps = function(sets) {
+  let newSets = [];
+  for (let set of sets) {
+    set['timestamp'] = mongoose.Types.ObjectId(set['_id']).getTimestamp().toString();
+    newSets.push(set);
+  }
+  return newSets;
+}
 
 //POST request to delete an existing ingredient
 router.post('/:name/delete', function(req, res, next) {
@@ -136,8 +204,7 @@ router.post('/:name/update', function(req, res, next) {
     req.body.package,
     req.body.temperature,
     req.body.nativeUnit,
-    parseFloat(req.body.unitsPerPackage),
-    parseFloat(req.body.amount)
+    parseFloat(req.body.unitsPerPackage)
   );
   updatePromise.then(function(ingredient) {
     logs.makeIngredientLog('Update ingredient', 'Updated <a href="/ingredients/' + req.params.name + '">' + req.params.name + '</a>', initiating_user);
@@ -145,7 +212,48 @@ router.post('/:name/update', function(req, res, next) {
   }).catch(function(error) {
     next(error);
   });
+});
 
+router.post('/:name/updateamount', function(req, res, next) {
+  let ingName = req.params.name;
+  let initiating_user = req.session.username;
+  console.log(initiating_user)
+
+  Ingredient.getIngredient(ingName).then(function(ingredient) {
+    let updateAmount = parseFloat(req.body.amount)-parseFloat(ingredient.amount);
+    var updatePromise = IngredientHelper.incrementAmount(
+      ingredient._id,
+      updateAmount
+    );
+    return updatePromise;
+  }).then(function(ing) {
+    logs.makeIngredientLog('Update ingredient', 'Updated <a href="/ingredients/' + req.params.name + '">' + req.params.name + '</a>', initiating_user);
+    res.redirect(req.baseUrl + '/' + encodeURIComponent(ingName));
+  }).catch(function(error) {
+    next(error);
+  });
+});
+
+router.post('/:name/updatelot', function(req, res, next) {
+  let ingName = req.params.name;
+  let initiating_user = req.session.username;
+  console.log(initiating_user)
+
+  Ingredient.getIngredient(ingName).then(function(ingredient) {
+    let updateAmount = parseFloat(req.body.amount);
+    var updatePromise = IngredientHelper.incrementAmount(
+      ingredient._id,
+      updateAmount,
+      req.body.vendor,
+      req.body.lotNumber
+    );
+    return updatePromise;
+  }).then(function(ing) {
+    logs.makeIngredientLog('Update ingredient', 'Updated <a href="/ingredients/' + req.params.name + '">' + req.params.name + '</a>', initiating_user);
+    res.redirect(req.baseUrl + '/' + encodeURIComponent(ingName));
+  }).catch(function(error) {
+    next(error);
+  });
 });
 
 router.post('/new', function(req, res, next) {
@@ -157,7 +265,6 @@ router.post('/new', function(req, res, next) {
     req.body.temperature,
     req.body.nativeUnit,
     parseFloat(req.body.unitsPerPackage),
-    parseFloat(req.body.amount)
   );
   promise.then(function(ingredient) {
     logs.makeIngredientLog('Create ingredient','Created <a href="/ingredients/' + ingName + '">' + ingName + '</a>'/*{'ingredient_id': ingredient._id}*/, initiating_user);
@@ -183,16 +290,30 @@ router.post('/:name/add-vendor', function(req, res, next) {
   })
 })
 
-
 router.post('/order/add/to/cart', function(req, res, next) {
   let userId = req.session.userId;
   let order = req.body;//.query;
+  let ingredient = req.body.ingredient;
+  let quantity = req.body.quantity;
   let orderArray = [];
   let checkVendorArray = [];
-  for (let ingredient in order) {
-    checkVendorArray.push(IngredientHelper.checkIfVendorSells(ingredient));
+  var promise;
+  if (ingredient != null) {
+    promise = Ingredient.getIngredient(ingredient);
+  } else {
+    promise = Ingredient.getIngredient(order[0]);
   }
-  Promise.all(checkVendorArray).then(function(vendors){
+  promise.then(function(ingResult) {
+    if (ingredient != null) {
+      order = {};
+      quantity = quantity*ingResult.unitsPerPackage;
+      order[ingredient] = quantity;
+    }
+    for (let ingredient in order) {
+      checkVendorArray.push(IngredientHelper.checkIfVendorSells(ingredient));
+    }
+    return Promise.all(checkVendorArray);
+  }).then(function(vendors){
     for (let ingredient in order) {
       orderArray.push(IngredientHelper.addOrderToCart(userId, ingredient, order[ingredient]));
     }

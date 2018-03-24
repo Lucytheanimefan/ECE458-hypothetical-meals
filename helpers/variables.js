@@ -7,6 +7,7 @@ var express = require('express');
 // module.exports.TOKEN_URL = process.env.tokenHost;
 // module.exports.MONGO_URI = (process.env.MONGODB_URI);
 // module.exports.redirectURI = (process.env.redirectURI);
+// module.exports.backupURI = (process.env.MONGOLAB_MAROON_URI);
 
 const MY_ENV = require('../env.json');
 module.exports.MONGO_URI = (process.env.MONGODB_URI) ? process.env.MONGODB_URI : MY_ENV[process.env.NODE_ENV || 'development']['MONGO_URI'];
