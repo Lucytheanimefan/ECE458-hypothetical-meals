@@ -487,8 +487,6 @@ router.get('/checkout_cart/:page?', function(req, res, next) {
       order ['vendors'] = orderVendors;
       orders.push(order);
     }
-    console.log("ORDERS");
-    console.log(orders);
     res.render('checkout', { orders: orders, page: page });
   }).catch(function(error) {
     next(error);

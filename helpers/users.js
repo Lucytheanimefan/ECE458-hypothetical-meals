@@ -51,9 +51,6 @@ module.exports.addToCart = function(id, ingId, quantity, vendor) {
       for (let ing of user.cart) {
         if (ingId.toString() === ing.ingredient.toString()) {
           var total = quantity + ing.quantity;
-          console.log(quantity);
-          console.log(ing.quantity);
-          console.log("total = " + total);
           return User.updateCart(id, ingId, total, vendorID);
         }
       }
@@ -154,7 +151,6 @@ module.exports.updateIngredientOnCheckout = function(ingId, vendors) {
       let spendingUpdate = Spending.updateReport(ingId, ing.name, totalCost, 'spending');
       return Promise.all([ingCostUpdate, spendingUpdate]);
     }).then(function(results) {
-      console.log("ING COST UPDATE");
       resolve(results);
     }).catch(function(error) {
       reject(error);
@@ -209,19 +205,6 @@ module.exports.deleteVendor = function(id, vendID) {
           await User.removeOrder(id, order.ingredient);
         }
       }
-    }).then(function(result) {
-      resolve(result);
-    }).catch(function(error) {
-      reject(error);
-    })
-  })
-}
-
-module.exports.isVendorNull = function(vendID) {
-  return new Promise(function(resolve, reject) {
-    var promise = Vendor.model.findById(vendID);
-    promise.then(function(vend) {
-      return (vend == null);
     }).then(function(result) {
       resolve(result);
     }).catch(function(error) {
