@@ -503,6 +503,20 @@ function deleteTuple(index) {
 
 }
 
+function showIngredientInfo() {
+  var select = jQuery('#type-selector');
+  select.change(function() {
+    if ($(this).val() == 'intermediate') {
+      $('#ingredient-info').show();
+      $('.ing-attr').prop('required', true);
+    }
+    else {
+      $('#ingredient-info').hide();
+      $('.ing-attr').removeAttr('required');
+    }
+  });
+}
+
 function deleteTuple2(index) {
   if ($('#tuple' + index).hasClass('preexists')) {
     var name = document.getElementById('data2').dataset.formula;

@@ -583,6 +583,7 @@ router.get('/lot_assignment/:page?', function(req, res, next){
       orders[i]['vendors'] = results[i];
     }
     page = (page > orders.length) ? orders.length : page;
+    console.log("order bois");
     console.log(orders);
     res.render('lot_selection', { orders: orders, page: page });
   }).catch(function(error) {

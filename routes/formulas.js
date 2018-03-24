@@ -9,6 +9,9 @@ var underscore = require('underscore');
 var mongoose = require('mongoose');
 mongoose.Promise = global.Promise;
 
+var min = 10000000
+var max = 1000000000
+
 var path = require('path');
 var logs = require(path.resolve(__dirname, "./logs.js"));
 
@@ -46,9 +49,12 @@ router.get('/home/:page?', function(req, res, next) {
 
 router.get('/:name', function(req, res, next) {
   var formQuery = Formula.findFormulaByName(req.params.name);
+  var formIngQuery = Ingredient.getIngredient(req.params.name);
   var formula;
-  formQuery.then(function(form) {
-    formula = form;
+  var ing;
+  Promise.all([formQuery,formIngQuery]).then(function(result) {
+    formula = result[0];
+    ing = result[1];
     var ingQuery = Ingredient.getAllIngredients();
     return ingQuery;
   }).then(function(result) {
@@ -57,7 +63,7 @@ router.get('/:name', function(req, res, next) {
       ingredients.push({ _id: ing._id, name: ing.name });
     }
     formula.tuples = underscore.sortBy(formula.tuples, "index");
-    res.render('formula', { formula: formula, ingredients: ingredients });
+    res.render('formula', { formula: formula, ingredients: ingredients, ing: ing });
   }).catch(function(error) {
     next(error)
   });
@@ -139,7 +145,9 @@ router.post('/:name/order/:amount', function(req, res, next) {
   let formulaName = req.params.name;
   let amount = parseFloat(req.params.amount);
   var formulaId;
+  var globalFormula;
   Formula.findFormulaByName(formulaName).then(function(formula) {
+    globalFormula = formula;
     formulaId = mongoose.Types.ObjectId(formula['_id']);
     return Promise.all([FormulaHelper.createListOfTuples(formulaName, amount), Production.updateReport(formulaId, formulaName, amount, 0)]);
   }).then(function(results) {
@@ -149,6 +157,14 @@ router.post('/:name/order/:amount', function(req, res, next) {
     }));
   }).then(function(results) {
     logs.makeLog('Production', 'Send ingredients to production', req.session.username);
+    return Ingredient.getIngredient(formulaName);
+  }).then(function(ing) {
+    if (globalFormula.intermediate) {
+      return IngredientHelper.incrementAmount(ing._id, parseFloat(amount), 'admin', Math.floor(Math.random() * (max - min)) + min)
+    } else {
+      return globalFormula;
+    }
+  }).then(function(result) {
     res.redirect('/formulas');
   }).catch(function(error) {
     next(error);
@@ -169,15 +185,26 @@ router.post('/:name/delete_tuple', function(req, res, next) {
 })
 
 router.post('/new', async function(req, res, next) {
+  let ingInfo = {}
   let name = req.body.name;
   let description = req.body.description;
   let units = req.body.units;
+  ingInfo['package'] = req.body.package;
+  ingInfo['temperature'] = req.body.temperature;
+  ingInfo['nativeUnit'] = req.body.nativeUnit;
+  ingInfo['unitsPerPackage'] = req.body.unitsPerPackage;
+  let intermediate = (req.body.type == "intermediate");
   var body = req.body;
   delete body['name'];
   delete body['description'];
   delete body['units'];
+  delete body['package'];
+  delete body['temperature'];
+  delete body['nativeUnits'];
+  delete body['unitsPerPackage'];
+  delete body['type']
   var length = Object.keys(body).length;
-  var promise = FormulaHelper.createFormula(name, description, units);
+  var promise = FormulaHelper.createFormula(name, description, units, intermediate, ingInfo);
   console.log(body);
   promise.then(async function(result) {
     var index = 1;
