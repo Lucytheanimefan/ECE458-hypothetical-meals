@@ -88,37 +88,48 @@ router.get('/file/:filename', function(req, res, next) {
   })
 })
 
-router.post('/restore', function(req, res, next) {
+router.post('/restore/:id', function(req, res, next) {
   if (req.session.role !== 'it_person') {
     let err = new Error('This user does not have permissions to access backups');
     err.status = 403;
     return next(err);
   }
-  console.log('File: ');
-  console.log(req.body.file);
-  var filePath = path.resolve(__dirname, '..', 'backups');
-  console.log('File path: ' + filePath);
-  restore({
-    drop: true,
-    uri: variables.MONGO_URI, // mongodb://<dbuser>:<dbpassword>@<dbdomain>.mongolab.com:<dbport>/<dbdatabase>
-    root: filePath,
-    tar: req.body.file,
-    callback: function(error) {
-      if (error) {
-        sendEmail(['spothorse9.lucy@gmail.com', 'hypotheticalfoods458@gmail.com'], 'Backup restore failed', 'Restore to backup ' + req.body.file + ' failed', function(err){
-        })
-        console.log(error);
-        let err = new Error('Backup file is inconsistent with current system. Please try another file.');
-        err.status = 400;
-        return next(err);
-      } else {
-        console.log('Successful restore');
-        sendEmail(['spothorse9.lucy@gmail.com', 'hypotheticalfoods458@gmail.com'], 'Backup restore succeeded', 'Successfully restored to backup ' + req.body.file, function(err){
-        })
-        res.redirect(req.baseUrl) //render('index', { alert: 'Successfully uploaded file' });
-      }
+
+  console.log('Filename:');
+  console.log(req.body.filename);
+  grid.mongo = backupMongoose.mongo;
+  var conn = backupMongoose.createConnection(variables.backupURI);
+  conn.once('open', function() {
+    var gfs = grid(conn.db);
+    try {
+      var readstream = gfs.createReadStream({
+        "_id": req.params.id
+      });
+      restore({
+        drop: true,
+        uri: variables.MONGO_URI, // mongodb://<dbuser>:<dbpassword>@<dbdomain>.mongolab.com:<dbport>/<dbdatabase>
+        stream: readstream,
+        callback: function(error) {
+          if (error) {
+            sendEmail(['spothorse9.lucy@gmail.com', 'hypotheticalfoods458@gmail.com'], 'Backup restore failed', 'Restore to backup ' + req.body.filename + ' failed', function(err) {})
+            console.log(error);
+            let err = new Error('There was an error with the backup.');
+            err.status = 400;
+            return next(err);
+          } else {
+            console.log('Successful restore');
+            sendEmail(['spothorse9.lucy@gmail.com', 'hypotheticalfoods458@gmail.com'], 'Backup restore succeeded', 'Successfully restored to backup ' + req.body.filename, function(err) {})
+            res.redirect(req.baseUrl) //render('index', { alert: 'Successfully uploaded file' });
+          }
+        }
+      });
+    } catch (err) {
+      console.log(err);
+      next(err);
     }
-  });
+  })
+
+
 })
 
 var sendEmail = function(receiver, subject, html_message, callback) {
@@ -175,7 +186,7 @@ var putFile = function(path, name, callback) {
 module.exports = router;
 
 
-module.exports.makeBackup = function(backupType='') {
+module.exports.makeBackup = function(backupType = '') {
   //console.log(__dirname);
   var date = new Date().yyyymmdd();
   var filePath = path.resolve(__dirname, '..', 'backups'); // + date;
