@@ -24,46 +24,14 @@ router.get('/', function(req, res, next) {
     var gfs = grid(conn.db);
     gfs.files.find({}).toArray(function(err, files) {
       if (err) {
+        console.log(err);
         next(err);
       }
-      console.log('Files:');
-      console.log(files);
       res.render('backups', { files: files });
     });
   })
 })
 
-/**
- * Deletes all of the daily backups 1 week prior to the date parameter
- * @param  {[type]} req   [description]
- * @param  {[type]} res   [description]
- * @param  {[type]} next) [description]
- * @return {[type]}       [description]
- */
-// router.post('/delete_daily_prior/:date', function(req, res, next)) {
-//   if (req.session.role !== 'it_person') {
-//     let err = new Error('This user does not have permissions to access backups');
-//     err.status = 403;
-//     return next(err);
-//   }
-//   var date = Date.parse(req.params.date);
-//   console.log('Date: ' + date);
-//   var oneWeekPriorDate = date - 6;
-//   console.log('One week prior date: ' + oneWeekPriorDate);
-//   grid.mongo = backupMongoose.mongo;
-//   var conn = backupMongoose.createConnection(variables.backupURI);
-//   conn.once('open', function() {
-//     var gfs = grid(conn.db);
-//     gfs.remove({ 'filename': { "$gte": oneWeekPriorDate, "$lt": date } }, function(err) {
-//       if (err) {
-//         console.log(err);
-//         next(err);
-//       }
-//       console.log('Successfully deleted!');
-//       res.render('backups', { files: files });
-//     });
-//   })
-// }
 
 router.get('/file/:filename', function(req, res, next) {
   if (req.session.role !== 'it_person') {
@@ -95,8 +63,6 @@ router.post('/restore/:id', function(req, res, next) {
     return next(err);
   }
 
-  console.log('Filename:');
-  console.log(req.body.filename);
   grid.mongo = backupMongoose.mongo;
   var conn = backupMongoose.createConnection(variables.backupURI);
   conn.once('open', function() {
@@ -118,8 +84,8 @@ router.post('/restore/:id', function(req, res, next) {
             return next(err);
           } else {
             console.log('Successful restore');
-            sendEmail(['spothorse9.lucy@gmail.com', 'hypotheticalfoods458@gmail.com'], 'Backup restore succeeded', 'Successfully restored to backup ' + req.body.filename, function(err) {})
-            res.redirect(req.baseUrl) //render('index', { alert: 'Successfully uploaded file' });
+            sendEmail(['spothorse9.lucy@gmail.com', 'hypotheticalfoods458@gmail.com'], 'Backup restore succeeded', 'Successfully restored to backup ' + req.body.filename, function(err) {});
+            res.redirect(req.baseUrl);
           }
         }
       });
