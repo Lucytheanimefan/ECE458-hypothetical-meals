@@ -5,11 +5,11 @@ block link
 
 block content
   .row
-    h3 Download or Restore Backup
-    div.card
-      h4 Make a manual backup
+    h3 Make a Manual Backup
       form(method='POST', action='/backups/makebackup')
         button.btn.btn-primary(type='submit', value='backup') Backup
+    h3 Download or Restore Backup
+    div.card
       div.card-header(data-background-color='purple')
           h4.title Backups
       div.card-content.table-response
@@ -33,6 +33,13 @@ block content
               td
                 form(method='POST', action='/backups/delete/' + file._id)
                   button.btn.btn-primary(type='submit', value='Delete') Delete
+    div.pages(style="text-align:center;")
+      .col-md-12
+        form(action="/backups/" + (parseInt(page)-1).toString(), method="get" style="display: inline-block;")
+          button.btn.btn-white(type="submit" style="padding: 5px;") <
+        p(style="padding: 10px; display: inline-block;") Page #{parseInt(page)}
+        form(action="/backups/" + (parseInt(page)+1).toString(), method="get" style="display: inline-block;")
+          button.btn.btn-white(type="submit" style="padding: 5px;") >
 
 
         

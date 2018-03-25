@@ -11,23 +11,27 @@ var grid = require('gridfs-stream');
 var nodemailer = require('nodemailer');
 
 
-
-router.get('/', function(req, res, next) {
+router.get('/:page?', function(req, res, next) {
   if (req.session.role !== 'it_person') {
     let err = new Error('This user does not have permissions to access backups');
     err.status = 403;
     return next(err);
   }
+  var page = parseInt(req.params.page);
+  if (page == null || isNaN(page) || page < 0) {
+    page = 0;
+  }
+  var perPage = 7;
   grid.mongo = backupMongoose.mongo;
   var conn = backupMongoose.createConnection(variables.backupURI);
   conn.once('open', function() {
     var gfs = grid(conn.db);
-    gfs.files.find({}).toArray(function(err, files) {
+    gfs.files.find({}).limit(perPage).skip(perPage * page).sort({ time: -1 }).toArray(function(err, files) {
       if (err) {
         console.log(err);
         next(err);
       }
-      res.render('backups', { files: files });
+      res.render('backups', { files: files, page: page });
     });
   })
 })
@@ -110,7 +114,7 @@ router.post('/delete/:id', function(req, res, next) {
 })
 
 router.post('/makebackup', function(req, res, next) {
-  makeBackup(function(err) {
+  makeBackup('', function(err) {
     if (err) {
       return next(err);
     }

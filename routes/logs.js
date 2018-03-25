@@ -15,15 +15,6 @@ router.get('/:page?', (req, res, next) => {
     }
     res.render('logs', { logs: logs, page: page });
   })
-
-  // Log.all(function(err, logs) {
-  //   if (err) {
-  //     console.log('Error getting logs: ');
-  //     console.log(err);
-  //     return next(err);
-  //   }
-  //   res.render('logs', { logs: logs });
-  // });
 });
 
 router.get('/log/:id', (req, res, next) => {
