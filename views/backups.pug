@@ -5,15 +5,11 @@ block link
 
 block content
   .row
-    h1 Backups
-    h3 Restore
-    form(method='POST', action='/backups/restore')
-      input(type='file', name='file', required='')
-      button.btn.btn-primary(type='submit', value='Restore') Restore
-
-  .row
-    h3 Download Backup
+    h3 Download or Restore Backup
     div.card
+      h4 Make a manual backup
+      form(method='POST', action='/backups/makebackup')
+        button.btn.btn-primary(type='submit', value='backup') Backup
       div.card-header(data-background-color='purple')
           h4.title Backups
       div.card-content.table-response
@@ -21,6 +17,8 @@ block content
           thead.text-primary
             th Backup Date
             th Download File (Click to download tar)
+            th Restore
+            th Delete
           tbody
           each file in files
             tr
@@ -28,6 +26,13 @@ block content
                 p= file.uploadDate
               td
                 a(href='/backups/file/'+file.filename)= file.filename
+              td
+                form(method='POST', action='/backups/restore/' + file._id)
+                  input.hide(type='string', name='filename', value=file.filename)
+                  button.btn.btn-primary(type='submit', value='Restore') Restore
+              td
+                form(method='POST', action='/backups/delete/' + file._id)
+                  button.btn.btn-primary(type='submit', value='Delete') Delete
 
 
         
