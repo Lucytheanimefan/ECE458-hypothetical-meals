@@ -26,7 +26,7 @@ router.get('/:page?', function(req, res, next) {
   var conn = backupMongoose.createConnection(variables.backupURI);
   conn.once('open', function() {
     var gfs = grid(conn.db);
-    gfs.files.find({}).limit(perPage).skip(perPage * page).sort({ time: -1 }).toArray(function(err, files) {
+    gfs.files.find({}).limit(perPage).skip(perPage * page).sort({ uploadDate: -1 }).toArray(function(err, files) {
       if (err) {
         console.log(err);
         next(err);
