@@ -70,6 +70,7 @@ router.get('/:name/:amt/:page?', function(req, res, next) {
   var ingredient;
   var vendorObjects;
   var catalogue;
+  var vendorLots;
   findAllVendors.then(function(vendors) {
     vendorObjects = vendors;
     return ingQuery;
@@ -84,10 +85,12 @@ router.get('/:name/:amt/:page?', function(req, res, next) {
   }).then(function(vendors) {
     console.log(vendors);
     catalogue = createCatalogue(vendors, ingredient['_id']);
-    let lots = ingredient['vendorLots'];
-    return joinEntriesTogether(lots);
-  }).then(function(lots) {
-    lots.sort(function(a,b) {
+    vendorLots = ingredient['vendorLots'];
+    return Promise.all([joinEntriesTogether(vendorLots), fillEntries(vendorLots)]);
+  }).then(function(result) {
+    let combinedLots = result[0];
+    let lots = result[1];
+    combinedLots.sort(function(a,b) {
       if (a.vendor.name < b.vendor.name) {
         return -1;
       } else if (a.vendor.name > b.vendor.name) {
@@ -96,7 +99,7 @@ router.get('/:name/:amt/:page?', function(req, res, next) {
         return 0;
       }
     });
-    res.render('ingredient', { ingredient: ingredient, packages: packageTypes, temps: temperatures, vendors: catalogue, page: page, amount: req.params.amt, existingVendors: vendorObjects, sets: lots });
+    res.render('ingredient', { ingredient: ingredient, packages: packageTypes, temps: temperatures, vendors: catalogue, page: page, amount: req.params.amt, existingVendors: vendorObjects, sets: combinedLots, lots: displayTimestamps(lots) });
   }).catch(function(error) {
     next(error)
   });
@@ -152,7 +155,7 @@ getVendor = function(lot) {
 displayTimestamps = function(sets) {
   let newSets = [];
   for (let set of sets) {
-    set['timestamp'] = mongoose.Types.ObjectId(set['_id']).getTimestamp().toString();
+    set['stringTimestamp'] = Date(set['timestamp']).toString();
     newSets.push(set);
   }
   return newSets;
@@ -329,6 +332,18 @@ router.post('/order/add/to/cart', function(req, res, next) {
     logs.makeLog('Add to cart',
       'Added the following to cart: <ul>' + logResults + '</ul>'/*{ 'vendor_code': vendor.code, 'Ingredient_ID': mongoose.Types.ObjectId(ing['_id']) }*/, req.session.username);
     res.redirect('/users/cart');
+  }).catch(function(error) {
+    next(error);
+  })
+})
+
+router.post('/:name/edit-lot/:oldAmount', function(req, res, next) {
+  let ingName = req.params.name;
+  let lotID = req.body.lotID;
+  let oldAmount = parseFloat(req.params.oldAmount);
+  let newAmount = parseFloat(req.body.amount);
+  IngredientHelper.updateIngredientByLot(ingName, oldAmount, newAmount, lotID).then(function(ing) {
+    res.redirect(req.baseUrl + '/' + encodeURIComponent(ingName));
   }).catch(function(error) {
     next(error);
   })

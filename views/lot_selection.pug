@@ -1,0 +1,96 @@
+extends layout
+
+block css
+  link(href='/stylesheets/ingredients.css', rel='stylesheet')
+
+
+block link
+  -var selected = 'Orders';
+
+block content
+  div.card-tabs
+    ul.nav.nav-tabs
+      li.active
+        a(data-toggle='tab', href='#order-info') Order Info
+      li.adminOnly.hide
+        a(data-toggle='tab', href='#assign-lots') Assign Lots
+
+    .tab-content
+      #order-info.tab-pane.fade.in.active
+        div.card
+          div.card-header(data-background-color='purple')
+            h4.title Assign Lot Numbers
+          div.card-content.table-response
+            table.table#formulaTable
+              thead.text-primary
+                th(onclick='sortTable(0, \'formula\')') Ingredient
+                th(onclick='sortTable(1, \'formula\')') Vendor
+                th(onclick='sortTable(2, \'formula\')') Quantity
+              tbody
+              each order in orders
+                tr
+                  td
+                    a(href='/ingredients/' + order.ingredient)= order.ingredient
+                  td
+                    each vendor in order.vendor
+                      a(href='/vendors/' + vendor.code)= vendor.name
+                      br
+                  td= order.quantity
+      .card-content.tab-pane.fade#assign-lots.adminOnly.hide
+        h1= "Lot Assignment"
+        form(action='/users/lot_assignment/assign', method='post')
+          div.tupleRow#data2(data-ingredients=orders)
+            .row
+              .col-md-11
+                .row#tuple1
+                  div#start1(data-start=1)
+                  .col-md-2
+                    .form-group
+                    label.control-label Lot Number
+                    input#ingredient1.form-control(type='text', name='lotnumber1',required='')
+                  .row#ing1_1
+                    .col-md-3
+                      .form-group
+                      label.control-label Ingredient
+                      select#ingredient1.form-control(name='ingredient1_1', required='')
+                        option(disabled="" selected="" value="") Select from Order
+                        each order in orders
+                          option(value=order['ingId']+'@'+order['vendId'])= order['ingredient'] + " from  " + order['vendor'][0]['name']
+                    .col-md-1
+                      .form-group
+                      label.control-label Quantity
+                      input#quantity1.form-control(type='number', name='quantity1_1', min='0', step='0.01', required='')
+                    .col-md-1
+                      p
+                        br
+                        br
+                        br
+                        br
+                    .col-md-1
+                      p
+                        br
+                        br
+                        br
+                        br
+                      button.btn.btn-round.btn-just-icon.add-more(type='button', value='add', onclick='addPackage(1)')
+                        i.material-icons add
+              .col-md-1
+                p
+                  br
+                button#newlot.btn.btn-round.btn-just-icon.add-more(type='button', value='add')
+                  i.material-icons add
+          button.btn.btn-primary.pull-right(type='submit', value='add vendor') Assign Lots
+        div.previous
+          form(action='/users/lot_assignment' + '/' + (parseInt(page)-1).toString(), method='get')
+            button.btn.btn-white(type="submit" style="padding: 5px;") <
+            p(style="padding: 10px; display: inline-block;") Page #{parseInt(page)}
+        div.next
+          form(action='/users/lot_assignment' + '/' + (parseInt(page)+1).toString(), method='get')
+            button.btn.btn-white(type="submit" style="padding: 5px;") >
+  div#index2(data-start=1)
+
+block scripts
+  script.
+    var ingredients = document.getElementById('data2').dataset.ingredients;
+    ingredients = JSON.parse(ingredients);
+    createLotTuples(ingredients, 1);

@@ -24,46 +24,14 @@ router.get('/', function(req, res, next) {
     var gfs = grid(conn.db);
     gfs.files.find({}).toArray(function(err, files) {
       if (err) {
+        console.log(err);
         next(err);
       }
-      console.log('Files:');
-      console.log(files);
       res.render('backups', { files: files });
     });
   })
 })
 
-/**
- * Deletes all of the daily backups 1 week prior to the date parameter
- * @param  {[type]} req   [description]
- * @param  {[type]} res   [description]
- * @param  {[type]} next) [description]
- * @return {[type]}       [description]
- */
-// router.post('/delete_daily_prior/:date', function(req, res, next)) {
-//   if (req.session.role !== 'it_person') {
-//     let err = new Error('This user does not have permissions to access backups');
-//     err.status = 403;
-//     return next(err);
-//   }
-//   var date = Date.parse(req.params.date);
-//   console.log('Date: ' + date);
-//   var oneWeekPriorDate = date - 6;
-//   console.log('One week prior date: ' + oneWeekPriorDate);
-//   grid.mongo = backupMongoose.mongo;
-//   var conn = backupMongoose.createConnection(variables.backupURI);
-//   conn.once('open', function() {
-//     var gfs = grid(conn.db);
-//     gfs.remove({ 'filename': { "$gte": oneWeekPriorDate, "$lt": date } }, function(err) {
-//       if (err) {
-//         console.log(err);
-//         next(err);
-//       }
-//       console.log('Successfully deleted!');
-//       res.render('backups', { files: files });
-//     });
-//   })
-// }
 
 router.get('/file/:filename', function(req, res, next) {
   if (req.session.role !== 'it_person') {
@@ -88,31 +56,46 @@ router.get('/file/:filename', function(req, res, next) {
   })
 })
 
-router.post('/restore', function(req, res, next) {
+router.post('/restore/:id', function(req, res, next) {
   if (req.session.role !== 'it_person') {
     let err = new Error('This user does not have permissions to access backups');
     err.status = 403;
     return next(err);
   }
-  console.log('File: ');
-  console.log(req.body.file);
-  var filePath = path.resolve(__dirname, '..', 'backups');
-  restore({
-    uri: variables.MONGO_URI, // mongodb://<dbuser>:<dbpassword>@<dbdomain>.mongolab.com:<dbport>/<dbdatabase>
-    root: filePath,
-    tar: req.body.file,
-    callback: function(err) {
-      if (err) {
-        let err = new Error('Backup file is inconsistent with current system. Please try another file.');
-        err.status = 400;
-        return next(err);
-      } else {
-        console.log('Successful restore');
-        // TODO: change rendered
-        res.redirect(req.baseUrl) //render('index', { alert: 'Successfully uploaded file' });
-      }
+
+  grid.mongo = backupMongoose.mongo;
+  var conn = backupMongoose.createConnection(variables.backupURI);
+  conn.once('open', function() {
+    var gfs = grid(conn.db);
+    try {
+      var readstream = gfs.createReadStream({
+        "_id": req.params.id
+      });
+      restore({
+        drop: true,
+        uri: variables.MONGO_URI, // mongodb://<dbuser>:<dbpassword>@<dbdomain>.mongolab.com:<dbport>/<dbdatabase>
+        stream: readstream,
+        callback: function(error) {
+          if (error) {
+            sendEmail(['spothorse9.lucy@gmail.com', 'hypotheticalfoods458@gmail.com'], 'Backup restore failed', 'Restore to backup ' + req.body.filename + ' failed', function(err) {})
+            console.log(error);
+            let err = new Error('There was an error with the backup.');
+            err.status = 400;
+            return next(err);
+          } else {
+            console.log('Successful restore');
+            sendEmail(['spothorse9.lucy@gmail.com', 'hypotheticalfoods458@gmail.com'], 'Backup restore succeeded', 'Successfully restored to backup ' + req.body.filename, function(err) {});
+            res.redirect(req.baseUrl);
+          }
+        }
+      });
+    } catch (err) {
+      console.log(err);
+      next(err);
     }
-  });
+  })
+
+
 })
 
 var sendEmail = function(receiver, subject, html_message, callback) {
@@ -169,7 +152,7 @@ var putFile = function(path, name, callback) {
 module.exports = router;
 
 
-module.exports.makeBackup = function(backupType='') {
+module.exports.makeBackup = function(backupType = '') {
   //console.log(__dirname);
   var date = new Date().yyyymmdd();
   var filePath = path.resolve(__dirname, '..', 'backups'); // + date;

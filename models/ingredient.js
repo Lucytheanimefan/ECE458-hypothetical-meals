@@ -56,7 +56,7 @@ var IngredientSchema = new mongoose.Schema({
   }],
   vendorLots: [{
     vendorID: String,
-    lotNumber: Number,
+    lotNumber: String,
     units: Number,
     timestamp: Number
   }]
@@ -153,6 +153,14 @@ module.exports.incrementAmount = function(name, amount, vendorID, lotNumber) {
   }).exec(), exports.addLot(name, amount, vendorID, lotNumber)]);
 }
 
+module.exports.justIncrementAmount = function(name, amount) {
+  return Ingredient.findOneAndUpdate({ 'name': name }, {
+    '$inc': {
+      'amount': parseFloat(amount)
+    }
+  }).exec();
+}
+
 module.exports.decrementAmount = function(name, amount) {
   return Promise.all([Ingredient.findOneAndUpdate({ 'name': name }, {
     '$inc': {
@@ -178,12 +186,21 @@ module.exports.addLotEntry = function(name, entry) {
   }).exec();
 }
 
+module.exports.editLot = function(name, amount, lotID) {
+  console.log('popp: ' + amount);
+  return Ingredient.update({ 'vendorLots._id': mongoose.Types.ObjectId(lotID) }, {
+    '$set': {
+      'vendorLots.$.units': amount
+    }
+  }).exec();
+}
+
 module.exports.removeLot = function(name, lotID) {
   return Ingredient.findOneAndUpdate({ 'name': name }, {
     '$pull': {
       'vendorLots': {'_id': lotID}
     }
-  })
+  }).exec();
 }
 
 module.exports.updateSpace = function(name) {
