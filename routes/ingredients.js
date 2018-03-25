@@ -198,6 +198,7 @@ router.post('/:name/delete', function(req, res, next) {
 
 router.post('/:name/update', function(req, res, next) {
   let ingName = req.body.name;
+  console.log(ingName);
   let initiating_user = req.session.username;
   console.log(initiating_user)
 

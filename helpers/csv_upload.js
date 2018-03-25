@@ -11,14 +11,16 @@ var ingredientHeaders = ['INGREDIENT', 'PACKAGE', 'TEMPERATURE', 'NATIVE UNIT', 
 
 var formulaHeaders = ['NAME', 'PRODUCT UNITS', 'DESCRIPTION', 'INGREDIENT', 'INGREDIENT UNITS'];
 
+var intermediateHeaders = ['NAME', 'PRODUCT UNITS', 'DESCRIPTION', 'PACKAGE', 'NATIVE UNIT', 'UNITS PER PACKAGE', 'TEMPERATURE', 'INGREDIENT', 'INGREDIENT UNITS'];
+
 var packageTypes = ['sack', 'pail', 'drum', 'supersack', 'truckload', 'railcar'];
 
 var temperatures = ['frozen', 'refrigerated', 'room temperature'];
 
-addFormula = function(rows, intermediate) {
+addFormula = function(rows, intermediate, ingInfo) {
   return new Promise(function(resolve, reject) {
     let firstRow = rows[0];
-    FormulaHelper.createFormula(firstRow['NAME'], firstRow['DESCRIPTION'], firstRow['PRODUCT UNITS'], intermediate).then(function(formula) {
+    FormulaHelper.createFormula(firstRow['NAME'], firstRow['DESCRIPTION'], firstRow['PRODUCT UNITS'], intermediate, ingInfo).then(function(formula) {
       let name = formula.name;
       return Promise.all(rows.map(function(row, index) {
         return new Promise(function(resolve, reject) {
@@ -44,17 +46,37 @@ module.exports.addFormulas = function(csvData, intermediate) {
     if (csvData.length == 0) {
       resolve();
     } else {
-      let row = 0;
-      let currentFormula = csvData[row]['NAME'];
       let formulaList = [];
       let seenFormulas = [];
       let currentList = [];
       let seenIngs = [];
+      let ingInfos = [];
+      let row = 0;
+      let currentFormula = csvData[row]['NAME'];
+      if (intermediate) {
+        let ingObject = {};
+        ingObject['name'] = csvData[row]['NAME'];
+        ingObject['package'] = csvData[row]['PACKAGE'];
+        ingObject['temperature'] = csvData[row]['TEMPERATURE'];
+        ingObject['nativeUnit'] = csvData[row]['NATIVE UNIT'];
+        ingObject['unitsPerPackage'] = csvData[row]['UNITS PER PACKAGE'];
+        ingInfos.push(ingObject);
+      }
       while (row < csvData.length) {
         let myRow = csvData[row];
-        if (myRow['NAME'] !== currentFormula) {
+        if (myRow['NAME'] != currentFormula) {
           currentFormula = myRow['NAME'];
           seensIngs = [];
+
+          if (intermediate) {
+            let ingObject = {};
+            ingObject['name'] = myRow['NAME'];
+            ingObject['package'] = myRow['PACKAGE'];
+            ingObject['temperature'] = myRow['TEMPERATURE'];
+            ingObject['nativeUnit'] = myRow['NATIVE UNIT'];
+            ingObject['unitsPerPackage'] = myRow['UNITS PER PACKAGE'];
+            ingInfos.push(ingObject);
+          }
 
           if (seenFormulas.indexOf(currentFormula) != -1) {
             reject(new Error('Formula names must be unique (there are multiple formulas with the same name in the CSV)'));
@@ -77,17 +99,31 @@ module.exports.addFormulas = function(csvData, intermediate) {
           seenIngs.push(myRow['INGREDIENT']);
         }
         currentList.push(myRow);
-        console.log(currentList);
-        seenIngs = [];
         row = row+1;
       }
+      console.log(ingInfos);
       formulaList.push(currentList);
-      var addFormulaPromise = Promise.all(formulaList.map(function(formula) {
-        return addFormula(formula, intermediate);
+      var addFormulaPromise = Promise.all(formulaList.map(function(formula, index) {
+        return addFormula(formula, intermediate, ingInfos[index]);
       }));
       resolve(addFormulaPromise);
     }
   });
+}
+
+module.exports.addIntermediates = function(csvData) {
+  return new Promise(function(resolve, reject) {
+    console.log(csvData);
+    if (csvData.length == 0) {
+      resolve();
+    } else {
+      exports.addFormulas(csvData, true).then(function(results) {
+        resolve();
+      }).catch(function(error) {
+        reject(error);
+      });
+    }
+  })
 }
 
 module.exports.addToDatabase = function(index, csvRow) {
@@ -185,16 +221,34 @@ checkIngredientExists = function(name) {
 
 module.exports.checkIngredientExists = checkIngredientExists;
 
+module.exports.checkIngredientPreexisting = function(name) {
+  return new Promise(function(resolve, reject) {
+    Ingredient.getIngredient(name).then(function(ing) {
+      if (ing == null) {
+        resolve();
+      } else {
+        reject(new Error('Ingredient ' + name + ' already exists in the database!'));
+      }
+    }).catch(function(error) {
+      reject(error);
+    })
+  })
+}
+
 module.exports.checkProductUnit = function(row) {
   return new Promise(function(resolve, reject) {
-    let name = row['NAME'];
-    let pUnits = parseFloat(row['PRODUCT UNITS']);
-    if (pUnits < 0) {
-      reject(new Error('Invalid negative product units for ' + name));
-    } else if (pUnits % 1 != 0) {
-      reject(new Error('Invalid non-integer product units for ' + name));
-    } else {
+    if (row['PRODUCT UNITS'] == '') {
       resolve();
+    } else {
+      let name = row['NAME'];
+      let pUnits = parseFloat(row['PRODUCT UNITS']);
+      if (pUnits <= 0) {
+        reject(new Error('Invalid negative product units for ' + name));
+      } else if (pUnits % 1 != 0) {
+        reject(new Error('Invalid non-integer product units for ' + name));
+      } else {
+        resolve();
+      }
     }
   })
 }
@@ -272,14 +326,42 @@ module.exports.checkFormulaHeader = function(row) {
   return new Promise(function(resolve, reject) {
     for (let header of formulaHeaders) {
       if (!row.hasOwnProperty(header)) {
-        reject(new Error('Formula CSV is missing headers! Refer to the bulk import documentation to see the required headers.'));
+        reject(new Error('Final Product CSV is missing headers! Refer to the bulk import documentation to see the required headers.'));
         return;
       }
     }
     for (let rowHeader in row) {
       if (formulaHeaders.indexOf(rowHeader) == -1) {
-        reject(new Error('Formula CSV has incorrect headers! Refer to the bulk import documentation to see the correct headers.'));
+        reject(new Error('Final Product CSV has incorrect headers! Refer to the bulk import documentation to see the correct headers.'));
         return;
+      }
+    }
+    resolve();
+  })
+}
+
+module.exports.checkIntermediateHeader = function(row) {
+  return new Promise(function(resolve, reject) {
+    for (let header of intermediateHeaders) {
+      if (!row.hasOwnProperty(header)) {
+        reject(new Error('Intermediate Product CSV is missing headers! Refer to the bulk import documentation to see the required headers.'));
+        return;
+      }
+    }
+    for (let rowHeader in row) {
+      if (intermediateHeaders.indexOf(rowHeader) == -1) {
+        reject(new Error('Intermediate Product CSV has incorrect headers! Refer to the bulk import documentation to see the correct headers.'));
+        return;
+      } else if (rowHeader == 'PACKAGE') {
+        if (row['PACKAGE'] != '' && packageTypes.indexOf(row[rowHeader].toLowerCase()) == -1) {
+          reject(new Error('Incorrect package type: ' + row[rowHeader]));
+          return;
+        }
+      } else if (rowHeader == 'TEMPERATURE') {
+        if (row['TEMPERATURE'] != '' && temperatures.indexOf(row[rowHeader].toLowerCase()) == -1) {
+          reject(new Error('Incorrect temperature: ' + row[rowHeader]));
+          return;
+        }
       }
     }
     resolve();
