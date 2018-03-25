@@ -31,6 +31,7 @@ router.get('/:page?', function(req, res, next) {
         console.log(err);
         next(err);
       }
+      
       res.render('backups', { files: files, page: page });
     });
   })

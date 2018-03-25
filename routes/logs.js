@@ -9,12 +9,13 @@ router.get('/:page?', (req, res, next) => {
   if (page == null || isNaN(page) || page < 0) {
     page = 0;
   }
-  Log.paginate( /*perPage*/ 10, page, function(err, logs) {
-    if (err) {
-      next(err);
-    }
-    res.render('logs', { logs: logs, page: page });
-  })
+  var perPage = 10;
+    Log.paginate(perPage, page, function(err, logs) {
+      if (err) {
+        next(err);
+      }
+      res.render('logs', { logs: logs, page: page });
+    })
 });
 
 router.get('/log/:id', (req, res, next) => {
