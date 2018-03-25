@@ -52,6 +52,10 @@ module.exports.findVendorByCodeAndName = function(code,name){
   return Vendor.findOne({'code':code, 'name':name})
 }
 
+module.exports.findVendorsForIngredient = function(ingredientID) {
+  return Vendor.find({ 'catalogue.ingredient': ingredientID });
+}
+
 module.exports.createVendor = function(name, code, contact, location) {
   return Vendor.create({
     'name': name,

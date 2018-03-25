@@ -116,11 +116,11 @@ module.exports.updateIngredientOnCheckout = function(ingId, vendors) {
     var totalCost;
     var averageCost;
     var totalPackages;
-    Ingredient.getIngredientById(ingId).then(function(result){
+    Ingredient.getIngredientById(ingId).then(function(result) {
       ing = result;
       return Promise.all(vendors.map(function(tuple) {
         return new Promise(function(resolve, reject) {
-          Vendor.model.findById(tuple.vendID).then(function(vendor) {
+          Vendor.model.findById(tuple.vendor).then(function(vendor) {
             tuple['vendor'] = vendor;
             resolve(tuple);
           }).catch(function(error) {
@@ -205,19 +205,6 @@ module.exports.deleteVendor = function(id, vendID) {
           await User.removeOrder(id, order.ingredient);
         }
       }
-    }).then(function(result) {
-      resolve(result);
-    }).catch(function(error) {
-      reject(error);
-    })
-  })
-}
-
-module.exports.isVendorNull = function(vendID) {
-  return new Promise(function(resolve, reject) {
-    var promise = Vendor.model.findById(vendID);
-    promise.then(function(vend) {
-      return (vend == null);
     }).then(function(result) {
       resolve(result);
     }).catch(function(error) {

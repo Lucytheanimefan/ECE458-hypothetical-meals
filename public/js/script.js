@@ -504,6 +504,21 @@ function selectTuple(tuples) {
   }
 }
 
+function selectVendor(orders) {
+  for (o = 0; o < orders.length; o++) {
+    var order = orders[o];
+    var vendors = order.vendors;
+    for (v = 0; v < vendors.length; v++) {
+      var name = vendors[v].name;
+      var ingName = order.ingredient.split(' ').join('');
+      console.log(ingName);
+      $("#" + ingName).val(name).attr("selected", "true");
+      name = $("#" + ingName + " option:selected").text()
+      //$("#" + order.ingredient).attr('data-ingredientname', name);
+    }
+  }
+}
+
 //'top','center
 function displayFileAlert() {
   var alertMessage = $("#alertData").data('alert');

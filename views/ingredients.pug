@@ -47,6 +47,7 @@ block content
                 th(onclick='sortTable(3, \'ingredient\')') Native Unit
                 th(onclick='sortTable(4, \'ingredient\')') Units per Package
                 th(onclick='sortTable(5, \'ingredient\')') Units in Storage
+                th(onclick='sortTable(6, \'ingredient\')') Space in Storage (Sq Feet)
                 th.adminOnly.hide Remove
               tbody
               each ing in ingredients
@@ -58,6 +59,7 @@ block content
                   td= ing.nativeUnit
                   td= ing.unitsPerPackage
                   td= ing.amount
+                  td= ing.space
                   td.adminOnly.hide
                     form(action='/ingredients/' + ing.name + '/delete', method='post')
                       button.btn.btn-primary(type='submit', style='margin:0px; padding: 5px 10px;') Remove
