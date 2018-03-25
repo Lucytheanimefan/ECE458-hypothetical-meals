@@ -70,10 +70,10 @@ router.post('/upload/formulas', function(req, res, next) {
       }
       csvData = data.data;
       return Promise.all(csvData.map(function(row, index) {
-        return Promise.all([Upload.checkFormulaHeader(row), Upload.checkIngredientExists(row['INGREDIENT']), Upload.checkFormulaPreexisting(row['NAME'])]);
+        return Promise.all([Upload.checkFormulaHeader(row), Upload.checkIngredientExists(row['INGREDIENT']), Upload.checkFormulaPreexisting(row['NAME']), Upload.checkProductUnit(row)]);
       }));
     }).then(function() {
-      return Upload.addFormulas(csvData);
+      return Upload.addFormulas(csvData, false);
     }).then(function(results) {
       // let logResults = results.map(function(currentValue, index, arr){
       //   return currentValue['FORMULA'];

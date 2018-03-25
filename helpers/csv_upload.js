@@ -15,10 +15,10 @@ var packageTypes = ['sack', 'pail', 'drum', 'supersack', 'truckload', 'railcar']
 
 var temperatures = ['frozen', 'refrigerated', 'room temperature'];
 
-addFormula = function(rows) {
+addFormula = function(rows, intermediate) {
   return new Promise(function(resolve, reject) {
     let firstRow = rows[0];
-    FormulaHelper.createFormula(firstRow['NAME'], firstRow['DESCRIPTION'], firstRow['PRODUCT UNITS']).then(function(formula) {
+    FormulaHelper.createFormula(firstRow['NAME'], firstRow['DESCRIPTION'], firstRow['PRODUCT UNITS'], intermediate).then(function(formula) {
       let name = formula.name;
       return Promise.all(rows.map(function(row, index) {
         return new Promise(function(resolve, reject) {
@@ -39,7 +39,7 @@ addFormula = function(rows) {
   })
 }
 
-module.exports.addFormulas = function(csvData) {
+module.exports.addFormulas = function(csvData, intermediate) {
   return new Promise(function(resolve, reject) {
     if (csvData.length == 0) {
       resolve();
@@ -78,11 +78,12 @@ module.exports.addFormulas = function(csvData) {
         }
         currentList.push(myRow);
         console.log(currentList);
+        seenIngs = [];
         row = row+1;
       }
       formulaList.push(currentList);
       var addFormulaPromise = Promise.all(formulaList.map(function(formula) {
-        return addFormula(formula);
+        return addFormula(formula, intermediate);
       }));
       resolve(addFormulaPromise);
     }
@@ -183,6 +184,20 @@ checkIngredientExists = function(name) {
 }
 
 module.exports.checkIngredientExists = checkIngredientExists;
+
+module.exports.checkProductUnit = function(row) {
+  return new Promise(function(resolve, reject) {
+    let name = row['NAME'];
+    let pUnits = parseFloat(row['PRODUCT UNITS']);
+    if (pUnits < 0) {
+      reject(new Error('Invalid negative product units for ' + name));
+    } else if (pUnits % 1 != 0) {
+      reject(new Error('Invalid non-integer product units for ' + name));
+    } else {
+      resolve();
+    }
+  })
+}
 
 module.exports.checkIngredient = function(row) {
   return new Promise(function(resolve, reject) {
