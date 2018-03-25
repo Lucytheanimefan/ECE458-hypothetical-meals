@@ -128,6 +128,8 @@ module.exports.updateIngredientByLot = function(name, oldAmount, newAmount, lotI
     }).then(function(result) {
       return Promise.all([Ingredient.justIncrementAmount(name, parseFloat(newAmount - oldAmount)), Ingredient.editLot(name, newAmount, lotID)]);
     }).then(function(result) {
+      return Ingredient.updateSpace(name);
+    }).then(function(result) {
       resolve(ing);
     }).catch(function(error) {
       reject(error);
