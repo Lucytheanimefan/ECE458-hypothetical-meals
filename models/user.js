@@ -57,9 +57,6 @@ var UserSchema = new mongoose.Schema({
   }],
   report: {
     type: Array
-  },
-  production_report: {
-    type: Array
   }
 });
 

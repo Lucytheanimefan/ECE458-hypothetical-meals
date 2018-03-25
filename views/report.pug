@@ -11,7 +11,10 @@ block content
         a(data-toggle='tab', href='#production-table') Production
       li
         a(data-toggle='tab', href='#formula-table') Formula Production
-
+      li
+        a(data-toggle='tab', href='#recall-table') Recall
+      li
+        a(data-toggle='tab', href='#
   .tab-content
     #spending-table.tab-pane.fade.in.active
       div.card
@@ -69,29 +72,3 @@ block content
                   td= tuple.unitsProduced
                   td= tuple.totalCost.toFixed(2)
             else
-  //- .row
-  //-   .card
-  //-     .card-header(data-background-color='purple')
-  //-       h2.title Spending Report
-  //-     .card-content
-  //-       .row
-  //-         .col-md-12
-  //-           form(action="/users/report" method="get")
-  //-             input.btn.btn-primary.pull-left(type="submit" name="overall" value="Overall Report" style="padding: 10px; background-color:#66c2ff; display: inline-block; ")
-  //-           form(action="/users/production_report" method="get")
-  //-             input.btn.btn-primary(type="submit" name="production" value="Production Report" style="padding: 10px; background-color:#66c2ff; display: inline-block;")
-  //-       .col-md-12
-  //-         h3(style="padding: 0px 0px 10px; text-decoration: underline") Ingredients
-  //-         p
-  //-           br
-  //-         each ingredient in ingredients
-  //-           .col-md-12
-  //-             p(style="text-align:left;")
-  //-               a(href='/ingredients/' + ingredient.ingredient)= ingredient.ingredient
-  //-               span(style="float:right;") Cost: $#{ingredient.cost}
-  //-         div.previous
-  //-           form(action="/users/report/" + (parseInt(page)-1).toString(), method="get")
-  //-             button.btn.btn-white.btn-round.btn-just-icon.pull-left(type="submit" style="display: inline-block;") Prev
-  //-         div.next
-  //-           form(action="/users/report/" + (parseInt(page)+1).toString(), method="get")
-  //-             button.btn.btn-white.btn-round.btn-just-icon.pull-right(type="submit" style="display: inline-block;") Next
