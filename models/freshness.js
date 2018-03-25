@@ -23,7 +23,7 @@ var FreshnessSchema = new mongoose.Schema({
 var Freshness = mongoose.model('Freshness', FreshnessSchema);
 module.exports.model = Freshness;
 
-checkNewIngredient = function(ingId, report) {
+checkNewFreshnessIngredient = function(ingId, report) {
   for (let record of report['freshness']) {
     if (record['ingredientId'].equals(ingId)) {
       return false;
@@ -37,7 +37,7 @@ createReports = function() {
     exports.getIngredient().then(function(report) {
       if (report == null) {
         resolve(Freshness.create({
-          'name': 'ingredient',
+          'name': 'ingredients',
           'freshness': []
         }));
       } else {
@@ -52,9 +52,9 @@ createReports = function() {
 module.exports.updateReport = function(ingID, ingName, numUnits, ingTime) {
   return new Promise(function(resolve, reject) {
     createReports().then(function(results) {
-      return Freshness.findOne({'name': 'ingredient'}).exec();
+      return Freshness.findOne({'name': 'ingredients'}).exec();
     }).then(function(report) {
-      if (checkNewIngredient(ingID, report)) {
+      if (checkNewFreshnessIngredient(ingID, report)) {
         let newEntry = {
           'ingredientId': ingID,
           'ingredientName': ingName,
@@ -62,7 +62,7 @@ module.exports.updateReport = function(ingID, ingName, numUnits, ingTime) {
           'avgTime': ingTime,
           'worstTime': ingTime
         };
-        return Freshness.findOneAndUpdate({'name': 'ingredient'}, {'$push': {'freshness': newEntry}}).exec();
+        return Freshness.findOneAndUpdate({'name': 'ingredients'}, {'$push': {'freshness': newEntry}}).exec();
       } else {
         return exports.addToIngredient(ingID, ingName, numUnits, ingTime);
       }
@@ -74,9 +74,9 @@ module.exports.updateReport = function(ingID, ingName, numUnits, ingTime) {
   })
 }
 
-/*module.exports.addToIngredient = function(ingID, ingName, numUnits, ingTime) {
+module.exports.addToIngredient = function(ingID, ingName, numUnits, ingTime) {
   return new Promise(function(resolve, reject) {
-    Freshness.find({'name': 'ingredient'}).then(function(report) {
+    Freshness.find({'name': 'ingredients'}).then(function(report) {
       var numIngs, avgTime, worstTime;
       for (let ingredient of report.freshness) {
         if (ingredient.ingredientId.toString() === ingID.toString()) {
@@ -100,15 +100,15 @@ module.exports.updateReport = function(ingID, ingName, numUnits, ingTime) {
       reject(error);
     });
   })
-}*/
+}
 
 module.exports.addIngredient = function(ingID, ingName, numIngs, avgTime, worstTime) {
   let entry = {ingredientId:ingID, ingredientName:ingName, numIngs:numIngs, avgTime:avgTime, worstTime:worstTime};
-  return Formula.findOneAndUpdate({'name':'ingredient'},{'$push':{'freshness':entry}}).exec();
+  return Formula.findOneAndUpdate({'name':'ingredients'},{'$push':{'freshness':entry}}).exec();
 }
 
 module.exports.removeIngredient = function(ingredientId){
-  return Formula.findOneAndUpdate({'name':'ingredient'},{'$pull':{'freshness':{'ingredientId':ingredientId}}}).exec();
+  return Formula.findOneAndUpdate({'name':'ingredients'},{'$pull':{'freshness':{'ingredientId':ingredientId}}}).exec();
 }
 
 module.exports.updateIngredient = function(ingID, ingName, numIngs, avgTime, worstTime) {
@@ -123,8 +123,8 @@ module.exports.updateIngredient = function(ingID, ingName, numIngs, avgTime, wor
   })
 }
 
-module.exports.getIngredient = function() {
+module.exports.getIngredients = function() {
   return new Promise(function(resolve, reject) {
-    resolve(Freshness.findOne({'name': 'ingredient'}));
+    resolve(Freshness.findOne({'name': 'ingredients'}));
   });
 }

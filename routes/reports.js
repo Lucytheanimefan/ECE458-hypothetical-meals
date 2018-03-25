@@ -25,7 +25,7 @@ router.get('/:page', function(req, res, next) {
   var formula;
   var ingredient;
 
-  Promise.all([Spending.getSpending(), Spending.getProduction(), Production.getProduction(), Freshness.getProduction()]).then(function(results) {
+  Promise.all([Spending.getSpending(), Spending.getProduction(), Production.getProduction(), Freshness.getIngredients()]).then(function(results) {
     spendingReport = results[0];
     productionReport = results[1];
     formulaReport = results[2];
@@ -98,9 +98,9 @@ getIngredientFreshnessName = function(tuple) {
     entry['worstTime'] = tuple.worstTime;
     Ingredient.getIngredientById(mongoose.Types.ObjectId(tuple.ingredientId)).then(function(ing) {
       if (ing == null) {
-        entry['ingredient'] = tuple.ingredientName;
+        entry['ingredients'] = tuple.ingredientName;
       } else {
-        entry['ingredient'] = ing.name;
+        entry['ingredients'] = ing.name;
       }
       return entry;
     }).then(function(entry) {
