@@ -546,7 +546,7 @@ router.get('/lot_assignment/:page?', function(req, res, next){
   var perPage = 10;
   var page = req.params.page || 1;
   page = (page < 1) ? 1 : page;
-  console.log("skyrim belongs to the nords");
+  //console.log("skyrim belongs to the nords");
   var userQuery = User.getUserById(req.session.userId);
   var cart;
   var orders = [];
@@ -555,13 +555,13 @@ router.get('/lot_assignment/:page?', function(req, res, next){
   userQuery.then(function(user) {
     cart = user.cart;
     var promises = [];
-    console.log("by the 9 divines");
+    //console.log("by the 9 divines");
     for (let order of cart) {
       promises.push(Ingredient.getIngredientById(order.ingredient));
     }
     return Promise.all(promises);
   }).then(function(ings) {
-    console.log("talos guide you");
+    //console.log("talos guide you");
     for (let ing of ings) {
       ingredients.push(ing.name);
       ids.push(ing._id.toString());
@@ -590,8 +590,9 @@ router.get('/lot_assignment/:page?', function(req, res, next){
   }).then(function(vends){
     for(var i = 0; i < vends.length; i++){
       orders[i]['vendor'] = [vends[i]];
-      orders[i]['combo'] = [orders[i][ingId]+"@"+orders[i][vendId]];
     }
+    //console.log("be here");
+    //console.log(orders);
     page = (page > orders.length) ? orders.length : page;
     res.render('lot_selection', { orders: orders, page: page });
   }).catch(function(error) {
@@ -625,13 +626,13 @@ router.post('/lot_assignment/assign', function(req, res, next){
       if(key.indexOf("quantity")>=0){
 
         console.log("order params");
-        console.log(currLot);
-        console.log(currIng);
-        console.log(currVend);
-        console.log(req.body[key]);
+        console.log(typeof currLot);
+        console.log(typeof currIng);
+        console.log(typeof currVend);
+        console.log(typeof req.body[key]);
 
         let currQuantity = req.body[key];
-        promises.push(IngredientHelper.incrementAmount(currIng,currQuantity,currVend,currLot));
+        promises.push(IngredientHelper.incrementAmount(currIng,parseFloat(currQuantity),currVend,currLot));
       }
     }
   }
@@ -650,7 +651,7 @@ router.post('/lot_assignment/assign', function(req, res, next){
     }
     return Promise.all(promises);
   })
-  res.render(req.baseUrl);
+  res.redirect('/');
 })
 
 router.get('/report/:page?', function(req, res, next) {

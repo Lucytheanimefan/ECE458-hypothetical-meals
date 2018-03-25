@@ -430,7 +430,7 @@ function createLotTuples(ingredients, start) {
     console.log(ingredients);
     for (i = 0; i < ingredients.length; i++) {
       var ing = ingredients[i];
-      newHTML += '<option value=' + ing.ingId + '@' + ing['vendId'][0]'>' + ing.ingredient + '</option>';
+      newHTML += '<option value=' + ing.ingId + '@' + ing.vendId + '>' + ing.ingredient + '</option>';
     }
     newHTML += '</select></div>';
 
@@ -575,7 +575,7 @@ function addPackage(index){
   for (i = 0; i < ingredients.length; i++) {
     console.log(ingredients);
     var ing = ingredients[i];
-    newHTML += '<option value=' + ing.ingId + '>' + ing.ingredient + '</option>';
+    newHTML += '<option value=' + ing.ingId + '@' + ing.vendId +'>' + ing.ingredient + '</option>';
   }
   newHTML += '</select></div>';
 
@@ -613,11 +613,9 @@ function selectVendor(orders) {
     var vendors = order.vendors;
     for (v = 0; v < vendors.length; v++) {
       var name = vendors[v].name;
-      var ingName = order.ingredient.split(' ').join('');
-      console.log(ingName);
-      $("#" + ingName).val(name).attr("selected", "true");
-      name = $("#" + ingName + " option:selected").text()
-      //$("#" + order.ingredient).attr('data-ingredientname', name);
+      $("#" + order.ingredient).val(name).attr("selected", "true");
+      name = $("#" + order.ingredient + " option:selected").text()
+      $("#" + order.ingredient).attr('data-ingredientname', name);
     }
   }
 }

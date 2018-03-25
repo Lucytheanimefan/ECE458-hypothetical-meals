@@ -55,7 +55,7 @@ block content
                       select#ingredient1.form-control(name='ingredient1_1', required='')
                         option(disabled="" selected="" value="") Select from Order
                         each order in orders
-                          option(value=order['ingId']+'@'+order['vendId'][0])= order['ingredient'] + " from  " + order['vendor']['name']
+                          option(value=order['ingId']+'@'+order['vendId'])= order['ingredient'] + " from  " + order['vendor'][0]['name']
                     .col-md-1
                       .form-group
                       label.control-label Quantity
