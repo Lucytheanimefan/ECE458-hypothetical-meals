@@ -4,7 +4,7 @@ var router = express.Router();
 var Spending = require('../models/spending');
 var Production = require('../models/production');
 var Formula = require('../models/formula');
-var Fresness = require('../models/freshness');
+var Freshness = require('../models/freshness');
 var Ingredient = require('../models/ingredient');
 
 var mongoose = require('mongoose')

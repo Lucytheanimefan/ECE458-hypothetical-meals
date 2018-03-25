@@ -74,7 +74,7 @@ module.exports.updateReport = function(ingID, ingName, numUnits, ingTime) {
   })
 }
 
-module.exports.addToIngredient = function(ingID, ingName, numUnits, ingTime) {
+/*module.exports.addToIngredient = function(ingID, ingName, numUnits, ingTime) {
   return new Promise(function(resolve, reject) {
     Freshness.find({'name': 'ingredient'}).then(function(report) {
       var numIngs, avgTime, worstTime;
@@ -100,7 +100,7 @@ module.exports.addToIngredient = function(ingID, ingName, numUnits, ingTime) {
       reject(error);
     });
   })
-}
+}*/
 
 module.exports.addIngredient = function(ingID, ingName, numIngs, avgTime, worstTime) {
   let entry = {ingredientId:ingID, ingredientName:ingName, numIngs:numIngs, avgTime:avgTime, worstTime:worstTime};
