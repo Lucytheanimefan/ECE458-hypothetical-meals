@@ -18,7 +18,13 @@ block content
     form(action='/files/upload/formulas', enctype='multipart/form-data', method='post')
       input.form-control(type='text', name='title')
       input.pull-left(type='file', name='file', required='')
-      button.btn.btn-primary.pull-right(type='submit', value='Upload') Upload Formulas
+      button.btn.btn-primary.pull-right(type='submit', value='Upload') Upload Final Product Formulas
+
+  div(style='display: block').formula-upload
+    form(action='/files/upload/intermediates', enctype='multipart/form-data', method='post')
+      input.form-control(type='text', name='title')
+      input.pull-left(type='file', name='file', required='')
+      button.btn.btn-primary.pull-right(type='submit', value='Upload') Upload Intermediate Product Formulas
 
 block scripts
   script.

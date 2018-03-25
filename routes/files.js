@@ -206,10 +206,10 @@ router.post('/upload/intermediates', function(req, res, next) {
       }
       csvData = data.data;
       return Promise.all(csvData.map(function(row, index) {
-        return Promise.all([Upload.checkIntermediateHeader(row), Upload.checkIngredientExists(row['INGREDIENT']), Upload.checkFormulaPreexisting(row['NAME']), Upload.checkIngredientPreexisting(row['NAME']) , Upload.checkProductUnit(row)]);
+        return Promise.all([Upload.checkIntermediateHeader(row), Upload.checkIngredientExists(row['INGREDIENT']), Upload.checkFormulaPreexisting(row['NAME']), Upload.checkIngredientPreexisting(row['NAME']), Upload.checkProductUnit(row)]);
       }));
     }).then(function() {
-      return Upload.addIntermediates(csvData, false);
+      return Upload.addIntermediates(csvData);
     }).then(function(results) {
       // let logResults = results.map(function(currentValue, index, arr){
       //   return currentValue['FORMULA'];

@@ -122,7 +122,7 @@ module.exports.updateIngredient = function(name, newName, package, temp, nativeU
         'unitsPerPackage': parseFloat(unitsPerPackage)
       }
     }).exec().then(function(ing) {
-      return exports.updateSpace(ing.name);
+      return exports.updateSpace(newName);
     }).then(function(ing) {
       resolve(ing);
     }).catch(function(error) {

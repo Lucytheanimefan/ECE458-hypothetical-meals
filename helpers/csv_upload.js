@@ -17,10 +17,10 @@ var packageTypes = ['sack', 'pail', 'drum', 'supersack', 'truckload', 'railcar']
 
 var temperatures = ['frozen', 'refrigerated', 'room temperature'];
 
-addFormula = function(rows, intermediate) {
+addFormula = function(rows, intermediate, ingInfo) {
   return new Promise(function(resolve, reject) {
     let firstRow = rows[0];
-    FormulaHelper.createFormula(firstRow['NAME'], firstRow['DESCRIPTION'], firstRow['PRODUCT UNITS'], intermediate).then(function(formula) {
+    FormulaHelper.createFormula(firstRow['NAME'], firstRow['DESCRIPTION'], firstRow['PRODUCT UNITS'], intermediate, ingInfo).then(function(formula) {
       let name = formula.name;
       return Promise.all(rows.map(function(row, index) {
         return new Promise(function(resolve, reject) {
@@ -46,17 +46,37 @@ module.exports.addFormulas = function(csvData, intermediate) {
     if (csvData.length == 0) {
       resolve();
     } else {
-      let row = 0;
-      let currentFormula = csvData[row]['NAME'];
       let formulaList = [];
       let seenFormulas = [];
       let currentList = [];
       let seenIngs = [];
+      let ingInfos = [];
+      let row = 0;
+      let currentFormula = csvData[row]['NAME'];
+      if (intermediate) {
+        let ingObject = {};
+        ingObject['name'] = csvData[row]['NAME'];
+        ingObject['package'] = csvData[row]['PACKAGE'];
+        ingObject['temperature'] = csvData[row]['TEMPERATURE'];
+        ingObject['nativeUnit'] = csvData[row]['NATIVE UNIT'];
+        ingObject['unitsPerPackage'] = csvData[row]['UNITS PER PACKAGE'];
+        ingInfos.push(ingObject);
+      }
       while (row < csvData.length) {
         let myRow = csvData[row];
         if (myRow['NAME'] != currentFormula) {
           currentFormula = myRow['NAME'];
           seensIngs = [];
+
+          if (intermediate) {
+            let ingObject = {};
+            ingObject['name'] = myRow['NAME'];
+            ingObject['package'] = myRow['PACKAGE'];
+            ingObject['temperature'] = myRow['TEMPERATURE'];
+            ingObject['nativeUnit'] = myRow['NATIVE UNIT'];
+            ingObject['unitsPerPackage'] = myRow['UNITS PER PACKAGE'];
+            ingInfos.push(ingObject);
+          }
 
           if (seenFormulas.indexOf(currentFormula) != -1) {
             reject(new Error('Formula names must be unique (there are multiple formulas with the same name in the CSV)'));
@@ -79,67 +99,25 @@ module.exports.addFormulas = function(csvData, intermediate) {
           seenIngs.push(myRow['INGREDIENT']);
         }
         currentList.push(myRow);
-        console.log(currentList);
         row = row+1;
       }
+      console.log(ingInfos);
       formulaList.push(currentList);
-      var addFormulaPromise = Promise.all(formulaList.map(function(formula) {
-        return addFormula(formula, intermediate);
+      var addFormulaPromise = Promise.all(formulaList.map(function(formula, index) {
+        return addFormula(formula, intermediate, ingInfos[index]);
       }));
       resolve(addFormulaPromise);
     }
   });
 }
 
-createFormulaFromIntermediate = function(csvData) {
-  let newData = [];
-  for (let row of csvData) {
-    let newRow = {};
-    newRow['NAME'] = row['NAME'];
-    newRow['DESCRIPTION'] = row['DESCRIPTION'];
-    newRow['PRODUCT UNITS'] = row['PRODUCT UNITS'];
-    newRow['INGREDIENT'] = row['INGREDIENT'];
-    newRow['INGREDIENT UNITS'] = row['INGREDIENT UNITS'];
-    newData.push(newRow);
-  }
-  return newData;
-}
-
-createIngredientsFromIntermediate = function(csvData) {
-  return new Promise(function(resolve, reject) {
-    let currentIng = '';
-    let ings = [];
-    for (let row of csvData) {
-      if (row['NAME'] != currentIng) {
-        if (row['PACKAGE'] == '' || row['TEMPERATURE'] == '' || row['NATIVE UNIT'] == '' || row['UNITS PER PACKAGE'] == '') {
-          reject(new Error('Package, temperature, native unit, or units per package can\'t be empty on the first appearance of the intermediate project formula!'));
-          return;
-        }
-        currentIng = row['NAME'];
-        let ingObject = {};
-        ingObject['name'] = row['NAME'];
-        ingObject['package'] = row['PACKAGE'];
-        ingObject['temperature'] = row['TEMPERATURE'];
-        ingObject['nativeUnit'] = row['NATIVE UNIT'];
-        ingObject['unitsPerPackage'] = row['UNITS PER PACKAGE'];
-        ings.push(ingObject);
-      }
-    }
-    var addIngredientsPromise = Promise.all(ings.map(function(ing) {
-      return IngredientHelper.createIngredient(ing['name'], ing['package'], ing['temperature'], ing['nativeUnit'], ing['unitsPerPackage']);
-    }));
-    resolve(addIngredientsPromise);
-  })
-}
-
 module.exports.addIntermediates = function(csvData) {
   return new Promise(function(resolve, reject) {
+    console.log(csvData);
     if (csvData.length == 0) {
       resolve();
     } else {
-      addFormulas(createFormulaFromIntermediate(csvData), true).then(function(results) {
-        return createIngredientsFromIntermediate(csvData);
-      }).then(function(result) {
+      exports.addFormulas(csvData, true).then(function(results) {
         resolve();
       }).catch(function(error) {
         reject(error);
@@ -259,14 +237,18 @@ module.exports.checkIngredientPreexisting = function(name) {
 
 module.exports.checkProductUnit = function(row) {
   return new Promise(function(resolve, reject) {
-    let name = row['NAME'];
-    let pUnits = parseFloat(row['PRODUCT UNITS']);
-    if (pUnits <= 0) {
-      reject(new Error('Invalid negative product units for ' + name));
-    } else if (pUnits % 1 != 0) {
-      reject(new Error('Invalid non-integer product units for ' + name));
-    } else {
+    if (row['PRODUCT UNITS'] == '') {
       resolve();
+    } else {
+      let name = row['NAME'];
+      let pUnits = parseFloat(row['PRODUCT UNITS']);
+      if (pUnits <= 0) {
+        reject(new Error('Invalid negative product units for ' + name));
+      } else if (pUnits % 1 != 0) {
+        reject(new Error('Invalid non-integer product units for ' + name));
+      } else {
+        resolve();
+      }
     }
   })
 }
@@ -371,12 +353,12 @@ module.exports.checkIntermediateHeader = function(row) {
         reject(new Error('Intermediate Product CSV has incorrect headers! Refer to the bulk import documentation to see the correct headers.'));
         return;
       } else if (rowHeader == 'PACKAGE') {
-        if (packageTypes.indexOf(row[rowHeader].toLowerCase()) == -1) {
+        if (row['PACKAGE'] != '' && packageTypes.indexOf(row[rowHeader].toLowerCase()) == -1) {
           reject(new Error('Incorrect package type: ' + row[rowHeader]));
           return;
         }
       } else if (rowHeader == 'TEMPERATURE') {
-        if (temperatures.indexOf(row[rowHeader].toLowerCase()) == -1) {
+        if (row['TEMPERATURE'] != '' && temperatures.indexOf(row[rowHeader].toLowerCase()) == -1) {
           reject(new Error('Incorrect temperature: ' + row[rowHeader]));
           return;
         }
