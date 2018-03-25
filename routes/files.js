@@ -78,7 +78,7 @@ router.post('/upload/formulas', function(req, res, next) {
       // let logResults = results.map(function(currentValue, index, arr){
       //   return currentValue['FORMULA'];
       // })
-      logs.makeLog('Bulk import formula file uploaded', 'Successfully uploaded file ' + filepath, req.session.username);
+      logs.makeLog('Bulk import final product file uploaded', 'Successfully uploaded file ' + filepath, req.session.username);
       res.render('uploads', { alert: 'Successfully uploaded file' });
     }).catch(function(error) {
       if (Array.isArray(error)) {
@@ -170,6 +170,74 @@ router.post('/upload/ingredients', function(req, res, next) {
 
   });
 })
+
+router.post('/upload/intermediates', function(req, res, next) {
+  var form = new formidable.IncomingForm();
+  form.multiples = true;
+  form.keepExtensions = true;
+
+  console.log('Some way through uploading');
+
+  var error = false;
+  form.on('fileBegin', function(name, file) {
+    var fileType = file.type.split('/').pop();
+    if (fileType.toUpperCase() !== 'CSV') {
+      error = true;
+      let err = new Error('File must be in CSV format.');
+      err.status = 400;
+      return next(err);
+    }
+  })
+  form.parse(req, (err, fields, files) => {
+    if (err) return res.status(500).json({ error: err });
+    console.log('Uploaded true!');
+    var filepath = files.file.path;
+    console.log('File path: ' + filepath);
+
+    if (error) {
+      return true;
+    }
+
+    var file = fs.readFileSync(filepath, 'utf8')
+    var csvData;
+    parseFile(file).then(function(data) {
+      if (data.errors.length != 0) {
+        throw data.errors;
+      }
+      csvData = data.data;
+      return Promise.all(csvData.map(function(row, index) {
+        return Promise.all([Upload.checkIntermediateHeader(row), Upload.checkIngredientExists(row['INGREDIENT']), Upload.checkFormulaPreexisting(row['NAME']), Upload.checkIngredientPreexisting(row['NAME']) , Upload.checkProductUnit(row)]);
+      }));
+    }).then(function() {
+      return Upload.addIntermediates(csvData, false);
+    }).then(function(results) {
+      // let logResults = results.map(function(currentValue, index, arr){
+      //   return currentValue['FORMULA'];
+      // })
+      logs.makeLog('Bulk import intermediate product file uploaded', 'Successfully uploaded file ' + filepath, req.session.username);
+      res.render('uploads', { alert: 'Successfully uploaded file' });
+    }).catch(function(error) {
+      if (Array.isArray(error)) {
+        var message = "";
+        for (i = 0; i < error.length; i++) {
+          message += "Row " + error[i].row + ": " + error[i].message + ",\n";
+        }
+        next(new Error(message));
+      } else {
+        next(error);
+      }
+    });
+
+  })
+  form.on('fileBegin', function(name, file) {
+    const [fileName, fileExt] = file.name.split('.');
+    file.path = path.join(uploadDir, `${fileName}_${new Date().getTime()}.${fileExt}`);
+    console.log('Uploaded file successfully: ' + fileName);
+
+  });
+})
+
+
 
 validHeaders = function(headers) {
   let validHeaders = ['INGREDIENT', 'PACKAGE', 'AMOUNT (NATIVE UNITS)', 'NATIVE UNIT', 'UNITS PER PACKAGE', 'PRICE PER PACKAGE', 'VENDOR FREIGHT CODE', 'TEMPERATURE'];

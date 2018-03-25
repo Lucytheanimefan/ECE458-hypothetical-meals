@@ -11,6 +11,8 @@ var ingredientHeaders = ['INGREDIENT', 'PACKAGE', 'TEMPERATURE', 'NATIVE UNIT', 
 
 var formulaHeaders = ['NAME', 'PRODUCT UNITS', 'DESCRIPTION', 'INGREDIENT', 'INGREDIENT UNITS'];
 
+var intermediateHeaders = ['NAME', 'PRODUCT UNITS', 'DESCRIPTION', 'PACKAGE', 'NATIVE UNIT', 'UNITS PER PACKAGE', 'TEMPERATURE', 'INGREDIENT', 'INGREDIENT UNITS'];
+
 var packageTypes = ['sack', 'pail', 'drum', 'supersack', 'truckload', 'railcar'];
 
 var temperatures = ['frozen', 'refrigerated', 'room temperature'];
@@ -52,7 +54,7 @@ module.exports.addFormulas = function(csvData, intermediate) {
       let seenIngs = [];
       while (row < csvData.length) {
         let myRow = csvData[row];
-        if (myRow['NAME'] !== currentFormula) {
+        if (myRow['NAME'] != currentFormula) {
           currentFormula = myRow['NAME'];
           seensIngs = [];
 
@@ -78,7 +80,6 @@ module.exports.addFormulas = function(csvData, intermediate) {
         }
         currentList.push(myRow);
         console.log(currentList);
-        seenIngs = [];
         row = row+1;
       }
       formulaList.push(currentList);
@@ -88,6 +89,63 @@ module.exports.addFormulas = function(csvData, intermediate) {
       resolve(addFormulaPromise);
     }
   });
+}
+
+createFormulaFromIntermediate = function(csvData) {
+  let newData = [];
+  for (let row of csvData) {
+    let newRow = {};
+    newRow['NAME'] = row['NAME'];
+    newRow['DESCRIPTION'] = row['DESCRIPTION'];
+    newRow['PRODUCT UNITS'] = row['PRODUCT UNITS'];
+    newRow['INGREDIENT'] = row['INGREDIENT'];
+    newRow['INGREDIENT UNITS'] = row['INGREDIENT UNITS'];
+    newData.push(newRow);
+  }
+  return newData;
+}
+
+createIngredientsFromIntermediate = function(csvData) {
+  return new Promise(function(resolve, reject) {
+    let currentIng = '';
+    let ings = [];
+    for (let row of csvData) {
+      if (row['NAME'] != currentIng) {
+        if (row['PACKAGE'] == '' || row['TEMPERATURE'] == '' || row['NATIVE UNIT'] == '' || row['UNITS PER PACKAGE'] == '') {
+          reject(new Error('Package, temperature, native unit, or units per package can\'t be empty on the first appearance of the intermediate project formula!'));
+          return;
+        }
+        currentIng = row['NAME'];
+        let ingObject = {};
+        ingObject['name'] = row['NAME'];
+        ingObject['package'] = row['PACKAGE'];
+        ingObject['temperature'] = row['TEMPERATURE'];
+        ingObject['nativeUnit'] = row['NATIVE UNIT'];
+        ingObject['unitsPerPackage'] = row['UNITS PER PACKAGE'];
+        ings.push(ingObject);
+      }
+    }
+    var addIngredientsPromise = Promise.all(ings.map(function(ing) {
+      return IngredientHelper.createIngredient(ing['name'], ing['package'], ing['temperature'], ing['nativeUnit'], ing['unitsPerPackage']);
+    }));
+    resolve(addIngredientsPromise);
+  })
+}
+
+module.exports.addIntermediates = function(csvData) {
+  return new Promise(function(resolve, reject) {
+    if (csvData.length == 0) {
+      resolve();
+    } else {
+      addFormulas(createFormulaFromIntermediate(csvData), true).then(function(results) {
+        return createIngredientsFromIntermediate(csvData);
+      }).then(function(result) {
+        resolve();
+      }).catch(function(error) {
+        reject(error);
+      });
+    }
+  })
 }
 
 module.exports.addToDatabase = function(index, csvRow) {
@@ -185,11 +243,25 @@ checkIngredientExists = function(name) {
 
 module.exports.checkIngredientExists = checkIngredientExists;
 
+module.exports.checkIngredientPreexisting = function(name) {
+  return new Promise(function(resolve, reject) {
+    Ingredient.getIngredient(name).then(function(ing) {
+      if (ing == null) {
+        resolve();
+      } else {
+        reject(new Error('Ingredient ' + name + ' already exists in the database!'));
+      }
+    }).catch(function(error) {
+      reject(error);
+    })
+  })
+}
+
 module.exports.checkProductUnit = function(row) {
   return new Promise(function(resolve, reject) {
     let name = row['NAME'];
     let pUnits = parseFloat(row['PRODUCT UNITS']);
-    if (pUnits < 0) {
+    if (pUnits <= 0) {
       reject(new Error('Invalid negative product units for ' + name));
     } else if (pUnits % 1 != 0) {
       reject(new Error('Invalid non-integer product units for ' + name));
@@ -272,14 +344,42 @@ module.exports.checkFormulaHeader = function(row) {
   return new Promise(function(resolve, reject) {
     for (let header of formulaHeaders) {
       if (!row.hasOwnProperty(header)) {
-        reject(new Error('Formula CSV is missing headers! Refer to the bulk import documentation to see the required headers.'));
+        reject(new Error('Final Product CSV is missing headers! Refer to the bulk import documentation to see the required headers.'));
         return;
       }
     }
     for (let rowHeader in row) {
       if (formulaHeaders.indexOf(rowHeader) == -1) {
-        reject(new Error('Formula CSV has incorrect headers! Refer to the bulk import documentation to see the correct headers.'));
+        reject(new Error('Final Product CSV has incorrect headers! Refer to the bulk import documentation to see the correct headers.'));
         return;
+      }
+    }
+    resolve();
+  })
+}
+
+module.exports.checkIntermediateHeader = function(row) {
+  return new Promise(function(resolve, reject) {
+    for (let header of intermediateHeaders) {
+      if (!row.hasOwnProperty(header)) {
+        reject(new Error('Intermediate Product CSV is missing headers! Refer to the bulk import documentation to see the required headers.'));
+        return;
+      }
+    }
+    for (let rowHeader in row) {
+      if (intermediateHeaders.indexOf(rowHeader) == -1) {
+        reject(new Error('Intermediate Product CSV has incorrect headers! Refer to the bulk import documentation to see the correct headers.'));
+        return;
+      } else if (rowHeader == 'PACKAGE') {
+        if (packageTypes.indexOf(row[rowHeader].toLowerCase()) == -1) {
+          reject(new Error('Incorrect package type: ' + row[rowHeader]));
+          return;
+        }
+      } else if (rowHeader == 'TEMPERATURE') {
+        if (temperatures.indexOf(row[rowHeader].toLowerCase()) == -1) {
+          reject(new Error('Incorrect temperature: ' + row[rowHeader]));
+          return;
+        }
       }
     }
     resolve();
