@@ -8,6 +8,7 @@ var Formula = require('../models/formula');
 var UserHelper = require('./users');
 var Spending = require('../models/spending');
 var Production = require('../models/production');
+var Freshness = require('../models/freshness');
 var mongoose = require('mongoose');
 mongoose.Promise = global.Promise;
 
@@ -93,7 +94,9 @@ module.exports.incrementAmount = function(id, amount, vendorID='admin', lotNumbe
         return result;
       }
     }).then(function(result) {
-      return Ingredient.updateSpace(ing.name);
+      var time = Date.now() - ing.vendorLots[0].timestamp;
+      console.log("TIME = " + time);
+      return Promise.all([Ingredient.updateSpace(ing.name), Freshness.updateReport(ing._id, ing.name, amount, time)]);
     }).then(function(result) {
       resolve(result);
     }).catch(function(error) {

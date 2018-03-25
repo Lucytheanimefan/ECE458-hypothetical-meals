@@ -4,6 +4,7 @@ var router = express.Router();
 var Spending = require('../models/spending');
 var Production = require('../models/production');
 var Formula = require('../models/formula');
+var Fresness = require('../models/freshness');
 var Ingredient = require('../models/ingredient');
 
 var mongoose = require('mongoose')
@@ -17,13 +18,19 @@ router.get('/:page', function(req, res, next) {
   var spendingReport;
   var productionReport;
   var formulaReport;
+  var ingredientReport;
+
   var spending;
   var production;
   var formula;
-  Promise.all([Spending.getSpending(), Spending.getProduction(), Production.getProduction()]).then(function(results) {
+  var ingredient;
+
+  Promise.all([Spending.getSpending(), Spending.getProduction(), Production.getProduction(), Freshness.getProduction()]).then(function(results) {
     spendingReport = results[0];
     productionReport = results[1];
     formulaReport = results[2];
+    ingredientReport = results[3];
+
     spendingPromise = Promise.all(spendingReport.spending.map(function(tuple) {
       return getIngredientName(tuple);
     }));
@@ -33,9 +40,12 @@ router.get('/:page', function(req, res, next) {
     formulaPromise = Promise.all(formulaReport.product.map(function(tuple) {
       return getFormulaName(tuple);
     }));
-    return Promise.all([spendingPromise, productionPromise, formulaPromise]);
+    ingredientPromise = Promise.all(ingredientReport.ingredient.map(function(tuple) {
+      return getIngredientFreshnessName(tuple);
+    }));
+    return Promise.all([spendingPromise, productionPromise, formulaPromise, ingredientPromise]);
   }).then(function(results) {
-    res.render('report', {spending: results[0], production: results[1], formula: results[2]});
+    res.render('report', {spending: results[0], production: results[1], formula: results[2], ingredient: results[3]});
   }).catch(function(error) {
     next(error);
   })
@@ -65,6 +75,27 @@ getIngredientName = function(tuple) {
   return new Promise(function(resolve, reject) {
     var entry = {};
     entry['totalSpent'] = tuple.totalSpent;
+    Ingredient.getIngredientById(mongoose.Types.ObjectId(tuple.ingredientId)).then(function(ing) {
+      if (ing == null) {
+        entry['ingredient'] = tuple.ingredientName;
+      } else {
+        entry['ingredient'] = ing.name;
+      }
+      return entry;
+    }).then(function(entry) {
+      resolve(entry);
+    }).catch(function(error) {
+      reject(error);
+    });
+  });
+}
+
+getIngredientFreshnessName = function(tuple) {
+  return new Promise(function(resolve, reject) {
+    var entry = {};
+    entry['numIngs'] = tuple.numIngs;
+    entry['avgTime'] = tuple.avgTime;
+    entry['worstTime'] = tuple.worstTime;
     Ingredient.getIngredientById(mongoose.Types.ObjectId(tuple.ingredientId)).then(function(ing) {
       if (ing == null) {
         entry['ingredient'] = tuple.ingredientName;
