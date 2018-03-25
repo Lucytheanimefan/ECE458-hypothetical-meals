@@ -18,8 +18,9 @@ block content
         a(data-toggle='tab', href='#update-form') Update Ingredient
       li.adminOnly.hide
         a(data-toggle='tab', href='#update-stock-form') Stock
-      li.manager.hide
-        a(data-toggle='tab', href='#vendor-form') Associate Vendor
+      unless ingredient.isIntermediate
+        li.manager.hide
+          a(data-toggle='tab', href='#vendor-form') Associate Vendor
     .tab-content
       .tab-pane.fade.in.active#ingredient-info
         table.table
@@ -41,19 +42,19 @@ block content
           tr
             th Space in Storage (Sq ft)
             td= ingredient.space
-        div#add-to-cart
-          form(action='/ingredients/order/add/to/cart', method='post')
-            .form-group.pull-left(style='margin: 10px 15px;')
-              input.form-control(type="hidden" name="ingredient" value=ingredient.name)
-              label.control-label Quantity (Number of Packages)
-              input.form-control(type='number', name='quantity', min='0', required='', style='width: 200px;')
-            button.btn.btn-primary(style="margin: 30px 15px;" type='submit') Add to Cart
+        unless ingredient.isIntermediate
+          div#add-to-cart
+            form(action='/ingredients/order/add/to/cart', method='post')
+              .form-group.pull-left(style='margin: 10px 15px;')
+                input.form-control(type="hidden" name="ingredient" value=ingredient.name)
+                label.control-label Quantity (Number of Packages)
+                input.form-control(type='number', name='quantity', min='0', required='', style='width: 200px;')
+              button.btn.btn-primary(style="margin: 30px 15px;" type='submit') Add to Cart
         table.table
           th Vendor Name
           th Lot Number
           th Native Units
           for set in sets
-
             tr
               if set.vendor.name == 'admin'
                 td= set.vendor.name
@@ -65,26 +66,27 @@ block content
         div.delete-form.adminOnly.hide
           form(action='/ingredients/' + encodeURIComponent(ingredient.name) + '/delete', method='post')
             button.btn.btn-primary.pull-right(style="margin: 30px 15px;" type='submit') Delete ingredient
-        div.card#vendor-info
-          div.card-header(data-background-color='purple')
-            h4.title Vendor Information
-          div.card-content.table-responsive
-            table.table
-              thead.text-primary
-                th Vendor
-                th Cost per Package ($)
-                each vendor in vendors
-                  tr
-                    th
-                      a(href="/vendors/" + vendor.vendorCode)= vendor.vendorName
-                    th= vendor.record.cost
-            div.previous
-              form(action='/ingredients/' + encodeURIComponent(ingredient.name) + '/' + amount + '/' + (parseInt(page)-1).toString(), method='get')
-                button.btn.btn-white(type="submit" style="padding: 5px;") <
-                p(style="padding: 10px; display: inline-block;") Page #{parseInt(page)}
-            div.next
-              form(action='/ingredients/' + encodeURIComponent(ingredient.name) + '/' + amount + '/' + (parseInt(page)+1).toString(), method='get')
-                button.btn.btn-white(type="submit" style="padding: 5px;") >
+        unless ingredient.isIntermediate
+          div.card#vendor-info
+            div.card-header(data-background-color='purple')
+              h4.title Vendor Information
+            div.card-content.table-responsive
+              table.table
+                thead.text-primary
+                  th Vendor
+                  th Cost per Package ($)
+                  each vendor in vendors
+                    tr
+                      th
+                        a(href="/vendors/" + vendor.vendorCode)= vendor.vendorName
+                      th= vendor.record.cost
+              div.previous
+                form(action='/ingredients/' + encodeURIComponent(ingredient.name) + '/' + amount + '/' + (parseInt(page)-1).toString(), method='get')
+                  button.btn.btn-white(type="submit" style="padding: 5px;") <
+                  p(style="padding: 10px; display: inline-block;") Page #{parseInt(page)}
+              div.next
+                form(action='/ingredients/' + encodeURIComponent(ingredient.name) + '/' + amount + '/' + (parseInt(page)+1).toString(), method='get')
+                  button.btn.btn-white(type="submit" style="padding: 5px;") >
 
       .adminOnly.hide.card-content.tab-pane.fade#update-form
         h1= 'Update ingredient'
@@ -135,29 +137,44 @@ block content
             label.control-label Lot Number
             input.form-control(type='number', step='1', name='lotNumber', placeholder='Lot Number')
           button.btn.btn-primary.pull-right(type='submit') Add Lot
+        h3 Edit Stock
+        table.table
+          th Vendor Name
+          th Lot Number
+          th Timestamp
+          th Native Units
+          th Edit
+          for lot in lots
+            tr
+              form.form-group(action='/ingredients/' + encodeURIComponent(ingredient.name) + '/edit-lot/' + lot.units + '/', method='post')
+                input.hide(type='checkbox', name='lotID', value=lot._id, checked)
+                if lot.vendor.name == 'admin'
+                  td= lot.vendor.name
+                else
+                  td
+                    a(href="/vendors/" + lot.vendor.code)= lot.vendor.name + ' (' + lot.vendor.code + ')'
+                td= lot.lotNumber
+                td= lot.stringTimestamp
+                td
+                  input(type='number', step='any', name='amount', value=lot.units, min='0')
+                td
+                  button.btn.btn-primary(type='submit', style='margin:0px; padding: 5px 10px;') Edit
 
-        form.form-group(style='margin-top: 50px;',action='/ingredients/' + encodeURIComponent(ingredient.name) + '/updateamount', method='post')
-          h3 Edit Stock
-          .form-group
-            label.control-label Amount (Must be lower than current amount; The oldest lot(s) will be consumed)
-            input.form-control(type='number', step='any', min='0', max = ingredient.amount, name='amount', value = ingredient.amount, required='')
-          button.btn.btn-primary.pull-right(type='submit') Update Stock
+      unless ingredient.isIntermediate
+        .manager.hide.card-content.tab-pane.fade#vendor-form
+          h1= 'Associate Vendor'
+          form.form-group(action='/ingredients/' + encodeURIComponent(ingredient.name) + '/add-vendor', method='post')
+            .form-group
+              label.control-label Vendor
+              select.form-control(name='vendor', placeholder = '', required='')
+                option(disabled='' selected='' value='') Select an option
+                each vendor in existingVendors
+                  option(value=vendor._id)= vendor.name + ' (' + vendor.code + ')'
+            .form-group
+              label.control-label Cost per Package
+              input.form-control(type='number', step='0.01', name='cost', required='')
 
-
-      .manager.hide.card-content.tab-pane.fade#vendor-form
-        h1= 'Associate Vendor'
-        form.form-group(action='/ingredients/' + encodeURIComponent(ingredient.name) + '/add-vendor', method='post')
-          .form-group
-            label.control-label Vendor
-            select.form-control(name='vendor', placeholder = '', required='')
-              option(disabled='' selected='' value='') Select an option
-              each vendor in existingVendors
-                option(value=vendor._id)= vendor.name + ' (' + vendor.code + ')'
-          .form-group
-            label.control-label Cost per Package
-            input.form-control(type='number', step='0.01', name='cost', required='')
-
-          button.btn.btn-primary.pull-right(type='submit') Add vendor
+            button.btn.btn-primary.pull-right(type='submit') Add vendor
 
 //- block scripts
 //-   script.

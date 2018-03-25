@@ -56,7 +56,7 @@ var IngredientSchema = new mongoose.Schema({
   }],
   vendorLots: [{
     vendorID: String,
-    lotNumber: Number,
+    lotNumber: String,
     units: Number,
     timestamp: Number
   }]
@@ -75,6 +75,21 @@ module.exports.createIngredient = function(name, package, temp, nativeUnit, unit
     'averageCost': 0,
     'space': 0,
     'isIntermediate': false,
+    'vendorLots': []
+  });
+}
+
+module.exports.createIngredientIntermediate = function(name, package, temp, nativeUnit, unitsPerPackage) {
+  return Ingredient.create({
+    'name': name,
+    'package': package.toLowerCase(),
+    'temperature': temp.toLowerCase(),
+    'nativeUnit': nativeUnit,
+    'unitsPerPackage': parseFloat(unitsPerPackage),
+    'amount': 0,
+    'averageCost': 0,
+    'space': 0,
+    'isIntermediate': true,
     'vendorLots': []
   });
 }
@@ -107,7 +122,7 @@ module.exports.updateIngredient = function(name, newName, package, temp, nativeU
         'unitsPerPackage': parseFloat(unitsPerPackage)
       }
     }).exec().then(function(ing) {
-      return exports.updateSpace(ing.name);
+      return exports.updateSpace(newName);
     }).then(function(ing) {
       resolve(ing);
     }).catch(function(error) {
@@ -138,6 +153,14 @@ module.exports.incrementAmount = function(name, amount, vendorID, lotNumber) {
   }).exec(), exports.addLot(name, amount, vendorID, lotNumber)]);
 }
 
+module.exports.justIncrementAmount = function(name, amount) {
+  return Ingredient.findOneAndUpdate({ 'name': name }, {
+    '$inc': {
+      'amount': parseFloat(amount)
+    }
+  }).exec();
+}
+
 module.exports.decrementAmount = function(name, amount) {
   return Promise.all([Ingredient.findOneAndUpdate({ 'name': name }, {
     '$inc': {
@@ -163,12 +186,21 @@ module.exports.addLotEntry = function(name, entry) {
   }).exec();
 }
 
+module.exports.editLot = function(name, amount, lotID) {
+  console.log('popp: ' + amount);
+  return Ingredient.update({ 'vendorLots._id': mongoose.Types.ObjectId(lotID) }, {
+    '$set': {
+      'vendorLots.$.units': amount
+    }
+  }).exec();
+}
+
 module.exports.removeLot = function(name, lotID) {
   return Ingredient.findOneAndUpdate({ 'name': name }, {
     '$pull': {
       'vendorLots': {'_id': lotID}
     }
-  })
+  }).exec();
 }
 
 module.exports.updateSpace = function(name) {
@@ -221,8 +253,6 @@ module.exports.consumeLots = function(name, amount) {
           return 0;
         }
       });
-      console.log("i'm here");
-      console.log(lots);
       let pullIDs = [];
       let remaining = parseFloat(amount);
       for (let lot of lots) {
