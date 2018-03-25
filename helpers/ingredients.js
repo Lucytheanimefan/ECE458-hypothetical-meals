@@ -184,7 +184,7 @@ module.exports.checkIfVendorSells = function(ingName) {
   });
 }
 
-findCheapestVendor = function(ingName) {
+module.exports.findCheapestVendor = function(ingName) {
   return new Promise(function(resolve, reject) {
     Promise.all([exports.checkIfVendorSells(ingName), Ingredient.getIngredient(ingName)]).then(function(results) {
       let vendors = results[0];
@@ -215,7 +215,7 @@ module.exports.addOrderToCart = function(userId, ingredient, amount) {
     var vendor;
     Ingredient.getIngredient(ingredient).then(function(result) {
       ing = result;
-      return findCheapestVendor(ingredient)
+      return exports.findCheapestVendor(ingredient)
     }).then(function(result) {
       vendor = result;
       let packages = Math.ceil(parseFloat(amount) / parseFloat(ing['unitsPerPackage']));

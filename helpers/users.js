@@ -158,52 +158,34 @@ module.exports.updateIngredientOnCheckout = function(ingId, vendors) {
   })
 }
 
-module.exports.getCartVendors = function(orderVendors) {
-  return new Promise(function(resolve, reject) {
-    var promises = [];
-    var vendors = [];
-    var quantities = [];
-    for (j = 0; j < orderVendors.length; j++) {
-      quantities.push(orderVendors[j].quantity);
-      promises.push(Vendor.model.findById(orderVendors[j].vendID));
-    }
-    Promise.all(promises).then(function(vends) {
-      for (i = 0; i < vends.length; i++) {
-        if (vends[i] != null) {
-          var entry = {'name': vends[i].name, 'code': vends[i].code, 'quantity': quantities[i]};
-          vendors.push(entry);
-        }
-      }
-      return vendors;
-    }).then(function(result) {
-      resolve(result);
-    }).catch(function(error) {
-      reject(error);
-    })
-  })
-}
-
-module.exports.deleteVendor = function(id, vendID) {
+module.exports.checkVendor = function(id, vendID) {
   return new Promise(function(resolve, reject) {
     var userQuery = User.getUserById(id);
     var cart;
-    userQuery.then(async function(user) {
+    var ingredients = [];
+    userQuery.then(function(user) {
       cart = user.cart;
       for (i = 0; i < cart.length; i++) {
         var order = cart[i];
-        for (j = 0; j < order.vendors.length; j++) {
-          var vendor = order.vendors[j];
-          if (vendor.vendID.toString() === vendID.toString()) {
-            var index = order.vendors.indexOf(vendor);
-            order.vendors.splice(index,1);
-            j--;
-            var newQuantity = order.quantity - vendor.quantity;
-            await User.updateCart(id, order.ingredient, newQuantity, order.vendors);
-          }
+        var vendor = order.vendor;
+        var promises = [];
+        if (vendor.toString() === vendID.toString()) {
+          promises.push(Ingredient.getIngredientById(order.ingredient));
         }
-        if (order.vendors.length == 0) {
-          await User.removeOrder(id, order.ingredient);
-        }
+      }
+      return Promise.all(promises);
+    }).then(function(ings) {
+      var promises = [];
+      for (let ing of ings) {
+        ingredients.push(ing._id);
+        promises.push(IngredientHelper.findCheapestVendor(ing.name));
+      }
+      return Promise.all(promises);
+    }).then(async function(vends) {
+      console.log(vends);
+      var promises = [];
+      for (v = 0; v < vends.length; v++) {
+        await exports.addToCart(id, ingredients[v], 0, vends[v].name);
       }
     }).then(function(result) {
       resolve(result);
