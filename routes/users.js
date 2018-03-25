@@ -3,6 +3,7 @@ var router = express.Router();
 var User = require('../models/user');
 var Ingredient = require('../models/ingredient');
 var Vendor = require('../models/vendor');
+var VendorHelper = require('../helpers/vendor.js')
 var Inventory = require('../models/inventory').model;
 var Spending = require('../models/spending');
 var Token = require('../models/token');
@@ -547,7 +548,7 @@ router.get('/lot_assignment/:page?', function(req, res, next){
   var perPage = 10;
   var page = req.params.page || 1;
   page = (page < 1) ? 1 : page;
-
+  console.log("skyrim belongs to the nords");
   var userQuery = User.getUserById(req.session.userId);
   var cart;
   var orders = [];
@@ -556,11 +557,13 @@ router.get('/lot_assignment/:page?', function(req, res, next){
   userQuery.then(function(user) {
     cart = user.cart;
     var promises = [];
+    console.log("by the 9 divines");
     for (let order of cart) {
       promises.push(Ingredient.getIngredientById(order.ingredient));
     }
     return Promise.all(promises);
   }).then(function(ings) {
+    console.log("talos guide you");
     for (let ing of ings) {
       ingredients.push(ing.name);
       ids.push(ing._id.toString());
@@ -576,18 +579,22 @@ router.get('/lot_assignment/:page?', function(req, res, next){
       var ingName = ingredients[index];
       order['ingredient'] = ingName;
       order['ingId'] = cart[i].ingredient.toString();
-      promises.push(UserHelper.getCartVendors(cart[i].vendors));
+      //promises.push(UserHelper.getCartVendors(cart[i].vendors));
       order['quantity'] = cart[i].quantity;
+      order['vendId'] = cart[i].vendor;
       orders.push(order);
     }
-    return Promise.all(promises);
-  }).then(function(results) {
-    for (i = 0; i < results.length; i++) {
-      orders[i]['vendors'] = results[i];
+    var vendPromises = [];
+    for(var i = 0; i < orders.length; i++){
+      vendPromises.push(Vendor.model.findById(orders[i]['vendId']));
+    }
+    return Promise.all(vendPromises);
+  }).then(function(vends){
+    for(var i = 0; i < vends.length; i++){
+      orders[i]['vendor'] = [vends[i]];
+      orders[i]['combo'] = [orders[i][ingId]+"@"+orders[i][vendId]];
     }
     page = (page > orders.length) ? orders.length : page;
-    console.log("order bois");
-    console.log(orders);
     res.render('lot_selection', { orders: orders, page: page });
   }).catch(function(error) {
     next(error);
@@ -598,34 +605,54 @@ router.get('/lot_assignment/:page?', function(req, res, next){
 router.post('/lot_assignment/assign', function(req, res, next){
   req.body = JSON.parse(JSON.stringify(req.body));
   //console.log(req.body);
+  var cart;
   var promises= [];
   var currLot = "no lot :(";
   var currIng =  "default ing";
   var currVend = "default vend";
   for(var key in req.body) {
     if(req.body.hasOwnProperty(key)){
+      console.log(req.body[key]);
       if(key.indexOf("lotnumber")>=0){
         currLot = req.body[key];
       }
-      if(key.indexOf("ingId")>=0){
+      if(key.indexOf("ingredient")>=0){
         let ingVend = req.body[key].split("@");
         currIng = ingVend[0];
         currVend = ingVend[1];
+        console.log("this is ingvend");
+        console.log(ingVend);
 
       }
       if(key.indexOf("quantity")>=0){
+
         console.log("order params");
         console.log(currLot);
         console.log(currIng);
         console.log(currVend);
         console.log(req.body[key]);
+
         let currQuantity = req.body[key];
         promises.push(IngredientHelper.incrementAmount(currIng,currQuantity,currVend,currLot));
       }
     }
   }
-  return Promise.all(promises);
-  res.render()
+  Promise.all(promises).then(function(result){
+    return User.getUserById(req.session.userId);
+  }).then(function(user){
+    cart = user.cart;
+    var orderPromises = [];
+    for (let order of cart) {
+      var tuple = {};
+      tuple['vendor'] = order.vendor;
+      tuple['quantity'] = order.quantity;
+      //orderPromises.push(UserHelper.updateIngredientOnCheckout(mongoose.Types.ObjectId(order.ingredient), [tuple]));
+      //promises.push(Spending.updateReport(order.ingredient, ingName, spent, reportType));
+      orderPromises.push(UserHelper.removeOrder(req.session.userId, order.ingredient));
+    }
+    return Promise.all(promises);
+  })
+  res.render(req.baseUrl);
 })
 
 router.get('/report/:page?', function(req, res, next) {

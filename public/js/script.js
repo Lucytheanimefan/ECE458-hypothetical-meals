@@ -426,9 +426,11 @@ function createLotTuples(ingredients, start) {
     newHTML += '<div class="col-md-3"><div class="form-group"></div><label class="control-label">Ingredient</label>';
     newHTML += '<select class="form-control" id="ingredient' + next + "_" + 1 + '" name="ingredient' + next + "_" + 1 + '"><option disabled="" selected="" value="">Select an Ingredient</option>';
     var i;
+    console.log("ing bois");
+    console.log(ingredients);
     for (i = 0; i < ingredients.length; i++) {
       var ing = ingredients[i];
-      newHTML += '<option value=' + ing._id + '>' + ing.name + '</option>';
+      newHTML += '<option value=' + ing.ingId + '@' + ing['vendId'][0]'>' + ing.ingredient + '</option>';
     }
     newHTML += '</select></div>';
 
@@ -571,8 +573,9 @@ function addPackage(index){
   newHTML += '<select class="form-control" id="ingredient' + index + "_" + next + '" name="ingredient' + index + "_" + next + '"><option disabled="" selected="" value="">Select an Ingredient</option>';
   var i;
   for (i = 0; i < ingredients.length; i++) {
+    console.log(ingredients);
     var ing = ingredients[i];
-    newHTML += '<option value=' + ing._id + '>' + ing.name + '</option>';
+    newHTML += '<option value=' + ing.ingId + '>' + ing.ingredient + '</option>';
   }
   newHTML += '</select></div>';
 

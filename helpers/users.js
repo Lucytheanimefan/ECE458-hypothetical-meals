@@ -171,6 +171,8 @@ module.exports.getCartVendors = function(orderVendors) {
       promises.push(Vendor.model.findById(orderVendors[j].vendID));
     }
     Promise.all(promises).then(function(vends) {
+      console.log("maybe i am the dragon born and just don't know it!");
+      console.log(vends);
       for (i = 0; i < vends.length; i++) {
         if (vends[i] != null) {
           var entry = {'name': vends[i].name, 'code': vends[i].code, 'quantity': quantities[i]};

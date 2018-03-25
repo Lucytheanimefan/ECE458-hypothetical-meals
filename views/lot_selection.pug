@@ -24,18 +24,16 @@ block content
             table.table#formulaTable
               thead.text-primary
                 th(onclick='sortTable(0, \'formula\')') Ingredient
-                th(onclick='sortTable(1, \'formula\')') Quantity
-                th(onclick='sortTable(2, \'formula\')') Vendor
-                th(onclick='sortTable(3, \'formula\')') Current Lot
+                th(onclick='sortTable(1, \'formula\')') Vendor
+                th(onclick='sortTable(2, \'formula\')') Quantity
               tbody
               each order in orders
                 tr
                   td
                     a(href='/ingredients/' + order.ingredient)= order.ingredient
                   td
-                    each vendor in order.vendors
+                    each vendor in order.vendor
                       a(href='/vendors/' + vendor.code)= vendor.name
-                      |  (#{vendor.quantity})
                       br
                   td= order.quantity
       .card-content.tab-pane.fade#assign-lots.adminOnly.hide
@@ -55,9 +53,9 @@ block content
                       .form-group
                       label.control-label Ingredient
                       select#ingredient1.form-control(name='ingredient1_1', required='')
-                        option(disabled="" selected="" value="") Select an Ingredient
+                        option(disabled="" selected="" value="") Select from Order
                         each order in orders
-                          option(value=order['ingId']+'@'+order['vendors'][0])= order['ingredient']
+                          option(value=order['ingId']+'@'+order['vendId'][0])= order['ingredient'] + " from  " + order['vendor']['name']
                     .col-md-1
                       .form-group
                       label.control-label Quantity
