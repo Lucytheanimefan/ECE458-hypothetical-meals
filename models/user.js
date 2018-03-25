@@ -221,7 +221,6 @@ module.exports.getUserById = function(id) {
 
 module.exports.addToCart = function(id, ingId, quantity, vendor) {
   ingId = mongoose.Types.ObjectId(ingId.toString());
-  console.log("vendor = " + vendor);
   let entry = {ingredient:ingId, quantity:quantity, vendor:vendor};
   return User.findOneAndUpdate({'_id':id},{'$push':{'cart':entry}}).exec();
 }

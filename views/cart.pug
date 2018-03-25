@@ -28,9 +28,10 @@ block content
                     button(class="btn btn-secondary" type="button" style="margin-right: 20px; padding: 5px 20px; background-color:#66c2ff; color: white; display:inline;") Edit
                   input.btn.btn-secondary(type="submit" value="Remove" style="padding: 5px 20px; background-color:#66c2ff; color: white; display:inline;")
       .row
-        .col-md-12
-          p
-            br
+        .col-md-10
+        .col-md-2
+          form(action="/users/checkout_cart" method="get")
+            input.btn.btn-primary(type="submit" name="checkout" value="Checkout" style="float:right;")
       .row
         div.pages(style="text-align:center;")
           .col-md-12
@@ -39,8 +40,3 @@ block content
             p(style="padding: 10px; display: inline-block;") Page #{parseInt(page)}
             form(action="/users/cart/" + (parseInt(page)+1).toString(), method="get" style="display: inline-block;")
               button.btn.btn-white(type="submit" style="padding: 5px;") >
-      .row
-        .col-md-10
-        .col-md-2
-          form(action="/users/checkout_cart" method="post")
-            input.btn.btn-primary(type="submit" name="checkout" value="Checkout" style="float:right;")
