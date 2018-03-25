@@ -56,7 +56,7 @@ var IngredientSchema = new mongoose.Schema({
   }],
   vendorLots: [{
     vendorID: String,
-    lotNumber: Number,
+    lotNumber: String,
     units: Number,
     timestamp: Number
   }]
