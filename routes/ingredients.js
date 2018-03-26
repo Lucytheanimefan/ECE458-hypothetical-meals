@@ -327,7 +327,7 @@ router.post('/order/add/to/cart', function(req, res, next) {
     for (let result of results) {
       let vendor = result[0];
       let ing = result[1];
-      logResults += '<li>Vendor <a href="/vendors/' + encodeURIComponent(vendor.code) + '">' + vendor.code + ')</a> with ' +
+      logResults += '<li>Vendor <a href="/vendors/' + encodeURIComponent(vendor.code) + '">' + vendor.code + '</a> with ' +
         'ingredient <a href="/ingredients/' + ing['name'] + '">' + ing['name'] + '</a></li>'
     }
     logs.makeLog('Add to cart',
