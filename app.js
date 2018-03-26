@@ -111,22 +111,22 @@ app.use(function(err, req, res, next) {
 
 var CronJob = require('cron').CronJob;
 
-// test the cron job
-var testsJob = new CronJob('00 * * * * *', function() {
-    /*
-     * Runs every month on Monday
-     * at 11:30:00 AM. 
-     */
-    console.log('Run this every minute');
-    backups.makeBackup('test');
-    //backups.deletePriorBackup(Date(), 6);
-  }, function() {
-    /* This function is executed when the job stops */
-    console.log('Job done');
-  },
-  true, /* Start the job right now */
-  'America/Los_Angeles' /* Time zone of this job. */
-);
+// // test the cron job
+// var testsJob = new CronJob('00 * * * * *', function() {
+//     /*
+//      * Runs every month on Monday
+//      * at 11:30:00 AM. 
+//      */
+//     console.log('Run this every minute');
+//     backups.makeBackup('test');
+//     //backups.deletePriorBackup(Date(), 6);
+//   }, function() {
+//     /* This function is executed when the job stops */
+//     console.log('Job done');
+//   },
+//   true, /* Start the job right now */
+//   'America/Los_Angeles' /* Time zone of this job. */
+// );
 
 
 var startJobNow = true;
