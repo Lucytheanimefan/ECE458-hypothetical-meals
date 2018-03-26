@@ -108,8 +108,9 @@ module.exports.incrementAmount = function(id, amount, vendorID='admin', lotNumbe
         console.log("reeeeeeeeeee");
         console.log(lotsConsumed);
         for (let lot of lotsConsumed) {
-          var time = Date.now() - lot.timestamp();
-          await Freshness.updateReport(lot.name, lot.amount, time));
+          console.log(lot)
+          var time = Date.now() - lot.timestamp;
+          //await Freshness.updateReport(lot.name, lot.amount, time));
         }
       }
       return "done";
