@@ -126,7 +126,7 @@ router.post('/makebackup', function(req, res, next) {
 var sendEmail = function(receiver, subject, html_message, callback) {
   // create reusable transporter object using the default SMTP transport
   console.log("Email user and pass: " + variables.EMAIL + ", " + variables.PASSWORD);
-  var transporter = nodemailer.createTransport(
+  var transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
     port: 587,
     secure: false,
