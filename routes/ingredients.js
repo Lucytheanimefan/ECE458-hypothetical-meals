@@ -350,6 +350,17 @@ router.post('/:name/edit-lot/:oldAmount', function(req, res, next) {
   })
 })
 
+router.post('/:name/delete-lot/:amount', function(req, res, next) {
+  let ingName = req.params.name;
+  let lotID = req.body.lotID;
+  let amount = parseFloat(req.params.amount);
+  IngredientHelper.deleteLot(ingName, lotID, amount).then(function(ing) {
+    res.redirect(req.baseUrl + '/' + encodeURIComponent(ingName));
+  }).catch(function(error) {
+    next(error);
+  })
+})
+
 createCatalogue = function(vendors, id) {
   var catalogue = [];
   for (i = 0; i < vendors.length; i++) {

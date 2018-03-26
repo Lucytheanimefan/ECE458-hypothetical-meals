@@ -162,6 +162,24 @@ module.exports.deleteIngredient = function(name, package, temp, unitsPerPackage,
   })
 }
 
+module.exports.deleteLot = function(name, lotID, amount) {
+  return new Promise(function(resolve, reject) {
+    var returnIng;
+    Ingredient.getIngredient(name).then(function(ing) {
+      returnIng = ing;
+      return InventoryHelper.updateInventory(name, ing.package, ing.temperature, ing.unitsPerPackage, parseFloat(ing.amount - amount));
+    }).then(function(result) {
+      return Ingredient.justIncrementAmount(name, -amount);
+    }).then(function(result) {
+      return Promise.all([Ingredient.updateSpace(name), Ingredient.removeLot(name, mongoose.Types.ObjectId(lotID))]);
+    }).then(function(result) {
+      resolve(result[0]);
+    }).catch(function(error) {
+      reject(error);
+    })
+  })
+}
+
 module.exports.updateCost = function(name, newPackages, price) {
   return new Promise(function(resolve, reject) {
     Ingredient.getIngredient(name).then(function(ing) {
