@@ -294,6 +294,8 @@ router.get('/cart/:page?', function(req, res, next) {
     cart = user.cart;
     var promises = [];
     for (let order of cart) {
+      console.log("ORDER");
+      console.log(order.ingredient);
       promises.push(Ingredient.getIngredientById(order.ingredient));
     }
     return Promise.all(promises);

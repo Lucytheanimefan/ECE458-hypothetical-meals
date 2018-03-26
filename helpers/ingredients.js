@@ -8,6 +8,7 @@ var Formula = require('../models/formula');
 var UserHelper = require('./users');
 var Spending = require('../models/spending');
 var Production = require('../models/production');
+var Freshness = require('../models/freshness');
 var mongoose = require('mongoose');
 mongoose.Promise = global.Promise;
 

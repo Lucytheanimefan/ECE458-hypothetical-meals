@@ -14,7 +14,7 @@ block content
       li
         a(data-toggle='tab', href='#recall-table') Recall
       li
-        a(data-toggle='tab', href='#
+        a(data-toggle='tab', href='#ingredient-table') Ingredient Freshness
   .tab-content
     #spending-table.tab-pane.fade.in.active
       div.card
@@ -71,4 +71,30 @@ block content
                     a(href='/formulas/' + encodeURIComponent(tuple.formula))= tuple.formula
                   td= tuple.unitsProduced
                   td= tuple.totalCost.toFixed(2)
+            else
+    #recall-table.card-content.tab-pane.fade
+      div.card
+        div.card-header(data-background-color='purple')
+          h4.title Recall Report
+        div.card-content.table-response
+
+    #ingredient-table.card-content.tab-pane.fade
+      div.card
+        div.card-header(data-background-color='purple')
+          h4.title Ingredient Freshness Report
+        div.card-content.table-response
+          input.form-control#ingredientInput(type='text',onkeyup='filterTable(\'ingredient\')', placeholder='Search for ingredients..', title='Type in some search text')
+          table.table#ingredientTable
+            thead.text-primary
+              th(onclick='sortTable(0, \'ingredient\')') Ingredient
+              th(onclick='sortTable(1, \'ingredient\')') Average Time in Inventory
+              th(onclick='sortTable(2, \'ingredient\')') Worst Case Time in Inventory
+            tbody
+            if ingredient
+              each tuple in ingredient
+                tr
+                  td
+                    a(href='/ingredients/' + encodeURIComponent(tuple.ingredient))= tuple.ingredient
+                  td= tuple.avgTime
+                  td= tuple.worstTime
             else
