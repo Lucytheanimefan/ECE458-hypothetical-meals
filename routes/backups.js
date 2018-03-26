@@ -9,7 +9,7 @@ var backup = require('mongodb-backup');
 var restore = require('mongodb-restore');
 var grid = require('gridfs-stream');
 var nodemailer = require('nodemailer');
-
+//var smtpTransport = require('nodemailer-smtp-transport');
 
 router.get('/:page?', function(req, res, next) {
   if (req.session.role !== 'it_person') {
@@ -31,7 +31,7 @@ router.get('/:page?', function(req, res, next) {
         console.log(err);
         next(err);
       }
-      
+
       res.render('backups', { files: files, page: page });
     });
   })
@@ -125,9 +125,11 @@ router.post('/makebackup', function(req, res, next) {
 
 var sendEmail = function(receiver, subject, html_message, callback) {
   // create reusable transporter object using the default SMTP transport
-  var transporter = nodemailer.createTransport({
+  console.log("Email user and pass: " + variables.EMAIL + ", " + variables.PASSWORD);
+  var transporter = nodemailer.createTransport(
     host: 'smtp.gmail.com',
-    port: 465,
+    port: 587,
+    secure: false,
     auth: {
       user: variables.EMAIL,
       pass: variables.PASSWORD
