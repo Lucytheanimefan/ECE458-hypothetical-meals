@@ -1,6 +1,7 @@
 var User = require('../models/user');
 var Ingredient = require('../models/ingredient');
 var IngredientHelper = require('../helpers/ingredients');
+var InventoryHelper = require('../helpers/inventory');
 var Spending = require('../models/spending');
 var Vendor = require('../models/vendor');
 var Token = require('../models/token');
@@ -144,6 +145,15 @@ module.exports.updateIngredientOnCheckout = function(ingId, vendors) {
           }
         }
       }
+      let invCheck = InventoryHelper.checkInventory(ing.name, ing.package, ing.temperature, ing.unitsPerPackage, parseFloat(ing.amount) + totalPackages*parseFloat(ing.unitsPerPackage));
+      return invCheck;
+    }).then(function(update) {
+      if (update) {
+        return true;
+      } else {
+        throw new Error('Not enough space in inventory for ingredient ' + ing.name);
+      }
+    }).then(function(result) {
       let ingCostUpdate = IngredientHelper.updateCost(ing.name, totalPackages, averageCost);
       let spendingUpdate = Spending.updateReport(ingId, ing.name, totalCost, 'spending');
       return Promise.all([ingCostUpdate, spendingUpdate]);
