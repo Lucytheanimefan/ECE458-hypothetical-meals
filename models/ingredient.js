@@ -187,7 +187,6 @@ module.exports.addLotEntry = function(name, entry) {
 }
 
 module.exports.editLot = function(name, amount, lotID) {
-  console.log('popp: ' + amount);
   return Ingredient.update({ 'vendorLots._id': mongoose.Types.ObjectId(lotID) }, {
     '$set': {
       'vendorLots.$.units': amount
@@ -241,6 +240,7 @@ module.exports.consumeLots = function(name, amount) {
     var newEntry = {};
     var update = false;
     var ingredient;
+    var consumedList = [];
     exports.getIngredient(name).then(function(ing) {
       ingredient = ing;
       let lots = ing['vendorLots'];
@@ -260,9 +260,11 @@ module.exports.consumeLots = function(name, amount) {
         pullIDs.push(mongoose.Types.ObjectId(lot['_id']));
         if (remaining >= parseFloat(lot['units'])) {
           remaining -= parseFloat(lot['units']);
+          consumedList.push({'name': name, 'amount': lot['units'], 'timestamp': lot['timestamp']});
         } else {
           newEntry = copyLotEntry(lot, remaining);
           update = true;
+          consumedList.push({'name': name, 'amount': remaining, 'timestamp': lot['timestamp']});
           break;
         }
       }
@@ -277,7 +279,7 @@ module.exports.consumeLots = function(name, amount) {
         return ingredient;
       }
     }).then(function(ing) {
-      resolve(ing);
+      resolve(consumedList);
     }).catch(function(error) {
       reject(error);
     })

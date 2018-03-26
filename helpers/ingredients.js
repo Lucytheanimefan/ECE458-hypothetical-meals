@@ -101,6 +101,12 @@ module.exports.incrementAmount = function(id, amount, vendorID='admin', lotNumbe
       } else {
         return result;
       }
+    }).then(function(results) {
+      if (amount < 0) {
+        let lotsConsumed = results[1];
+        console.log(lotsConsumed);
+      }
+      return 'lel';
     }).then(function(result) {
       return Ingredient.updateSpace(ing.name);
     }).then(function(result) {
