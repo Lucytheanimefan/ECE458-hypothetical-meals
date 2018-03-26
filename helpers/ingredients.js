@@ -105,6 +105,7 @@ module.exports.incrementAmount = function(id, amount, vendorID='admin', lotNumbe
     }).then(function(results) {
       if (amount < 0) {
         let lotsConsumed = results[1];
+        console.log("reeeeeeeeeee");
         console.log(lotsConsumed);
       }
       return 'lel';
