@@ -60,6 +60,24 @@ module.exports.updateIngredient = function(name, newName, package, temp, nativeU
   });
 }
 
+module.exports.checkAndUpdateInventory = function(name, package, temperature, unitsPerPackage, newAmount) {
+  return new Promise(function(resolve, reject) {
+    InventoryHelper.checkInventory(name, package, temperature, parseFloat(unitsPerPackage), newAmount).then(function(update) {
+      if (update) {
+        return InventoryHelper.updateInventory(name, package, temperature, parseFloat(unitsPerPackage), newAmount);
+      } else {
+        var error = new Error('Not enough room in inventory!');
+        error.status = 400;
+        throw error;
+      }
+    }).then(function(inv) {
+      resolve(inv);
+    }).catch(function(error) {
+      reject(error);
+    })
+  })
+}
+
 //TODO: remove inventory check/update
 module.exports.incrementAmount = function(id, amount, vendorID='admin', lotNumber=0) {
   return new Promise(function(resolve, reject) {
@@ -67,22 +85,13 @@ module.exports.incrementAmount = function(id, amount, vendorID='admin', lotNumbe
     var ing;
     Ingredient.getIngredientById(id).then(function(result) {
       ing = result;
-      console.log(ing);
       newAmount = parseFloat(ing.amount) + parseFloat(amount);
       if (newAmount < 0) {
         var error = new Error('Storage amount must be a non-negative number');
         error.status = 400;
         throw error;
       } else {
-        return InventoryHelper.checkInventory(ing.name, ing.package, ing.temperature, parseFloat(ing.unitsPerPackage), newAmount);
-      }
-    }).then(function(update) {
-      if (update) {
-        return InventoryHelper.updateInventory(ing.name, ing.package, ing.temperature, parseFloat(ing.unitsPerPackage), newAmount);
-      } else {
-        var error = new Error('Not enough room in inventory!');
-        error.status = 400;
-        throw error;
+        return exports.checkAndUpdateInventory(ing.name, ing.package, ing.temperature, parseFloat(ing.unitsPerPackage), newAmount);
       }
     }).then(function(result) {
       if (amount > 0) {
@@ -96,6 +105,31 @@ module.exports.incrementAmount = function(id, amount, vendorID='admin', lotNumbe
       return Ingredient.updateSpace(ing.name);
     }).then(function(result) {
       resolve(result);
+    }).catch(function(error) {
+      reject(error);
+    })
+  })
+}
+
+module.exports.updateIngredientByLot = function(name, oldAmount, newAmount, lotID) {
+  var ing;
+  return new Promise(function(resolve, reject) {
+    Ingredient.getIngredient(name).then(function(result) {
+      ing = result;
+      var newIngAmount = parseFloat(ing.amount) + parseFloat(newAmount - oldAmount);
+      if (newAmount < 0) {
+        var error = new Error('Storage amount must be a non-negative number');
+        error.status = 400;
+        throw error;
+      } else {
+        return exports.checkAndUpdateInventory(ing.name, ing.package, ing.temperature, parseFloat(ing.unitsPerPackage), newIngAmount);
+      }
+    }).then(function(result) {
+      return Promise.all([Ingredient.justIncrementAmount(name, parseFloat(newAmount - oldAmount)), Ingredient.editLot(name, newAmount, lotID)]);
+    }).then(function(result) {
+      return Ingredient.updateSpace(name);
+    }).then(function(result) {
+      resolve(ing);
     }).catch(function(error) {
       reject(error);
     })
@@ -125,6 +159,24 @@ module.exports.sendIngredientsToProduction = function(formulaId, ingId, amount) 
 module.exports.deleteIngredient = function(name, package, temp, unitsPerPackage, amount) {
   return new Promise(function(resolve, reject) {
     resolve(Promise.all([InventoryHelper.updateInventory(name, package, temp, unitsPerPackage, 0), Ingredient.deleteIngredient(name)]));
+  })
+}
+
+module.exports.deleteLot = function(name, lotID, amount) {
+  return new Promise(function(resolve, reject) {
+    var returnIng;
+    Ingredient.getIngredient(name).then(function(ing) {
+      returnIng = ing;
+      return InventoryHelper.updateInventory(name, ing.package, ing.temperature, ing.unitsPerPackage, parseFloat(ing.amount - amount));
+    }).then(function(result) {
+      return Ingredient.justIncrementAmount(name, -amount);
+    }).then(function(result) {
+      return Promise.all([Ingredient.updateSpace(name), Ingredient.removeLot(name, mongoose.Types.ObjectId(lotID))]);
+    }).then(function(result) {
+      resolve(result[0]);
+    }).catch(function(error) {
+      reject(error);
+    })
   })
 }
 
@@ -184,7 +236,7 @@ module.exports.checkIfVendorSells = function(ingName) {
   });
 }
 
-findCheapestVendor = function(ingName) {
+module.exports.findCheapestVendor = function(ingName) {
   return new Promise(function(resolve, reject) {
     Promise.all([exports.checkIfVendorSells(ingName), Ingredient.getIngredient(ingName)]).then(function(results) {
       let vendors = results[0];
@@ -215,7 +267,7 @@ module.exports.addOrderToCart = function(userId, ingredient, amount) {
     var vendor;
     Ingredient.getIngredient(ingredient).then(function(result) {
       ing = result;
-      return findCheapestVendor(ingredient)
+      return exports.findCheapestVendor(ingredient)
     }).then(function(result) {
       vendor = result;
       let packages = Math.ceil(parseFloat(amount) / parseFloat(ing['unitsPerPackage']));

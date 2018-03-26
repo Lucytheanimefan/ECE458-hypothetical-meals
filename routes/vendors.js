@@ -89,7 +89,7 @@ router.post('/:code/delete', function(req, res, next) {
     vendID = vend._id;
     return VendorHelper.deleteVendor(req.params.code);
   }).then(function(result) {
-    return UserHelper.deleteVendor(req.session.userId, vendID);
+    return UserHelper.checkVendor(req.session.userId, vendID);
   }).then(function(result) {
     let vendor_code = req.params.code;
     logs.makeVendorLog('Delete', 'Deleted vendor <a href="/vendors/' + vendor_code + '">' + vendor_code + '</a>', req.session.username);

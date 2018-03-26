@@ -5,14 +5,10 @@ block link
 
 block content
   .row
-    h1 Backups
-    h3 Restore
-    form(method='POST', action='/backups/restore')
-      input(type='file', name='file', required='')
-      button.btn.btn-primary(type='submit', value='Restore') Restore
-
-  .row
-    h3 Download Backup
+    h3 Make a Manual Backup
+      form(method='POST', action='/backups/makebackup')
+        button.btn.btn-primary(type='submit', value='backup') Backup
+    h3 Download or Restore Backup
     div.card
       div.card-header(data-background-color='purple')
           h4.title Backups
@@ -21,6 +17,8 @@ block content
           thead.text-primary
             th Backup Date
             th Download File (Click to download tar)
+            th Restore
+            th Delete
           tbody
           each file in files
             tr
@@ -28,6 +26,20 @@ block content
                 p= file.uploadDate
               td
                 a(href='/backups/file/'+file.filename)= file.filename
+              td
+                form(method='POST', action='/backups/restore/' + file._id)
+                  input.hide(type='string', name='filename', value=file.filename)
+                  button.btn.btn-primary(type='submit', value='Restore') Restore
+              td
+                form(method='POST', action='/backups/delete/' + file._id)
+                  button.btn.btn-primary(type='submit', value='Delete') Delete
+    div.pages(style="text-align:center;")
+      .col-md-12
+        form(action="/backups/" + (parseInt(page)-1).toString(), method="get" style="display: inline-block;")
+          button.btn.btn-white(type="submit" style="padding: 5px;") <
+        p(style="padding: 10px; display: inline-block;") Page #{parseInt(page)}
+        form(action="/backups/" + (parseInt(page)+1).toString(), method="get" style="display: inline-block;")
+          button.btn.btn-white(type="submit" style="padding: 5px;") >
 
 
         
