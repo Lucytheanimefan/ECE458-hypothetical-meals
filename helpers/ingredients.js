@@ -8,6 +8,7 @@ var Formula = require('../models/formula');
 var UserHelper = require('./users');
 var Spending = require('../models/spending');
 var Production = require('../models/production');
+var Freshness = require('../models/freshness');
 var mongoose = require('mongoose');
 mongoose.Promise = global.Promise;
 
@@ -101,6 +102,17 @@ module.exports.incrementAmount = function(id, amount, vendorID='admin', lotNumbe
       } else {
         return result;
       }
+    }).then(async function(results) {
+      if (amount < 0) {
+        let lotsConsumed = results[1];
+        console.log("reeeeeeeeeee");
+        console.log(lotsConsumed);
+        for (let lot of lotsConsumed) {
+          var time = Date.now() - lot.timestamp;
+          await Freshness.updateReport(lot.ingID, lot.name, lot.amount, time);
+        }
+      }
+      return "done";
     }).then(function(result) {
       return Ingredient.updateSpace(ing.name);
     }).then(function(result) {
