@@ -82,14 +82,14 @@ router.post('/restore/:id', function(req, res, next) {
         stream: readstream,
         callback: function(error) {
           if (error) {
-            sendEmail(['spothorse9.lucy@gmail.com', 'hypotheticalfoods458@gmail.com'], 'Backup restore failed', 'Restore to backup ' + req.body.filename + ' failed', function(err) {})
+            sendEmail('hypotheticalfoods458@gmail.com', 'Backup restore failed', 'Restore to backup ' + req.body.filename + ' failed', function(err) {})
             console.log(error);
             let err = new Error('There was an error with the backup.');
             err.status = 400;
             return next(err);
           } else {
             console.log('Successful restore');
-            sendEmail(['spothorse9.lucy@gmail.com', 'hypotheticalfoods458@gmail.com'], 'Backup restore succeeded', 'Successfully restored to backup ' + req.body.filename, function(err) {});
+            sendEmail('hypotheticalfoods458@gmail.com', 'Backup restore succeeded', 'Successfully restored to backup ' + req.body.filename, function(err) {});
             res.redirect(req.baseUrl);
           }
         }
@@ -188,7 +188,7 @@ var makeBackup = function(backupType = '', callback = null) {
       if (err) {
         console.error(err);
         emailMessage = Date() + ': Failed to create ' + backupType + ' backup ' + fileName + ' due to error: ' + err;
-        sendEmail(['spothorse9.lucy@gmail.com', 'hypotheticalfoods458@gmail.com'], 'Backup Status', emailMessage, function(error, result) {
+        sendEmail('hypotheticalfoods458@gmail.com', 'Backup Status', emailMessage, function(error, result) {
           if (error) {
             console.log('ERROR SENDING EMAIL:');
             console.log(error);
@@ -216,7 +216,7 @@ var makeBackup = function(backupType = '', callback = null) {
             console.log('Wrote file to db');
             console.log(file);
           }
-          sendEmail(['spothorse9.lucy@gmail.com', 'hypotheticalfoods458@gmail.com'], 'Backup Status', emailMessage, function(error, result) {
+          sendEmail('hypotheticalfoods458@gmail.com', 'Backup Status', emailMessage, function(error, result) {
             if (error) {
               console.log('ERROR SENDING EMAIL:');
               console.log(error);
