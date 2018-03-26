@@ -34,7 +34,7 @@ checkNewFreshnessIngredient = function(ingId, report) {
 
 createReports = function() {
   return new Promise(function(resolve, reject) {
-    exports.getIngredient().then(function(report) {
+    exports.getIngredients().then(function(report) {
       if (report == null) {
         resolve(Freshness.create({
           'name': 'ingredients',
