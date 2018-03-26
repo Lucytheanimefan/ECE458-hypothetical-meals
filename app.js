@@ -118,8 +118,8 @@ var CronJob = require('cron').CronJob;
 //      * at 11:30:00 AM. 
 //      */
 //     console.log('Run this every minute');
-//     //backups.makeBackup();
-//     backups.deletePriorBackup(Date(), 6);
+//     backups.makeBackup();
+//     //backups.deletePriorBackup(Date(), 6);
 //   }, function() {
 //     /* This function is executed when the job stops */
 //     console.log('Job done');
@@ -133,8 +133,6 @@ var startJobNow = true;
 var dailyJob = new CronJob('00 30 11 * * 0-6', function() {
     /*
      * Runs everyday
-     * at 11:30:00 AM. It does not run on Saturday
-     * or Sunday.
      */
     console.log('Make daily backup');
     backups.makeBackup('daily');
@@ -148,7 +146,6 @@ var dailyJob = new CronJob('00 30 11 * * 0-6', function() {
 var weeklyJob = new CronJob('00 30 11 * * 1', function() {
     /*
      * Runs every week on Monday
-     * at 11:30:00 AM. 
      */
     console.log('Make weekly backup');
     backups.makeBackup('weekly');
