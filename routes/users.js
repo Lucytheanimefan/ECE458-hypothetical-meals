@@ -552,6 +552,7 @@ router.get('/lot_assignment/:page?', function(req, res, next){
   var orders = [];
   var ingredients = [];
   var ids = [];
+  var ingSize = [];
   userQuery.then(function(user) {
     cart = user.cart;
     var promises = [];
@@ -565,6 +566,7 @@ router.get('/lot_assignment/:page?', function(req, res, next){
     for (let ing of ings) {
       ingredients.push(ing.name);
       ids.push(ing._id.toString());
+      ingSize.push(ing.unitsPerPackage);
     }
     var start = perPage * (page - 1);
     var promises = [];
@@ -580,6 +582,7 @@ router.get('/lot_assignment/:page?', function(req, res, next){
       //promises.push(UserHelper.getCartVendors(cart[i].vendors));
       order['quantity'] = cart[i].quantity;
       order['vendId'] = cart[i].vendor;
+      order['ingSize'] = ingSize[index];
       orders.push(order);
     }
     var vendPromises = [];
@@ -609,6 +612,7 @@ router.post('/lot_assignment/assign', function(req, res, next){
   var currLot = "no lot :(";
   var currIng =  "default ing";
   var currVend = "default vend";
+  var currSize = 0;
   for(var key in req.body) {
     if(req.body.hasOwnProperty(key)){
       console.log(req.body[key]);
@@ -619,6 +623,7 @@ router.post('/lot_assignment/assign', function(req, res, next){
         let ingVend = req.body[key].split("@");
         currIng = ingVend[0];
         currVend = ingVend[1];
+        currSize = ingVend[2];
         console.log("this is ingvend");
         console.log(ingVend);
 
@@ -632,7 +637,7 @@ router.post('/lot_assignment/assign', function(req, res, next){
         console.log(typeof req.body[key]);
 
         let currQuantity = req.body[key];
-        promises.push(IngredientHelper.incrementAmount(currIng,parseFloat(currQuantity),currVend,currLot));
+        promises.push(IngredientHelper.incrementAmount(currIng,parseFloat(currQuantity*currSize),currVend,currLot));
       }
     }
   }
