@@ -36,9 +36,6 @@ module.exports.checkInventory = function(name, package, temp, unitsPerPackage, a
         inv['current'][ingTemperature] = parseFloat(inv['current'][ingTemperature]) - oldSpace;
       }
       inv['current'][temperature] = parseFloat(inv['current'][temperature]) + newSpace;
-      console.log("HERE BOIIIII");
-      console.log(parseFloat(inv['current'][temperature]));
-      console.log(parseFloat(inv['limits'][temperature]));
       var update = (parseFloat(inv['current'][temperature]) <= parseFloat(inv['limits'][temperature]));
       resolve(update);
     }).catch(function(error) {
