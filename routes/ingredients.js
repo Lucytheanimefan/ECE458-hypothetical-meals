@@ -331,7 +331,7 @@ router.post('/order/add/to/cart', function(req, res, next) {
       'ingredient <a href="/ingredients/' + ing['name'] + '">' + ing['name'] + '</a></li>'
     }
     logs.makeLog('Add to cart',
-      'Added the following to cart: <ul>' + logResults + '</ul>'/*{ 'vendor_code': vendor.code, 'Ingredient_ID': mongoose.Types.ObjectId(ing['_id']) }*/, req.session.username);
+      'Added the following to cart: <ul>' + logResults + '</ul>', req.session.username);
     res.redirect('/users/cart');
   }).catch(function(error) {
     next(error);
@@ -344,6 +344,8 @@ router.post('/:name/edit-lot/:oldAmount', function(req, res, next) {
   let oldAmount = parseFloat(req.params.oldAmount);
   let newAmount = parseFloat(req.body.amount);
   IngredientHelper.updateIngredientByLot(ingName, oldAmount, newAmount, lotID).then(function(ing) {
+    logs.makeLog('Update ingredient by lot',
+      'Updated <a href="/ingredients/' + ingName + '">' + ingName + '</a>', req.session.username);
     res.redirect(req.baseUrl + '/' + encodeURIComponent(ingName));
   }).catch(function(error) {
     next(error);
