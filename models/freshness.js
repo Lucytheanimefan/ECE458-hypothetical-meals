@@ -78,7 +78,7 @@ module.exports.addToIngredient = function(ingID, ingName, numUnits, ingTime) {
   return new Promise(function(resolve, reject) {
     Freshness.find({'name': 'ingredients'}).then(function(report) {
       var numIngs, avgTime, worstTime;
-      for (let ingredient of report.freshness) {
+      for (let ingredient of report[0].freshness) {
         if (ingredient.ingredientId.toString() === ingID.toString()) {
           numIngs = ingredient.numIngs;
           avgTime = ingredient.avgTime;
@@ -91,7 +91,7 @@ module.exports.addToIngredient = function(ingID, ingName, numUnits, ingTime) {
       }
       var totalTime = numIngs*avgTime;
       numIngs = numIngs + numUnits;
-      totalTime = totalTime + ingTime;
+      totalTime = totalTime + ingTime*numUnits;
       avgTime = totalTime/numIngs;
       return exports.updateIngredient(ingID, ingName, numIngs, avgTime, worstTime);
     }).then(function(report) {
@@ -104,11 +104,11 @@ module.exports.addToIngredient = function(ingID, ingName, numUnits, ingTime) {
 
 module.exports.addIngredient = function(ingID, ingName, numIngs, avgTime, worstTime) {
   let entry = {ingredientId:ingID, ingredientName:ingName, numIngs:numIngs, avgTime:avgTime, worstTime:worstTime};
-  return Formula.findOneAndUpdate({'name':'ingredients'},{'$push':{'freshness':entry}}).exec();
+  return Freshness.findOneAndUpdate({'name':'ingredients'},{'$push':{'freshness':entry}}).exec();
 }
 
 module.exports.removeIngredient = function(ingredientId){
-  return Formula.findOneAndUpdate({'name':'ingredients'},{'$pull':{'freshness':{'ingredientId':ingredientId}}}).exec();
+  return Freshness.findOneAndUpdate({'name':'ingredients'},{'$pull':{'freshness':{'ingredientId':ingredientId}}}).exec();
 }
 
 module.exports.updateIngredient = function(ingID, ingName, numIngs, avgTime, worstTime) {

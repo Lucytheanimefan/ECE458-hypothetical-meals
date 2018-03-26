@@ -93,9 +93,11 @@ getIngredientName = function(tuple) {
 getIngredientFreshnessName = function(tuple) {
   return new Promise(function(resolve, reject) {
     var entry = {};
+    var avgTime = convertTime(tuple.avgTime);
+    var worstTime = convertTime(tuple.worstTime);
     entry['numIngs'] = tuple.numIngs;
-    entry['avgTime'] = tuple.avgTime;
-    entry['worstTime'] = tuple.worstTime;
+    entry['avgTime'] = avgTime;
+    entry['worstTime'] = worstTime;
     Ingredient.getIngredientById(mongoose.Types.ObjectId(tuple.ingredientId)).then(function(ing) {
       if (ing == null) {
         entry['ingredients'] = tuple.ingredientName;
@@ -109,6 +111,20 @@ getIngredientFreshnessName = function(tuple) {
       reject(error);
     });
   });
+}
+
+convertTime = function(milliseconds) {
+  var days = Math.floor(milliseconds/(1000*60*60*24));
+  milliseconds = milliseconds % (1000*60*60*24);
+  var hours = Math.floor(milliseconds/(1000*60*60));
+  milliseconds = milliseconds % (1000*60*60);
+  var minutes = Math.floor(milliseconds/(1000*60));
+  milliseconds = milliseconds % (1000*60);
+  var seconds = Math.floor(milliseconds/1000);
+  milliseconds = milliseconds % (1000);
+
+  var time = days + " days, " + hours + " hrs, " + minutes + " min, " + seconds + " sec";
+  return time;
 }
 
 module.exports = router;
