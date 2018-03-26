@@ -144,9 +144,6 @@ module.exports.updateIngredientOnCheckout = function(ingId, vendors) {
           }
         }
       }
-      let ingUpdate = IngredientHelper.incrementAmount(ingId, totalPackages*parseFloat(ing.unitsPerPackage));
-      return ingUpdate;
-    }).then(function(result) {
       let ingCostUpdate = IngredientHelper.updateCost(ing.name, totalPackages, averageCost);
       let spendingUpdate = Spending.updateReport(ingId, ing.name, totalCost, 'spending');
       return Promise.all([ingCostUpdate, spendingUpdate]);
