@@ -40,7 +40,7 @@ router.get('/:page', function(req, res, next) {
     formulaPromise = Promise.all(formulaReport.product.map(function(tuple) {
       return getFormulaName(tuple);
     }));
-    ingredientPromise = Promise.all(ingredientReport.ingredients.map(function(tuple) {
+    ingredientPromise = Promise.all(ingredientReport.freshness.map(function(tuple) {
       return getIngredientFreshnessName(tuple);
     }));
     return Promise.all([spendingPromise, productionPromise, formulaPromise, ingredientPromise]);

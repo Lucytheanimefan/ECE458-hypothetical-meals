@@ -102,13 +102,17 @@ module.exports.incrementAmount = function(id, amount, vendorID='admin', lotNumbe
       } else {
         return result;
       }
-    }).then(function(results) {
+    }).then(async function(results) {
       if (amount < 0) {
         let lotsConsumed = results[1];
         console.log("reeeeeeeeeee");
         console.log(lotsConsumed);
+        for (let lot of lotsConsumed) {
+          var time = Date.now() - lot.timestamp();
+          await Freshness.updateReport(lot.name, lot.amount, time));
+        }
       }
-      return 'lel';
+      return "done";
     }).then(function(result) {
       return Ingredient.updateSpace(ing.name);
     }).then(function(result) {
