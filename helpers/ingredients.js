@@ -9,6 +9,7 @@ var UserHelper = require('./users');
 var Spending = require('../models/spending');
 var Production = require('../models/production');
 var Freshness = require('../models/freshness');
+var Recall = require('../models/recall');
 var mongoose = require('mongoose');
 mongoose.Promise = global.Promise;
 
@@ -105,8 +106,6 @@ module.exports.incrementAmount = function(id, amount, vendorID='admin', lotNumbe
     }).then(async function(results) {
       if (amount < 0) {
         let lotsConsumed = results[1];
-        console.log("reeeeeeeeeee");
-        console.log(lotsConsumed);
         for (let lot of lotsConsumed) {
           var time = Date.now() - lot.timestamp;
           await Freshness.updateReport(lot.ingID, lot.name, lot.amount, time);
@@ -121,6 +120,59 @@ module.exports.incrementAmount = function(id, amount, vendorID='admin', lotNumbe
       reject(error);
     })
   })
+}
+
+module.exports.decrementAmountForProduction = function(id, amount, formula, formulaLot) {
+  return new Promise(function(resolve, reject) {
+    var newAmount;
+    var ing;
+    Ingredient.getIngredientById(id).then(function(result) {
+      ing = result;
+      newAmount = parseFloat(ing.amount) + parseFloat(amount);
+      if (newAmount < 0) {
+        var error = new Error('Storage amount must be a non-negative number');
+        error.status = 400;
+        throw error;
+      } else {
+        return exports.checkAndUpdateInventory(ing.name, ing.package, ing.temperature, parseFloat(ing.unitsPerPackage), newAmount);
+      }
+    }).then(function(result) {
+      return Ingredient.decrementAmount(ing.name, amount);
+    }).then(async function(results) {
+      let lotsConsumed = results[1];
+      for (let lot of lotsConsumed) {
+        var time = Date.now() - lot.timestamp;
+        await Freshness.updateReport(lot.ingID, lot.name, lot.amount, time);
+        await Recall.updateReport(formula.name, formulaLot, lot.ingID, lot.lotNumber, lot.vendorID);
+      }
+      return "done";
+    }).then(function(result) {
+      return Ingredient.updateSpace(ing.name);
+    }).then(function(result) {
+      resolve(result);
+    }).catch(function(error) {
+      reject(error);
+    })
+  })
+}
+
+module.exports.sendIngredientsToProduction = function(formulaId, ingId, amount, formulaLot) {
+  return new Promise(function(resolve, reject) {
+    var ing;
+    Promise.all([Ingredient.getIngredientById(ingId), Formula.model.findById(formulaId)]).then(function(results) {
+      ing = results[0];
+      let formula = results[1];
+      let spent = parseFloat(ing.averageCost) * parseFloat(amount);
+      return Promise.all([exports.decrementAmountForProduction(ingId, amount, formula, formulaLot), Spending.updateReport(ingId, ing.name, spent, 'production'), Production.updateReport(formulaId, formula, 0, spent)]);
+    }).then(function(results) {
+      let productionObject = {}
+      productionObject['ingredient'] = ing;
+      productionObject['unitsProduced'] = amount;
+      resolve(productionObject);
+    }).catch(function(error) {
+      reject(error);
+    });
+  });
 }
 
 module.exports.updateIngredientByLot = function(name, oldAmount, newAmount, lotID) {
@@ -146,26 +198,6 @@ module.exports.updateIngredientByLot = function(name, oldAmount, newAmount, lotI
       reject(error);
     })
   })
-}
-
-module.exports.sendIngredientsToProduction = function(formulaId, ingId, amount) {
-  return new Promise(function(resolve, reject) {
-    var ing;
-    Promise.all([Ingredient.getIngredientById(ingId), Formula.model.findById(formulaId)]).then(function(results) {
-      ing = results[0];
-      let formula = results[1];
-      let spent = parseFloat(ing.averageCost) * parseFloat(amount);
-      return Promise.all([exports.incrementAmount(ingId, -amount), Spending.updateReport(ingId, ing.name, spent, 'production'),
-        Production.updateReport(formulaId, formula, 0, spent)]);
-    }).then(function(results) {
-      let productionObject = {}
-      productionObject['ingredient'] = ing;
-      productionObject['unitsProduced'] = amount;
-      resolve(productionObject);
-    }).catch(function(error) {
-      reject(error);
-    });
-  });
 }
 
 module.exports.deleteIngredient = function(name, package, temp, unitsPerPackage, amount) {
@@ -281,6 +313,8 @@ module.exports.addOrderToCart = function(userId, ingredient, amount) {
       ing = result;
       return exports.findCheapestVendor(ingredient)
     }).then(function(result) {
+      console.log('reeeeeeeeeeeeeeee');
+      console.log(result);
       vendor = result;
       let packages = Math.ceil(parseFloat(amount) / parseFloat(ing['unitsPerPackage']));
       return UserHelper.addToCart(userId, mongoose.Types.ObjectId(ing['_id']), packages, vendor.name);

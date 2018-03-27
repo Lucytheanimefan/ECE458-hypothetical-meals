@@ -155,7 +155,8 @@ getVendor = function(lot) {
 displayTimestamps = function(sets) {
   let newSets = [];
   for (let set of sets) {
-    set['stringTimestamp'] = Date(set['timestamp']).toString();
+    console.log(set);
+    set['stringTimestamp'] = new Date(set['timestamp']);
     newSets.push(set);
   }
   return newSets;
