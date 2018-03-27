@@ -61,8 +61,9 @@ createReport = function() {
 module.exports.createLotEntry = function(ingLot, vendorID) {
   return new Promise(function(resolve, reject) {
     var newEntry;
-    Vendor.findVendorById(vendorID).then(function(vendor) {
-      if (vendorID == 'admin') {
+    var promise;
+    if (vendorID == 'admin') {
+      promise = new Promise(function(resolve, reject) {
         newEntry = {
           'vendorID': vendorID,
           'vendorName': vendorID,
@@ -70,15 +71,25 @@ module.exports.createLotEntry = function(ingLot, vendorID) {
           'lotNumber': ingLot,
           'products': []
         };
-      } else {
-        newEntry = {
-          'vendorID': vendorID,
-          'vendorName': vendor.name,
-          'vendorCode': vendor.code,
-          'lotNumber': ingLot,
-          'products': []
-        }
-      }
+        resolve(newEntry);
+      });
+    } else {
+      promise = new Promise(function(resolve, reject) {
+        Vendor.findVendorById(vendorID).then(function(vendor) {
+          newEntry = {
+            'vendorID': vendorID,
+            'vendorName': vendor.name,
+            'vendorCode': vendor.code,
+            'lotNumber': ingLot,
+            'products': []
+          }
+          resolve(newEntry);
+        }).catch(function(error) {
+          reject(error);
+        });
+      });
+    }
+    promise.then(function(entry) {
       return RealRecall.findOne({'$and': [{'name': 'recall'}, {'vendorLots': {'$elemMatch': {'vendorID': vendorID, 'lotNumber': ingLot}}}]});
     }).then(function(recall) {
       if (recall == null) {
@@ -100,9 +111,10 @@ module.exports.updateReport = function(formulaID, formulaLot, intermediate, ingI
     }).then(function(report) {
       globalReport = report;
       if (vendorID == 'admin') {
-        return Promise.all([Ingredient.getIngredientById(ingID), {'name': 'admin'}]);
+        return Promise.all([Ingredient.getIngredientById(ingID), {'name': 'admin'}, Formula.model.findById(formulaID).exec()]);
+      } else {
+        return Promise.all([Ingredient.getIngredientById(ingID), Vendor.findVendorById(vendorID), Formula.model.findById(formulaID).exec()]);
       }
-      return Promise.all([Ingredient.getIngredientById(ingID), Vendor.findVendorById(vendorID), Formula.model.findById(formulaID).exec()]);
     }).then(function(result) {
       var ing = result[0];
       var vendor = result[1];
@@ -122,9 +134,9 @@ module.exports.getRecallProducts = function(vendorCode, lotNumber) {
   return new Promise(function(resolve, reject) {
     let finalProducts = [];
     exports.getRecall().then(function(report) {
-      let products;
+      let products = [];
       for (let record of report['vendorLots']) {
-        if (record.vendorCode == vendorCode && record.lotNumber = lotNumber) {
+        if (record['vendorCode'] == vendorCode && record['lotNumber'] == lotNumber) {
           products = record.products;
           break;
         }
@@ -140,11 +152,14 @@ module.exports.getRecallProducts = function(vendorCode, lotNumber) {
       if (intermediates.length == 0) {
         return [];
       } else {
-        return Promises.all(intermediates.map(function(tuple) {
-          exports.getRecallProducts(tuple.vendorCode, tuple.lotNumber);
+        console.log(intermediates);
+        return Promise.all(intermediates.map(function(tuple) {
+          return exports.getRecallProducts(tuple.vendorCode, tuple.lotNumber);
         }));
       }
     }).then(function(results) {
+      console.log('reeeeeeeeee');
+      console.log(results);
       results.forEach(function(arr) {
         Array.prototype.push.apply(finalProducts, arr);
       });

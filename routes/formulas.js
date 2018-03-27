@@ -167,7 +167,7 @@ router.post('/:name/order/:amount', function(req, res, next) {
     return Ingredient.getIngredient(formulaName);
   }).then(function(ing) {
     if (globalFormula.intermediate) {
-      return IngredientHelper.incrementAmount(ing._id, parseFloat(amount), 'admin', Math.floor(Math.random() * (max - min)) + min)
+      return IngredientHelper.incrementAmount(ing._id, parseFloat(amount), 'admin', formulaLot)
     } else {
       return globalFormula;
     }

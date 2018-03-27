@@ -74,8 +74,9 @@ module.exports.updateReport = function(formulaName, formulaLot, ingID, ingLot, v
     }).then(function(report) {
       if (vendorID == 'admin') {
         return Promise.all([Ingredient.getIngredientById(ingID), {'name': 'admin'}]);
+      } else {
+        return Promise.all([Ingredient.getIngredientById(ingID), Vendor.findVendorById(vendorID)]);
       }
-      return Promise.all([Ingredient.getIngredientById(ingID), Vendor.findVendorById(vendorID)]);
     }).then(function(result) {
       var ing = result[0];
       var vendor = result[1];

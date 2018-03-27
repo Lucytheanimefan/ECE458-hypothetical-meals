@@ -6,7 +6,7 @@ var Production = require('../models/production');
 var Formula = require('../models/formula');
 var Freshness = require('../models/freshness');
 var Ingredient = require('../models/ingredient');
-var RealRecall = require('../models/recall');
+var RealRecall = require('../models/real_recall');
 
 var mongoose = require('mongoose')
 mongoose.Promise = global.Promise;
@@ -52,13 +52,39 @@ router.get('/:page', function(req, res, next) {
   })
 })
 
-router.get('/recall', function(req, res, next) {
-  let vendorCode = req.query.code;
-  let lotNumber = req.query.lotNumber;
+router.post('/recall', function(req, res, next) {
+  let vendorCode = req.body.code;
+  let lotNumber = req.body.lotNumber;
 
-  Recall.get
+  RealRecall.getRecallProducts(vendorCode, lotNumber).then(function(products) {
+    return Promise.all(products.map(function(tuple) {
+      return addFormulaNameRecall(tuple);
+    }));
+  }).then(function(results) {
+    res.render('recall', {vendorCode: vendorCode, lotNumber: lotNumber, products: results});
+  }).catch(function(error) {
+    next(error);
+  })
 
 })
+
+addFormulaNameRecall = function(tuple) {
+  return new Promise(function(resolve, reject) {
+    Formula.model.findById(tuple.formulaID).then(function(formula) {
+      if (formula == null) {
+        tuple['current'] = false;
+      } else {
+        tuple['current'] = true;
+      }
+      tuple['timestamp'] = mongoose.Types.ObjectId(tuple['_id']).getTimestamp().toString();
+      return tuple;
+    }).then(function(tuple) {
+      resolve(tuple);
+    }).catch(function(error) {
+      reject(error);
+    })
+  })
+}
 
 getFormulaName = function(tuple) {
   return new Promise(function(resolve, reject) {
