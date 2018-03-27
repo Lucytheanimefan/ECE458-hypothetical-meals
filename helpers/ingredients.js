@@ -10,6 +10,7 @@ var Spending = require('../models/spending');
 var Production = require('../models/production');
 var Freshness = require('../models/freshness');
 var Recall = require('../models/recall');
+var RealRecall = require('../models/real_recall');
 var mongoose = require('mongoose');
 mongoose.Promise = global.Promise;
 
@@ -141,9 +142,13 @@ module.exports.decrementAmountForProduction = function(id, amount, formula, form
     }).then(async function(results) {
       let lotsConsumed = results[1];
       for (let lot of lotsConsumed) {
+        await RealRecall.createLotEntry(lot.lotNumber, lot.vendorID);
+      }
+      for (let lot of lotsConsumed) {
         var time = Date.now() - lot.timestamp;
         await Freshness.updateReport(lot.ingID, lot.name, lot.amount, time);
         await Recall.updateReport(formula.name, formulaLot, lot.ingID, lot.lotNumber, lot.vendorID);
+        await RealRecall.updateReport(formula.id, formulaLot, formula.intermediate, lot.ingID, lot.lotNumber, lot.vendorID);
       }
       return "done";
     }).then(function(result) {

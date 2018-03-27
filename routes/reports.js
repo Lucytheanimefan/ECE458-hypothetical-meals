@@ -6,6 +6,7 @@ var Production = require('../models/production');
 var Formula = require('../models/formula');
 var Freshness = require('../models/freshness');
 var Ingredient = require('../models/ingredient');
+var RealRecall = require('../models/recall');
 
 var mongoose = require('mongoose')
 mongoose.Promise = global.Promise;
@@ -49,6 +50,14 @@ router.get('/:page', function(req, res, next) {
   }).catch(function(error) {
     next(error);
   })
+})
+
+router.get('/recall', function(req, res, next) {
+  let vendorCode = req.query.code;
+  let lotNumber = req.query.lotNumber;
+
+  Recall.get
+
 })
 
 getFormulaName = function(tuple) {
