@@ -11,23 +11,28 @@ var grid = require('gridfs-stream');
 var nodemailer = require('nodemailer');
 
 
-
-router.get('/', function(req, res, next) {
+router.get('/:page?', function(req, res, next) {
   if (req.session.role !== 'it_person') {
     let err = new Error('This user does not have permissions to access backups');
     err.status = 403;
     return next(err);
   }
+  var page = parseInt(req.params.page);
+  if (page == null || isNaN(page) || page < 0) {
+    page = 0;
+  }
+  var perPage = 7;
   grid.mongo = backupMongoose.mongo;
   var conn = backupMongoose.createConnection(variables.backupURI);
   conn.once('open', function() {
     var gfs = grid(conn.db);
-    gfs.files.find({}).toArray(function(err, files) {
+    gfs.files.find({}).limit(perPage).skip(perPage * page).sort({ uploadDate: -1 }).toArray(function(err, files) {
       if (err) {
         console.log(err);
         next(err);
       }
-      res.render('backups', { files: files });
+      
+      res.render('backups', { files: files, page: page });
     });
   })
 })
@@ -77,14 +82,14 @@ router.post('/restore/:id', function(req, res, next) {
         stream: readstream,
         callback: function(error) {
           if (error) {
-            sendEmail(['spothorse9.lucy@gmail.com', 'hypotheticalfoods458@gmail.com'], 'Backup restore failed', 'Restore to backup ' + req.body.filename + ' failed', function(err) {})
+            sendEmail('hypotheticalfoods458@gmail.com', 'Backup restore failed', 'Restore to backup ' + req.body.filename + ' failed', function(err) {})
             console.log(error);
             let err = new Error('There was an error with the backup.');
             err.status = 400;
             return next(err);
           } else {
             console.log('Successful restore');
-            sendEmail(['spothorse9.lucy@gmail.com', 'hypotheticalfoods458@gmail.com'], 'Backup restore succeeded', 'Successfully restored to backup ' + req.body.filename, function(err) {});
+            sendEmail('hypotheticalfoods458@gmail.com', 'Backup restore succeeded', 'Successfully restored to backup ' + req.body.filename, function(err) {});
             res.redirect(req.baseUrl);
           }
         }
@@ -94,8 +99,28 @@ router.post('/restore/:id', function(req, res, next) {
       next(err);
     }
   })
+})
 
+router.post('/delete/:id', function(req, res, next) {
+  grid.mongo = backupMongoose.mongo;
+  var conn = backupMongoose.createConnection(variables.backupURI);
+  conn.once('open', function() {
+    var gfs = grid(conn.db);
+    gfs.remove({ "_id": req.params.id }, function(err, gridStore) {
+      if (err) return next(err);
+      console.log('success deleting backup');
+      res.redirect(req.baseUrl);
+    });
+  })
+})
 
+router.post('/makebackup', function(req, res, next) {
+  makeBackup('', function(err) {
+    if (err) {
+      return next(err);
+    }
+    res.redirect(req.baseUrl);
+  });
 })
 
 var sendEmail = function(receiver, subject, html_message, callback) {
@@ -149,10 +174,7 @@ var putFile = function(path, name, callback) {
   })
 }
 
-module.exports = router;
-
-
-module.exports.makeBackup = function(backupType = '') {
+var makeBackup = function(backupType = '', callback = null) {
   //console.log(__dirname);
   var date = new Date().yyyymmdd();
   var filePath = path.resolve(__dirname, '..', 'backups'); // + date;
@@ -166,13 +188,19 @@ module.exports.makeBackup = function(backupType = '') {
       if (err) {
         console.error(err);
         emailMessage = Date() + ': Failed to create ' + backupType + ' backup ' + fileName + ' due to error: ' + err;
-        sendEmail(['spothorse9.lucy@gmail.com', 'hypotheticalfoods458@gmail.com'], 'Backup Status', emailMessage, function(error, result) {
+        sendEmail('hypotheticalfoods458@gmail.com', 'Backup Status', emailMessage, function(error, result) {
           if (error) {
             console.log('ERROR SENDING EMAIL:');
             console.log(error);
+            if (callback) {
+              callback(error);
+            }
           } else {
             console.log('SUCCESS SENDING EMAIL');
             console.log(result);
+            if (callback) {
+              callback(null);
+            }
           }
         })
       } else {
@@ -188,19 +216,33 @@ module.exports.makeBackup = function(backupType = '') {
             console.log('Wrote file to db');
             console.log(file);
           }
-          sendEmail(['spothorse9.lucy@gmail.com', 'hypotheticalfoods458@gmail.com'], 'Backup Status', emailMessage, function(error, result) {
+          sendEmail('hypotheticalfoods458@gmail.com', 'Backup Status', emailMessage, function(error, result) {
             if (error) {
               console.log('ERROR SENDING EMAIL:');
               console.log(error);
+              if (callback) {
+                callback(error);
+              }
             } else {
               console.log('SUCCESS SENDING EMAIL');
               console.log(result);
+              if (callback) {
+                callback(null);
+              }
             }
           })
         })
       }
     }
   });
+}
+
+module.exports = router;
+
+
+module.exports.makeBackup = function(backupType = '') {
+  //console.log(__dirname);
+  makeBackup(backupType);
 }
 
 module.exports.deletePriorBackup = function(endDate, daysBefore) {
