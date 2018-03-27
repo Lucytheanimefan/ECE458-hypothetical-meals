@@ -260,11 +260,11 @@ module.exports.consumeLots = function(name, amount) {
         pullIDs.push(mongoose.Types.ObjectId(lot['_id']));
         if (remaining >= parseFloat(lot['units'])) {
           remaining -= parseFloat(lot['units']);
-          consumedList.push({'ingID': ing._id, 'name': name, 'amount': lot['units'], 'timestamp': lot['timestamp']});
+          consumedList.push({'ingID': ing._id, 'name': name, 'amount': lot['units'], 'timestamp': lot['timestamp'], 'lotNumber': lot['lotNumber'], 'vendorID': lot['vendorID']});
         } else {
           newEntry = copyLotEntry(lot, remaining);
           update = true;
-          consumedList.push({'ingID': ing._id, 'name': name, 'amount': remaining, 'timestamp': lot['timestamp']});
+          consumedList.push({'ingID': ing._id, 'name': name, 'amount': remaining, 'timestamp': lot['timestamp'], 'lotNumber': lot['lotNumber'], 'vendorID': lot['vendorID']});
           break;
         }
       }

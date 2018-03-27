@@ -570,12 +570,13 @@ function addPackage(index){
   newHTML += '<div class="col-md-2"><p><br/><br/><br/><br/></p>';
   newHTML += '</div>';
   newHTML += '<div class="col-md-3"><div class="form-group"></div><label class="control-label">Ingredient</label>';
-  newHTML += '<select class="form-control" id="ingredient' + index + "_" + next + '" name="ingredient' + index + "_" + next + '"><option disabled="" selected="" value="">Select an Ingredient</option>';
+  newHTML += '<select class="form-control" id="ingredient' + index + "_" + next + '" name="ingredient' + index + "_" + next + '"><option disabled="" selected="" value="">Select from Order</option>';
   var i;
   for (i = 0; i < ingredients.length; i++) {
     console.log(ingredients);
     var ing = ingredients[i];
-    newHTML += '<option value=' + ing.ingId + '@' + ing.vendId + '@' + ing.ingSize + '>' + ing.ingredient + '</option>';
+    //newHTML += '<option value=' + ing.ingId + '@' + ing.vendId + '@' + ing.ingSize + '>' + ing.ingredient + '</option>';
+    newHTML += '<option value=' + ing.ingId + '@' + ing.vendId +  '@' + ing.ingSize + '>' + ing.ingredient + ' from ' + ing.vendor[0].name + '</option>';
   }
   newHTML += '</select></div>';
 

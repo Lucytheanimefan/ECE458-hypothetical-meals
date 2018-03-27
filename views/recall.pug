@@ -1,0 +1,27 @@
+extends layout
+block link
+  -var selected = 'Report';
+
+block content
+  div.card
+    div.card-header(data-background-color='purple')
+      h4.title= 'Recall Report for Vendor ' + vendorCode + ' and Lot Number ' + lotNumber
+    div.card-content.table-response
+      input.form-control#ingredientInput(type='text',onkeyup='filterTable(\'ingredient\')', placeholder='Search for ingredients..', title='Type in some search text')
+      table.table#ingredientTable
+        thead.text-primary
+          th(onclick='sortTable(0, \'ingredient\')') Final Product
+          th(onclick='sortTable(1, \'ingredient\')') Lot Number
+          th(onclick='sortTable(2, \'ingredient\')') Time Produced
+        tbody
+        if products
+          each tuple in products
+            tr
+              if tuple.current
+                td
+                  a(href='/formulas/' + encodeURIComponent(tuple.productName))= tuple.productName
+              else
+                td= tuple.productName
+              td= tuple.lotNumber
+              td= tuple.timestamp
+        else
