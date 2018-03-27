@@ -79,6 +79,9 @@ block content
         div.card-content.table-response
           form(action='/reports/recall', method='post')
             .form-group
+              label.control-label Ingredient Name
+              input.form-control(type='text', name='name', required='')
+            .form-group
               label.control-label Vendor Code
               input.form-control(type='text', name='code', required='')
             .form-group

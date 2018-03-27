@@ -55,13 +55,14 @@ router.get('/:page', function(req, res, next) {
 router.post('/recall', function(req, res, next) {
   let vendorCode = req.body.code;
   let lotNumber = req.body.lotNumber;
+  let ingName = req.body.name;
 
-  RealRecall.getRecallProducts(vendorCode, lotNumber).then(function(products) {
+  RealRecall.getRecallProducts(ingName, vendorCode, lotNumber).then(function(products) {
     return Promise.all(products.map(function(tuple) {
       return addFormulaNameRecall(tuple);
     }));
   }).then(function(results) {
-    res.render('recall', {vendorCode: vendorCode, lotNumber: lotNumber, products: results});
+    res.render('recall', {ingName: ingName, vendorCode: vendorCode, lotNumber: lotNumber, products: results});
   }).catch(function(error) {
     next(error);
   })
