@@ -294,6 +294,8 @@ router.get('/cart/:page?', function(req, res, next) {
     cart = user.cart;
     var promises = [];
     for (let order of cart) {
+      console.log("ORDER");
+      console.log(order.ingredient);
       promises.push(Ingredient.getIngredientById(order.ingredient));
     }
     return Promise.all(promises);
@@ -524,8 +526,6 @@ router.post('/place_order', function(req, res, next) {
       tuple['vendor'] = order.vendor;
       tuple['quantity'] = order.quantity;
       promises.push(UserHelper.updateIngredientOnCheckout(mongoose.Types.ObjectId(order.ingredient), [tuple]));
-      //promises.push(Spending.updateReport(order.ingredient, ingName, spent, reportType));
-      //promises.push(UserHelper.removeOrder(req.session.userId, order.ingredient));
     }
     return Promise.all(promises);
   }).then(function(ings) {

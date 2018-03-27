@@ -613,9 +613,10 @@ function selectVendor(orders) {
     var vendors = order.vendors;
     for (v = 0; v < vendors.length; v++) {
       var name = vendors[v].name;
-      $("#" + order.ingredient).val(name).attr("selected", "true");
-      name = $("#" + order.ingredient + " option:selected").text()
-      $("#" + order.ingredient).attr('data-ingredientname', name);
+      var ingName = (order.ingredient).split(' ').join('');
+      $("#" + ingName).val(name).attr("selected", "true");
+      name = $("#" + ingName + " option:selected").text()
+      $("#" + ingName).attr('data-ingredientname', name);
     }
   }
 }
