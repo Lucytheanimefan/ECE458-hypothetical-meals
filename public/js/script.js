@@ -615,7 +615,6 @@ function selectVendor(orders) {
       var id = vendors[v].id;
       if (id.toString() === order.vendor.toString()) {
         var name = vendors[v].name;
-        console.log(name);
         var ingName = (order.ingredient).split(' ').join('');
         $("#" + ingName).val(name).attr("selected", "true");
         name = $("#" + ingName + " option:selected").text()

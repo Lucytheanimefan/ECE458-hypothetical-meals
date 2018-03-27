@@ -43,7 +43,7 @@ block content
             input.form-control(type='text', name='name', required='')
           .form-group
             label.control-label Description
-            textarea.form-control(name='description' rows='5' cols='100')
+            textarea.form-control(name='description' rows='5' cols='100' style='border:1px solid #cccccc;')
           .form-group
             label.control-label Type of Product
             select.form-control#type-selector(name='type', placeholder = '', required='', onclick='showIngredientInfo()')
@@ -108,4 +108,3 @@ block scripts
     var ingredients = document.getElementById('data2').dataset.ingredients;
     ingredients = JSON.parse(ingredients);
     createTuples(ingredients, 1);
-

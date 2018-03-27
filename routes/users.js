@@ -657,7 +657,7 @@ router.post('/lot_assignment/assign', function(req, res, next){
     }
     return Promise.all(promises);
   })
-  res.redirect('/');
+  res.redirect('/ingredients');
 })
 
 router.get('/report/:page?', function(req, res, next) {
