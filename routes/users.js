@@ -487,6 +487,7 @@ router.get('/checkout_cart/:page?', function(req, res, next) {
       var orderVendors = vendors[index];
       order['ingredient'] = ingName;
       order['quantity'] = cart[i].quantity;
+      order['vendor'] = cart[i].vendor;
       order ['vendors'] = orderVendors;
       orders.push(order);
     }

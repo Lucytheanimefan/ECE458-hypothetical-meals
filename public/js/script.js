@@ -612,11 +612,16 @@ function selectVendor(orders) {
     var order = orders[o];
     var vendors = order.vendors;
     for (v = 0; v < vendors.length; v++) {
-      var name = vendors[v].name;
-      var ingName = (order.ingredient).split(' ').join('');
-      $("#" + ingName).val(name).attr("selected", "true");
-      name = $("#" + ingName + " option:selected").text()
-      $("#" + ingName).attr('data-ingredientname', name);
+      var id = vendors[v].id;
+      if (id.toString() === order.vendor.toString()) {
+        var name = vendors[v].name;
+        console.log(name);
+        var ingName = (order.ingredient).split(' ').join('');
+        $("#" + ingName).val(name).attr("selected", "true");
+        name = $("#" + ingName + " option:selected").text()
+        $("#" + ingName).attr('data-ingredientname', name);
+        break;
+      }
     }
   }
 }
