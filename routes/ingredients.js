@@ -155,7 +155,8 @@ getVendor = function(lot) {
 displayTimestamps = function(sets) {
   let newSets = [];
   for (let set of sets) {
-    set['stringTimestamp'] = Date(set['timestamp']).toString();
+    console.log(set);
+    set['stringTimestamp'] = new Date(set['timestamp']);
     newSets.push(set);
   }
   return newSets;
@@ -211,26 +212,6 @@ router.post('/:name/update', function(req, res, next) {
     parseFloat(req.body.unitsPerPackage)
   );
   updatePromise.then(function(ingredient) {
-    logs.makeIngredientLog('Update ingredient', 'Updated <a href="/ingredients/' + req.params.name + '">' + req.params.name + '</a>', initiating_user);
-    res.redirect(req.baseUrl + '/' + encodeURIComponent(ingName));
-  }).catch(function(error) {
-    next(error);
-  });
-});
-
-router.post('/:name/updateamount', function(req, res, next) {
-  let ingName = req.params.name;
-  let initiating_user = req.session.username;
-  console.log(initiating_user)
-
-  Ingredient.getIngredient(ingName).then(function(ingredient) {
-    let updateAmount = parseFloat(req.body.amount) - parseFloat(ingredient.amount);
-    var updatePromise = IngredientHelper.incrementAmount(
-      ingredient._id,
-      updateAmount
-    );
-    return updatePromise;
-  }).then(function(ing) {
     logs.makeIngredientLog('Update ingredient', 'Updated <a href="/ingredients/' + req.params.name + '">' + req.params.name + '</a>', initiating_user);
     res.redirect(req.baseUrl + '/' + encodeURIComponent(ingName));
   }).catch(function(error) {

@@ -77,6 +77,14 @@ block content
         div.card-header(data-background-color='purple')
           h4.title Recall Report
         div.card-content.table-response
+          form(action='/reports/recall', method='post')
+            .form-group
+              label.control-label Vendor Code
+              input.form-control(type='text', name='code', required='')
+            .form-group
+              label.control-label Lot Number
+              input.form-control(type='text', name='lotNumber', required='')
+            button.btn.btn-primary.pull-left(type='submit', value='recall report') Get Recall Report
 
     #ingredient-table.card-content.tab-pane.fade
       div.card

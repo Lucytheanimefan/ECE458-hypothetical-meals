@@ -5,6 +5,7 @@ var FormulaHelper = require('../helpers/formula');
 var IngredientHelper = require('../helpers/ingredients');
 var Ingredient = require('../models/ingredient');
 var Production = require('../models/production');
+var Recall = require('../models/recall');
 var underscore = require('underscore');
 var mongoose = require('mongoose');
 mongoose.Promise = global.Promise;
@@ -32,14 +33,18 @@ router.get('/home/:page?', function(req, res, next) {
     } else {
       var ingredients = [];
       var ingQuery = Ingredient.getAllIngredients();
-      ingQuery.then(function(result) {
+      var report;
+      Recall.getProducts().then(function(result) {
+        report = result;
+        return ingQuery;
+      }).then(function(result) {
         for (let ing of result) {
           ingredients.push({ _id: ing._id, name: ing.name });
         }
         for (let formula of formulas) {
           formula.tuples = underscore.sortBy(formula.tuples, "index");
         }
-        res.render('formulas', { formulas: formulas, ingredients: ingredients, page: page });
+        res.render('formulas', { formulas: formulas, ingredients: ingredients, page: page, report: report });
       }).catch(function(error) {
         reject(error);
       })
@@ -146,27 +151,30 @@ router.post('/:name/order/:amount', function(req, res, next) {
   let amount = parseFloat(req.params.amount);
   var formulaId;
   var globalFormula;
+  var formulaLot; 
   Formula.findFormulaByName(formulaName).then(function(formula) {
     globalFormula = formula;
     formulaId = mongoose.Types.ObjectId(formula['_id']);
-    return Promise.all([FormulaHelper.createListOfTuples(formulaName, amount), Production.updateReport(formulaId, formulaName, amount, 0)]);
+    formulaLot = (Math.floor(Math.random() * (max - min)) + min).toString();
+    return Promise.all([FormulaHelper.createListOfTuples(formulaName, amount), Production.updateReport(formulaId, formulaName, amount, 0), Recall.createLotEntry(formulaName, formulaLot, formula.intermediate)]);
   }).then(function(results) {
     let total = results[0];
     return Promise.all(total.map(function(ingTuple) {
-      return IngredientHelper.sendIngredientsToProduction(formulaId, mongoose.Types.ObjectId(ingTuple['id']), parseFloat(ingTuple['amount']));
+      return IngredientHelper.sendIngredientsToProduction(formulaId, mongoose.Types.ObjectId(ingTuple['id']), parseFloat(ingTuple['amount']), formulaLot);
     }));
   }).then(function(results) {
     logs.makeLog('Production', 'Send ingredients to production', req.session.username);
     return Ingredient.getIngredient(formulaName);
   }).then(function(ing) {
     if (globalFormula.intermediate) {
-      return IngredientHelper.incrementAmount(ing._id, parseFloat(amount), 'admin', Math.floor(Math.random() * (max - min)) + min)
+      return IngredientHelper.incrementAmount(ing._id, parseFloat(amount), 'admin', formulaLot)
     } else {
       return globalFormula;
     }
   }).then(function(result) {
     res.redirect('/formulas');
   }).catch(function(error) {
+    console.log(error);
     next(error);
   });
 })
