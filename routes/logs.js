@@ -4,7 +4,12 @@ var express = require('express');
 var router = express.Router();
 
 
-router.get('/:page?', (req, res, next) => {
+router.get('/', (req, res, next) => {
+  res.redirect(req.baseUrl + '/page/0');
+});
+
+router.get('/page/:page?', (req, res, next) => {
+  console.log('LOGS BY PAGE');
   var page = parseInt(req.params.page);
   if (page == null || isNaN(page) || page < 0) {
     page = 0;
@@ -38,11 +43,16 @@ router.get('/log/:id', (req, res, next) => {
 })
 
 router.get('/date', (req, res, next) => {
+  console.log('GET DATE!');
   let startDate = req.query.start;
   let endDate = req.query.end;
+  console.log('Start date: ' + startDate);
+  console.log('End date: ' + endDate);
+  console.log(typeof(startDate));
   //new Date(2012, 7, 14)
   Log.find({ 'time': { "$gte": startDate, "$lt": endDate } }).exec(function(err, logs) {
     if (err) {
+      console.log(err);
       return next(err);
     }
     res.render('logs', { logs: logs });
