@@ -63,9 +63,6 @@ block content
                   a(href="/vendors/" + set.vendor.code)= set.vendor.name
               td= set.lotNumber
               td= set.units
-        div.delete-form.adminOnly.hide
-          form(action='/ingredients/' + encodeURIComponent(ingredient.name) + '/delete', method='post')
-            button.btn.btn-primary.pull-right(style="margin: 30px 15px;" type='submit') Delete ingredient
         unless ingredient.isIntermediate
           div.card#vendor-info
             div.card-header(data-background-color='purple')
@@ -87,6 +84,9 @@ block content
               div.next
                 form(action='/ingredients/' + encodeURIComponent(ingredient.name) + '/' + amount + '/' + (parseInt(page)+1).toString(), method='get')
                   button.btn.btn-white(type="submit" style="padding: 5px;") >
+        div.delete-form.adminOnly.hide
+          form(action='/ingredients/' + encodeURIComponent(ingredient.name) + '/delete', method='post')
+            button.btn.btn-primary.pull-right(style="margin: 30px 0px;" type='submit') Delete ingredient
 
       .adminOnly.hide.card-content.tab-pane.fade#update-form
         h1= 'Update ingredient'

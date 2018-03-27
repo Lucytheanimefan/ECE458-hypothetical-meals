@@ -424,13 +424,13 @@ function createLotTuples(ingredients, start) {
     newHTML += '<input class="form-control" id="lotnumber' + next + '" type="text" name="lotnumber' + next + '"/></div>';
     newHTML += '<div class="row" id="ing' + next + "_" + 1 + '" class="row">';
     newHTML += '<div class="col-md-3"><div class="form-group"></div><label class="control-label">Ingredient</label>';
-    newHTML += '<select class="form-control" id="ingredient' + next + "_" + 1 + '" name="ingredient' + next + "_" + 1 + '"><option disabled="" selected="" value="">Select an Ingredient</option>';
+    newHTML += '<select class="form-control" id="ingredient' + next + "_" + 1 + '" name="ingredient' + next + "_" + 1 + '"><option disabled="" selected="" value="">Select from Order</option>';
     var i;
     console.log("ing bois");
     console.log(ingredients);
     for (i = 0; i < ingredients.length; i++) {
       var ing = ingredients[i];
-      newHTML += '<option value=' + ing.ingId + '@' + ing.vendId +  '@' + ing.ingSize + '>' + ing.ingredient + '</option>';
+      newHTML += '<option value=' + ing.ingId + '@' + ing.vendId +  '@' + ing.ingSize + '>' + ing.ingredient + ' from ' + ing.vendor[0].name + '</option>';
     }
     newHTML += '</select></div>';
 
@@ -447,7 +447,7 @@ function createLotTuples(ingredients, start) {
     newHTML += '<button class="btn btn-round btn-just-icon add" type="button" value="remove" onclick=addPackage(' + next + ')><i class="material-icons">add</i></button></div>';
 
     newHTML += '<div class="col-md-1"><p><br/><br/></p>';
-    newHTML += '<button class="btn btn-round btn-just-icon remove" type="button" value="remove" onclick=deleteTuple2(' + next + ') style="background-color:red;"><i class="material-icons">delete</i></button></div>';
+    newHTML += '<button class="btn btn-primary remove" type="button" value="remove" onclick=deleteTuple2(' + next + ') style="padding:10px; background-color:red;">Delete Lot</button></div>';
 
 
     //newHTML += '<div class="removeBtn" id="dataBtn">';
@@ -615,7 +615,6 @@ function selectVendor(orders) {
       var id = vendors[v].id;
       if (id.toString() === order.vendor.toString()) {
         var name = vendors[v].name;
-        console.log(name);
         var ingName = (order.ingredient).split(' ').join('');
         $("#" + ingName).val(name).attr("selected", "true");
         name = $("#" + ingName + " option:selected").text()

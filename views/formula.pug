@@ -76,7 +76,7 @@ block content
             input.form-control(type='text', name='name', value = formula.name, required='')
           .form-group
             label.control-label Description
-            input.form-control(type='text', name='description', value = formula.description, required='')
+            textarea.form-control(name='description', rows='5', cols='100', required='', style='border:1px solid #cccccc;') #{formula.description}
           div.tupleRow#data(data-ingredients=ingredients, data-tuples=formula.tuples, data-formula=formula.name)
             .row
               .col-md-11

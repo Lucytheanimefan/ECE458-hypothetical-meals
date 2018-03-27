@@ -77,8 +77,7 @@ block content
               .col-md-1
                 p
                   br
-                button#newlot.btn.btn-round.btn-just-icon.add-more(type='button', value='add')
-                  i.material-icons add
+                button#newlot.btn.btn-primary.add-more(type='button', value='add', style='padding: 10px; background-color: #999999;') New Lot
           button.btn.btn-primary.pull-right(type='submit', value='add vendor') Assign Lots
         div.previous
           form(action='/users/lot_assignment' + '/' + (parseInt(page)-1).toString(), method='get')
