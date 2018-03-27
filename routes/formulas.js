@@ -46,7 +46,7 @@ router.get('/home/:page?', function(req, res, next) {
         }
         res.render('formulas', { formulas: formulas, ingredients: ingredients, page: page, report: report });
       }).catch(function(error) {
-        reject(error);
+        next(error);
       })
     }
   })
