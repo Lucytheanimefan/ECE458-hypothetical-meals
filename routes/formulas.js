@@ -131,6 +131,9 @@ router.post('/:name/order', function(req, res, next) {
   }).then(function(results) {
     var tuples = [];
     for (let object of results) {
+      if (object.intermediate && !object.enough) {
+        throw new Error('Need to produce more of intermediate product ' + object.ingredient);
+      }
       let orderAmount = parseFloat(object.neededAmount) - parseFloat(object.currentAmount);
       if (orderAmount > 0) {
         let tuple = {};

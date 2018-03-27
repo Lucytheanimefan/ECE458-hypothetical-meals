@@ -328,6 +328,7 @@ module.exports.compareAmount = function(id, amount) {
     Ingredient.getIngredientById(id).then(function(ing) {
       let object = {};
       object['ingredient'] = ing.name;
+      object['intermediate'] = ing.isIntermediate;
       object['currentAmount'] = ing.amount;
       object['neededAmount'] = amount;
       if (parseFloat(ing.amount) < parseFloat(amount)) {
