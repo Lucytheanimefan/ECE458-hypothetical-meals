@@ -15,12 +15,17 @@ router.get('/page/:page?', (req, res, next) => {
     page = 0;
   }
   var perPage = 10;
-    Log.paginate(perPage, page, function(err, logs) {
-      if (err) {
-        next(err);
-      }
-      res.render('logs', { logs: logs, page: page });
-    })
+  Log.paginate(perPage, page, function(err, logs) {
+    if (err) {
+      next(err);
+    }
+    var maxPage = false;
+    console.log('Num logs: ' + logs.length);
+    if (logs.length < perPage) {
+      maxPage = true;
+    }
+    res.render('logs', { logs: logs, page: page, maxPage: maxPage });
+  })
 });
 
 router.get('/log/:id', (req, res, next) => {
