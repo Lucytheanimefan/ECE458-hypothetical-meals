@@ -44,7 +44,12 @@ router.get('/home/:page?', function(req, res, next) {
         for (let formula of formulas) {
           formula.tuples = underscore.sortBy(formula.tuples, "index");
         }
-        res.render('formulas', { formulas: formulas, ingredients: ingredients, page: page, report: report });
+
+        var maxPage = false;
+        if (formulas.length < perPage){
+          maxPage = true;
+        }
+        res.render('formulas', { formulas: formulas, ingredients: ingredients, page: page, report: report, maxPage: maxPage });
       }).catch(function(error) {
         next(error);
       })

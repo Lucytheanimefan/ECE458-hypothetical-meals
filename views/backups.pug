@@ -38,8 +38,12 @@ block content
         form(action="/backups/" + (parseInt(page)-1).toString(), method="get" style="display: inline-block;")
           button.btn.btn-white(type="submit" style="padding: 5px;") <
         p(style="padding: 10px; display: inline-block;") Page #{parseInt(page)}
-        form(action="/backups/" + (parseInt(page)+1).toString(), method="get" style="display: inline-block;")
+        if maxPage
+          form(action="/backups/" + (parseInt(page)).toString(), method="get" style="display: inline-block;")
           button.btn.btn-white(type="submit" style="padding: 5px;") >
+        else
+          form(action="/backups/" + (parseInt(page)+1).toString(), method="get" style="display: inline-block;")
+            button.btn.btn-white(type="submit" style="padding: 5px;") >
 
 
         
