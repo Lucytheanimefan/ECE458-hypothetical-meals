@@ -30,7 +30,11 @@ router.get('/search_results/:page?/:search?', function(req, res, next) {
 
   searchString = queryString.stringify(searchQuery);
   IngredientHelper.searchIngredients(searchQuery, page).then(function(ings) {
-    res.render('ingredients', { ingredients: ings, packages: packageTypes, temps: temperatures, searchQuery: searchString, page: page });
+    var maxPage = false;
+    if (ings.length < 10){
+      maxPage = true;
+    }
+    res.render('ingredients', { ingredients: ings, packages: packageTypes, temps: temperatures, searchQuery: searchString, page: page, maxPage:maxPage });
   }).catch(function(error) {
     console.log(error);
     var err = new Error('Error during search');

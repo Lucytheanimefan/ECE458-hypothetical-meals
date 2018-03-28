@@ -31,8 +31,11 @@ router.get('/:page?', function(req, res, next) {
         console.log(err);
         next(err);
       }
-      
-      res.render('backups', { files: files, page: page });
+      var maxPage = false;
+      if (files.length < perPage){
+        maxPage = true;
+      }
+      res.render('backups', { files: files, page: page, maxPage: maxPage });
     });
   })
 })
