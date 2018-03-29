@@ -15,8 +15,15 @@ router.get('/page/:page?', (req, res, next) => {
     page = 0;
   }
   var perPage = 10;
-  Log.paginate(perPage, page, function(err, logs) {
+  var startDate = req.query.start;
+  var endDate = req.query.end;
+  var query = {};
+  // if (startDate != null && endDate != null && startDate.length > 0 && endDate.length > 0) {
+  //   query = { 'time': { "$gte": startDate, "$lt": endDate } };
+  // }
+  Log.paginate(query, perPage, page, function(err, logs) {
     if (err) {
+      console.log(err);
       next(err);
     }
     var maxPage = false;
@@ -24,7 +31,7 @@ router.get('/page/:page?', (req, res, next) => {
     if (logs.length < perPage) {
       maxPage = true;
     }
-    res.render('logs', { logs: logs, page: page, maxPage: maxPage });
+    res.render('logs', { logs: logs, page: page, maxPage: maxPage, startDate: startDate, endDate: endDate });
   })
 });
 
@@ -47,21 +54,42 @@ router.get('/log/:id', (req, res, next) => {
   // });
 })
 
-router.get('/date', (req, res, next) => {
+router.get('/date/:page?', (req, res, next) => {
   console.log('GET DATE!');
-  let startDate = req.query.start;
-  let endDate = req.query.end;
+  let startDate = new Date(req.query.start);
+  let endDate = new Date(req.query.end);
   console.log('Start date: ' + startDate);
   console.log('End date: ' + endDate);
   console.log(typeof(startDate));
-  //new Date(2012, 7, 14)
-  Log.find({ 'time': { "$gte": startDate, "$lt": endDate } }).exec(function(err, logs) {
+  var page = parseInt(req.params.page);
+  if (page == null || isNaN(page) || page < 0) {
+    page = 0;
+  }
+  var perPage = 10;
+  Log.paginate({ 'time': { "$gte": startDate, "$lte": endDate } }, perPage, page, function(err, logs) {
     if (err) {
       console.log(err);
-      return next(err);
+      next(err);
     }
-    res.render('logs', { logs: logs });
+    if (logs == null){
+      logs = [];
+    }
+    var maxPage = false;
+    console.log('Num logs: ' + logs.length);
+    if (logs.length < perPage) {
+      maxPage = true;
+    }
+    res.render('logs', { logs: logs, page: page, maxPage: maxPage, startDate: req.query.start, endDate: req.query.end });
   })
+
+  // Log.find({ 'time': { "$gte": startDate, "$lt": endDate } }).exec(function(err, logs) {
+  //   if (err) {
+  //     console.log(err);
+  //     return next(err);
+  //   }
+
+  //   res.render('logs', { logs: logs, page: 0, maxPage: true, startDate: startDate, endDate: endDate });
+  // })
 })
 
 router.post('/delete', (req, res, next) => {
