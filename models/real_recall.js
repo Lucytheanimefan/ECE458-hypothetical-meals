@@ -175,7 +175,7 @@ module.exports.getRecallProducts = function(ingName, vendorCode, lotNumber) {
       console.log(finalProducts);
       results.forEach(function(arr) {
         for (let product of arr) {
-          if (!checkIfProductAlreadyExists(finalProducts, product)) {
+          if (!checkIfProductInArray(finalProducts, product)) {
             finalProducts.push(product);
           }
         }
