@@ -5,7 +5,8 @@ block link
 block content
   div.card
     div.card-header(data-background-color='purple')
-      h4.title= 'Recall Report for Vendor ' + vendorCode + ' and Lot Number ' + lotNumber
+      h4.title= 'Recall Report'
+      h5.title= 'Ingredient: ' + ingName + ', Vendor: ' + vendorCode + ', Lot Number: ' + lotNumber
     div.card-content.table-response
       input.form-control#ingredientInput(type='text',onkeyup='filterTable(\'ingredient\')', placeholder='Search for ingredients..', title='Type in some search text')
       table.table#ingredientTable

@@ -16,6 +16,7 @@ var AnotherRecallSchema = new mongoose.Schema({
       vendorName: String,
       vendorCode: String,
       lotNumber: String,
+      ingredientName: String,
       products: [
         {
           intermediate: Boolean,
@@ -58,7 +59,7 @@ createReport = function() {
   });
 }
 
-module.exports.createLotEntry = function(ingLot, vendorID) {
+module.exports.createLotEntry = function(ingID, ingName, ingLot, vendorID) {
   return new Promise(function(resolve, reject) {
     var newEntry;
     var promise;
@@ -69,6 +70,7 @@ module.exports.createLotEntry = function(ingLot, vendorID) {
           'vendorName': vendorID,
           'vendorCode': vendorID,
           'lotNumber': ingLot,
+          'ingredientName': ingName,
           'products': []
         };
         resolve(newEntry);
@@ -78,11 +80,12 @@ module.exports.createLotEntry = function(ingLot, vendorID) {
         Vendor.findVendorById(vendorID).then(function(vendor) {
           newEntry = {
             'vendorID': vendorID,
-            'vendorName': vendor.name,
-            'vendorCode': vendor.code,
+            'vendorName': (vendor == null) ? vendorID : vendor.name,
+            'vendorCode': (vendor == null) ? vendorID : vendor.code,
             'lotNumber': ingLot,
+            'ingredientName': ingName,
             'products': []
-          }
+          };
           resolve(newEntry);
         }).catch(function(error) {
           reject(error);
@@ -90,7 +93,7 @@ module.exports.createLotEntry = function(ingLot, vendorID) {
       });
     }
     promise.then(function(entry) {
-      return RealRecall.findOne({'$and': [{'name': 'recall'}, {'vendorLots': {'$elemMatch': {'vendorID': vendorID, 'lotNumber': ingLot}}}]});
+      return RealRecall.findOne({'$and': [{'name': 'recall'}, {'vendorLots': {'$elemMatch': {'vendorID': vendorID, 'lotNumber': ingLot, 'ingredientName': ingName}}}]});
     }).then(function(recall) {
       if (recall == null) {
         resolve(RealRecall.findOneAndUpdate({'name': 'recall'}, {'$push': {'vendorLots': newEntry}}).exec());
@@ -120,8 +123,7 @@ module.exports.updateReport = function(formulaID, formulaLot, intermediate, ingI
       var vendor = result[1];
       var formula = result[2];
       let newProduct = {'intermediate': intermediate, 'productName': formula.name, 'lotNumber': formulaLot, 'formulaID': formula._id};
-      return RealRecall.update({'$and': [{'name': 'recall'}, {'vendorLots': {'$elemMatch': {'vendorID': vendorID, 'lotNumber': ingLot}}}]},
-        {'$push': {'vendorLots.$.products': newProduct}}).exec();
+      return RealRecall.update({'$and': [{'name': 'recall'}, {'vendorLots': {'$elemMatch': {'vendorID': vendorID, 'lotNumber': ingLot, 'ingredientName': ing.name}}}]}, {'$push': {'vendorLots.$.products': newProduct}}).exec();
     }).then(function(report) {
       resolve(report);
     }).catch(function(error) {
@@ -130,13 +132,22 @@ module.exports.updateReport = function(formulaID, formulaLot, intermediate, ingI
   })
 }
 
-module.exports.getRecallProducts = function(vendorCode, lotNumber) {
+checkIfProductInArray = function(finalProducts, product) {
+  for (let record in finalProducts) {
+    if (record['productName'] == product['name'] && record['lotNumber'] == product['lotNumber']) {
+      return true;
+    }
+  }
+  return false;
+}
+
+module.exports.getRecallProducts = function(ingName, vendorCode, lotNumber) {
   return new Promise(function(resolve, reject) {
     let finalProducts = [];
     exports.getRecall().then(function(report) {
       let products = [];
       for (let record of report['vendorLots']) {
-        if (record['vendorCode'] == vendorCode && record['lotNumber'] == lotNumber) {
+        if (record['vendorCode'] == vendorCode && record['lotNumber'] == lotNumber && record['ingredientName'] == ingName) {
           products = record.products;
           break;
         }
@@ -144,9 +155,11 @@ module.exports.getRecallProducts = function(vendorCode, lotNumber) {
       let intermediates = [];
       for (let product of products) {
         if (product.intermediate) {
-          intermediates.push({'vendorCode': 'admin', 'lotNumber': product.lotNumber});
+          intermediates.push({'name': product.productName, 'vendorCode': 'admin', 'lotNumber': product.lotNumber});
         } else {
+          // if (!checkIfProductInArray(finalProducts, product)) {
           finalProducts.push(product);
+          // }
         }
       }
       if (intermediates.length == 0) {
@@ -154,14 +167,18 @@ module.exports.getRecallProducts = function(vendorCode, lotNumber) {
       } else {
         console.log(intermediates);
         return Promise.all(intermediates.map(function(tuple) {
-          return exports.getRecallProducts(tuple.vendorCode, tuple.lotNumber);
+          return exports.getRecallProducts(tuple.name, tuple.vendorCode, tuple.lotNumber);
         }));
       }
     }).then(function(results) {
       console.log('reeeeeeeeee');
-      console.log(results);
+      console.log(finalProducts);
       results.forEach(function(arr) {
-        Array.prototype.push.apply(finalProducts, arr);
+        for (let product of arr) {
+          if (!checkIfProductAlreadyExists(finalProducts, product)) {
+            finalProducts.push(product);
+          }
+        }
       });
       resolve(finalProducts);
     }).catch(function(error) {
