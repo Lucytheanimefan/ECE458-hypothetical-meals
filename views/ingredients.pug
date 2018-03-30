@@ -68,8 +68,12 @@ block content
                 button.btn.btn-white(type="submit" style="padding: 5px;") <
                 p(style="padding: 10px; display: inline-block;") Page #{parseInt(page)}
             div.next
-              form(action='/ingredients/search_results/' + (parseInt(page)+1).toString() + '/' + searchQuery, method='get')
-                button.btn.btn-white(type="submit" style="padding: 5px;") >
+              if maxPage
+                form(action='/ingredients/search_results/' + (parseInt(page)).toString() + '/' + searchQuery, method='get')
+                  button.btn.btn-white(type="submit" style="padding: 5px;") >
+              else
+                form(action='/ingredients/search_results/' + (parseInt(page)+1).toString() + '/' + searchQuery, method='get')
+                  button.btn.btn-white(type="submit" style="padding: 5px;") >
 
 
       .card-content.tab-pane.fade#create_form.adminOnly.hide

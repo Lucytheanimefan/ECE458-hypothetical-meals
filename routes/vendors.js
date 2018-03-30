@@ -19,7 +19,7 @@ let pageSize = 5;
 
 //no need for now
 router.get('/', function(req, res, next) {
-  res.redirect(req.baseUrl + '/home/');
+  res.redirect(req.baseUrl + '/home/1');
 })
 
 //no need for refactoring
@@ -33,7 +33,11 @@ router.get('/home/:page?', function(req, res, next) {
       err.status = 400;
       return next(err);
     } else {
-      res.render('vendors', { vendors: vendors, packages: packageTypes, temps: temperatures, page: page });
+      var maxPage = false;
+      if (vendors.length < perPage){
+        maxPage = true;
+      }
+      res.render('vendors', { vendors: vendors, packages: packageTypes, temps: temperatures, page: page, maxPage:maxPage });
     }
   })
 })

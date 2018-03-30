@@ -294,8 +294,6 @@ router.get('/cart/:page?', function(req, res, next) {
     cart = user.cart;
     var promises = [];
     for (let order of cart) {
-      console.log("ORDER");
-      console.log(order.ingredient);
       promises.push(Ingredient.getIngredientById(order.ingredient));
     }
     return Promise.all(promises);
@@ -304,6 +302,8 @@ router.get('/cart/:page?', function(req, res, next) {
       ingredients.push(ing.name);
       ids.push(ing._id.toString());
     }
+
+    underscore.sortBy(cart, "_id");
     var start = perPage * (page - 1);
     var promises = [];
     for (i = start; i < start + perPage; i++) {
@@ -318,7 +318,13 @@ router.get('/cart/:page?', function(req, res, next) {
       order ['vendor'] = cart[i].vendor;
       orders.push(order);
     }
-    res.render('cart', { orders: orders, page: page });
+
+    var lastPage = false;
+    if (cart[index+1] == undefined) {
+      lastPage = true;
+    }
+
+    res.render('cart', { orders: orders, page: page, lastPage: lastPage });
   }).catch(function(error) {
     next(error);
   })
@@ -351,6 +357,8 @@ router.get('/edit_order/:ingredient/:page?', function(req, res, next) {
       ingredients.push(ing.name);
       ids.push(ing._id.toString());
     }
+
+    underscore.sortBy(cart, "_id");
     var start = perPage * (page - 1);
     var promises = [];
     for (i = start; i < start + perPage; i++) {
@@ -372,7 +380,13 @@ router.get('/edit_order/:ingredient/:page?', function(req, res, next) {
       order['show'] = show;
       orders.push(order);
     }
-    res.render('edit_cart', { orders: orders, page: page });
+
+    var lastPage = false;
+    if (cart[index+1] == undefined) {
+      lastPage = true;
+    }
+
+    res.render('edit_cart', { orders: orders, page: page, lastPage: lastPage, ingredient: ingredient });
   }).catch(function(error) {
     next(error);
   })
@@ -400,6 +414,7 @@ router.post('/remove_ingredient', function(req, res, next) {
 
 router.post('/edit_order', function(req, res, next) {
   console.log('Call POST /edit_order');
+  let page = req.body.page;
   let ingredient = req.body.ingredient;
   var quantity = req.body.quantity;
   var cart, user, ingID, vendor, currentQuantity;
@@ -424,7 +439,7 @@ router.post('/edit_order', function(req, res, next) {
     console.log("Edit cart results: ");
     console.log(cart);
     logs.makeLog('Edit cart order', 'Edited cart', req.session.username);
-    res.redirect('/users/cart');
+    res.redirect('/users/cart/' + page);
   }).catch(function(error) {
     next(error);
   })
@@ -475,6 +490,7 @@ router.get('/checkout_cart/:page?', function(req, res, next) {
       vendors.push(item);
     }
 
+    underscore.sortBy(cart, "_id");
     var start = perPage * (page - 1);
     var promises = [];
     for (i = start; i < start + perPage; i++) {
@@ -491,13 +507,22 @@ router.get('/checkout_cart/:page?', function(req, res, next) {
       order ['vendors'] = orderVendors;
       orders.push(order);
     }
-    res.render('checkout', { orders: orders, page: page });
+
+    var lastPage = false;
+    if (cart[index+1] == undefined) {
+      lastPage = true;
+    }
+
+    res.render('checkout', { orders: orders, page: page, lastPage: lastPage });
   }).catch(function(error) {
     next(error);
   })
 });
 
-router.post('/place_order', function(req, res, next) {
+router.post('/submit_page/:page?', function(req, res, next) {
+  var page = req.params.page || 1;
+  page = (page < 1) ? 1 : Number(page);
+
   var ingredients = req.body.ingredient;
   var quantities = req.body.quantity;
   var vendors = req.body.vendor;
@@ -506,6 +531,16 @@ router.post('/place_order', function(req, res, next) {
     quantities = [quantities];
     vendors = [vendors];
   }
+  var nextPage = page;
+  var placeOrder = false;
+  if (req.body.next) {
+    nextPage = page + 1;
+  } else if (req.body.prev) {
+    nextPage = page - 1;
+  } else {
+    placeOrder = true;
+  }
+
   var promises = [];
   for (let ing of ingredients) {
     promises.push(Ingredient.getIngredient(ing));
@@ -517,27 +552,17 @@ router.post('/place_order', function(req, res, next) {
     }
     return Promise.all(promises);
   }).then(function(results) {
-    var cart;
-    return User.getUserById(req.session.userId);
-  }).then(function(user) {
-    cart = user.cart;
-    var promises = [];
-    for (let order of cart) {
-      var tuple = {};
-      tuple['vendor'] = order.vendor;
-      tuple['quantity'] = order.quantity;
-      promises.push(UserHelper.updateIngredientOnCheckout(mongoose.Types.ObjectId(order.ingredient), [tuple]));
+    if (placeOrder) {
+      return UserHelper.placeOrder(req.session.userId);
     }
-    return Promise.all(promises);
-  }).then(function(ings) {
-    var checkoutIngredientLog = '';
-    if (ings != null) {
-      for (var i = 0; i < ings.length; i++) {
-        checkoutIngredientLog += '<li><a href="/ingredients/' + ings[i].name + '">' + ings[i].name + '</a></li>'
-      }
+    return "nextPage";
+  }).then(function(result) {
+    if (placeOrder) {
+      logs.makeLog('Check out cart', 'Checked out cart' /*'Checkout cart with ingredients: <ul>' + checkoutIngredientLog + '</ul>'*/ , req.session.username);
+      res.redirect('/users/lot_assignment');
+    } else {
+      res.redirect('/users/checkout_cart/' + nextPage);
     }
-    logs.makeLog('Check out cart', 'Checked out cart' /*'Checkout cart with ingredients: <ul>' + checkoutIngredientLog + '</ul>'*/ , req.session.username);
-    res.redirect('/users/lot_assignment');
   }).catch(function(error) {
     next(error);
   })
