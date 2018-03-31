@@ -36,6 +36,10 @@ var ProductionLineSchema = new mongoose.Schema({
 var ProductionLine = mongoose.model('ProductionLine', ProductionLineSchema);
 module.exports.model = ProductionLine;
 
+module.exports.createProductionLine = function(info) {
+  return Ingredient.create(info);
+}
+
 module.exports.getProductionLine = function(name) {
   return ProductionLine.findOne({ 'name': name }).exec();
 }

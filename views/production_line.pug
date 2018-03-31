@@ -2,3 +2,41 @@ extends layout
 
 block link
   -var selected = 'Production Line';
+
+
+block content
+  div.card-tabs
+    ul.nav.nav-tabs
+      li.active
+        a(data-toggle='tab', href='#productionLine') Production Line Information
+      li.adminOnly.hide
+        a(data-toggle='tab', href='#edit_form') Edit
+
+    .tab-content
+      #productionLine.tab-pane.fade.in.active
+        table.table
+          tr
+            th Name
+            td= productionLine.name
+          tr
+            th Description
+            td= productionLine.description
+          tr
+            th Busy
+            td= productionLine.busy
+          tr
+            th Formulas
+            td= productionLine.formulas
+      .card-content.tab-pane.fade#edit_form.adminOnly.hide
+        h1= 'Edit production line'
+        form(action='/production_lines/', method='post')
+          .form-group
+            label.control-label Production Line Name
+            input.form-control(type='text', name='name', required='')
+          .form-group
+            label.control-label Description
+            input.form-control(type='text', name='description', required='')
+          .form-group
+            label.control-label Formulas
+            input.form-control(type='text', name='formulas')
+          button.btn.btn-primary.pull-right(type='submit', value='create production line') Create production line
