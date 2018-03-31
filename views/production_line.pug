@@ -46,11 +46,16 @@ block content
               option(disabled='' selected='' value='') Select an option
               each formula in formulas
                 if productionLine.formulas.length > 0
-                  for prodFormula in productionLine.formulas
+                  - var added = false;
+                  for prodFormula,index in productionLine.formulas
+                    if index == 0
+                      - added = false;
                     if formula._id.toString() == prodFormula.formulaId
+                      - added = true
                       option(value=formula._id, selected)= formula.name
-                    else
+                    else if !added
                       option(value=formula._id)= formula.name
+                      - added = true
                 else
                   option(value=formula._id)= formula.name
           //- div#formulaRow(data-formulas=productionLine.formulas)

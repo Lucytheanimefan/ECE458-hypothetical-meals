@@ -78,34 +78,35 @@ router.post('/update/:id', function(req, res, next) {
   }
   console.log('----Formulas to update with!: ' + formulas);
   //console.log(formulas);
-  let info = { 'name': name, 'description': description };
+  var info = { 'name': name, 'description': description };
   console.log('Time to update production line');
 
   var prodLineQuery = ProductionLine.getProductionLineById(id);
 
-  var existingFormulas = [];
-  var formulasToAdd = formulas;
+  // var existingFormulas = [];
+  // var formulasToAdd = formulas;
   prodLineQuery.then(function(productionLine) {
-    existingFormulas = productionLine.formulas;
-    for (var j = 0; j < formulas.length; j++) {
-      for (var i = 0; i < existingFormulas.length; i++) {
-        if (formulas[j] != null && existingFormulas[i] != null) {
-          console.log(formulas[j].formulaId + ' vs ' + existingFormulas[i].formulaId);
-          if (formulas[j].formulaId.toString() == existingFormulas[i].formulaId.toString()) {
-            // The formulas already exists/is already associated with this production line!
-            // Remove it from the array
-            console.log('REMOVE!');
-            if (formulasToAdd.indexOf(formulas[j]) > -1) {
-              formulasToAdd.splice(i, 1);
-            }
-          }
-        }
-      }
+    //   existingFormulas = productionLine.formulas;
+    //   for (var j = 0; j < formulas.length; j++) {
+    //     for (var i = 0; i < existingFormulas.length; i++) {
+    //       if (formulas[j] != null && existingFormulas[i] != null) {
+    //         console.log(formulas[j].formulaId + ' vs ' + existingFormulas[i].formulaId);
+    //         if (formulas[j].formulaId.toString() == existingFormulas[i].formulaId.toString()) {
+    //           // The formulas already exists/is already associated with this production line!
+    //           // Remove it from the array
+    //           console.log('REMOVE!');
+    //           if (formulasToAdd.indexOf(formulas[j]) > -1) {
+    //             formulasToAdd.splice(i, 1);
+    //           }
+    //         }
+    //       }
+    //     }
 
-    }
-    console.log("Filtered formulas to add:");
-    console.log(formulas);
-    return ProductionLine.updateProductionLine(id, info, formulasToAdd);
+    //   }
+    //   console.log("Filtered formulas to add:");
+    //console.log(formulas);
+    info['formulas'] = formulas;
+    return ProductionLine.updateProductionLine(id, info);
   }).then(function(updatedProductionLine) {
     res.redirect(req.baseUrl + '/production_line/' + updatedProductionLine.name);
   }).catch(function(error) {

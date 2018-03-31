@@ -71,11 +71,8 @@ module.exports.createProductionLine = function(productionLineInfo) {
  * @param  {[type]} updateInfo A dictionary with the following optional keys (as defined by the model) : name, description, busy
  * @return {[type]}            [description]
  */
-module.exports.updateProductionLine = function(id, updateInfo, formulas) {
-  console.log("FORMULAS TO UPDATE PRODUCTION LINE WITH:");
-  console.log(formulas);
+module.exports.updateProductionLine = function(id, updateInfo) {
   return ProductionLine.findOneAndUpdate({ '_id': id }, {
     '$set': updateInfo,
-    '$push': { formulas: { $each: formulas } },
   }, { upsert: true }).exec();
 }
