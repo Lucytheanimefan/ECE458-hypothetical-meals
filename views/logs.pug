@@ -10,10 +10,10 @@ block content
       h4 Sort logs by date
       .form-group
         label.control-label Start date
-        input.form-control(type='date' name='start')
+        input.form-control(type='date' name='start' value=startDate)
       .form-group
         label.control-label End date
-        input.form-control(type='date' name='end')
+        input.form-control(type='date' name='end' value=endDate)
       button.btn.btn-primary.pull-right(type='submit', value='Filter') Filter
     div.card
       div.card-header(data-background-color='purple')
@@ -42,12 +42,18 @@ block content
           form(action="/logs/page/" + (parseInt(page)-1).toString(), method="get" style="display: inline-block;")
             button.btn.btn-white(type="submit" style="padding: 5px;") <
           p(style="padding: 10px; display: inline-block;") Page #{parseInt(page)}
+          - var endpoint = "/logs/page/";
+          - var pageCount = (parseInt(page + 1)).toString();
+          if startDate != null && endDate != null
+            - endpoint = "/logs/date/";
           if maxPage
-            form(action="/logs/page/" + (parseInt(page)).toString(), method="get" style="display: inline-block;")
-              button.btn.btn-white(type="submit" style="padding: 5px;") >
-          else
-            form(action="/logs/page/" + (parseInt(page + 1)).toString(), method="get" style="display: inline-block;")
-              button.btn.btn-white(type="submit" style="padding: 5px;") >
+            - pageCount = (parseInt(page)).toString();
+          form(action=endpoint + pageCount, method="get" style="display: inline-block;")
+            if startDate != null && endDate != null 
+              input.hide.form-control(type='date' name='start' value=startDate)
+              input.form-control.hide(type='date' name='end' value=endDate)
+            button.btn.btn-white(type="submit" style="padding: 5px;") >
+
 block scripts
   script.
     $('#datetimepicker1').datepicker();

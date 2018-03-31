@@ -133,7 +133,7 @@ module.exports.decrementAmountForProduction = function(id, amount, formula, form
     }).then(async function(results) {
       let lotsConsumed = results[1];
       for (let lot of lotsConsumed) {
-        await RealRecall.createLotEntry(lot.lotNumber, lot.vendorID);
+        await RealRecall.createLotEntry(ing._id, ing.name, lot.lotNumber, lot.vendorID);
       }
       for (let lot of lotsConsumed) {
         var time = Date.now() - lot.timestamp;
