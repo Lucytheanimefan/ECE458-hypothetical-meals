@@ -29,7 +29,7 @@ block content
             td
               each formula in productionLine.formulas
                 li
-                  a.lineFormula(href="/formulas/id/" + formula.formulaId)= formula.toString()
+                  a.lineFormula(href="/formulas/id/" + formula.formulaId)= formula.formulaId
 
       .card-content.tab-pane.fade#edit_form.adminOnly.hide
         h1= 'Update production line'
@@ -46,6 +46,28 @@ block content
               option(disabled='' selected='' value='') Select an option
               each formula in formulas
                 option(value=formula._id)= formula.name
+          div#formulaRow(data-formulas=productionLine.formulas)
+            .row
+              .col-md-11
+                each formula, index in productionLine.formulas
+                  .row.preexists(id='formula-'+index)
+                    .col-md-8
+                      .form-group
+                        label.control-label Formula
+                        select.form-control(id='formula'+index, name='formula'+index)
+                          option(disabled='' selected='' value=formula.formulaId) #{formula.formulaId}
+                          each nformula in formulas
+                            option(value=nformula._id)= nformula.name
+                    .col-md-4
+                      p
+                        br
+                      button.btn.btn-round.btn-just-icon.remove(id=formula.id, name=formula.name, type='button', value='remove', onclick='deleteTuple('+index+')', style='background-color:red;')
+                        i.material-icons delete
+              .col-md-1
+                p
+                  br
+                button#btn1.btn.btn-round.btn-just-icon.add-more(type='button', value='add')
+                  i.material-icons add
           button.btn.btn-primary.pull-right(type='submit', value='create production line') Update
 
 block scripts

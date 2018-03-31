@@ -71,16 +71,16 @@ router.post('/update/:id', function(req, res, next) {
   console.log(formulas);
   if (Array.isArray(formulas)) {
     formulas = formulas.map(function(element) {
-      return mongoose.Types.ObjectId(element);
+      return {"formulaId":mongoose.Types.ObjectId(element)};
     })
   } else if ((typeof formulas === 'string' || formulas instanceof String)) {
-    formulas = [mongoose.Types.ObjectId(formulas)];
+    formulas = [{"formulaId":mongoose.Types.ObjectId(formulas)}];
   }
   console.log('----Formulas to update with!: ' + formulas);
   //console.log(formulas);
-  let info = { 'name': name, 'description': description, 'formulas': formulas };
+  let info = { 'name': name, 'description': description};
   console.log('Time to update production line');
-  var update = ProductionLine.updateProductionLine(id, info);
+  var update = ProductionLine.updateProductionLine(id, info, formulas);
   update.then(function(productionLine) {
   	console.log("Updated production line: ");
   	console.log(productionLine);
@@ -98,9 +98,13 @@ router.post('/new', function(req, res, next) {
   let name = req.body.name;
   let description = req.body.description;
   var formulas = req.body.formulas;
-  formulas = formulas.map(function(element) {
-    return mongoose.Types.ObjectId(element);
-  })
+  if (Array.isArray(formulas)) {
+    formulas = formulas.map(function(element) {
+      return {"formulaId":mongoose.Types.ObjectId(element)};
+    })
+  } else if ((typeof formulas === 'string' || formulas instanceof String)) {
+    formulas = [{"formulaId":mongoose.Types.ObjectId(formulas)}];
+  }
   //console.log(formulas);
   let info = { 'name': name, 'description': description, 'formulas': formulas };
   var create = ProductionLine.createProductionLine(info);
