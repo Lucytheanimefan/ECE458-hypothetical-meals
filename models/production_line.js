@@ -23,7 +23,7 @@ var ProductionLineSchema = new mongoose.Schema({
     type: String,
   },
   formulas: [
-    { formulaId: { type: mongoose.Schema.Types.ObjectId } }
+    { formulaId: { type: mongoose.Schema.ObjectId, ref: 'Formula' } }
   ],
   busy: {
     type: Boolean,
@@ -68,13 +68,12 @@ module.exports.createProductionLine = function(productionLineInfo) {
 /**
  * [updateProductionLine description]
  * @param  {[type]} id         Production line mongodb unique id
- * @param  {[type]} updateInfo A dictionary with the following optional keys (as defined by the model) : name, description, formulas, busy
+ * @param  {[type]} updateInfo A dictionary with the following optional keys (as defined by the model) : name, description, busy
  * @return {[type]}            [description]
  */
 module.exports.updateProductionLine = function(id, updateInfo) {
-  return new Promise(function(resolve, reject) {
-    ProductionLine.findOneAndUpdate({ '_id': id }, {
+  return ProductionLine.findOneAndUpdate({ '_id': id }, {
       '$set': updateInfo
-    }).exec();
-  });
+    }, {new: true}).exec();
+
 }

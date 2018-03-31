@@ -26,17 +26,28 @@ block content
             td= productionLine.busy
           tr
             th Formulas
-            td= productionLine.formulas
+            td
+              each formula in productionLine.formulas
+                li
+                  a.lineFormula(href="/formulas/id/" + formula.formulaId)= formula.toString()
+
       .card-content.tab-pane.fade#edit_form.adminOnly.hide
-        h1= 'Edit production line'
-        form(action='/production_lines/', method='post')
+        h1= 'Update production line'
+        form(action='/production_lines/update/' + productionLine._id, method='post')
           .form-group
             label.control-label Production Line Name
-            input.form-control(type='text', name='name', required='')
+            input.form-control(type='text', name='name', value=productionLine.name, required='')
           .form-group
             label.control-label Description
-            input.form-control(type='text', name='description', required='')
+            input.form-control(type='text', name='description', value=productionLine.description, required='') 
           .form-group
             label.control-label Formulas
-            input.form-control(type='text', name='formulas')
-          button.btn.btn-primary.pull-right(type='submit', value='create production line') Create production line
+            select.form-control(name='formulas', placeholder = '', multiple)
+              option(disabled='' selected='' value='') Select an option
+              each formula in formulas
+                option(value=formula._id)= formula.name
+          button.btn.btn-primary.pull-right(type='submit', value='create production line') Update
+
+block scripts
+  script.
+    updateLineFormulaNames();

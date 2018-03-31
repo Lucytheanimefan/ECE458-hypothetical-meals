@@ -626,6 +626,15 @@ function selectVendor(orders) {
   }
 }
 
+
+// Production Line
+function updateLineFormulaNames(){
+  $('.lineFormula').each(function(){
+    let formulaId = $(this).val();
+    console.log(formulaId);
+  })
+}
+
 //'top','center
 function displayFileAlert() {
   var alertMessage = $("#alertData").data('alert');
@@ -649,3 +658,5 @@ function displayNotification(from, align, alertMessage) {
     }
   });
 }
+
+
