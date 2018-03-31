@@ -71,25 +71,58 @@ router.post('/update/:id', function(req, res, next) {
   console.log(formulas);
   if (Array.isArray(formulas)) {
     formulas = formulas.map(function(element) {
-      return {"formulaId":mongoose.Types.ObjectId(element)};
+      return { "formulaId": mongoose.Types.ObjectId(element) };
     })
   } else if ((typeof formulas === 'string' || formulas instanceof String)) {
-    formulas = [{"formulaId":mongoose.Types.ObjectId(formulas)}];
+    formulas = [{ "formulaId": mongoose.Types.ObjectId(formulas) }];
   }
   console.log('----Formulas to update with!: ' + formulas);
   //console.log(formulas);
-  let info = { 'name': name, 'description': description};
+  let info = { 'name': name, 'description': description };
   console.log('Time to update production line');
-  var update = ProductionLine.updateProductionLine(id, info, formulas);
-  update.then(function(productionLine) {
-  	console.log("Updated production line: ");
-  	console.log(productionLine);
-    logs.makeLog('Update production line', 'Updated production line <a href="/production_lines/' + productionLine.name + '">' + productionLine.name + '</a>', req.session.username);
-    return res.redirect(req.baseUrl + '/production_line/' + productionLine.name);
+
+  var prodLineQuery = ProductionLine.getProductionLineById(id);
+
+  var existingFormulas = [];
+  var formulasToAdd = formulas;
+  prodLineQuery.then(function(productionLine) {
+    existingFormulas = productionLine.formulas;
+    for (var j = 0; j < formulas.length; j++) {
+      for (var i = 0; i < existingFormulas.length; i++) {
+        if (formulas[j] != null && existingFormulas[i] != null) {
+          console.log(formulas[j].formulaId + ' vs ' + existingFormulas[i].formulaId);
+          if (formulas[j].formulaId.toString() == existingFormulas[i].formulaId.toString()) {
+            // The formulas already exists/is already associated with this production line!
+            // Remove it from the array
+            console.log('REMOVE!');
+            if (formulasToAdd.indexOf(formulas[j]) > -1) {
+              formulasToAdd.splice(i, 1);
+            }
+          }
+        }
+      }
+
+    }
+    console.log("Filtered formulas to add:");
+    console.log(formulas);
+    return ProductionLine.updateProductionLine(id, info, formulasToAdd);
+  }).then(function(updatedProductionLine) {
+    res.redirect(req.baseUrl + '/production_line/' + updatedProductionLine.name);
   }).catch(function(error) {
     console.log(error);
-    next(error);
-  });
+    return next(error);
+  })
+
+  // var update = ProductionLine.updateProductionLine(id, info, formulas);
+  // update.then(function(productionLine) {
+  // 	console.log("Updated production line: ");
+  // 	console.log(productionLine);
+  //   logs.makeLog('Update production line', 'Updated production line <a href="/production_lines/' + productionLine.name + '">' + productionLine.name + '</a>', req.session.username);
+  //   return res.redirect(req.baseUrl + '/production_line/' + productionLine.name);
+  // }).catch(function(error) {
+  //   console.log(error);
+  //   next(error);
+  // });
 })
 
 
@@ -100,10 +133,10 @@ router.post('/new', function(req, res, next) {
   var formulas = req.body.formulas;
   if (Array.isArray(formulas)) {
     formulas = formulas.map(function(element) {
-      return {"formulaId":mongoose.Types.ObjectId(element)};
+      return { "formulaId": mongoose.Types.ObjectId(element) };
     })
   } else if ((typeof formulas === 'string' || formulas instanceof String)) {
-    formulas = [{"formulaId":mongoose.Types.ObjectId(formulas)}];
+    formulas = [{ "formulaId": mongoose.Types.ObjectId(formulas) }];
   }
   //console.log(formulas);
   let info = { 'name': name, 'description': description, 'formulas': formulas };

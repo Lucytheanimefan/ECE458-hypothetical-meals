@@ -45,11 +45,36 @@ block content
             select.form-control(name='formulas', placeholder = '', multiple)
               option(disabled='' selected='' value='') Select an option
               each formula in formulas
-                for prodFormula in productionLine.formulas
-                  if formula._id.toString() == prodFormula.formulaId
-                    option(value=formula._id, selected)= formula.name
-                  else
-                    option(value=formula._id)= formula.name
+                if productionLine.formulas.length > 0
+                  for prodFormula in productionLine.formulas
+                    if formula._id.toString() == prodFormula.formulaId
+                      option(value=formula._id, selected)= formula.name
+                    else
+                      option(value=formula._id)= formula.name
+                else
+                  option(value=formula._id)= formula.name
+          //- div#formulaRow(data-formulas=productionLine.formulas)
+          //-   .row
+          //-     .col-md-11
+          //-       each formula, index in productionLine.formulas
+          //-         .row.preexists(id='formula-'+index)
+          //-           .col-md-8
+          //-             .form-group
+          //-               label.control-label Formula
+          //-               select.form-control(id='formula'+index, name='formula'+index)
+          //-                 option.lineFormula(disabled='' selected='' value=formula.formulaId, data-id=formula.formulaId ) 
+          //-                 each nformula in formulas
+          //-                   option(value=nformula._id)= nformula.name
+          //-           .col-md-4
+          //-             p
+          //-               br
+          //-             button.btn.btn-round.btn-just-icon.remove(id=formula.id, name=formula.name, type='button', value='remove', onclick='deleteTuple('+index+')', style='background-color:red;')
+          //-               i.material-icons delete
+          //-     .col-md-1
+          //-       p
+          //-         br
+          //-       button#btn1.btn.btn-round.btn-just-icon.add-more(type='button', value='add')
+          //-         i.material-icons add
           button.btn.btn-primary.pull-right(type='submit', value='create production line') Update
 
 block scripts

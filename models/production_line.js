@@ -75,7 +75,7 @@ module.exports.updateProductionLine = function(id, updateInfo, formulas) {
   console.log("FORMULAS TO UPDATE PRODUCTION LINE WITH:");
   console.log(formulas);
   return ProductionLine.findOneAndUpdate({ '_id': id }, {
-      '$set': updateInfo,
-      '$push': {formulas: {$each: formulas}},
-    }, {upsert: false}).exec();
+    '$set': updateInfo,
+    '$push': { formulas: { $each: formulas } },
+  }, { upsert: true }).exec();
 }
