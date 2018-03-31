@@ -52,6 +52,10 @@ module.exports.getAllProductionLines = function() {
   return ProductionLine.find().exec();
 }
 
+module.exports.paginate = function(query = {}, perPage = 10, page = 0) {
+  return ProductionLine.find(query).limit(perPage).skip(perPage * page)
+}
+
 //TODO: The system should disallow removal of a busy production line with an appropriate error message.
 module.exports.deleteProductionLine = function(id) {
   return ProductionLine.findOneAndRemove({ '_id': id }).exec();

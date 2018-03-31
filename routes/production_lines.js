@@ -12,11 +12,21 @@ var router = express.Router();
 router.get('/', function(req, res, next) {
   res.redirect(req.baseUrl + '/page/0');
 })
+
 router.get('/page/:page?', function(req, res, next) {
-  var query = ProductionLine.getAllProductionLines();
+  var page = req.params.page;
+  if (page == null) {
+    page = 0;
+  }
+  var perPage = 10;
+  var query = ProductionLine.paginate({}, perPage, page);
   query.then(function(productionLines) {
+  	var maxPage = false;
+  	if (productionLines.length < perPage){
+  		maxPage = true;
+  	}
     console.log(productionLines);
-    res.render("production_lines", { productionLines: productionLines });
+    res.render("production_lines", { productionLines: productionLines, page: page, maxPage: maxPage });
   }).catch(function(error) {
     console.log(error);
     return next(error);
