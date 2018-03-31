@@ -151,4 +151,15 @@ router.post('/new', function(req, res, next) {
   });
 })
 
+router.post('/delete/:id', function(req, res, next) {
+  var deleteQuery = ProductionLine.deleteProductionLine(req.params.id);
+  deleteQuery.then(function(productionLine) {
+    logs.makeLog('Delete production line', 'Deleted production line' + productionLine.name, req.session.username);
+    return res.redirect(req.baseUrl);
+  }).catch(function(error) {
+    console.log(error);
+    next(error);
+  });
+})
+
 module.exports = router;

@@ -32,7 +32,7 @@ block content
                   td= line.description
                   td= line.busy
                   td.adminOnly.hide
-                    form(action='/production_lines/' + line._id + '/delete', method='post')
+                    form(action='/production_lines/delete/' + line._id, method='post')
                       button.btn.btn-primary(type='submit', style='margin:0px; padding: 5px 10px;') Remove
           div.pages(style="text-align:center;")
             .col-md-12
