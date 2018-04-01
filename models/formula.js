@@ -46,6 +46,10 @@ module.exports.findFormulaByName = function(name){
   return Formula.findOne({'name':name}).exec();
 }
 
+module.exports.findFormulaById = function(id){
+  return Formula.findOne({'_id':id}).exec();
+}
+
 module.exports.getAllFormulas = function() {
   return Formula.find().exec();
 }
