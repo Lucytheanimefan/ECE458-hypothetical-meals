@@ -45,7 +45,8 @@ module.exports.findVendorByName = function(name){
 }
 
 module.exports.findVendorByCode = function(code){
-  return Vendor.findOne({'code':code}).populate('catalogue.ingredient').exec();
+  return Vendor.findOne({'code':{
+                     $regex : new RegExp(code, "i") }}).populate('catalogue.ingredient').exec();
 }
 
 module.exports.findVendorByCodeAndName = function(code,name){
