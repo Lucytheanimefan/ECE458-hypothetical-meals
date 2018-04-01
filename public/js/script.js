@@ -236,7 +236,7 @@ function loadSideBar() {
         }
       } else {
         // Users
-        if (category !== 'Users' && category !== "Uploads" && category !== "Backups") {
+        if (category !== 'Users' && category !== "Uploads" && category !== "Backups" && category !== "Logs") {
           $(this).removeClass('hide');
         }
       }
