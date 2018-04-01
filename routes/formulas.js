@@ -46,7 +46,7 @@ router.get('/home/:page?', function(req, res, next) {
         }
 
         var maxPage = false;
-        if (formulas.length < perPage) {
+        if (formulas.length < perPage){
           maxPage = true;
         }
         res.render('formulas', { formulas: formulas, ingredients: ingredients, page: page, report: report, maxPage: maxPage });
@@ -62,7 +62,7 @@ router.get('/:name', function(req, res, next) {
   var formIngQuery = Ingredient.getIngredient(req.params.name);
   var formula;
   var ing;
-  Promise.all([formQuery, formIngQuery]).then(function(result) {
+  Promise.all([formQuery,formIngQuery]).then(function(result) {
     formula = result[0];
     ing = result[1];
     var ingQuery = Ingredient.getAllIngredients();
@@ -75,18 +75,6 @@ router.get('/:name', function(req, res, next) {
     formula.tuples = underscore.sortBy(formula.tuples, "index");
     res.render('formula', { formula: formula, ingredients: ingredients, ing: ing });
   }).catch(function(error) {
-    next(error)
-  });
-})
-
-router.get('/id/:id', function(req, res, next) {
-  console.log("Find formula by id: " + req.params.id);
-  var formQuery = Formula.findFormulaById(req.params.id);
-  formQuery.then(function(formula) {
-    console.log(formula);
-    return res.send(formula);
-  }).catch(function(error) {
-    console.log(error);
     next(error)
   });
 })
@@ -120,7 +108,7 @@ router.post('/:name/update', function(req, res, next) {
     var index = 1;
     var count = 1;
     var ingredient, quantity;
-    while (req.body["ingredient" + index] != undefined || count <= length / 2) {
+    while (req.body["ingredient" + index] != undefined || count <= length/2) {
       if (req.body["ingredient" + index] != undefined) {
         ingredient = req.body["ingredient" + index];
         quantity = req.body["quantity" + index];
@@ -131,7 +119,7 @@ router.post('/:name/update', function(req, res, next) {
     }
     //return Promise.all(tuplePromises);
   }).then(function(result) {
-    logs.makeLog('Update formula', 'Updated ' + '<a href="/formulas/' + encodeURIComponent(newName) + '">' + newName + '</a>' /*JSON.stringify({formula_name:newName})*/ , req.session.userId);
+    logs.makeLog('Update formula', 'Updated ' + '<a href="/formulas/' + encodeURIComponent(newName) + '">' + newName + '</a>'/*JSON.stringify({formula_name:newName})*/, req.session.userId);
     res.redirect(req.baseUrl + '/' + newName);
   }).catch(function(error) {
     next(error);
@@ -171,7 +159,7 @@ router.post('/:name/order/:amount', function(req, res, next) {
   let amount = parseFloat(req.params.amount);
   var formulaId;
   var globalFormula;
-  var formulaLot;
+  var formulaLot; 
   Formula.findFormulaByName(formulaName).then(function(formula) {
     globalFormula = formula;
     formulaId = mongoose.Types.ObjectId(formula['_id']);
@@ -205,10 +193,10 @@ router.post('/:name/delete_tuple', function(req, res, next) {
   console.log("name = " + name);
   var promise = FormulaHelper.removeTupleById(name, id);
   promise.then(function(results) {
-    res.send({ 'success': true });
+    res.send({'success':true});
   }).catch(function(error) {
     console.log(error);
-    res.send({ 'success': false, 'error': error });
+    res.send({'success':false, 'error': error});
   })
 })
 
@@ -238,7 +226,7 @@ router.post('/new', async function(req, res, next) {
     var index = 1;
     var count = 1;
     var ingredient, quantity;
-    while (req.body["ingredient" + index] != undefined || count <= length / 2) {
+    while (req.body["ingredient" + index] != undefined || count <= length/2) {
       if (req.body["ingredient" + index] != undefined) {
         ingredient = req.body["ingredient" + index];
         quantity = req.body["quantity" + index];
@@ -248,7 +236,7 @@ router.post('/new', async function(req, res, next) {
       index = index + 1;
     }
   }).then(function(formula) {
-    logs.makeLog('Create formula', 'Created <a href="/formulas/' + encodeURIComponent(name) + '">' + name + '</a>' /*JSON.stringify({formula_name:name})*/ , req.session.username);
+    logs.makeLog('Create formula', 'Created <a href="/formulas/' + encodeURIComponent(name) + '">' + name + '</a>'/*JSON.stringify({formula_name:name})*/, req.session.username);
     res.redirect(req.baseUrl + '/' + name);
   }).catch(function(error) {
     next(error);
