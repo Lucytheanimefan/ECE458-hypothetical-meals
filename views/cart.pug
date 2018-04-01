@@ -24,7 +24,7 @@ block content
                 input(type="hidden" name="ingredient" value=order.ingredient)
                 input(type="hidden" name="quantity" value=order.quantity)
                 span(style="float:right;")
-                  a(href='/users/edit_order/' + order.ingredient + '/' + page)
+                  a(href='/users/edit_order/' + order.ingredient)
                     button(class="btn btn-secondary" type="button" style="margin-right: 20px; padding: 5px 20px; background-color:#66c2ff; color: white; display:inline;") Edit
                   input.btn.btn-secondary(type="submit" value="Remove" style="padding: 5px 20px; background-color:#66c2ff; color: white; display:inline;")
       .row
@@ -38,9 +38,5 @@ block content
             form(action="/users/cart/" + (parseInt(page)-1).toString(), method="get" style="display: inline-block;")
               button.btn.btn-white(type="submit" style="padding: 5px;") <
             p(style="padding: 10px; display: inline-block;") Page #{parseInt(page)}
-            if lastPage
-              form(action="/users/cart/" + (parseInt(page)).toString(), method="get" style="display: inline-block;")
-                button.btn.btn-white(type="button" style="padding: 5px;") >
-            else
-              form(action="/users/cart/" + (parseInt(page)+1).toString(), method="get" style="display: inline-block;")
-                button.btn.btn-white(type="submit" style="padding: 5px;") >
+            form(action="/users/cart/" + (parseInt(page)+1).toString(), method="get" style="display: inline-block;")
+              button.btn.btn-white(type="submit" style="padding: 5px;") >

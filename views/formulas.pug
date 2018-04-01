@@ -37,21 +37,6 @@ block content
                       |  (#{tuple.quantity})
                       br
                   td= formula.units
-            .row
-              .col-md-12
-                p
-                  br
-            div.pages(style="text-align:center;")
-              .col-md-12
-                form(action="/formulas/home/" + (parseInt(page)-1).toString(), method="get" style="display: inline-block;")
-                  button.btn.btn-white(type="submit" style="padding: 5px;") <
-                p(style="padding: 10px; display: inline-block;") Page #{parseInt(page)}
-                if maxPage
-                  form(action="/formulas/home/" + (parseInt(page)).toString(), method="get" style="display: inline-block;")
-                    button.btn.btn-white(type="button" style="padding: 5px;") >
-                else
-                  form(action="/formulas/home/" + (parseInt(page)+1).toString(), method="get" style="display: inline-block;")
-                    button.btn.btn-white(type="submit" style="padding: 5px;") >
       .card-content.tab-pane.fade#add_formula.adminOnly.hide
         h1= 'Create Formula'
         form(action='/formulas/new', method='post')
@@ -60,7 +45,7 @@ block content
             input.form-control(type='text', name='name', required='')
           .form-group
             label.control-label Description
-            textarea.form-control(name='description' rows='5' cols='100' style='border:1px solid #cccccc; padding:5px;')
+            textarea.form-control(name='description' rows='5' cols='100' style='border:1px solid #cccccc;')
           .form-group
             label.control-label Type of Product
             select.form-control#type-selector(name='type', placeholder = '', required='', onclick='showIngredientInfo()')

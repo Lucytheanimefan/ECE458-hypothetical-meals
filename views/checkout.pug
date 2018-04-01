@@ -8,8 +8,7 @@ block content
     div.card-header(data-background-color='purple')
       h4.title Checkout: Select Vendors
     div.card-content.table-response#data(data-orders=orders)
-      //form(action="/users/place_order" method="post")
-      form(action="/users/submit_page/" + page, method="post")
+      form(action="/users/place_order" method="post")
         table.table#orderTable
           thead.text-primary
             th(onclick='sortTable(0, \'order\')') Ingredient
@@ -32,25 +31,18 @@ block content
           .col-md-12
             p
               br
-        if lastPage
-          .row
-            .col-md-10
-            .col-md-2
-              input.btn.btn-primary(type="submit" name="place_order" value="Place Order" style="float:right;")
-          .row
-            div.pages(style="text-align:center;")
-              .col-md-12
-                button.btn.btn-white(type="submit" name="prev" value=parseInt(page)-1 style="padding: 5px;") <
-                p(style="padding: 10px; display: inline-block;") Page #{parseInt(page)}
-                button.btn.btn-white(type="button" style="padding: 5px;") >
-        else
-          .row
-            div.pages(style="text-align:center;")
-              .col-md-12
-                button.btn.btn-white(type="submit" name="prev" value=parseInt(page)-1 style="padding: 5px;") <
-                p(style="padding: 10px; display: inline-block;") Page #{parseInt(page)}
-                button.btn.btn-white(type="submit" name="next" value=parseInt(page)+1 style="padding: 5px;") >
-
+        .row
+          .col-md-10
+          .col-md-2
+            input.btn.btn-primary(type="submit" name="place_order" value="Place Order" style="float:right;")
+        .row
+          div.pages(style="text-align:center;")
+            .col-md-12
+              form(action="/users/checkout_cart/" + (parseInt(page)-1).toString(), method="get" style="display: inline-block;")
+                button.btn.btn-white(type="submit" style="padding: 5px;") <
+              p(style="padding: 10px; display: inline-block;") Page #{parseInt(page)}
+              form(action="/users/checkout_cart/" + (parseInt(page)+1).toString(), method="get" style="display: inline-block;")
+                button.btn.btn-white(type="submit" style="padding: 5px;") >
 
 block scripts
   script.

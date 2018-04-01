@@ -24,7 +24,6 @@ block content
                   input.form-control(type='number', name='quantity', value=order.quantity, min='1', required='', style='width: 250px;')
               td
                 input(type="hidden" name="ingredient" value=order.ingredient)
-                input(type="hidden" name="page" value=page)
                 input.btn.btn-secondary(type="submit" value="Submit" style="background-color:#66c2ff; color: white; display:inline; visibility:" + order.show + ";")
       .row
         .col-md-12
@@ -33,12 +32,8 @@ block content
       .row
         div.pages(style="text-align:center;")
           .col-md-12
-            form(action="/users/edit_order/" + ingredient + "/" + (parseInt(page)-1).toString(), method="get" style="display: inline-block;")
+            form(action="/users/cart/" + (parseInt(page)-1).toString(), method="get" style="display: inline-block;")
               button.btn.btn-white(type="submit" style="padding: 5px;") <
             p(style="padding: 10px; display: inline-block;") Page #{parseInt(page)}
-            if lastPage
-              form(action="/users/edit_order/" + ingredient + "/" + (parseInt(page)).toString(), method="get" style="display: inline-block;")
-                button.btn.btn-white(type="button" style="padding: 5px;") >
-            else
-              form(action="/users/edit_order/" + ingredient + "/" + (parseInt(page)+1).toString(), method="get" style="display: inline-block;")
-                button.btn.btn-white(type="submit" style="padding: 5px;") >
+            form(action="/users/cart/" + (parseInt(page)+1).toString(), method="get" style="display: inline-block;")
+              button.btn.btn-white(type="submit" style="padding: 5px;") >
