@@ -19,7 +19,6 @@ var files = require('./routes/files');
 var inventory = require('./routes/inventory_routes');
 var formulas = require('./routes/formulas');
 var reports = require('./routes/reports');
-var productionLines = require('./routes/production_lines');
 var logs = require('./routes/logs');
 var backups = require('./routes/backups');
 var MongoStore = require('connect-mongo')(session);
@@ -81,7 +80,6 @@ app.post('/ingredients/*', users.requireRole("admin"), ingredients);
 app.use('/vendors', users.requireLogin(), vendors);
 app.use('/formulas', formulas);
 app.use('/reports', users.requireLogin(), reports);
-app.use('/production_lines', productionLines);
 
 app.use('/files', users.requireRole('admin'), files);
 app.use('/inventory', inventory);
