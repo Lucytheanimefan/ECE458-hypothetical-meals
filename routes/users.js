@@ -634,56 +634,73 @@ router.post('/lot_assignment/assign', function(req, res, next){
   req.body = JSON.parse(JSON.stringify(req.body));
   //console.log(req.body);
   var cart;
+  var lotInfo = [];
   var promises= [];
   var currLot = "no lot :(";
   var currIng =  "default ing";
   var currVend = "default vend";
   var currSize = 0;
-  for(var key in req.body) {
-    if(req.body.hasOwnProperty(key)){
-      console.log(req.body[key]);
-      if(key.indexOf("lotnumber")>=0){
-        currLot = req.body[key];
-      }
-      if(key.indexOf("ingredient")>=0){
-        let ingVend = req.body[key].split("@");
-        currIng = ingVend[0];
-        currVend = ingVend[1];
-        currSize = ingVend[2];
-        console.log("this is ingvend");
-        console.log(ingVend);
 
-      }
-      if(key.indexOf("quantity")>=0){
-
-        console.log("order params");
-        console.log(typeof currLot);
-        console.log(typeof currIng);
-        console.log(typeof currVend);
-        console.log(typeof req.body[key]);
-
-        let currQuantity = req.body[key];
-        promises.push(IngredientHelper.incrementAmount(currIng,parseFloat(currQuantity*currSize),currVend,currLot));
+  User.getUserById(req.session.userId).then(function(user){
+    cart = user.cart;
+    console.log(cart);
+  }).then(function(){
+    for(var key in req.body) {
+      if(req.body.hasOwnProperty(key)){
+        if(key.indexOf("lotnumber")>=0){
+          currLot = req.body[key];
+        }
+        if(key.indexOf("ingredient")>=0){
+          let ingVend = req.body[key].split("@");
+          currIng = ingVend[0];
+          currVend = ingVend[1];
+          currSize = ingVend[2];
+        }
+        if(key.indexOf("quantity")>=0){
+          let currQuantity = req.body[key];
+          let entry = {};
+          entry['currQuantity'] = currQuantity;
+          entry['currVend'] = currVend;
+          entry['currIng'] = currIng;
+          entry['currLot'] = currLot;
+          entry['currSize'] = currSize;
+          lotInfo.push(entry);
+        }
       }
     }
-  }
-  Promise.all(promises).then(function(result){
-    return User.getUserById(req.session.userId);
-  }).then(function(user){
-    cart = user.cart;
+    return orderLotCheck(cart,lotInfo);
+  }).then(function(message){
+    console.log(message);
+    if(message.length > 0){
+      var error = new Error(message);
+      throw(error);
+    }
+    return Promise.all(promises);
+  }).then(function(){
+    for(var i = 0; i < lotInfo.length; i++){
+      let currIng = lotInfo[i]['currIng'];
+      let currVend = lotInfo[i]['currVend'];
+      let currLot = lotInfo[i]['currLot'];
+      let currQuantity = lotInfo[i]['currQuantity'];
+      let currSize = lotInfo[i]['currSize'];
+      promises.push(IngredientHelper.incrementAmount(currIng,parseFloat(currQuantity*currSize),currVend,currLot));
+    }
+    return Promise.all(promises);
+  }).then(function(){
     var orderPromises = [];
     for (let order of cart) {
       var tuple = {};
       tuple['vendor'] = order.vendor;
       tuple['quantity'] = order.quantity;
-      //orderPromises.push(UserHelper.updateIngredientOnCheckout(mongoose.Types.ObjectId(order.ingredient), [tuple]));
-      //promises.push(Spending.updateReport(order.ingredient, ingName, spent, reportType));
       orderPromises.push(UserHelper.removeOrder(req.session.userId, order.ingredient));
     }
-    return Promise.all(promises);
+    res.redirect('/ingredients');
+    return Promise.all(orderPromises);
+  }).catch(function(err){
+      next(err);
   })
-  res.redirect('/ingredients');
 })
+
 
 router.get('/report/:page?', function(req, res, next) {
   var perPage = 10;
@@ -762,4 +779,49 @@ module.exports.requireLogin = function() {
       res.render('login'); // or render a form, etc.
     }
   }
+}
+
+orderLotCheck = async function(orders,lots){
+  return new Promise(function(resolve,reject){
+    var vendorIDs = [];
+    var ingIDs = [];
+    var vendors = [];
+    var ings = [];
+    var ordersCopy = orders.slice();
+    var lotsCopy = lots.slice();
+    var errorMessage = "";
+    for(var i = 0; i < orders.length; i++){
+      vendorIDs.push(Vendor.model.findById(orders[i]['vendor']));
+      ingIDs.push(Ingredient.model.findById(orders[i]['ingredient']));
+      for(var j = 0; j < lots.length; j++){
+        if(ordersCopy[i]['ingredient'].equals(mongoose.Types.ObjectId(lotsCopy[j]['currIng'])) && ordersCopy[i]['vendor'].equals(mongoose.Types.ObjectId(lotsCopy[j]['currVend']))){
+          ordersCopy[i]['quantity']-=parseFloat(lotsCopy[j]['currQuantity']);
+        }
+      }
+    }
+    Promise.all(vendorIDs).then(function(vends){
+      vendors = vends;
+      return Promise.all(ingIDs).then(function(ingredients){
+        ings = ingredients;
+        for(var i = 0; i < orders.length; i++){
+          if(ordersCopy[i]['quantity']!=0){
+            if(ordersCopy[i]['quantity'] > 0){
+              errorMessage += ordersCopy[i]['quantity'] + " " + ings[i]['name'] + " from " + vendors[i]['name'] + " were not assigned to lots.\n";
+            }
+            else{
+              errorMessage += -ordersCopy[i]['quantity'] + " too many "+ ings[i]['name'] + " from " + vendors[i]['name'] + " were assigned to lots.\n";
+            }
+          }
+        }
+        console.log(errorMessage);
+        return errorMessage;
+      })
+    }).then(function(errorMessage){
+      resolve(errorMessage);
+    }).catch(function(err){
+      reject(err);
+    })
+  })
+
+
 }
