@@ -50,7 +50,8 @@ module.exports.findVendorByCode = function(code){
 }
 
 module.exports.findVendorByCodeAndName = function(code,name){
-  return Vendor.findOne({'code':code, 'name':name})
+  return Vendor.findOne({'code':{
+                     $regex : new RegExp(code, "i") }, 'name':name})
 }
 
 module.exports.findVendorsForIngredient = function(ingredientID) {

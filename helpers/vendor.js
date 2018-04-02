@@ -58,8 +58,18 @@ module.exports.makeOrder = function(ingredientId,vendorId,numUnits){
 //TODO add error check here
 module.exports.createVendor = function(name, code, contact, location){
   return new Promise(function(resolve,reject){
-    var result = Vendor.createVendor(name,code,contact,location);
-    resolve(result);
+    Vendor.findVendorByCode(code).then(function(res){
+      console.log("res is");
+      console.log(res);
+      if(res == null){
+        var result = Vendor.createVendor(name,code,contact,location);
+        resolve(result);
+      }
+      var err = new Error("Code already exists");
+      throw err;
+    }).catch(function(error){
+      reject(error);
+    })
   })
 }
 
