@@ -58,8 +58,16 @@ module.exports.makeOrder = function(ingredientId,vendorId,numUnits){
 //TODO add error check here
 module.exports.createVendor = function(name, code, contact, location){
   return new Promise(function(resolve,reject){
-    var result = Vendor.createVendor(name,code,contact,location);
-    resolve(result);
+    Vendor.findVendorByCode(code).then(function(res){
+      if(res == null){
+        var result = Vendor.createVendor(name,code,contact,location);
+        resolve(result);
+      }
+      var err = new Error("Code already exists");
+      throw err;
+    }).catch(function(error){
+      reject(error);
+    })
   })
 }
 
@@ -123,7 +131,6 @@ module.exports.addIngredient = function(code, ingredientId, cost){
       }
     }).then(function(vend) {
       let menu = vend['catalogue'];
-      console.log(menu);
       let index = ingIndex(menu,ingredientId);
       if(index >= 0){
         vend['catalogue'][index]['cost'] = cost;
