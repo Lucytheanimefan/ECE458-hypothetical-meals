@@ -59,8 +59,6 @@ module.exports.makeOrder = function(ingredientId,vendorId,numUnits){
 module.exports.createVendor = function(name, code, contact, location){
   return new Promise(function(resolve,reject){
     Vendor.findVendorByCode(code).then(function(res){
-      console.log("res is");
-      console.log(res);
       if(res == null){
         var result = Vendor.createVendor(name,code,contact,location);
         resolve(result);
@@ -133,7 +131,6 @@ module.exports.addIngredient = function(code, ingredientId, cost){
       }
     }).then(function(vend) {
       let menu = vend['catalogue'];
-      console.log(menu);
       let index = ingIndex(menu,ingredientId);
       if(index >= 0){
         vend['catalogue'][index]['cost'] = cost;

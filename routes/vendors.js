@@ -96,6 +96,7 @@ router.post('/:code/delete', function(req, res, next) {
     return UserHelper.checkVendor(req.session.userId, vendID);
   }).then(function(result) {
     let vendor_code = req.params.code;
+    console.log(req.baseUrl);
     logs.makeVendorLog('Delete', 'Deleted vendor <a href="/vendors/' + vendor_code + '">' + vendor_code + '</a>', req.session.username);
     return res.redirect(req.baseUrl);
   }).catch(function(error) {

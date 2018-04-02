@@ -203,6 +203,9 @@ module.exports.checkVendor = function(id, vendID) {
     var ingredients = [];
     userQuery.then(function(user) {
       cart = user.cart;
+      if(cart.length<=0){
+        resolve();
+      }
       for (i = 0; i < cart.length; i++) {
         var order = cart[i];
         var vendor = order.vendor;
@@ -220,7 +223,6 @@ module.exports.checkVendor = function(id, vendID) {
       }
       return Promise.all(promises);
     }).then(async function(vends) {
-      console.log(vends);
       var promises = [];
       for (v = 0; v < vends.length; v++) {
         await exports.addToCart(id, ingredients[v], 0, vends[v].name);

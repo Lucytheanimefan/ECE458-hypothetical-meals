@@ -70,7 +70,8 @@ module.exports.createVendor = function(name, code, contact, location) {
 }
 
 module.exports.updateVendor = function(code, name, newCode, contact, location) {
-  return Vendor.findOneAndUpdate({ 'code':  code }, {
+  return Vendor.findOneAndUpdate({ 'code':  {
+                     $regex : new RegExp(code, "i") } }, {
     '$set': {
       'name': name,
       'code': newCode,
@@ -81,21 +82,25 @@ module.exports.updateVendor = function(code, name, newCode, contact, location) {
 }
 
 module.exports.deleteVendor = function(code) {
-  return Vendor.findOneAndRemove({ 'code': code }).exec();
+  return Vendor.findOneAndRemove({ 'code': {
+                     $regex : new RegExp(code, "i") } }).exec();
 }
 
 module.exports.addIngredient = function(code, ingId, cost){
   ingId = mongoose.Types.ObjectId(ingId.toString());
   let entry = {ingredient:ingId, cost:cost};
-  return Vendor.findOneAndUpdate({'code':code},{'$push':{'catalogue':entry}}).exec();
+  return Vendor.findOneAndUpdate({'code':{
+                     $regex : new RegExp(code, "i") }},{'$push':{'catalogue':entry}}).exec();
 }
 
 module.exports.removeIngredient = function(code, ingId){
-  return Vendor.findOneAndUpdate({'code':code},{'$pull':{'catalogue':{'ingredient':ingId}}}).exec();
+  return Vendor.findOneAndUpdate({'code':{
+                     $regex : new RegExp(code, "i") }},{'$pull':{'catalogue':{'ingredient':ingId}}}).exec();
 }
 
 module.exports.removeDeletedIngredient = function(code, ingId){
-  return Vendor.findOneAndUpdate({'code':code},{'$pull':{'catalogue':{'_id':ingId}}}).exec();
+  return Vendor.findOneAndUpdate({'code':{
+                     $regex : new RegExp(code, "i") }},{'$pull':{'catalogue':{'_id':ingId}}}).exec();
 }
 
 module.exports.model = Vendor;
