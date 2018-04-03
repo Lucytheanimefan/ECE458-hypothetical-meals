@@ -76,7 +76,7 @@ module.exports.productionLinesForFormula = function(formulaId) {
  * @return {[type]}                 [description]
  */
 module.exports.updateProductionLinesWithFormula = function(productionLines, formulaId) {
-  return ProductionLine.update({ _id: { $in: productionLines } }, { $set: { formulas: [{ "formulaId": mongoose.Types.ObjectId(formulaId) }] } });
+  return ProductionLine.update({ _id: { $in: productionLines } }, { $push: { formulas: [{ "formulaId": mongoose.Types.ObjectId(formulaId) }] } });
 }
 
 /**
