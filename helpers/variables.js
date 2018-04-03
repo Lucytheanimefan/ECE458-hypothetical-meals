@@ -18,4 +18,3 @@ module.exports.backupURI = (process.env.MONGOLAB_MAROON_URI);
 // module.exports.TOKEN_URL = MY_ENV['tokenHost'];
 // module.exports.redirectURI = 'http://localhost:3000/duke_oauth/callback';
 // module.exports.backupURI = MY_ENV['backup']['MONGO_URI'];
-

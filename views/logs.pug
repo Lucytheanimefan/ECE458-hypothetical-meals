@@ -7,13 +7,19 @@ block content
     form.hide(action='/logs/delete/', method='post')
       button.btn.btn-primary.pull-right(type='submit', value='Delete') Clear all
     form(action='/logs/date', method='get')
-      h4 Sort logs by date
+      h4 Search Logs
       .form-group
         label.control-label Start date
         input.form-control(type='date' name='start' value=startDate)
       .form-group
         label.control-label End date
         input.form-control(type='date' name='end' value=endDate)
+      .form-group
+        label.control-label User
+        input.form-control(type='text' name='initiating_user' value=initiating_user)
+      .form-group
+        label.control-label Ingredient
+        input.form-control(type='text' name='ingredient' value=ingredient)
       button.btn.btn-primary.pull-right(type='submit', value='Filter') Filter
     div.card
       div.card-header(data-background-color='purple')
@@ -35,7 +41,8 @@ block content
               td= log.time
               if log.description
                 td!= log.description
-              td= log.initiating_user
+              td 
+                a(href='/users/user/'+user)= log.initiating_user
               //- td= log.entities
       div.pages(style="text-align:center;")
         .col-md-12

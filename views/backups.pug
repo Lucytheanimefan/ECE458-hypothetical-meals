@@ -23,7 +23,7 @@ block content
           each file in files
             tr
               td
-                p= file.uploadDate
+                p= file.uploadDate.toString().substring(0, 15)
               td
                 a(href='/backups/file/'+file.filename)= file.filename
               td

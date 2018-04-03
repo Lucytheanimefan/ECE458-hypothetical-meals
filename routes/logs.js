@@ -56,22 +56,43 @@ router.get('/log/:id', (req, res, next) => {
 
 router.get('/date/:page?', (req, res, next) => {
   console.log('GET DATE!');
-  let startDate = new Date(req.query.start);
-  let endDate = new Date(req.query.end);
-  console.log('Start date: ' + startDate);
-  console.log('End date: ' + endDate);
-  console.log(typeof(startDate));
   var page = parseInt(req.params.page);
   if (page == null || isNaN(page) || page < 0) {
     page = 0;
   }
   var perPage = 10;
-  Log.paginate({ 'time': { "$gte": startDate, "$lte": endDate } }, perPage, page, function(err, logs) {
+  var query = {};
+  var startDate;
+  var endDate;
+  if (req.query.start != null && req.query.end != null) {
+    if (req.query.start.length > 0 && req.query.end.length > 0) {
+      console.log('Dates exist!');
+      startDate = new Date(req.query.start);
+      endDate = new Date(req.query.end);
+      query['time'] = { "$gte": startDate, "$lte": endDate }
+    }
+  }
+
+  if (req.query.initiating_user != null) {
+    if (req.query.initiating_user.length > 0) {
+      query['initiating_user'] = req.query.initiating_user
+    }
+  }
+
+  if (req.query.ingredient != null) {
+    if (req.query.ingredient.length > 0) {
+      query['$text'] = {"$search": "\""+req.query.ingredient+"\""}
+    }
+  }
+
+  // console.log("Query: ");
+  // console.log(query);
+  Log.paginate(query, perPage, page, function(err, logs) {
     if (err) {
       console.log(err);
       next(err);
     }
-    if (logs == null){
+    if (logs == null) {
       logs = [];
     }
     var maxPage = false;
@@ -79,7 +100,7 @@ router.get('/date/:page?', (req, res, next) => {
     if (logs.length < perPage) {
       maxPage = true;
     }
-    res.render('logs', { logs: logs, page: page, maxPage: maxPage, startDate: req.query.start, endDate: req.query.end });
+    res.render('logs', { logs: logs, page: page, maxPage: maxPage, startDate: req.query.start, endDate: req.query.end,initiating_user:req.query.initiating_user, ingredient: req.query.ingredient });
   })
 
   // Log.find({ 'time': { "$gte": startDate, "$lt": endDate } }).exec(function(err, logs) {
