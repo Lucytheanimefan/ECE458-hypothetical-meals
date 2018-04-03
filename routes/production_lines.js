@@ -45,7 +45,7 @@ router.get('/page/:page?', function(req, res, next) {
 router.get('/formulas/:formulaId', function(req, res, next) {
   var query = ProductionLine.productionLinesForFormula(req.params.formulaId);
   query.then(function(productionLines) {
-    console.log(productionLines)
+    console.log(productionLines);
     res.send(productionLines);
   }).catch(function(error) {
     console.log(error);

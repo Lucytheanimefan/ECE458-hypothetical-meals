@@ -66,16 +66,17 @@ module.exports.createProductionLine = function(productionLineInfo) {
 }
 
 module.exports.productionLinesForFormula = function(formulaId) {
-  return ProductionLine.find({ 'formulas': { $elemMatch: { formulaId: formulaId } } }).exec();
+  return ProductionLine.find({ 'formulas': { $elemMatch: { formulaId: mongoose.Types.ObjectId(formulaId) } } }/*{ 'formulas.formuladId': formulaId }*/).exec();
+
 }
 
 
 module.exports.addFormulaFromProductionLines = function(productionLineId, formulaId) {
-  return ProductionLine.findOneAndUpdate({ _id: productionLineId }, { $push: { formulas: [{ "formulaId": mongoose.Types.ObjectId(formulaId) }] } }).exec();
+  return ProductionLine.findOneAndUpdate({ _id: productionLineId }, { $push: { formulas: { "formulaId": mongoose.Types.ObjectId(formulaId) } } }).exec();
 }
 
-module.exports.deleteFormulaFromProductionLines = function( productionLineId, formulaId) {
-  return ProductionLine.findOneAndUpdate({ _id:  productionLineId}, { $pull: { formulas: [{ "formulaId": mongoose.Types.ObjectId(formulaId) }] } }).exec();
+module.exports.deleteFormulaFromProductionLines = function(productionLineId, formulaId) {
+  return ProductionLine.findOneAndUpdate({ _id: productionLineId }, { $pull: { formulas: { "formulaId": mongoose.Types.ObjectId(formulaId) } } }).exec();
 }
 
 /**
