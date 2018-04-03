@@ -80,6 +80,9 @@ module.exports.updateReport = function(formulaName, formulaLot, ingID, ingLot, v
     }).then(function(result) {
       var ing = result[0];
       var vendor = result[1];
+      if (vendor == null) {
+        vendor = {'name': 'deleted vendor with ID ' + vendorID};
+      }
       let newConstituent = {'ingredientID': ingID, 'ingredientName': ing.name, 'lotNumber': ingLot, 'vendorID': vendorID, 
       'vendorName': vendor.name};
       return Recall.update({'$and': [{'name': 'recall'}, {'products': {'$elemMatch': {'name': formulaName, 'lotNumber': formulaLot}}}]},
