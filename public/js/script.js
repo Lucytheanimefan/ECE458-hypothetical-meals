@@ -236,7 +236,7 @@ function loadSideBar() {
         }
       } else {
         // Users
-        if (category !== 'Users' && category !== "Uploads" && category !== "Backups") {
+        if (category !== 'Users' && category !== "Uploads" && category !== "Backups" && category !== "Logs") {
           $(this).removeClass('hide');
         }
       }
@@ -421,10 +421,10 @@ function createLotTuples(ingredients, start) {
 
     var newHTML = '<div id="tuple' + next + '" class="row">';
     newHTML += '<div class="col-md-2"><div class="form-group"></div><label class="control-label">Lot Number</label>';
-    newHTML += '<input class="form-control" id="lotnumber' + next + '" type="text" name="lotnumber' + next + '"/></div>';
+    newHTML += '<input class="form-control" id="lotnumber' + next + '" type="text" name="lotnumber' + next + '" required=""/></div>';
     newHTML += '<div class="row" id="ing' + next + "_" + 1 + '" class="row">';
     newHTML += '<div class="col-md-3"><div class="form-group"></div><label class="control-label">Ingredient</label>';
-    newHTML += '<select class="form-control" id="ingredient' + next + "_" + 1 + '" name="ingredient' + next + "_" + 1 + '"><option disabled="" selected="" value="">Select from Order</option>';
+    newHTML += '<select class="form-control" id="ingredient' + next + "_" + 1 + '" name="ingredient' + next + "_" + 1 + '" required=""><option disabled="" selected="" value="">Select from Order</option>';
     var i;
     console.log("ing bois");
     console.log(ingredients);
@@ -437,7 +437,7 @@ function createLotTuples(ingredients, start) {
     //newHTML += '<div class="removeBtn" id="dataBtn">';
     //console.log($("#ingredientSelect" + next).val());
     newHTML += '<div class="col-md-1"><div class="form-group"></div><label class="control-label">Quantity</label>';
-    newHTML += '<input class="form-control" id="quantity' + next + "_" + 1 + '" type="number" name="quantity' + next + "_" + 1 + '" min="0" step="0.01"/></div>';
+    newHTML += '<input class="form-control" id="quantity' + next + "_" + 1 + '" type="number" name="quantity' + next + "_" + 1 + '" min="0" step="0.01" required=""/></div>';
     newHTML += '<div class="col-md-1"><p><br/><br/></p>';
     newHTML += '</div>';
     //newHTML += '<div class="removeBtn" id="dataBtn">';
@@ -570,7 +570,7 @@ function addPackage(index){
   newHTML += '<div class="col-md-2"><p><br/><br/><br/><br/></p>';
   newHTML += '</div>';
   newHTML += '<div class="col-md-3"><div class="form-group"></div><label class="control-label">Ingredient</label>';
-  newHTML += '<select class="form-control" id="ingredient' + index + "_" + next + '" name="ingredient' + index + "_" + next + '"><option disabled="" selected="" value="">Select from Order</option>';
+  newHTML += '<select class="form-control" id="ingredient' + index + "_" + next + '" name="ingredient' + index + "_" + next + '" required=""><option disabled="" selected="" value="">Select from Order</option>';
   var i;
   for (i = 0; i < ingredients.length; i++) {
     console.log(ingredients);
@@ -583,7 +583,7 @@ function addPackage(index){
   //newHTML += '<div class="removeBtn" id="dataBtn">';
   //console.log($("#ingredientSelect" + next).val());
   newHTML += '<div class="col-md-1"><div class="form-group"></div><label class="control-label">Quantity</label>';
-  newHTML += '<input class="form-control" id="quantity' + index + "_" + next + '" type="number" name="quantity' + index + "_" + next + '" min="0" step="0.01"/></div>';
+  newHTML += '<input class="form-control" id="quantity' + index + "_" + next + '" type="number" name="quantity' + index + "_" + next + '" min="0" step="0.01" required=""/></div>';
   newHTML += '<div class="col-md-1"><p><br/><br/><br/><br/></p>';
   newHTML += '<button class="btn btn-round btn-just-icon remove" type="button" value="remove" onclick=deletePackage(' + next + ","+ index + ') style="background-color:red;"><i class="material-icons">delete</i></button></div>';
   newHTML += '</div></div>';

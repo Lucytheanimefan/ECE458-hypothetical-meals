@@ -1,10 +1,15 @@
 extends layout
 
+block css
+  link(href='/stylesheets/ingredients.css', rel='stylesheet')
+
 block link
   -var selected = 'Formulas';
 
 block content
-  h1= formula.name
+  h1(style='margin-top: 0px; display: inline-block; float: left')= formula.name
+  form(action='/formulas')
+    button.btn.btn-primary.pull-right(type='submit', style='display: inline-block; float: right') Back to Formulas
   div#tabs
     ul.nav.nav-tabs
       li.active

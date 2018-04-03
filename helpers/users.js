@@ -8,6 +8,8 @@ var Token = require('../models/token');
 var crypto = require('crypto');
 var nodemailer = require('nodemailer');
 var underscore = require('underscore');
+var mongoose = require('mongoose');
+mongoose.Promise = global.Promise;
 
 // TODO for refactoring
 module.exports.encryptUserData = function(req, res, next) {
@@ -111,6 +113,35 @@ module.exports.updateCart = function(id) {
   })
 }
 
+module.exports.placeOrder = function(userId) {
+  return new Promise(function(resolve, reject) {
+    var cart;
+    User.getUserById(userId).then(function(user) {
+      cart = user.cart;
+      var promises = [];
+      for (let order of cart) {
+        var tuple = {};
+        tuple['vendor'] = order.vendor;
+        tuple['quantity'] = order.quantity;
+        promises.push(exports.updateIngredientOnCheckout(mongoose.Types.ObjectId(order.ingredient), [tuple]));
+      }
+      return Promise.all(promises);
+    }).then(function(ings) {
+      var checkoutIngredientLog = '';
+      if (ings != null) {
+        for (var i = 0; i < ings.length; i++) {
+          checkoutIngredientLog += '<li><a href="/ingredients/' + ings[i].name + '">' + ings[i].name + '</a></li>'
+        }
+      }
+      return "done";
+    }).then(function(results) {
+      resolve(results);
+    }).catch(function(error) {
+      reject(error);
+    })
+  })
+}
+
 module.exports.updateIngredientOnCheckout = function(ingId, vendors) {
   return new Promise(function(resolve, reject) {
     var ing;
@@ -172,6 +203,9 @@ module.exports.checkVendor = function(id, vendID) {
     var ingredients = [];
     userQuery.then(function(user) {
       cart = user.cart;
+      if(cart.length<=0){
+        resolve();
+      }
       for (i = 0; i < cart.length; i++) {
         var order = cart[i];
         var vendor = order.vendor;
@@ -189,7 +223,6 @@ module.exports.checkVendor = function(id, vendID) {
       }
       return Promise.all(promises);
     }).then(async function(vends) {
-      console.log(vends);
       var promises = [];
       for (v = 0; v < vends.length; v++) {
         await exports.addToCart(id, ingredients[v], 0, vends[v].name);

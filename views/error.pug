@@ -8,5 +8,6 @@ block content
     img(src="/img/broken-plate.png")
   .floatright
     .error-text
+      - var text = message;
       h1= "Something went wrong!"
-      p #{message}
+      p!= text.replace(/</g, "&lt;").replace(/>/g, '&gt;').replace(/\n/g, '<br />')
