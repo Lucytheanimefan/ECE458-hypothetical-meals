@@ -78,6 +78,7 @@ router.post('/update/:id', function(req, res, next) {
   let id = req.params.id
   let name = req.body.name;
   let description = req.body.description;
+  let busy = req.body.busy;
   var formulas = req.body.formulas;
   console.log(formulas);
   if (Array.isArray(formulas)) {
@@ -89,7 +90,7 @@ router.post('/update/:id', function(req, res, next) {
   }
   console.log('----Formulas to update with!: ' + formulas);
   //console.log(formulas);
-  var info = { 'name': name, 'description': description };
+  var info = { 'name': name, 'description': description, 'busy': busy };
   console.log('Time to update production line');
 
   var prodLineQuery = ProductionLine.getProductionLineById(id);

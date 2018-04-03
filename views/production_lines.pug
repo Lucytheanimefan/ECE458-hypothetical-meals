@@ -31,9 +31,10 @@ block content
                     a(href='/production_lines/production_line/' + encodeURIComponent(line.name))= line.name
                   td= line.description
                   td= line.busy
-                  td.adminOnly.hide
-                    form(action='/production_lines/delete/' + line._id, method='post')
-                      button.btn.btn-primary(type='submit', style='margin:0px; padding: 5px 10px;') Remove
+                  if line.busy == false
+                    td.adminOnly.hide
+                      form(action='/production_lines/delete/' + line._id, method='post')
+                        button.btn.btn-primary(type='submit', style='margin:0px; padding: 5px 10px;') Remove
           div.pages(style="text-align:center;")
             .col-md-12
               form(action="/production_lines/page/" + (parseInt(page)-1).toString(), method="get" style="display: inline-block;")
