@@ -53,6 +53,12 @@ block content
             tr
               th Number of Units Produced
               td= formula.units
+            tr
+              th Production Lines
+              td 
+                each prodLine in productionLines
+                  li
+                    a(href='/production_lines/production_line/' + encodeURIComponent(prodLine.name))= prodLine.name
           div.delete-form.adminOnly.hide
             form(action='/formulas/' + formula.name + '/delete', method='post')
               button.btn.btn-primary.pull-left(style="margin: 30px 15px;" type='submit') Delete Formula
