@@ -65,6 +65,10 @@ module.exports.createProductionLine = function(productionLineInfo) {
   return ProductionLine.create(productionLineInfo);
 }
 
+module.exports.productionLinesForFormula = function(formulaId) {
+  return ProductionLine.find({ 'formulas': { $elemMatch: { formulaId: formulaId } } }).exec();
+}
+
 /**
  * [updateProductionLine description]
  * @param  {[type]} id         Production line mongodb unique id
