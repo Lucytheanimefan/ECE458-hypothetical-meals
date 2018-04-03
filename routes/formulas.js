@@ -5,7 +5,7 @@ var FormulaHelper = require('../helpers/formula');
 var IngredientHelper = require('../helpers/ingredients');
 var Ingredient = require('../models/ingredient');
 var Production = require('../models/production');
-var Recall = require('../models/recall');
+var Completed = require('../models/completed_production');
 var underscore = require('underscore');
 var mongoose = require('mongoose');
 mongoose.Promise = global.Promise;
@@ -34,7 +34,7 @@ router.get('/home/:page?', function(req, res, next) {
       var ingredients = [];
       var ingQuery = Ingredient.getAllIngredients();
       var report;
-      Recall.getProducts().then(function(result) {
+      Completed.getProducts().then(function(result) {
         report = result;
         return ingQuery;
       }).then(function(result) {
@@ -164,7 +164,7 @@ router.post('/:name/order/:amount', function(req, res, next) {
     globalFormula = formula;
     formulaId = mongoose.Types.ObjectId(formula['_id']);
     formulaLot = (Math.floor(Math.random() * (max - min)) + min).toString();
-    return Promise.all([FormulaHelper.createListOfTuples(formulaName, amount), Production.updateReport(formulaId, formulaName, amount, 0), Recall.createLotEntry(formulaName, formulaLot, formula.intermediate)]);
+    return Promise.all([FormulaHelper.createListOfTuples(formulaName, amount), Production.updateReport(formulaId, formulaName, amount, 0), Completed.createLotEntry(formulaName, formulaLot, formula.intermediate)]);
   }).then(function(results) {
     let total = results[0];
     return Promise.all(total.map(function(ingTuple) {

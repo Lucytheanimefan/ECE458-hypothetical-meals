@@ -6,7 +6,7 @@ var Production = require('../models/production');
 var Formula = require('../models/formula');
 var Freshness = require('../models/freshness');
 var Ingredient = require('../models/ingredient');
-var RealRecall = require('../models/real_recall');
+var Recall = require('../models/recall');
 
 var mongoose = require('mongoose')
 mongoose.Promise = global.Promise;
@@ -57,7 +57,7 @@ router.post('/recall', function(req, res, next) {
   let lotNumber = req.body.lotNumber;
   let ingName = req.body.name;
 
-  RealRecall.getRecallProducts(ingName, vendorCode, lotNumber).then(function(products) {
+  Recall.getRecallProducts(ingName, vendorCode, lotNumber).then(function(products) {
     return Promise.all(products.map(function(tuple) {
       return addFormulaNameRecall(tuple);
     }));
