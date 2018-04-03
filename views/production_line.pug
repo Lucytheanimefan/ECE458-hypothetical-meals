@@ -1,0 +1,87 @@
+extends layout
+
+block link
+  -var selected = 'Production Line';
+
+
+block content
+  div.card-tabs
+    ul.nav.nav-tabs
+      li.active
+        a(data-toggle='tab', href='#productionLine') Production Line Information
+      li.adminOnly.hide
+        a(data-toggle='tab', href='#edit_form') Edit
+
+    .tab-content
+      #productionLine.tab-pane.fade.in.active
+        table.table
+          tr
+            th Name
+            td= productionLine.name
+          tr
+            th Description
+            td= productionLine.description
+          tr
+            th Busy
+            td= productionLine.busy
+          tr
+            th Formulas
+            td
+              each formula in productionLine.formulas
+                li
+                  a.lineFormula(href="/formulas/id/" + formula.formulaId, data-id=formula.formulaId)
+
+      .card-content.tab-pane.fade#edit_form.adminOnly.hide
+        h1= 'Update production line'
+        form(action='/production_lines/update/' + productionLine._id, method='post')
+          .form-group
+            label.control-label Production Line Name
+            input.form-control(type='text', name='name', value=productionLine.name, required='')
+          .form-group
+            label.control-label Description
+            input.form-control(type='text', name='description', value=productionLine.description, required='') 
+          .form-group
+            label.control-label Formulas
+            select.form-control(name='formulas', placeholder = '', multiple)
+              //- option(disabled='' value='') Select an option
+              each formula in formulas
+                if productionLine.formulas.length > 0
+                  - var added = false;
+                  for prodFormula,index in productionLine.formulas
+                    if index == 0
+                      - added = false;
+                    if formula._id.toString() == prodFormula.formulaId
+                      - added = true
+                      option(value=formula._id, selected)= formula.name
+                    else if !added
+                      option(value=formula._id)= formula.name
+                      - added = true
+                else
+                  option(value=formula._id)= formula.name
+          //- div#formulaRow(data-formulas=productionLine.formulas)
+          //-   .row
+          //-     .col-md-11
+          //-       each formula, index in productionLine.formulas
+          //-         .row.preexists(id='formula-'+index)
+          //-           .col-md-8
+          //-             .form-group
+          //-               label.control-label Formula
+          //-               select.form-control(id='formula'+index, name='formula'+index)
+          //-                 option.lineFormula(disabled='' selected='' value=formula.formulaId, data-id=formula.formulaId ) 
+          //-                 each nformula in formulas
+          //-                   option(value=nformula._id)= nformula.name
+          //-           .col-md-4
+          //-             p
+          //-               br
+          //-             button.btn.btn-round.btn-just-icon.remove(id=formula.id, name=formula.name, type='button', value='remove', onclick='deleteTuple('+index+')', style='background-color:red;')
+          //-               i.material-icons delete
+          //-     .col-md-1
+          //-       p
+          //-         br
+          //-       button#btn1.btn.btn-round.btn-just-icon.add-more(type='button', value='add')
+          //-         i.material-icons add
+          button.btn.btn-primary.pull-right(type='submit', value='create production line') Update
+
+block scripts
+  script.
+    updateLineFormulaNames();

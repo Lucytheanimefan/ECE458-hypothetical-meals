@@ -20,6 +20,20 @@ router.get('/', function(req, res, next) {
   res.redirect(req.baseUrl + '/home/');
 })
 
+
+router.get('/id/:id', function(req, res, next) {
+  console.log("Find formula by id: " + req.params.id);
+  var formQuery = Formula.findFormulaById(req.params.id);
+  formQuery.then(function(formula) {
+    console.log(formula);
+    return res.send(formula);
+  }).catch(function(error) {
+    console.log(error);
+    next(error)
+  });
+})
+
+
 router.get('/home/:page?', function(req, res, next) {
   var perPage = 10;
   var page = req.params.page || 1;
