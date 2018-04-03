@@ -73,16 +73,31 @@ router.get('/production_line/:name', function(req, res, next) {
 })
 
 
-router.post('/update_lines_with_formula/:formulaName', function(req, res, next) {
-  console.log('Call update_lines_with_formula');
-  let productionLines = req.body.productionLines;
+router.post('/add_lines_with_formula/:formulaName', function(req, res, next) {
+  console.log('Call add_lines_with_formula');
+  let productionLineId = req.body.productionLines;
   let formulaId = req.body.formulaId;
-  var prodLineQuery = ProductionLine.updateProductionLinesWithFormula(productionLines, formulaId);
+  var prodLineQuery = ProductionLine.addFormulaFromProductionLines(productionLineId, formulaId);
   prodLineQuery.then(function(productionLines) {
-    console.log('Update lines with formula');
+    console.log('Add lines to formula');
     console.log(productionLines);
     res.redirect('/formulas/' + req.params.formulaName);
-  }).catch(function(error){
+  }).catch(function(error) {
+    console.log(error);
+    return next(error);
+  })
+})
+
+router.post('/delete_lines/:productionLineId/with_formula/:formulaName', function(req, res, next) {
+  console.log('Call delete_lines_with_formula');
+  let productionLineId = req.params.productionLineId;
+  let formulaId = req.body.formulaId;
+  var prodLineQuery = ProductionLine.deleteFormulaFromProductionLines(productionLineId, formulaId);
+  prodLineQuery.then(function(productionLines) {
+    console.log('Delete lines from formula');
+    console.log(productionLines);
+    res.redirect('/formulas/' + req.params.formulaName);
+  }).catch(function(error) {
     console.log(error);
     return next(error);
   })

@@ -53,7 +53,7 @@ module.exports.getAllProductionLines = function() {
 }
 
 module.exports.paginate = function(query = {}, perPage = 10, page = 0) {
-  return ProductionLine.find(query).limit(perPage).skip(perPage * page)
+  return ProductionLine.find(query).limit(perPage).skip(perPage * page);
 }
 
 //TODO: The system should disallow removal of a busy production line with an appropriate error message.
@@ -69,14 +69,13 @@ module.exports.productionLinesForFormula = function(formulaId) {
   return ProductionLine.find({ 'formulas': { $elemMatch: { formulaId: formulaId } } }).exec();
 }
 
-/**
- * [updateProductionLinesWithFormula description]
- * @param  {[String]} productionLines An array of production line id strings []
- * @param  {String} formulas        An formula id 
- * @return {[type]}                 [description]
- */
-module.exports.updateProductionLinesWithFormula = function(productionLines, formulaId) {
-  return ProductionLine.update({ _id: { $in: productionLines } }, { $push: { formulas: [{ "formulaId": mongoose.Types.ObjectId(formulaId) }] } });
+
+module.exports.addFormulaFromProductionLines = function(productionLineId, formulaId) {
+  return ProductionLine.findOneAndUpdate({ _id: productionLineId }, { $push: { formulas: [{ "formulaId": mongoose.Types.ObjectId(formulaId) }] } }).exec();
+}
+
+module.exports.deleteFormulaFromProductionLines = function( productionLineId, formulaId) {
+  return ProductionLine.findOneAndUpdate({ _id:  productionLineId}, { $pull: { formulas: [{ "formulaId": mongoose.Types.ObjectId(formulaId) }] } }).exec();
 }
 
 /**

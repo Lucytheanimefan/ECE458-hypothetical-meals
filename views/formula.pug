@@ -17,52 +17,65 @@ block content
       li.adminOnly.hide
         a(data-toggle='tab', href='#update-form') Update Formula
       li.manager.hide
-        a(data-toggle='tab', href='#addProductionLine') Edit Production Lines
+        a(data-toggle='tab', href='#addProductionLine') Add Production Lines
     .tab-content
       .row.tab-pane.fade.in.active#formula-info
         .col-md-6
-          table.table
-            tr
-              th Description
-              td= formula.description
-            if formula.intermediate
-              tr
-                th Type
-                  td Intermediate Product
-              tr
-                th Package
-                  td= ing.package
-              tr
-                th Temperature
-                  td= ing.temperature
-              tr
-                th Native Unit
-                  td= ing.nativeUnit
-              tr
-                th Units Per Package
-                  td= ing.unitsPerPackage
-            else
-              tr
-                th Type
-                  td Final Product
-            tr
-              th Ingredients (Quantity)
-              td
-                each tuple in formula.tuples
-                  a(href='/ingredients/' + encodeURIComponent(tuple.ingredient))= tuple.ingredient
-                  |  (#{tuple.quantity})
-                  br
-            tr
-              th Number of Units Produced
-              td= formula.units
-            tr
-              th Production Lines
-              td 
+          div.card
+            div.card-content.table-response
+              table.table
+                tr
+                  th Description
+                    td= formula.description
+                if formula.intermediate
+                  tr
+                    th Type
+                      td Intermediate Product
+                  tr
+                    th Package
+                      td= ing.package
+                  tr
+                    th Temperature
+                      td= ing.temperature
+                  tr
+                    th Native Unit
+                      td= ing.nativeUnit
+                  tr
+                    th Units Per Package
+                      td= ing.unitsPerPackage
+                else
+                  tr
+                    th Type
+                      td Final Product
+                tr
+                  th Ingredients (Quantity)
+                  td
+                    each tuple in formula.tuples
+                      a(href='/ingredients/' + encodeURIComponent(tuple.ingredient))= tuple.ingredient
+                      |  (#{tuple.quantity})
+                      br
+                tr
+                  th Number of Units Produced
+                  td= formula.units
+          div.card
+            div.card-content.table-response
+              table.table
+                thead
+                  th Production Line
+                  th Remove
                 each prodLine in productionLines
-                  li
-                    a(href='/production_lines/production_line/' + encodeURIComponent(prodLine.name))= prodLine.name
+                  tr
+                    td
+                      a(href='/production_lines/production_line/' + encodeURIComponent(prodLine.name))= prodLine.name
+                    td
+                      form(action='/production_lines/delete_lines/' + prodLine._id + '/with_formula/' + formula.name, method='post')
+                        button.btn.btn-primary.pull-left(type='submit') Remove
+
           div.delete-form.adminOnly.hide
             form(action='/formulas/' + formula.name + '/delete', method='post')
+              .form-group.hide
+                label.hide.control-label Formula id
+                input.hide.form-control(type='text', name='formulaId', value = formula._id, required='')
               button.btn.btn-primary.pull-left(style="margin: 30px 15px;" type='submit') Delete Formula
         .col-md-6
           form.manager.hide(action="/formulas/" + formula.name + '/order/', method="post")
@@ -123,13 +136,13 @@ block content
           button.btn.btn-primary.pull-right(type='submit') Update Formula
 
       .adminOnly.hide.card.tab-pane.fade#addProductionLine
-        form(action='/production_lines/update_lines_with_formula/' + formula.name, method='post')
+        form(action='/production_lines/add_lines_with_formula/' + formula.name, method='post')
           .form-group.hide
             label.hide.control-label Formula id
             input.hide.form-control(type='text', name='formulaId', value = formula._id, required='')
           .form-group
             label.control-label Production Lines
-            select.form-control(name='productionLines', placeholder = '', multiple)
+            select.form-control(name='productionLines', placeholder = '')
               each productionLine in allProductionLines
                 if productionLine.formulas.length > 0
                   - var added = false;
@@ -137,8 +150,7 @@ block content
                     if index == 0
                       - added = false;
                     if formula._id.toString() == prodFormula.formulaId
-                      - added = true
-                      option(value=productionLine._id, selected)= productionLine.name
+                      - added = true 
                     else if !added
                       option(value=productionLine._id)= productionLine.name
                       - added = true
