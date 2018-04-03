@@ -72,7 +72,7 @@ router.get('/production_line/:name', function(req, res, next) {
   })
 })
 
-// Get a single production line
+// Update a single production line
 router.post('/update/:id', function(req, res, next) {
   console.log('UPDATE!');
   let id = req.params.id

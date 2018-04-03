@@ -78,23 +78,33 @@ router.get('/:name', function(req, res, next) {
   var formula;
   var ing;
   var productionLines = [];
+  var ingredients = [];
   Promise.all([formQuery, formIngQuery]).then(function(result) {
     formula = result[0];
     ing = result[1];
+
+    // Get the production lines associated with this formula
     var productionLineQuery = ProductionLine.productionLinesForFormula(formula._id);
     return productionLineQuery;
   }).then(function(prodLines) {
+    console.log('ProdLines:');
+    console.log(prodLines);
     productionLines = prodLines;
     var ingQuery = Ingredient.getAllIngredients();
     return ingQuery;
   }).then(function(result) {
-    var ingredients = [];
     for (let ing of result) {
       ingredients.push({ _id: ing._id, name: ing.name });
     }
+    var allProductionLines = ProductionLine.getAllProductionLines();
+    return allProductionLines;
+  }).then(function(allProdLines) {
+    console.log('All production lines:');
+    console.log(allProdLines);
     formula.tuples = underscore.sortBy(formula.tuples, "index");
-    res.render('formula', { formula: formula, ingredients: ingredients, ing: ing, productionLines: productionLines });
+    res.render('formula', { formula: formula, ingredients: ingredients, ing: ing, productionLines: productionLines, allProductionLines: allProdLines });
   }).catch(function(error) {
+    console.log(error);
     next(error)
   });
 })

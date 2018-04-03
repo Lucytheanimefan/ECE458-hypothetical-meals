@@ -49,7 +49,7 @@ module.exports.getProductionLineById = function(id) {
 }
 
 module.exports.getAllProductionLines = function() {
-  return ProductionLine.find().exec();
+  return ProductionLine.find({}).exec();
 }
 
 module.exports.paginate = function(query = {}, perPage = 10, page = 0) {
@@ -67,6 +67,16 @@ module.exports.createProductionLine = function(productionLineInfo) {
 
 module.exports.productionLinesForFormula = function(formulaId) {
   return ProductionLine.find({ 'formulas': { $elemMatch: { formulaId: formulaId } } }).exec();
+}
+
+/**
+ * [updateProductionLinesWithFormula description]
+ * @param  {[type]} productionLines An array of production line id strings []
+ * @param  {[type]} formulas        An array of formula ids in the format of [{ "formulaId": mongoose.Types.ObjectId(formulaId) }]
+ * @return {[type]}                 [description]
+ */
+module.exports.updateProductionLinesWithFormula = function(productionLines, formulas) {
+  return ProductionLine.update({ _id: { $in: productionLines } }, { $pushAll: { formulas: formulas } });
 }
 
 /**

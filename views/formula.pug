@@ -16,6 +16,8 @@ block content
         a(data-toggle='tab', href='#formula-info') Formula Information
       li.adminOnly.hide
         a(data-toggle='tab', href='#update-form') Update Formula
+      li.manager.hide
+        a(data-toggle='tab', href='#addProductionLine') Edit Production Lines
     .tab-content
       .row.tab-pane.fade.in.active#formula-info
         .col-md-6
@@ -119,6 +121,28 @@ block content
             input.form-control(type='number', name='units', min='0', value = formula.units, required='')
 
           button.btn.btn-primary.pull-right(type='submit') Update Formula
+
+      .adminOnly.hide.card.tab-pane.fade#addProductionLine
+        form(action='/', method='post')
+          .form-group
+            label.control-label Production Lines
+            select.form-control(name='formulas', placeholder = '', multiple)
+              each productionLine in allProductionLines
+                if productionLine.formulas.length > 0
+                  - var added = false;
+                  for prodFormula,index in productionLine.formulas
+                    if index == 0
+                      - added = false;
+                    if formula._id.toString() == prodFormula.formulaId
+                      - added = true
+                      option(value=productionLine._id, selected)= productionLine.name
+                    else if !added
+                      option(value=productionLine._id)= productionLine.name
+                      - added = true
+                else
+                  option(value=productionLine._id)= productionLine.name
+        button.btn.btn-primary.pull-right(type='submit') Update Production Lines
+
   div#index(data-start=formula.tuples.length)
 
 block scripts
