@@ -42,6 +42,17 @@ router.get('/page/:page?', function(req, res, next) {
   })
 })
 
+router.get('/formulas/:formulaId', function(req, res, next) {
+  var query = ProductionLine.productionLinesForFormula(req.params.formulaId);
+  query.then(function(productionLines) {
+    console.log(productionLines)
+    res.send(productionLines);
+  }).catch(function(error) {
+    console.log(error);
+    return next(error);
+  })
+})
+
 // Get a single production line
 router.get('/production_line/:name', function(req, res, next) {
   var prodLineQuery = ProductionLine.getProductionLine(req.params.name);
@@ -86,25 +97,6 @@ router.post('/update/:id', function(req, res, next) {
   // var existingFormulas = [];
   // var formulasToAdd = formulas;
   prodLineQuery.then(function(productionLine) {
-    //   existingFormulas = productionLine.formulas;
-    //   for (var j = 0; j < formulas.length; j++) {
-    //     for (var i = 0; i < existingFormulas.length; i++) {
-    //       if (formulas[j] != null && existingFormulas[i] != null) {
-    //         console.log(formulas[j].formulaId + ' vs ' + existingFormulas[i].formulaId);
-    //         if (formulas[j].formulaId.toString() == existingFormulas[i].formulaId.toString()) {
-    //           // The formulas already exists/is already associated with this production line!
-    //           // Remove it from the array
-    //           console.log('REMOVE!');
-    //           if (formulasToAdd.indexOf(formulas[j]) > -1) {
-    //             formulasToAdd.splice(i, 1);
-    //           }
-    //         }
-    //       }
-    //     }
-
-    //   }
-    //   console.log("Filtered formulas to add:");
-    //console.log(formulas);
     info['formulas'] = formulas;
     return ProductionLine.updateProductionLine(id, info);
   }).then(function(updatedProductionLine) {
@@ -114,16 +106,6 @@ router.post('/update/:id', function(req, res, next) {
     return next(error);
   })
 
-  // var update = ProductionLine.updateProductionLine(id, info, formulas);
-  // update.then(function(productionLine) {
-  // 	console.log("Updated production line: ");
-  // 	console.log(productionLine);
-  //   logs.makeLog('Update production line', 'Updated production line <a href="/production_lines/' + productionLine.name + '">' + productionLine.name + '</a>', req.session.username);
-  //   return res.redirect(req.baseUrl + '/production_line/' + productionLine.name);
-  // }).catch(function(error) {
-  //   console.log(error);
-  //   next(error);
-  // });
 })
 
 
