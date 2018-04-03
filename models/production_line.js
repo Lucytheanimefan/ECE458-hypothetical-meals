@@ -76,7 +76,7 @@ module.exports.addFormulaFromProductionLines = function(productionLineId, formul
 }
 
 module.exports.deleteFormulaFromProductionLines = function(productionLineId, formulaId) {
-  return ProductionLine.findOneAndUpdate({ _id: productionLineId }, { $pull: { formulas: { "formulaId": mongoose.Types.ObjectId(formulaId) } } }).exec();
+  return ProductionLine.update({ _id: productionLineId }, { $pull: { formulas: { "formulaId": mongoose.Types.ObjectId(formulaId) } } }).exec();
 }
 
 /**

@@ -69,13 +69,13 @@ block content
                       a(href='/production_lines/production_line/' + encodeURIComponent(prodLine.name))= prodLine.name
                     td
                       form(action='/production_lines/delete_lines/' + prodLine._id + '/with_formula/' + formula.name, method='post')
+                        .form-group.hide
+                          label.hide.control-label Formula id
+                          input.hide.form-control(type='text', name='formulaId', value = formula._id, required='')
                         button.btn.btn-primary.pull-left(type='submit') Remove
 
           div.delete-form.adminOnly.hide
             form(action='/formulas/' + formula.name + '/delete', method='post')
-              .form-group.hide
-                label.hide.control-label Formula id
-                input.hide.form-control(type='text', name='formulaId', value = formula._id, required='')
               button.btn.btn-primary.pull-left(style="margin: 30px 15px;" type='submit') Delete Formula
         .col-md-6
           form.manager.hide(action="/formulas/" + formula.name + '/order/', method="post")
