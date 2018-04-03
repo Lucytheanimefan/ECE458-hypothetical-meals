@@ -123,10 +123,13 @@ block content
           button.btn.btn-primary.pull-right(type='submit') Update Formula
 
       .adminOnly.hide.card.tab-pane.fade#addProductionLine
-        form(action='/', method='post')
+        form(action='/production_lines/update_lines_with_formula/' + formula.name, method='post')
+          .form-group.hide
+            label.hide.control-label Formula id
+            input.hide.form-control(type='text', name='formulaId', value = formula._id, required='')
           .form-group
             label.control-label Production Lines
-            select.form-control(name='formulas', placeholder = '', multiple)
+            select.form-control(name='productionLines', placeholder = '', multiple)
               each productionLine in allProductionLines
                 if productionLine.formulas.length > 0
                   - var added = false;
@@ -141,7 +144,7 @@ block content
                       - added = true
                 else
                   option(value=productionLine._id)= productionLine.name
-        button.btn.btn-primary.pull-right(type='submit') Update Production Lines
+          button.btn.btn-primary.pull-right(type='submit') Update Production Lines
 
   div#index(data-start=formula.tuples.length)
 

@@ -71,12 +71,12 @@ module.exports.productionLinesForFormula = function(formulaId) {
 
 /**
  * [updateProductionLinesWithFormula description]
- * @param  {[type]} productionLines An array of production line id strings []
- * @param  {[type]} formulas        An array of formula ids in the format of [{ "formulaId": mongoose.Types.ObjectId(formulaId) }]
+ * @param  {[String]} productionLines An array of production line id strings []
+ * @param  {String} formulas        An formula id 
  * @return {[type]}                 [description]
  */
-module.exports.updateProductionLinesWithFormula = function(productionLines, formulas) {
-  return ProductionLine.update({ _id: { $in: productionLines } }, { $pushAll: { formulas: formulas } });
+module.exports.updateProductionLinesWithFormula = function(productionLines, formulaId) {
+  return ProductionLine.update({ _id: { $in: productionLines } }, { $set: { formulas: [{ "formulaId": mongoose.Types.ObjectId(formulaId) }] } });
 }
 
 /**

@@ -72,6 +72,22 @@ router.get('/production_line/:name', function(req, res, next) {
   })
 })
 
+
+router.post('/update_lines_with_formula/:formulaName', function(req, res, next) {
+  console.log('Call update_lines_with_formula');
+  let productionLines = req.body.productionLines;
+  let formulaId = req.body.formulaId;
+  var prodLineQuery = ProductionLine.updateProductionLinesWithFormula(productionLines, formulaId);
+  prodLineQuery.then(function(productionLines) {
+    console.log('Update lines with formula');
+    console.log(productionLines);
+    res.redirect('/formulas/' + req.params.formulaName);
+  }).catch(function(error){
+    console.log(error);
+    return next(error);
+  })
+})
+
 // Update a single production line
 router.post('/update/:id', function(req, res, next) {
   console.log('UPDATE!');
