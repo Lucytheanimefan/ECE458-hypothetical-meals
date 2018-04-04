@@ -41,17 +41,16 @@ var ProductionLineSchema = new mongoose.Schema({
       /*'busy' or 'idle' */
       required: true,
     },
-    product: { /*a line can only make one product at a time. This is the product that was being made at that time*/
+    product: { /* a line can only make one product at a time. This is the product that was being made at that time */
       required: function() {
         return (this.status == 'busy')
       },
-      ingredients: [{
+      formula: {
         type: mongoose.Schema.ObjectId,
-        ref: 'Ingredient'
-      }]
+        ref: 'Formula'
+      }
     }
   }]
-
 })
 
 var ProductionLine = mongoose.model('ProductionLine', ProductionLineSchema);
