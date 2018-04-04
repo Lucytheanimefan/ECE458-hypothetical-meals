@@ -82,6 +82,32 @@ block content
           .form-group
             label.control-label Description
             textarea.form-control(name='description', rows='5', cols='100', required='', style='border:1px solid #cccccc;') #{formula.description}
+          if formula.intermediate
+            div#ingredient-info
+              .form-group
+                label.control-label Package Type
+                select.form-control.ing-attr(name='package', placeholder = '', required='')
+                  each package in ['sack', 'pail', 'drum', 'supersack', 'truckload', 'railcar']
+                    if package == ing.package
+                      option(selected='' value=package)= package
+                    else
+                      option(value=package)= package
+              .form-group
+                label.control-label Storage Temperature
+                select.form-control.ing-attr(name='temperature', placeholder = '', required='')
+                  option(disabled='' selected='' value='') Select an option
+                  each temp in ['frozen', 'refrigerated', 'room temperature']
+                    if temp == ing.temperature
+                      option(selected='' value=temp)= temp
+                    else
+                      option(value=temp)= temp
+              .form-group
+                label.control-label Native Unit
+                input.form-control.ing-attr(type='text', name='nativeUnit', placeholder = '', value = ing.nativeUnit, required='')
+              .form-group
+                label.control-label Units per Package
+                input.form-control.ing-attr(type='number', step='any', name='unitsPerPackage', value = ing.unitsPerPackage, required='')
+
           div.tupleRow#data(data-ingredients=ingredients, data-tuples=formula.tuples, data-formula=formula.name)
             .row
               .col-md-11
