@@ -168,13 +168,16 @@ module.exports.removeTupleById = function(name, id){
       var promises = [];
       var index;
       for (let tuple of form.tuples) {
-        if (tuple._id.toString() === id.toString()) {
+        if (tuple.ingredientID.toString() === id.toString()) {
           index = tuple.index;
+          break;
         }
       }
+      console.log("INDEX = " + index);
       for (let tuple of form.tuples) {
         if (tuple.index > index) {
           var newIndex = tuple.index - 1;
+          console.log("new index = " + newIndex);
           promises.push(exports.updateTuple(name, newIndex, tuple.ingredientID, tuple.quantity));
         }
       }
@@ -214,15 +217,15 @@ module.exports.updateTuple = function(name, index, ingredientID, quantity){
         error.status = 400;
         throw(error);
       }
-      console.log("name = " +ingResult.name);
       var tuples = formula.tuples;
       for (i = 0; i < tuples.length; i++) {
         let tuple = tuples[i];
         if (ingResult['_id'].toString() === tuple['ingredientID'].toString()) {
-          if (index != tuple.index) {
+          if (quantity != tuple.quantity) {
             quantity = Number(quantity) + tuple.quantity;
             index = tuple.index;
           }
+          console.log("new index = " + index);
           return Formula.updateTuple(name, index, tuple.ingredient, ingResult['name'], ingredientID, quantity);
         } else {
           if (index == tuple.index) {

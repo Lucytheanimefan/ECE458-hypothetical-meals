@@ -45,8 +45,8 @@ block content
                 th(onclick='sortTable(1, \'ingredient\')') Package
                 th(onclick='sortTable(2, \'ingredient\')') Temperature
                 th(onclick='sortTable(3, \'ingredient\')') Native Unit
-                th(onclick='sortTable(4, \'ingredient\')') Units per Package
-                th(onclick='sortTable(5, \'ingredient\')') Units in Storage
+                th(onclick='sortTable(4, \'ingredient\')') Native Units per Package
+                th(onclick='sortTable(5, \'ingredient\')') Native Units in Storage
                 th(onclick='sortTable(6, \'ingredient\')') Space in Storage (Sq Feet)
                 th.adminOnly.hide Remove
               tbody
@@ -99,7 +99,7 @@ block content
             label.control-label Native Unit
             input.form-control(type='text', name='nativeUnit', placeholder = '', required='')
           .form-group
-            label.control-label Units per Package
+            label.control-label Native Units per Package
             input.form-control(type='number', step='any', name='unitsPerPackage', required='')
 
           button.btn.btn-primary.pull-right(type='submit', value='add ingredient') Create ingredient

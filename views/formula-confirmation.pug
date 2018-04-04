@@ -6,15 +6,15 @@ block link
 block content
   div.card
     div.card-header(data-background-color='purple')
-      h4.title Production Ingredients
+      h4.title Production of "#{formula}": Ingredients to be Consumed
     div.card-content.table-response
       input.form-control#ingredientInput(type='text',onkeyup='filterTable(\'ingredient\')', placeholder='Search for ingredients..', title='Type in some search text')
       table.table#ingredientTable
         thead.text-primary
           th(onclick='sortTable(0, \'ingredient\')') Ingredient
-          th(onclick='sortTable(1, \'ingredient\')') Units in Inventory
-          th(onclick='sortTable(2, \'ingredient\')') Units Needed
-          th(onclick='sortTable(3, \'ingredient\')') Enough?
+          th(onclick='sortTable(1, \'ingredient\')') Native Units in Inventory
+          th(onclick='sortTable(2, \'ingredient\')') Native Units Needed
+          th(onclick='sortTable(3, \'ingredient\')') Enough in Inventory?
         tbody
         each object in formulaObjects
           tr
@@ -26,7 +26,7 @@ block content
               td Enough
             else
               td Not enough
-      if orderAmounts.length > 0 
+      if orderAmounts.length > 0
         form(action='/ingredients/order/add/to/cart', method='post')
           each order in orderAmounts
             input.hide(type='checkbox', name=order.ingredient, value=order.orderAmount, checked)

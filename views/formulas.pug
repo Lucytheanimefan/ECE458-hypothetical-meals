@@ -23,8 +23,8 @@ block content
               thead.text-primary
                 th(onclick='sortTable(0, \'formula\')') Formula
                 th(onclick='sortTable(1, \'formula\')') Description
-                th(onclick='sortTable(2, \'formula\')') Ingredients (Quantity)
-                th(onclick='sortTable(3, \'formula\')') Number of Units Produced
+                th(onclick='sortTable(2, \'formula\')') Ingredients (Quantity in Native Units)
+                th(onclick='sortTable(3, \'formula\')') Number of Product Units Produced
               tbody
               each formula in formulas
                 tr
@@ -84,7 +84,7 @@ block content
               label.control-label Native Unit
               input.form-control.ing-attr(type='text', name='nativeUnit', placeholder = '', required='')
             .form-group
-              label.control-label Units per Package
+              label.control-label Native Units per Package
               input.form-control.ing-attr(type='number', step='any', name='unitsPerPackage', required='')
           div.tupleRow#data2(data-ingredients=ingredients)
             .row
@@ -99,7 +99,7 @@ block content
                         option(value=ingredient._id)= ingredient['name']
                   .col-md-4
                     .form-group
-                    label.control-label Quantity
+                    label.control-label Quantity (Number of Native Units)
                     input#quantity1.form-control(type='number', name='quantity1', min='0', step='any', required='')
                   .col-md-2
                     p
@@ -115,7 +115,7 @@ block content
                 button#btn1.btn.btn-round.btn-just-icon.add-more(type='button', value='add')
                   i.material-icons add
           .form-group
-            label.control-label Number of Units Produced
+            label.control-label Number of Product Units Produced
             input.form-control(type='number', name='units', min='0', required='')
           button.btn.btn-primary.pull-right(type='submit', value='add vendor') Add Formula
       .card-content.tab-pane.fade#completed-productions
