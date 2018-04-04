@@ -29,7 +29,28 @@ var ProductionLineSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
     required: true
-  }
+  },
+  history: [{
+    timestamp: {
+      type: Date,
+      default: Date.now,
+      required: true,
+    },
+    status: {
+      type: String,
+      /*'busy' or 'idle' */
+      required: true,
+    },
+    product: { /*a line can only make one product at a time. This is the product that was being made at that time*/
+      required: function() {
+        return (this.status == 'busy')
+      },
+      ingredients: [{
+        type: mongoose.Schema.ObjectId,
+        ref: 'Ingredient'
+      }]
+    }
+  }]
 
 })
 
@@ -66,7 +87,7 @@ module.exports.createProductionLine = function(productionLineInfo) {
 }
 
 module.exports.productionLinesForFormula = function(formulaId) {
-  return ProductionLine.find({ 'formulas': { $elemMatch: { formulaId: mongoose.Types.ObjectId(formulaId) } } }/*{ 'formulas.formuladId': formulaId }*/).exec();
+  return ProductionLine.find({ 'formulas': { $elemMatch: { formulaId: mongoose.Types.ObjectId(formulaId) } } } /*{ 'formulas.formuladId': formulaId }*/ ).exec();
 
 }
 
