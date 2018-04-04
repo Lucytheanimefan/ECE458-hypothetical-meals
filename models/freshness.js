@@ -17,7 +17,16 @@ var FreshnessSchema = new mongoose.Schema({
       avgTime: Number,
       worstTime: Number
     }
-  ]
+  ],
+  numIngs: {
+    type: Number
+  },
+  avgTime: {
+    type: Number
+  },
+  worstTime: {
+    type: Number
+  }
 })
 
 var Freshness = mongoose.model('Freshness', FreshnessSchema);
@@ -38,7 +47,10 @@ createReports = function() {
       if (report == null) {
         resolve(Freshness.create({
           'name': 'ingredients',
-          'freshness': []
+          'freshness': [],
+          'numIngs': 0,
+          'avgTime': 0,
+          'worstTime': 0
         }));
       } else {
         resolve('good to go');
@@ -49,7 +61,7 @@ createReports = function() {
   });
 }
 
-module.exports.updateReport = function(ingID, ingName, numUnits, ingTime) {
+module.exports.updateFreshnessReport = function(ingID, ingName, numUnits, ingTime) {
   return new Promise(function(resolve, reject) {
     createReports().then(function(results) {
       return Freshness.findOne({'name': 'ingredients'}).exec();
@@ -66,6 +78,37 @@ module.exports.updateReport = function(ingID, ingName, numUnits, ingTime) {
       } else {
         return exports.addToIngredient(ingID, ingName, numUnits, ingTime);
       }
+    }).then(function(ing) {
+      return exports.updateOverall(numUnits, ingTime);
+    }).then(function(report) {
+      resolve(report);
+    }).catch(function(error) {
+      reject(error);
+    });
+  })
+}
+
+module.exports.updateOverall = function(numUnits, ingTime) {
+  return new Promise(function(resolve, reject) {
+    Freshness.find({'name': 'ingredients'}).then(function(report) {
+      var numIngs, avgTime, worstTime;
+      numIngs = report[0].numIngs;
+      avgTime = report[0].avgTime;
+      worstTime = report[0].worstTime;
+      if (ingTime > worstTime) {
+        worstTime = ingTime;
+      }
+      var totalTime = numIngs*avgTime;
+      numIngs = numIngs + numUnits;
+      totalTime = totalTime + ingTime*numUnits;
+      avgTime = totalTime/numIngs;
+      return Freshness.findOneAndUpdate({'name': 'ingredients'}, {
+        '$set': {
+          'numIngs': numIngs,
+          'avgTime': avgTime,
+          'worstTime': worstTime
+        }
+      }).exec();
     }).then(function(report) {
       resolve(report);
     }).catch(function(error) {
