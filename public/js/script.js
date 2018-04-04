@@ -466,7 +466,7 @@ function createLotTuples(ingredients, start) {
 }
 
 function deleteTuple(index) {
-  if ($('#tuple' + index).hasClass('preexists')) {
+  if ($('#tuple' + index).hasClass('preexists') && index > 1) {
     console.log("Delete tuple from db");
     // Delete the thing from the db
     //var name = $("#ingredient" + index).data("ingredientname");
@@ -494,8 +494,7 @@ function deleteTuple(index) {
         }
       });
     }
-  }
-  if (index > 1) {
+
     $('#tuple' + index).remove();
     var start = document.getElementById('index').dataset.start;
     if (start == index) {
@@ -520,7 +519,7 @@ function showIngredientInfo() {
 }
 
 function deleteTuple2(index) {
-  if ($('#tuple' + index).hasClass('preexists')) {
+  if ($('#tuple' + index).hasClass('preexists') && index > 1) {
     var name = document.getElementById('data2').dataset.formula;
     var ingredientID = $("#ingredient" + index).val();
 
@@ -539,8 +538,6 @@ function deleteTuple2(index) {
         }
       });
     }
-  }
-  if (index > 1) {
     $('#tuple' + index).remove();
     var start = document.getElementById('index2').dataset.start;
     if (start == index) {

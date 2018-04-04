@@ -292,9 +292,14 @@ router.get('/cart/:page?', function(req, res, next) {
   var ids = [];
   userQuery.then(async function(user) {
     cart = user.cart;
+    console.log(cart);
+    underscore.sortBy(cart, "ingredient");
+    console.log(cart);
+
     var promises = [];
-    for (let order of cart) {
-      promises.push(Ingredient.getIngredientById(order.ingredient));
+    for (c = 0; c < cart.length; c++) {
+      var order = cart[c];
+      await promises.push(Ingredient.getIngredientById(order.ingredient));
     }
     return Promise.all(promises);
   }).then(function(ings) {
@@ -303,7 +308,6 @@ router.get('/cart/:page?', function(req, res, next) {
       ids.push(ing._id.toString());
     }
 
-    underscore.sortBy(cart, "_id");
     var start = perPage * (page - 1);
     var promises = [];
     for (i = start; i < start + perPage; i++) {
@@ -316,6 +320,7 @@ router.get('/cart/:page?', function(req, res, next) {
       order['ingredient'] = ingName;
       order['quantity'] = cart[i].quantity;
       order ['vendor'] = cart[i].vendor;
+      console.log(ingName + " " + order['quantity']);
       orders.push(order);
     }
 
@@ -345,11 +350,14 @@ router.get('/edit_order/:ingredient/:page?', function(req, res, next) {
     id = ing._id;
     var userQuery = User.getUserById(req.session.userId);
     return userQuery;
-  }).then(function(user) {
+  }).then(async function(user) {
     cart = user.cart;
+    underscore.sortBy(cart, "ingredient");
+
     var promises = [];
-    for (let order of cart) {
-      promises.push(Ingredient.getIngredientById(order.ingredient));
+    for (c = 0; c < cart.length; c++) {
+      var order = cart[c];
+      await promises.push(Ingredient.getIngredientById(order.ingredient));
     }
     return Promise.all(promises);
   }).then(function(ings) {
@@ -358,7 +366,6 @@ router.get('/edit_order/:ingredient/:page?', function(req, res, next) {
       ids.push(ing._id.toString());
     }
 
-    underscore.sortBy(cart, "_id");
     var start = perPage * (page - 1);
     var promises = [];
     for (i = start; i < start + perPage; i++) {
