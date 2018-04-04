@@ -19,16 +19,13 @@ var FreshnessSchema = new mongoose.Schema({
     }
   ],
   numIngs: {
-    type: Number,
-    required: true
+    type: Number
   },
   avgTime: {
-    type: Number,
-    required: true
+    type: Number
   },
   worstTime: {
-    type: Number,
-    required: true
+    type: Number
   }
 })
 
