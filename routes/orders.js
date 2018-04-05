@@ -11,8 +11,8 @@ var underscore = require('underscore');
 var mongoose = require('mongoose');
 var path = require('path');
 var logs = require(path.resolve(__dirname, "./logs.js"));
-let Orders = require('../models/orders');
-let OrderHelper = require('../helpers/orders')
+var Orders = require('../models/orders');
+var OrderHelper = require('../helpers/orders')
 
 
 //no need for now
@@ -27,23 +27,10 @@ router.get('/home/:page?', function(req, res, next) {
     page = 0;
   }
   var perPage = 10;
-  var startDate = req.query.start;
-  var endDate = req.query.end;
-  var query = {};
-  // if (startDate != null && endDate != null && startDate.length > 0 && endDate.length > 0) {
-  //   query = { 'time': { "$gte": startDate, "$lt": endDate } };
-  // }
-  Orders.paginate(query, perPage, page, function(err, orders) {
-    if (err) {
-      console.log(err);
-      next(err);
-    }
-    var maxPage = false;
-    console.log('Num logs: ' + logs.length);
-    if (logs.length < perPage) {
-      maxPage = true;
-    }
-    res.render('orders', { logs: logs, page: page, maxPage: maxPage, startDate: startDate, endDate: endDate });
+  Orders.model.getAllOrders().then(function(orders){
+    res.render('orders',orders);
+  }).catch(function(err){
+    next(err);
   })
 })
 
