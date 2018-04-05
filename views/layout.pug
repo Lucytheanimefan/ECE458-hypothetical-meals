@@ -36,9 +36,9 @@ html(lang='en')
           a.simple-text(href='/')
             | Hypothetical Meals
 
-        -var menu = { 'Home': '/', 'Profile': '/users/profile','Users':'/users/admin', 'Ingredients': '/ingredients', 'Vendors':'/vendors', 'Cart':'/users/cart', 'Uploads': '/files','Inventory':'/inventory', 'Formulas': '/formulas', 'Report':'/reports', 'Logs': '/logs', 'Backups':'/backups'};
+        -var menu = { 'Home': '/', 'Profile': '/users/profile','Users':'/users/admin', 'Ingredients': '/ingredients', 'Vendors':'/vendors', 'Cart':'/users/cart', 'Uploads': '/files','Inventory':'/inventory', 'Formulas': '/formulas', 'Orders':'/orders', 'Report':'/reports', 'Logs': '/logs', 'Backups':'/backups'};
 
-        -var icons = {'Home':'home', 'Profile': 'account_circle','Users': 'supervisor_account','Uploads': 'publish','Ingredients':'local_pizza','Vendors':'restaurant','Cart':'local_grocery_store','Inventory':'local_shipping', 'Formulas':'book', 'Report':'content_paste', 'Logs': 'library_books', 'Backups':'backup'}
+        -var icons = {'Home':'home', 'Profile': 'account_circle','Users': 'supervisor_account','Uploads': 'publish','Ingredients':'local_pizza','Vendors':'restaurant','Cart':'local_grocery_store','Inventory':'local_shipping', 'Formulas':'book', 'Orders':'toc','Report':'content_paste', 'Logs': 'library_books', 'Backups':'backup'}
 
 
         .sidebar-wrapper
@@ -59,7 +59,7 @@ html(lang='en')
       .main-panel
         nav.navbar.navbar-transparent.navbar-absolute
           .container-fluid
-            div Logged in as 
+            div Logged in as
               span#username
             .navbar-header
               button.navbar-toggle(type='button', data-toggle='collapse')
