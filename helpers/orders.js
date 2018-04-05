@@ -28,9 +28,6 @@ module.exports.addOrder = function(products){
       entry['assigned'] = false;
       orderList.push(entry);
     }
-    console.log("ADRIAN!!!!")
-    console.log(orderList);
-    console.log(products);
     Orders.addOrder(orderList).then(function(res){
       resolve(res);
     }).catch(function(err){

@@ -28,6 +28,17 @@ var OrdersSchema = new mongoose.Schema({
   }
 });
 
+OrdersSchema.statics.paginate = function(query, perPage, page, callback) {
+  Orders.find(query).limit(perPage).skip(perPage * page).sort({ time: -1 }).exec(function(err, orders) {
+    if (err) {
+      callback(err);
+    } else {
+      callback(null, orders);
+    }
+  })
+}
+
+
 var Orders = mongoose.model('Orders', OrdersSchema);
 
 module.exports.addOrder = function(products) {
