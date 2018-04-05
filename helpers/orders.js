@@ -16,18 +16,41 @@ var Orders = require('../models/orders');
 
 mongoose.Promise = global.Promise;
 
+module.exports.addOrder = function(products){
+  return new Promise(function(resolve, reject){
+    var orderList = [];
+    for(var i = 0; i < products.length; i++){
+      var entry = {};
+      entry['ingID'] = products[i]['ingID'];
+      entry['vendID'] = products[i]['vendor'];
+      entry['quantity'] = products[i]['amount'];
+      entry['arrived'] = false;
+      entry['assigned'] = false;
+      orderList.push(entry);
+    }
+    console.log("ADRIAN!!!!")
+    console.log(orderList);
+    console.log(products);
+    Orders.addOrder(orderList).then(function(res){
+      resolve(res);
+    }).catch(function(err){
+      reject(err);
+    })
+  })
+}
+
 module.exports.markIngredientArrived = function(orderNumber,ingID,vendID) {
   return new Promise(function(resolve, reject) {
     Orders.markIngredientArrived(orderNumber,ingID,vendID).then(function(res){
       return Orders.getOrder(orderNumber);
     }).then(function(order){
-      var pendingCheck = false;
+      var pendingCheck = true;
       for(var i = 0; i < order.products.length; i++){
-        if(order.products[i].pending == true){
-          pendingCheck = true;
+        if(order.products[i].arrived == false){
+          pendingCheck = false;
         }
       }
-      order.completed = !pendingCheck;
+      order.completed = pendingCheck;
       return order.save();
     }).then(function(res){
       resolve(res);

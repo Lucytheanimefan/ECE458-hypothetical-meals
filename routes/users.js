@@ -18,6 +18,8 @@ var variables = require('../helpers/variables');
 var path = require('path');
 var logs = require(path.resolve(__dirname, "./logs.js"));
 var mongoose = require('mongoose');
+var Orders = require('../models/orders');
+var OrderHelper = require('../helpers/orders')
 mongoose.Promise = global.Promise;
 
 
@@ -463,11 +465,14 @@ router.get('/checkout_cart/:page?', function(req, res, next) {
   var ingredients = [];
   var ids = [];
   var vendors = [];
+  var user;
   userQuery.then(function(user) {
+    user = user;
     cart = user.cart;
     var promises = [];
     for (let order of cart) {
       promises.push(Ingredient.getIngredientById(order.ingredient));
+      promises.push(UserHelper.removeOrder(req.session.userId, order.ingredient));
     }
     return Promise.all(promises);
   }).then(function(ings) {
@@ -512,6 +517,7 @@ router.get('/checkout_cart/:page?', function(req, res, next) {
       order['quantity'] = cart[i].quantity;
       order['vendor'] = cart[i].vendor;
       order ['vendors'] = orderVendors;
+      order['ingID'] = cart[i].ingredient;
       orders.push(order);
     }
 
@@ -519,9 +525,12 @@ router.get('/checkout_cart/:page?', function(req, res, next) {
     if (cart[index+1] == undefined) {
       lastPage = true;
     }
-
-    res.render('checkout', { orders: orders, page: page, lastPage: lastPage });
-  }).catch(function(error) {
+    console.log("here!!!");
+    return OrderHelper.addOrder(orders);
+  }).then(function(result){
+    res.redirect('/ingredients');
+  })
+  .catch(function(error) {
     next(error);
   })
 });

@@ -11,36 +11,37 @@ var OrdersSchema = new mongoose.Schema({
     ingID : {type:mongoose.Schema.Types.ObjectId,ref:'Ingredient'},
     vendID: {type:mongoose.Schema.Types.ObjectId,ref:'Vendor'},
     amount: Number,
-    pending: Boolean
+    arrived: Boolean,
+    assigned: Boolean
   }],
   orderNumber: {
     type: String,
-    unique: true
+    unique:true,
     required:true
   },
   completed: {
     type: Boolean
   },
   timeStamp: {
-    type: Number,
+    type: String,
     required: true
   }
 });
 
-var Orders = mongoose.model('Ingredient', IngredientSchema);
+var Orders = mongoose.model('Orders', OrdersSchema);
 
-module.exports.addOrder = function(products, amount, timeStamp) {
+module.exports.addOrder = function(products) {
   return Orders.create({
     'products': products,
     'orderNumber': uniqid(),
     'completed': false,
-    'timeStamp': timeStamp
+    'timeStamp': Date()
   });
 }
 
 module.exports.getOrder = function(orderNumber){
   return Orders.find({ 'orderNumber': {
-                     $regex : new RegExp(orderNumber, "i") }).exec();
+                     $regex : new RegExp(orderNumber, "i") }}).exec();
 }
 
 module.exports.getAllCompleteOrders = function(){
@@ -51,6 +52,10 @@ module.exports.getAllIncompleteOrders = function(){
   return Orders.find({'completed':true}).exec();
 }
 
+module.exports.getAllUnassignedIngredients = function(){
+  return Orders.find({'completed':false,'products.assigned':false}).exec();
+}
+
 module.exports.markIngredientArrived = function(orderNumber,ingID,vendID){
   return Orders.findOneAndUpdate({'orderNumber':{
                      $regex : new RegExp(orderNumber, "i") },
@@ -58,25 +63,23 @@ module.exports.markIngredientArrived = function(orderNumber,ingID,vendID){
                      'products.ingID':mongoose.Types.ObjectId(ingID)
                    },{
                        '$set':{
-                         'product.$.pending' : true
+                         'product.$.arrived' : true
                        }
                      })
 }
 
-/*
-module.exports.removeIngredient = function(orderNumber,ingID,vendID){
-  return Vendor.findOneAndUpdate({'orderNumber':{
-                     $regex : new RegExp(orderNumber, "i") }},{'$pull':{'products':{'ingID':ingID,'vendID':vendID}}}).exec();
+module.exports.markIngredientAssigned  = function(orderNumber,ingID,vendID){
+  return Orders.findOneAndUpdate({'orderNumber':{
+                     $regex : new RegExp(orderNumber, "i") },
+                     'products.vendID':mongoose.Types.ObjectId(vendID),
+                     'products.ingID':mongoose.Types.ObjectId(ingID)
+                   },{
+                       '$set':{
+                         'product.$.assigned' : true
+                       }
+                     })
 }
 
-module.exports.addIngredient = function(orderNumber,ingID,vendID){
-  ingID = mongoose.Types.ObjectId(ingID.toString());
-  vendID = mongoose.Types.ObjectId(vendID.toString());
-  let entry = {ingID:ingID, vendID:vendID, amount};
-  return Vendor.findOneAndUpdate({'code':{
-                     $regex : new RegExp(code, "i") }},{'$push':{'catalogue':entry}}).exec();
-}
-*/
 module.exports.removeOrder = function(orderNumber){
   return Orders.findOneAndRemove({ 'orderNumber': {
                      $regex : new RegExp(orderNumber, "i") }}).exec();
