@@ -34,10 +34,10 @@ router.get('/home/:page?', function(req, res, next) {
       return next(err);
     } else {
       var maxPage = false;
-      if (vendors.length < perPage){
+      if (vendors.length < perPage) {
         maxPage = true;
       }
-      res.render('vendors', { vendors: vendors, packages: packageTypes, temps: temperatures, page: page, maxPage:maxPage });
+      res.render('vendors', { vendors: vendors, packages: packageTypes, temps: temperatures, page: page, maxPage: maxPage });
     }
   })
 })
@@ -54,7 +54,7 @@ router.get('/:code/:page?', async function(req, res, next) {
   }).then(function(vendQuery) {
     var page = req.params.page || 1;
     let fullMenu = processMenu(vendQuery.catalogue, req.params.code);
-    pageCount = Math.ceil(fullMenu.length/pageSize);
+    pageCount = Math.ceil(fullMenu.length / pageSize);
     pageCount = (pageCount < 1) ? 1 : pageCount;
     page = (page < 1) ? 1 : page;
     page = (page > pageCount) ? pageCount : page;
@@ -73,13 +73,43 @@ router.get('/:code/:page?', async function(req, res, next) {
   })
 })
 
+//refactored
+router.get('/search/vendor_id/:id/:page?', async function(req, res, next) {
+  var ingList;
+  var ingQuery = Ingredient.getAllIngredients();
+  var query = Vendor.findVendorById(req.params.id);
+  var pageCount;
+  ingQuery.then(function(result) {
+    ingList = result;
+    return query;
+  }).then(function(vendQuery) {
+    var page = req.params.page || 1;
+    let fullMenu = processMenu(vendQuery.catalogue, req.params.code);
+    pageCount = Math.ceil(fullMenu.length / pageSize);
+    pageCount = (pageCount < 1) ? 1 : pageCount;
+    page = (page < 1) ? 1 : page;
+    page = (page > pageCount) ? pageCount : page;
+    let name = vendQuery.name;
+    let contact = vendQuery.contact;
+    let location = vendQuery.location;
+    let menu = fullMenu.splice((page - 1) * pageSize, page * pageSize);
+    res.render('vendor', {
+      vendor: vendQuery,
+      catalogue: menu,
+      page: page,
+      code: req.params.code,
+      ingredientList: ingList,
+      pageCount: pageCount
+    });
+  })
+})
 
 router.get('/vendor/id/:vendor_id', function(req, res, next) {
   var findVendor = Vendor.model.findOne({ _id: req.params.vendor_id }).exec();
   findVendor.then(function(vendor) {
     res.send(vendor);
-  }).catch(function(error){
-    res.send({'error': error});
+  }).catch(function(error) {
+    res.send({ 'error': error });
   })
 })
 
@@ -115,8 +145,8 @@ router.post('/:code/add_ingredients', function(req, res, next) {
     let ingId = mongoose.Types.ObjectId(result._id);
     let vendor_code = req.params.code;
     let ingredient_name = result.name;
-    logs.makeVendorLog('Add ingredients to vendor', 'Added ingredient '+'<a href="/ingredients/' + ingredient_name + '">' + ingredient_name + '</a> '+
-      'to vendor <a href="/vendors/' + vendor_code + '">' + vendor_code + '</a>'/*{ 'Vendor code': req.params.code, 'Ingredient_ID': ingId, 'Cost': req.body.cost }*/, req.session.username);
+    logs.makeVendorLog('Add ingredients to vendor', 'Added ingredient ' + '<a href="/ingredients/' + ingredient_name + '">' + ingredient_name + '</a> ' +
+      'to vendor <a href="/vendors/' + vendor_code + '">' + vendor_code + '</a>' /*{ 'Vendor code': req.params.code, 'Ingredient_ID': ingId, 'Cost': req.body.cost }*/ , req.session.username);
 
     return vend = VendorHelper.addIngredient(req.params.code, result._id, req.body.cost);
 
@@ -134,7 +164,7 @@ router.post('/:code/update_ingredients', function(req, res, next) {
   let vendor_code = req.params.code;
   VendorHelper.updateIngredient(req.params.code, ingId, req.body.cost).then(function(result) {
     logs.makeVendorLog('Update vendor ingredients',
-      'Updated ingredients for vendor <a href="/vendors/' + vendor_code + '">' + vendor_code + '</a>'/*{ 'Vendor code': req.params.code, 'Ingredient_ID': ingId, 'Cost': req.body.cost }*/, req.session.username);
+      'Updated ingredients for vendor <a href="/vendors/' + vendor_code + '">' + vendor_code + '</a>' /*{ 'Vendor code': req.params.code, 'Ingredient_ID': ingId, 'Cost': req.body.cost }*/ , req.session.username);
     res.redirect(req.baseUrl + '/' + req.params.code);
   }).catch(function(err) {
     next(err);
@@ -150,7 +180,7 @@ router.get('/:code/remove_ingredient/:ingredient', function(req, res, next) {
     next(error);
   });
   let vendor_code = req.params.code;
-  logs.makeVendorLog('Remove ingredient from vendor', 'Removed ingredient from vendor <a href="/vendors/' + vendor_code + '">' + vendor_code + '</a>'/*{ 'vendor_code': req.params.code, 'ingredient_id': ingId}*/, req.session.username);
+  logs.makeVendorLog('Remove ingredient from vendor', 'Removed ingredient from vendor <a href="/vendors/' + vendor_code + '">' + vendor_code + '</a>' /*{ 'vendor_code': req.params.code, 'ingredient_id': ingId}*/ , req.session.username);
 });
 
 //refactored
@@ -162,7 +192,7 @@ router.post('/:code/update', async function(req, res, next) {
   let contact = req.body.contact;
   var update = VendorHelper.updateVendor(currCode, name, code, contact, location);
   update.then(function(result) {
-    logs.makeVendorLog('Update vendor', 'Updated vendor <a href="/vendors/' + code + '">' + code + '</a>' /*{'vendor_code': code}*/, req.session.username);
+    logs.makeVendorLog('Update vendor', 'Updated vendor <a href="/vendors/' + code + '">' + code + '</a>' /*{'vendor_code': code}*/ , req.session.username);
     return res.redirect(req.baseUrl + '/' + req.body.code);
   }).catch(function(error) {
     next(error);
@@ -180,7 +210,7 @@ router.post('/new', function(req, res, next) {
   var create = VendorHelper.createVendor(name, code, contact, location);
   create.then(function(result) {
     let vendor_code = result.code;
-    logs.makeVendorLog('Create vendor', 'Created vendor <a href="/vendors/' + vendor_code + '">' + vendor_code + '</a>' /*{'vendor_code':result.code}*/, req.session.username);
+    logs.makeVendorLog('Create vendor', 'Created vendor <a href="/vendors/' + vendor_code + '">' + vendor_code + '</a>' /*{'vendor_code':result.code}*/ , req.session.username);
     return res.redirect(req.baseUrl + '/' + req.body.code);
   }).catch(function(error) {
     next(error);

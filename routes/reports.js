@@ -25,6 +25,7 @@ router.get('/:page', function(req, res, next) {
   var production;
   var formula;
   var ingredient;
+  var overallFreshness;
 
   Promise.all([Spending.getSpending(), Spending.getProduction(), Production.getProduction(), Freshness.getIngredients()]).then(function(results) {
     spendingReport = results[0];
@@ -44,9 +45,10 @@ router.get('/:page', function(req, res, next) {
     ingredientPromise = Promise.all(ingredientReport.freshness.map(function(tuple) {
       return getIngredientFreshnessName(tuple);
     }));
+    overallFreshness = getOverallFreshness(ingredientReport);
     return Promise.all([spendingPromise, productionPromise, formulaPromise, ingredientPromise]);
   }).then(function(results) {
-    res.render('report', {spending: results[0], production: results[1], formula: results[2], ingredient: results[3]});
+    res.render('report', {spending: results[0], production: results[1], formula: results[2], ingredient: results[3], freshness: overallFreshness});
   }).catch(function(error) {
     next(error);
   })
@@ -124,6 +126,17 @@ getIngredientName = function(tuple) {
       reject(error);
     });
   });
+}
+
+getOverallFreshness = function(report) {
+  console.log(report);
+  var entry = {};
+  var avgTime = convertTime(report.avgTime);
+  var worstTime = convertTime(report.worstTime);
+  entry['numIngs'] = report.numIngs;
+  entry['avgTime'] = avgTime;
+  entry['worstTime'] = worstTime;
+  return entry;
 }
 
 getIngredientFreshnessName = function(tuple) {
