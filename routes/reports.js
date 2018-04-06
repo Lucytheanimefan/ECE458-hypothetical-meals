@@ -74,6 +74,7 @@ router.post('/recall', function(req, res, next) {
 
 router.post('/production_line_efficiency', function(req, res, next) {
   var startDate = new Date(req.body.start);
+  var originalStartDate = startDate;
   var endDate = new Date(req.body.end);
   //{ "$gte": startDate, "$lte": endDate }
   var allLinesQuery = ProductionLine.getAllProductionLines();
@@ -83,24 +84,38 @@ router.post('/production_line_efficiency', function(req, res, next) {
 
     for (let i = 0; i < productionLines.length; i++) {
       var productionLine = productionLines[i];
-
+      var createdAtDate = new Date(productionLine.createdAt);
+      console.log('Created at: ');
+      console.log(createdAtDate);
       var productionLineEfficiencyData = { 'id': productionLine._id };
 
       var idleTime = 0; // Time production line was idle
       var busyTime = 0; // Time production line was busy
-      var totalTime = endDate - startDate;
-      var previousTimeStamp = startDate;
 
+      var previousTimeStamp;
+      // if (createdAtDate > startDate) {
+      //   console.log('Use created at date!' + createdAtDate);
+      //   startDate = createdAtDate;
+      // }
+
+      previousTimeStamp = startDate;
+      var totalTime = endDate - startDate;
+      console.log('Total time: ' + totalTime);
       var plotGraphData = { 'dates': [], 'values': [] }; // For plotting if we want to do that, currently not being used
 
       for (let j = 0; j < productionLine.history.length; j++) {
         let history = productionLine.history[j];
 
-        let timestamp = new Date(history.timestamp);
+        var timestamp = new Date(history.timestamp);
         console.log('--------')
         console.log(timestamp);
 
-        if (timestamp >= startDate && timestamp <= endDate) {
+        console.log('start date: ' + startDate);
+        console.log('end date: ' + endDate);
+
+        console.log('After start date? ' + (timestamp >= originalStartDate));
+        console.log('Before end date? ' + (timestamp <= endDate));
+        if (timestamp >= originalStartDate && timestamp <= endDate) {
           plotGraphData['dates'].push(timestamp);
           // If busy, value = 1, else value = 0
           plotGraphData['values'].push((history.status == 'busy') ? 1 : 0);
@@ -123,11 +138,11 @@ router.post('/production_line_efficiency', function(req, res, next) {
         }
       }
 
-      productionLineEfficiencyData['busyTime'] = busyTime;
-      productionLineEfficiencyData['idleTime'] = (totalTime - busyTime);
-      productionLineEfficiencyData['totalTime'] = totalTime;
-      productionLineEfficiencyData['percentBusy'] = busyTime * 100 / totalTime;
-      productionLineEfficiencyData['percentIdle'] = (totalTime - busyTime) * 100 / totalTime;
+      productionLineEfficiencyData['busyTime'] = secondsToDaysHrsMinutes(busyTime / 1000);
+      productionLineEfficiencyData['idleTime'] = secondsToDaysHrsMinutes((totalTime - busyTime) / 1000);
+      productionLineEfficiencyData['totalTime'] = secondsToDaysHrsMinutes(totalTime / 1000);
+      productionLineEfficiencyData['percentBusy'] = (busyTime * 100 / totalTime).toFixed(2);
+      productionLineEfficiencyData['percentIdle'] = (100 - productionLineEfficiencyData['percentBusy']).toFixed(2);
       productionLineEfficiencyData['graphData'] = plotGraphData;
 
       overallEfficiencyReportData[productionLine.name] = productionLineEfficiencyData;
@@ -138,12 +153,23 @@ router.post('/production_line_efficiency', function(req, res, next) {
       plotGraphData = { 'dates': [], 'values': [] }
     }
     console.log(overallEfficiencyReportData);
-    return res.send(overallEfficiencyReportData);
+    return res.render('production_efficiency_report', { data: overallEfficiencyReportData })
+    //return res.send(overallEfficiencyReportData);
   }).catch(function(error) {
     console.log(error);
     return next(error);
   })
 })
+
+secondsToDaysHrsMinutes = function(seconds) {
+  var days = Math.floor(seconds / (3600 * 24));
+  seconds -= days * 3600 * 24;
+  var hrs = Math.floor(seconds / 3600);
+  seconds -= hrs * 3600;
+  var mnts = Math.floor(seconds / 60);
+  seconds -= mnts * 60;
+  return days + " days, " + hrs + " Hrs, " + mnts + " Minutes, " + seconds.toFixed(2) + " Seconds";
+}
 
 addFormulaNameRecall = function(tuple) {
   return new Promise(function(resolve, reject) {

@@ -1,0 +1,23 @@
+extends layout
+block link
+  -var selected = 'Report';
+
+block content
+  div.card
+    div.card-header(data-background-color='purple')
+      h4.title= 'Production Report'
+    div.card-content.table-response
+      input.form-control#productionLineInput(type='text',onkeyup='filterTable(\'productionLine\')', placeholder='Search for production lines..', title='Type in some search text')
+      table.table#productionLineTable
+        thead.text-primary
+          th(onclick='sortTable(0, \'productionLine\')') Production Line
+          th(onclick='sortTable(1, \'productionLine\')') % Busy (time)
+          th(onclick='sortTable(2, \'productionLine\')') % Idle (time)
+          th(onclick='sortTable(3, \'productionLine\')') Total Time elapsed
+        tbody
+        each value, productionLineName in data
+          tr
+            td= productionLineName
+            td= value.percentBusy + ' ('+value.busyTime+')'
+            td= value.percentIdle + ' ('+value.idleTime+')'
+            td= value.totalTime
