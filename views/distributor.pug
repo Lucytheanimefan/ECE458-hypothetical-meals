@@ -11,6 +11,8 @@ block content
     ul.nav.nav-tabs
       li.active
         a(data-toggle='tab', href='#ing-table') Final Products
+      li.hide.manager
+        a(data-toggle='tab', href='#sales') Sale Request
 
     .tab-content
       #ing-table.tab-pane.fade.in.active
@@ -42,3 +44,23 @@ block content
               else
                 form(action='/ingredients/search_results/' + (parseInt(page)+1).toString() + '/' + searchQuery, method='get')
                   button.btn.btn-white(type="submit" style="padding: 5px;") >
+      .card-content.tab-pane.fade#sales
+        table.table#orderTable
+          thead.text-primary
+            th(onclick='sortTable(0, \'order\')') Final Product
+            th(onclick='sortTable(1, \'order\')') Quantity (Number of Product Units)
+            th
+          tbody
+          each order in orders
+            tr
+              td
+                a(href='/ingredients/' + order.ingredient)= order.ingredient
+              td= order.quantity
+              td
+                form(action="/users/remove_ingredient" method="post")
+                  input(type="hidden" name="ingredient" value=order.ingredient)
+                  input(type="hidden" name="quantity" value=order.quantity)
+                  span(style="float:right;")
+                    a(href='/users/edit_order/' + order.ingredient + '/' + page)
+                      button(class="btn btn-secondary" type="button" style="margin-right: 20px; padding: 5px 20px; background-color:#66c2ff; color: white; display:inline;") Edit
+                    input.btn.btn-secondary(type="submit" value="Remove" style="padding: 5px 20px; background-color:#66c2ff; color: white; display:inline;")
