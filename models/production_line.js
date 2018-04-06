@@ -42,10 +42,9 @@ var ProductionLineSchema = new mongoose.Schema({
       required: true,
     },
     product: { /* a line can only make one product at a time. This is the product that was being made at that time */
-      formula: {
-        type: mongoose.Schema.ObjectId,
-        ref: 'Formula'
-      },
+      // A final product is just a formula
+      type: mongoose.Schema.ObjectId,
+      ref: 'Formula'
     }
   }]
 })
