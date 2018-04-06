@@ -137,13 +137,21 @@ module.exports.deleteFormulaFromProductionLines = function(productionLineId, for
  * @param  {String} formulaId [description]
  * @return {[type]}           [description]
  */
-module.exports.updateHistory = function(productionLineId, status, formulaId) {
+module.exports.updateHistory = function(productionLineId, status, formulaId = null) {
+  var history;
+  if (formulaId != null) {
+    history = {
+      'status': status.toLowerCase(),
+      'product': mongoose.Types.ObjectId(formulaId)
+    }
+  } else {
+    history = {
+      'status': status.toLowerCase(),
+    }
+  }
   return ProductionLine.findOneAndUpdate({ _id: productionLineId }, {
     $push: {
-      history: {
-        'status': status.toLowerCase(),
-        'product': mongoose.Types.ObjectId(formulaId)
-      }
+      history: history
     }
   }, { new: true }).exec();
 }

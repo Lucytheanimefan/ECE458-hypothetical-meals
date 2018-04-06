@@ -187,7 +187,7 @@ router.post('/new', function(req, res, next) {
 router.post('/delete/:id', function(req, res, next) {
   var deleteQuery = ProductionLine.deleteProductionLine(req.params.id);
   deleteQuery.then(function(productionLine) {
-    logs.makeLog('Delete production line', 'Deleted production line' + productionLine.name, req.session.username);
+    logs.makeLog('Delete production line', 'Deleted production line ' + productionLine.name, req.session.username);
     return res.redirect(req.baseUrl);
   }).catch(function(error) {
     console.log(error);
@@ -205,9 +205,21 @@ router.post('/delete/:id', function(req, res, next) {
  * @return {[type]}       [description]
  */
 router.post('/mark_completed/:id', function(req, res, next) {
-  // TODO
+  // TODO inventory stuff, etc.
+  
   let productionLineId = req.params.id;
-  res.redirect(req.baseUrl + '/production_line/id/' + productionLineId);
+  var updateInfo = { 'busy': false, 'currentProduct': {} };
+  var productionLineUpdateQuery = ProductionLine.updateProductionLine(productionLineId, updateInfo);
+
+  productionLineUpdateQuery.then(function(prodLine) {
+    var prodLineUpdatHistoryQuery = ProductionLine.updateHistory(productionLineId, 'idle');
+    return prodLineUpdatHistoryQuery;
+  }).then(function(prodLine) {
+    res.redirect(req.baseUrl + '/production_line/id/' + productionLineId);
+  }).catch(function(error) {
+    console.log(error);
+    return next(error);
+  })
 })
 
 module.exports = router;
