@@ -72,6 +72,25 @@ router.get('/production_line/:name', function(req, res, next) {
   })
 })
 
+// Get a single production line
+router.get('/production_line/id/:id', function(req, res, next) {
+  var prodLineQuery = ProductionLine.getProductionLineById(req.params.id);
+  var findAllFormulasQuery = Formula.model.find().exec();
+  var allFormulas = [];
+  findAllFormulasQuery.then(function(formulas) {
+    if (formulas != null) {
+      allFormulas = formulas;
+    }
+    return prodLineQuery;
+  }).then(function(productionLine) {
+    console.log(productionLine);
+    res.render('production_line', { productionLine: productionLine, formulas: allFormulas });
+  }).catch(function(error) {
+    console.log(error);
+    return next(error);
+  })
+})
+
 
 router.post('/add_lines_with_formula/:formulaName', function(req, res, next) {
   console.log('Call add_lines_with_formula');
@@ -174,6 +193,21 @@ router.post('/delete/:id', function(req, res, next) {
     console.log(error);
     next(error);
   });
+})
+
+/**
+ * TODO
+ * Req 7.3.3
+ * Managers should be able to select a production and mark it completed, viewing the resulting lot number (req 7.2.7) and causing the product to enter the appropriate inventory (req 7.2.8 for intermediates and 7.2.9 for final products).
+ * @param  {[type]} req   [description]
+ * @param  {[type]} res   [description]
+ * @param  {[type]} next) {             } [description]
+ * @return {[type]}       [description]
+ */
+router.post('/mark_completed/:id', function(req, res, next) {
+  // TODO
+  let productionLineId = req.params.id;
+  res.redirect(req.baseUrl + '/production_line/id/' + productionLineId);
 })
 
 module.exports = router;

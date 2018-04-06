@@ -31,6 +31,9 @@ block content
               each formula in productionLine.formulas
                 li
                   a.lineFormula(href="/formulas/id/" + formula.formulaId, data-id=formula.formulaId)
+        if productionLine.busy
+          form(action='/production_lines/mark_completed/' + productionLine._id, method='post')
+            button.btn.btn-primary.pull-right(type='submit', value='complete productionline') Mark production completed
 
       .card-content.tab-pane.fade#edit_form.adminOnly.hide
         h1= 'Update production line'
@@ -41,9 +44,9 @@ block content
           .form-group
             label.control-label Description
             input.form-control(type='text', name='description', value=productionLine.description, required='') 
-          .form-group
-            label.control-label Busy
-            input.form-control(name='busy', id=id, type='checkbox' checked=productionLine.busy)
+          //- .form-group
+          //-   label.control-label Busy
+          //-   input.form-control(name='busy', id=id, type='checkbox' checked=productionLine.busy)
           .form-group
             label.control-label Formulas
             select.form-control(name='formulas', placeholder = '', multiple)

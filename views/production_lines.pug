@@ -23,6 +23,7 @@ block content
                 th(onclick='sortTable(0, \'productionLine\')') Production Line
                 th(onclick='sortTable(1, \'productionLine\')') Description
                 th(onclick='sortTable(2, \'productionLine\')') Busy
+                th.manager.hide Mark Complete
                 th.adminOnly.hide Remove
               tbody
               each line in productionLines
@@ -31,8 +32,12 @@ block content
                     a(href='/production_lines/production_line/' + encodeURIComponent(line.name))= line.name
                   td= line.description
                   td= line.busy
-                  if line.busy == false
-                    td.adminOnly.hide
+                  td.manager.hide
+                    if line.busy == true
+                      form(action='/production_lines/mark_completed/' + line._id, method='post')
+                        button.btn.btn-primary.pull-right(type='submit', value='complete productionline') Complete
+                  td.adminOnly.hide
+                    if line.busy == false
                       form(action='/production_lines/delete/' + line._id, method='post')
                         button.btn.btn-primary(type='submit', style='margin:0px; padding: 5px 10px;') Remove
           div.pages(style="text-align:center;")
