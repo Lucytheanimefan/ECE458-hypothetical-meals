@@ -22,6 +22,11 @@ var ProductionLineSchema = new mongoose.Schema({
   description: {
     type: String,
   },
+  createdAt: {
+    type: Date,
+    default: Date.now,
+    required: true,
+  },
   formulas: [
     { formulaId: { type: mongoose.Schema.ObjectId, ref: 'Formula' } }
   ],
@@ -31,8 +36,13 @@ var ProductionLineSchema = new mongoose.Schema({
     required: true
   },
   currentProduct: {
-    type: mongoose.Schema.ObjectId,
-    ref: 'Formula'
+    formulaId: {
+      type: mongoose.Schema.ObjectId,
+      ref: 'Formula'
+    },
+    name: {
+      type: String
+    }
   },
   history: [{
     timestamp: {
@@ -128,14 +138,14 @@ module.exports.deleteFormulaFromProductionLines = function(productionLineId, for
  * @return {[type]}           [description]
  */
 module.exports.updateHistory = function(productionLineId, status, formulaId) {
-  return ProductionLine.update({ _id: productionLineId }, {
+  return ProductionLine.findOneAndUpdate({ _id: productionLineId }, {
     $push: {
       history: {
         'status': status.toLowerCase(),
         'product': mongoose.Types.ObjectId(formulaId)
       }
     }
-  }).exec();
+  }, { new: true }).exec();
 }
 
 /**
@@ -143,13 +153,13 @@ module.exports.updateHistory = function(productionLineId, status, formulaId) {
  * @param {[type]} productionLineId [description]
  * @param {[type]} formulaId        [description]
  */
-module.exports.addProductToProductionLine = function(productionLineId, formulaId) {
-  return ProductionLine.update({ _id: productionLineId }, {
+module.exports.addProductToProductionLine = function(productionLineId, formulaId, formulaName) {
+  return ProductionLine.findOneAndUpdate({ _id: productionLineId }, {
     $set: {
       busy: true,
-      currentProduct: mongoose.Types.ObjectId(formulaId)
+      currentProduct: { formulaId: mongoose.Types.ObjectId(formulaId), name: formulaName }
     }
-  }).exec();
+  }, { new: true }).exec();
 }
 
 /**

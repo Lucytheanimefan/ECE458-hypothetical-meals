@@ -5,6 +5,7 @@ var FormulaHelper = require('../helpers/formula');
 var IngredientHelper = require('../helpers/ingredients');
 var Ingredient = require('../models/ingredient');
 var Production = require('../models/production');
+var Completed = require('../models/completed_production');
 var ProductionLine = require('../models/production_line');
 var Recall = require('../models/recall');
 var underscore = require('underscore');
@@ -188,7 +189,7 @@ router.post('/:name/order', function(req, res, next) {
     var productionLineQuery = ProductionLine.productionLinesForFormula(formulaObject._id);
     return productionLineQuery;
   }).then(function(productionLines) {
-    res.render('formula-confirmation', { formula: formulaName, formulaObjects: formulaObjects, orderAmounts: tuples, amount: amount, productionLines: productionLines });
+    res.render('formula-confirmation', { formulaName: formulaName, formula: formulaObject, formulaObjects: formulaObjects, orderAmounts: tuples, amount: amount, productionLines: productionLines });
   }).catch(function(error) {
     console.log(error);
     next(error);
@@ -197,38 +198,67 @@ router.post('/:name/order', function(req, res, next) {
 
 //TODO: production logging
 router.post('/:name/order/:amount', function(req, res, next) {
-  let formulaName = req.params.name;
+  var productionLineId = req.body.productionLine;
+  var formulaName = req.params.name;
   let amount = parseFloat(req.params.amount);
   var formulaId;
   var globalFormula;
   var formulaLot;
+
+
   Formula.findFormulaByName(formulaName).then(function(formula) {
-    globalFormula = formula;
-    formulaId = mongoose.Types.ObjectId(formula['_id']);
-    formulaLot = (Math.floor(Math.random() * (max - min)) + min).toString();
-    return Promise.all([FormulaHelper.createListOfTuples(formulaName, amount), Production.updateReport(formulaId, formulaName, amount, 0), Recall.createLotEntry(formulaName, formulaLot, formula.intermediate)]);
-  }).then(function(results) {
-    console.log(results);
-    let totals = results['total'];
-    let total = totals[0];
-    return Promise.all(total.map(function(ingTuple) {
-      return IngredientHelper.sendIngredientsToProduction(formulaId, mongoose.Types.ObjectId(ingTuple['id']), parseFloat(ingTuple['amount']), formulaLot);
-    }));
-  }).then(function(results) {
-    logs.makeLog('Production', 'Send ingredients to production', req.session.username);
-    return Ingredient.getIngredient(formulaName);
-  }).then(function(ing) {
-    if (globalFormula.intermediate) {
-      return IngredientHelper.incrementAmount(ing._id, parseFloat(amount), 'admin', formulaLot)
-    } else {
-      return globalFormula;
-    }
-  }).then(function(result) {
-    res.redirect('/formulas');
-  }).catch(function(error) {
-    console.log(error);
-    next(error);
-  });
+      globalFormula = formula;
+      formulaId = mongoose.Types.ObjectId(formula['_id']);
+      formulaLot = (Math.floor(Math.random() * (max - min)) + min).toString();
+      return Promise.all([FormulaHelper.createListOfTuples(formulaName, amount), Production.updateReport(formulaId, formulaName, amount, 0), Completed.createLotEntry(formulaName, formulaLot, formula.intermediate)]);
+    }).then(function(results) {
+      let totals = results['total'];
+      let total = totals[0];
+      return Promise.all(total.map(function(ingTuple) {
+        return IngredientHelper.sendIngredientsToProduction(formulaId, mongoose.Types.ObjectId(ingTuple['id']), parseFloat(ingTuple['amount']), formulaLot);
+      }));
+    }).then(function(results) {
+      logs.makeLog('Production', 'Send ingredients to production', req.session.username);
+      return Ingredient.getIngredient(formulaName);
+    }).then(function(ing) {
+      if (globalFormula.intermediate) {
+        return IngredientHelper.incrementAmount(ing._id, parseFloat(amount), 'admin', formulaLot)
+      } else {
+        return globalFormula;
+      }
+    }).then(function(result) {
+      var prodLineQuery = ProductionLine.getProductionLineById(productionLineId);
+      return prodLineQuery;
+    })
+    .then(function(productionLine) {
+      console.log(productionLine);
+      if (productionLine == null) {
+        let err = new Error('No production line found');
+        return next(err);
+      }
+      //let productionLine = productionLines[0];
+      console.log(productionLine);
+      console.log('Busy?');
+      console.log(productionLine.busy);
+      console.log(typeof(productionLine.busy));
+      if (!productionLine.busy) {
+        console.log('Not busy, add product to production line');
+        var addProductQuery = ProductionLine.addProductToProductionLine(productionLineId, formulaId, formulaName);
+        return addProductQuery;
+      } else {
+        let err = new Error('That production line is busy. You cannot add a product.')
+        return next(err);
+      }
+    }).then(function(productionLine) {
+      logs.makeLog('Production', 'Send formula to production line', req.session.username);// TODO: link
+      var historyQuery = ProductionLine.updateHistory(productionLineId, 'busy', formulaId);
+      return historyQuery;
+    }).then(function() {
+      res.redirect('/formulas');
+    }).catch(function(error) {
+      console.log(error);
+      next(error);
+    });
 })
 
 router.post('/:name/delete_tuple', function(req, res, next) {
@@ -284,18 +314,41 @@ router.post('/new', async function(req, res, next) {
     logs.makeLog('Create formula', 'Created <a href="/formulas/' + encodeURIComponent(name) + '">' + name + '</a>' /*JSON.stringify({formula_name:name})*/ , req.session.username);
     res.redirect(req.baseUrl + '/' + name);
   }).catch(function(error) {
+    console.log(error);
     next(error);
   });
 })
 
 
 // Production line
-router.post('/add_product/:formulaId/to_production_line/:productionLineId', function(req, res, next) {
-  var addProductQuery = ProductionLine.addProductToProductionLine(productionLineId, formulaId);
+router.post('/add_product/:formulaId/:formulaName/to_production_line', function(req, res, next) {
+  console.log('Add production to production line!');
+  var productionLineId = req.body.productionLine;
+  var formulaId = req.params.formulaId;
+  var formulaName = req.params.formulaName;
 
-  var updateHistoryQuery = ProductionLine.updateHistory(productionLineId, 'busy', formulaId);
-
-  
+  var productionLineQuery = ProductionLine.getProductionLineById(productionLineId);
+  productionLineQuery.then(function(productionLine) {
+    console.log(productionLine);
+    if (productionLine.busy == false) {
+      var addProductQuery = ProductionLine.addProductToProductionLine(productionLineId, formulaId, formulaName);
+      return addProductQuery;
+    } else {
+      let err = new Error('That production line is busy. You cannot add a product.')
+      return next(err);
+    }
+  }).then(function(productionLine) {
+    console.log(productionLine);
+    var updateHistoryQuery = ProductionLine.updateHistory(productionLineId, 'busy', formulaId);
+    return updateHistoryQuery;
+  }).then(function(productionLine) {
+    console.log('-------UPDATE PRODUCTION LINE HISTORY:');
+    console.log(productionLine);
+    res.redirect('/formulas');
+  }).catch(function(error) {
+    console.log(error);
+    next(error);
+  })
 })
 
 
