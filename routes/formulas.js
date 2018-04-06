@@ -50,7 +50,7 @@ router.get('/home/:page?', function(req, res, next) {
       var ingredients = [];
       var ingQuery = Ingredient.getAllIngredients();
       var report;
-      Recall.getProducts().then(function(result) {
+      Completed.getProducts().then(function(result) {
         report = result;
         return ingQuery;
       }).then(function(result) {
@@ -211,10 +211,14 @@ router.post('/:name/order/:amount', function(req, res, next) {
       formulaId = mongoose.Types.ObjectId(formula['_id']);
       formulaLot = (Math.floor(Math.random() * (max - min)) + min).toString();
       return Promise.all([FormulaHelper.createListOfTuples(formulaName, amount), Production.updateReport(formulaId, formulaName, amount, 0), Completed.createLotEntry(formulaName, formulaLot, formula.intermediate)]);
-    }).then(function(results) {
-      let totals = results['total'];
-      let total = totals[0];
-      return Promise.all(total.map(function(ingTuple) {
+    }).then(function(result) {
+      var results = result[0];
+      console.log('Results:');
+      console.log(results);
+      var totals = results['total'];
+      console.log('TOTALS');
+      console.log(totals);
+      return Promise.all(totals.map(function(ingTuple) {
         return IngredientHelper.sendIngredientsToProduction(formulaId, mongoose.Types.ObjectId(ingTuple['id']), parseFloat(ingTuple['amount']), formulaLot);
       }));
     }).then(function(results) {

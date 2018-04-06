@@ -23,7 +23,8 @@ block content
             td= productionLine.description
           tr
             th Busy
-            td= productionLine.busy
+            td= productionLine.busy + (productionLine.busy ? (', currently producing: ' + productionLine.currentProduct.name) : '')
+
           tr
             th Formulas
             td
