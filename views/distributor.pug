@@ -1,0 +1,44 @@
+extends layout
+
+block css
+  link(href='/stylesheets/ingredients.css', rel='stylesheet')
+
+block link
+  -var selected = 'Distributor';
+
+block content
+  div.card-tabs
+    ul.nav.nav-tabs
+      li.active
+        a(data-toggle='tab', href='#ing-table') Final Products
+
+    .tab-content
+      #ing-table.tab-pane.fade.in.active
+        div.card
+          div.card-header(data-background-color='purple')
+            h4.title Final Products For Sale
+          div.card-content.table-response
+            //- input.form-control#ingredientInput(type='text',onkeyup='filterTable(\'ingredient\')', placeholder='Search for ingredients..', title='Type in some search text')
+            table.table#ingredientTable
+              thead.text-primary
+                th(onclick='sortTable(0, \'ingredient\')') Final Product
+                th(onclick='sortTable(1, \'ingredient\')') Product Units in Network
+                th(onclick='sortTable(2, \'ingredient\')') Add to Cart
+              tbody
+              each fp in finalProducts
+                tr
+                  td= fp.name
+                  td= fp.amount
+                  td Empty for now
+
+            div.previous
+              form(action='/ingredients/search_results/' + (parseInt(page)-1).toString() + '/' + searchQuery, method='get')
+                button.btn.btn-white(type="submit" style="padding: 5px;") <
+                p(style="padding: 10px; display: inline-block;") Page #{parseInt(page)}
+            div.next
+              if maxPage
+                form(action='/ingredients/search_results/' + (parseInt(page)).toString() + '/' + searchQuery, method='get')
+                  button.btn.btn-white(type="submit" style="padding: 5px;") >
+              else
+                form(action='/ingredients/search_results/' + (parseInt(page)+1).toString() + '/' + searchQuery, method='get')
+                  button.btn.btn-white(type="submit" style="padding: 5px;") >

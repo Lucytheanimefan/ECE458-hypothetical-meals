@@ -2,6 +2,7 @@ var express = require('express');
 var router = express.Router();
 var Formula = require('../models/formula');
 var FormulaHelper = require('../helpers/formula');
+var FinalProductHelper = require('../helpers/final_products');
 var IngredientHelper = require('../helpers/ingredients');
 var Ingredient = require('../models/ingredient');
 var Production = require('../models/production');
@@ -177,7 +178,7 @@ router.post('/:name/order/:amount', function(req, res, next) {
     if (globalFormula.intermediate) {
       return IngredientHelper.incrementAmount(ing._id, parseFloat(amount), 'admin', formulaLot)
     } else {
-      return globalFormula;
+      return FinalProductHelper.addFinalProduct(formulaName, amount);
     }
   }).then(function(result) {
     res.redirect('/formulas');
