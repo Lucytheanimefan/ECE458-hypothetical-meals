@@ -271,7 +271,7 @@ router.post('/:name/add-vendor', function(req, res, next) {
   //addVendor = function(name, vendorId, cost)
   IngredientHelper.addVendor(ingName, req.body.vendor, req.body.cost).then(function(results) {
     logs.makeIngredientLog('Add vendor to ingredient',
-      'Associated <a href="/vendors/' + encodeURIComponent(req.body.vendor) + '">vendor</a> with' +
+      'Associated <a href="/vendors/search/vendor_id/' + encodeURIComponent(req.body.vendor) + '">vendor</a> with' +
       ' ingredient <a href="/ingredients/' + ingName + '">' + ingName + '</a>' /*{'ingredient_name':ingName, 'vendor_id': req.body.vendor}*/ , initiating_user);
     res.redirect(req.baseUrl + '/' + encodeURIComponent(ingName));
   }).catch(function(error) {

@@ -221,6 +221,7 @@ router.post('/:name/delete_tuple', function(req, res, next) {
   let name = req.body.name;
   let id = req.body.id;
   console.log("name = " + name);
+  console.log(id);
   var promise = FormulaHelper.removeTupleById(name, id);
   promise.then(function(results) {
     res.send({ 'success': true });

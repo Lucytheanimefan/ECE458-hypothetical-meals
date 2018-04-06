@@ -34,10 +34,10 @@ block content
             th Native Unit
             td= ingredient.nativeUnit
           tr
-            th Units per Package
+            th Native Units per Package
             td= ingredient.unitsPerPackage
           tr
-            th Units in Storage
+            th Native Units in Storage
             td= ingredient.amount
           tr
             th Space in Storage (Sq ft)
@@ -115,7 +115,7 @@ block content
             label.control-label Native Unit
             input.form-control(type='text', name='nativeUnit', value = ingredient.nativeUnit, required='')
           .form-group
-            label.control-label Units per Package
+            label.control-label Native Units per Package
             input.form-control(type='number', step='any', name='unitsPerPackage', value = ingredient.unitsPerPackage, required='')
 
           button.btn.btn-primary.pull-right(type='submit') Update ingredient

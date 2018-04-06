@@ -13,7 +13,7 @@ block content
         table.table#orderTable
           thead.text-primary
             th(onclick='sortTable(0, \'order\')') Ingredient
-            th(onclick='sortTable(1, \'order\')') Total Quantity (Number of Packages)
+            th(onclick='sortTable(1, \'order\')') Quantity (Number of Packages)
             th(onclick='sortTable(2, \'order\')') Vendor and Cost Per Package (Cheapest is Selected)
           tbody
           each order in orders

@@ -48,6 +48,10 @@ var ProductionLineSchema = new mongoose.Schema({
       formula: {
         type: mongoose.Schema.ObjectId,
         ref: 'Formula'
+      },
+      ingredient: {
+        type: mongoose.Schema.ObjectId,
+        ref: 'Ingredient'
       }
     }
   }]
