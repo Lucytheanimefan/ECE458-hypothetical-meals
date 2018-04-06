@@ -7,6 +7,7 @@ var Formula = require('../models/formula');
 var Freshness = require('../models/freshness');
 var Ingredient = require('../models/ingredient');
 var Recall = require('../models/recall');
+var ProductionLine = require('../models/production_line');
 
 var mongoose = require('mongoose')
 mongoose.Promise = global.Promise;
@@ -48,7 +49,7 @@ router.get('/:page', function(req, res, next) {
     overallFreshness = getOverallFreshness(ingredientReport);
     return Promise.all([spendingPromise, productionPromise, formulaPromise, ingredientPromise]);
   }).then(function(results) {
-    res.render('report', {spending: results[0], production: results[1], formula: results[2], ingredient: results[3], freshness: overallFreshness});
+    res.render('report', { spending: results[0], production: results[1], formula: results[2], ingredient: results[3], freshness: overallFreshness });
   }).catch(function(error) {
     next(error);
   })
@@ -64,11 +65,84 @@ router.post('/recall', function(req, res, next) {
       return addFormulaNameRecall(tuple);
     }));
   }).then(function(results) {
-    res.render('recall', {ingName: ingName, vendorCode: vendorCode, lotNumber: lotNumber, products: results});
+    res.render('recall', { ingName: ingName, vendorCode: vendorCode, lotNumber: lotNumber, products: results });
   }).catch(function(error) {
     next(error);
   })
 
+})
+
+router.post('/production_line_efficiency', function(req, res, next) {
+  var startDate = new Date(req.body.start);
+  var endDate = new Date(req.body.end);
+  //{ "$gte": startDate, "$lte": endDate }
+  var allLinesQuery = ProductionLine.getAllProductionLines();
+
+  allLinesQuery.then(function(productionLines) {
+    var overallEfficiencyReportData = {};
+
+    for (let i = 0; i < productionLines.length; i++) {
+      var productionLine = productionLines[i];
+
+      var productionLineEfficiencyData = { 'id': productionLine._id };
+
+      var idleTime = 0; // Time production line was idle
+      var busyTime = 0; // Time production line was busy
+      var totalTime = endDate - startDate;
+      var previousTimeStamp = startDate;
+
+      var plotGraphData = { 'dates': [], 'values': [] }; // For plotting if we want to do that, currently not being used
+
+      for (let j = 0; j < productionLine.history.length; j++) {
+        let history = productionLine.history[j];
+
+        let timestamp = new Date(history.timestamp);
+        console.log('--------')
+        console.log(timestamp);
+
+        if (timestamp >= startDate && timestamp <= endDate) {
+          plotGraphData['dates'].push(timestamp);
+          // If busy, value = 1, else value = 0
+          plotGraphData['values'].push((history.status == 'busy') ? 1 : 0);
+          // Within the time range!
+          let timeElapsed = timestamp - previousTimeStamp;
+          console.log('timeElapsed: ');
+          console.log(timeElapsed);
+
+          console.log('Busy? ' + productionLine.busy);
+          // Update the times elapsed
+          if (history.status == 'busy') {
+            busyTime += timeElapsed;
+          } else {
+            idleTime += timeElapsed;
+          }
+          console.log('Busy time: ' + busyTime);
+          console.log('Idle time: ' + idleTime);
+
+          previousTimeStamp = timestamp;
+        }
+      }
+
+      productionLineEfficiencyData['busyTime'] = busyTime;
+      productionLineEfficiencyData['idleTime'] = (totalTime - busyTime);
+      productionLineEfficiencyData['totalTime'] = totalTime;
+      productionLineEfficiencyData['percentBusy'] = busyTime * 100 / totalTime;
+      productionLineEfficiencyData['percentIdle'] = (totalTime - busyTime) * 100 / totalTime;
+      productionLineEfficiencyData['graphData'] = plotGraphData;
+
+      overallEfficiencyReportData[productionLine.name] = productionLineEfficiencyData;
+
+      // Reset stuff for next production line
+      idleTime = 0;
+      busyTime = 0;
+      plotGraphData = { 'dates': [], 'values': [] }
+    }
+    console.log(overallEfficiencyReportData);
+    return res.send(overallEfficiencyReportData);
+  }).catch(function(error) {
+    console.log(error);
+    return next(error);
+  })
 })
 
 addFormulaNameRecall = function(tuple) {
@@ -163,13 +237,13 @@ getIngredientFreshnessName = function(tuple) {
 }
 
 convertTime = function(milliseconds) {
-  var days = Math.floor(milliseconds/(1000*60*60*24));
-  milliseconds = milliseconds % (1000*60*60*24);
-  var hours = Math.floor(milliseconds/(1000*60*60));
-  milliseconds = milliseconds % (1000*60*60);
-  var minutes = Math.floor(milliseconds/(1000*60));
-  milliseconds = milliseconds % (1000*60);
-  var seconds = Math.floor(milliseconds/1000);
+  var days = Math.floor(milliseconds / (1000 * 60 * 60 * 24));
+  milliseconds = milliseconds % (1000 * 60 * 60 * 24);
+  var hours = Math.floor(milliseconds / (1000 * 60 * 60));
+  milliseconds = milliseconds % (1000 * 60 * 60);
+  var minutes = Math.floor(milliseconds / (1000 * 60));
+  milliseconds = milliseconds % (1000 * 60);
+  var seconds = Math.floor(milliseconds / 1000);
   milliseconds = milliseconds % (1000);
 
   var time = days + " days, " + hours + " hrs, " + minutes + " min, " + seconds + " sec";

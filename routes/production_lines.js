@@ -206,7 +206,7 @@ router.post('/delete/:id', function(req, res, next) {
  */
 router.post('/mark_completed/:id', function(req, res, next) {
   // TODO inventory stuff, etc.
-  
+
   let productionLineId = req.params.id;
   var updateInfo = { 'busy': false, 'currentProduct': {} };
   var productionLineUpdateQuery = ProductionLine.updateProductionLine(productionLineId, updateInfo);
@@ -221,5 +221,8 @@ router.post('/mark_completed/:id', function(req, res, next) {
     return next(error);
   })
 })
+
+
+
 
 module.exports = router;

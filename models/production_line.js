@@ -181,3 +181,19 @@ module.exports.updateProductionLine = function(id, updateInfo) {
     '$set': updateInfo,
   }, { upsert: true }).exec();
 }
+
+// module.exports.getProductionLineHistory = function(productionLineObject, startDate, endDate) {
+//   return productionLineObject.find({
+//     'history': {
+//       'timestamp': {
+//         "$gte": startDate,
+//         "$lte": endDate
+//       }
+//     }
+//   })
+// }
+
+//startDate = new Date(req.query.start);
+// endDate = new Date(req.query.end);
+// query['time'] = { "$gte": startDate, "$lte": endDate }
+//
