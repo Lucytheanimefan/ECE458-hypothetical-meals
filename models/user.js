@@ -55,6 +55,13 @@ var UserSchema = new mongoose.Schema({
       required: true
     }
   }],
+  saleList: [{
+    finalProduct: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref:'FinalProduct',
+      required: true
+    }
+  }],
   report: {
     type: Array
   }
@@ -237,4 +244,15 @@ module.exports.updateCart = function(id, ingId, quantity, vendor) {
       reject(error);
     });
   })
+}
+
+module.exports.addToSaleList = function(id, fpId) {
+  fpId = mongoose.Types.ObjectId(fpId.toString());
+  let entry = {finalProduct:fpId};
+  return User.findOneAndUpdate({'_id':id},{'$push':{'saleList':entry}}).exec();
+}
+
+module.exports.removeSale = function(id, fpId) {
+  fpId = mongoose.Types.ObjectId(fpId.toString());
+  return User.findOneAndUpdate({'_id':id},{'$pull':{'saleList':{'finalProduct':fpId}}}).exec();
 }

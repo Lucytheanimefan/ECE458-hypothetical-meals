@@ -1,5 +1,6 @@
 var User = require('../models/user');
 var Ingredient = require('../models/ingredient');
+var FinalProduct = require('../models/final_product');
 var IngredientHelper = require('../helpers/ingredients');
 var InventoryHelper = require('../helpers/inventory');
 var Spending = require('../models/spending');
@@ -27,6 +28,41 @@ module.exports.getVendorID = function(vendorName) {
       resolve(result);
     }).catch(function(error) {
       next(error);
+    })
+  })
+}
+
+module.exports.addToSaleList = function(id, fpId) {
+  return new Promise(function(resolve, reject) {
+    var user;
+    User.getUserById(id).then(function(userResult) {
+      user = userResult;
+      if (user == null) {
+        var error = new Error('Specified user doesn\'t exist');
+        error.status = 400;
+        throw(error);
+      }
+      for (let fp of user.saleList) {
+        if (fpId.toString() === fp.finalProduct.toString()) {
+          throw(new Error('The final product is already in the cart'));
+        }
+      }
+      return User.addToSaleList(id, fpId);
+    }).then(function(result) {
+      resolve(result);
+    }).catch(function(error) {
+      reject(error);
+    })
+  })
+}
+
+module.exports.removeSale = function(id, fpId) {
+  return new Promise(function(resolve,reject){
+    var result = User.removeSale(id, fpId);
+    result.then(function(success){
+      resolve(success);
+    }).catch(function(error){
+      reject(error);
     })
   })
 }

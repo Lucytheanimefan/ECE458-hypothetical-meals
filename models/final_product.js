@@ -35,6 +35,10 @@ module.exports.getFinalProduct = function(name) {
   return FinalProduct.findOne({'name': name}).exec();
 }
 
+module.exports.getFinalProductById = function(id) {
+  return FinalProduct.findById(id).exec();
+}
+
 module.exports.getAllFinalProducts = function() {
   return FinalProduct.find().exec();
 }
