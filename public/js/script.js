@@ -236,7 +236,7 @@ function loadSideBar() {
         }
       } else {
         // Users
-        if (category !== 'Users' && category !== "Uploads" && category !== "Backups" && category !== "Logs") {
+        if (category !== 'Users' && category !== "Uploads" && category !== "Backups") {
           $(this).removeClass('hide');
         }
       }
@@ -286,7 +286,6 @@ function getVendorForID(id, callback) {
       callback(response);
     }
   });
-
 }
 
 function getAccessTokenHash() {
@@ -421,23 +420,23 @@ function createLotTuples(ingredients, start) {
 
     var newHTML = '<div id="tuple' + next + '" class="row">';
     newHTML += '<div class="col-md-2"><div class="form-group"></div><label class="control-label">Lot Number</label>';
-    newHTML += '<input class="form-control" id="lotnumber' + next + '" type="text" name="lotnumber' + next + '" required=""/></div>';
+    newHTML += '<input class="form-control" id="lotnumber' + next + '" type="text" name="lotnumber' + next + '"/></div>';
     newHTML += '<div class="row" id="ing' + next + "_" + 1 + '" class="row">';
     newHTML += '<div class="col-md-3"><div class="form-group"></div><label class="control-label">Ingredient</label>';
-    newHTML += '<select class="form-control" id="ingredient' + next + "_" + 1 + '" name="ingredient' + next + "_" + 1 + '" required=""><option disabled="" selected="" value="">Select from Order</option>';
+    newHTML += '<select class="form-control" id="ingredient' + next + "_" + 1 + '" name="ingredient' + next + "_" + 1 + '"><option disabled="" selected="" value="">Select from Order</option>';
     var i;
     console.log("ing bois");
     console.log(ingredients);
     for (i = 0; i < ingredients.length; i++) {
       var ing = ingredients[i];
-      newHTML += '<option value=' + ing.ingId + '@' + ing.vendId +  '@' + ing.ingSize + '>' + ing.ingredient + ' from ' + ing.vendor[0].name + '</option>';
+      newHTML += '<option value=' + ing.ingId + '@' + ing.vendId + '@' + ing.ingSize + '>' + ing.ingredient + ' from ' + ing.vendor[0].name + '</option>';
     }
     newHTML += '</select></div>';
 
     //newHTML += '<div class="removeBtn" id="dataBtn">';
     //console.log($("#ingredientSelect" + next).val());
     newHTML += '<div class="col-md-1"><div class="form-group"></div><label class="control-label">Quantity</label>';
-    newHTML += '<input class="form-control" id="quantity' + next + "_" + 1 + '" type="number" name="quantity' + next + "_" + 1 + '" min="0" step="0.01" required=""/></div>';
+    newHTML += '<input class="form-control" id="quantity' + next + "_" + 1 + '" type="number" name="quantity' + next + "_" + 1 + '" min="0" step="0.01"/></div>';
     newHTML += '<div class="col-md-1"><p><br/><br/></p>';
     newHTML += '</div>';
     //newHTML += '<div class="removeBtn" id="dataBtn">';
@@ -510,8 +509,7 @@ function showIngredientInfo() {
     if ($(this).val() == 'intermediate') {
       $('#ingredient-info').show();
       $('.ing-attr').prop('required', true);
-    }
-    else {
+    } else {
       $('#ingredient-info').hide();
       $('.ing-attr').removeAttr('required');
     }
@@ -548,17 +546,17 @@ function deleteTuple2(index) {
 
 function deletePackage(next, index) {
   if (next > 1) {
-    $('#ing' + index+"_"+next).remove();
-    var start = document.getElementById('start'+index).dataset.start;
+    $('#ing' + index + "_" + next).remove();
+    var start = document.getElementById('start' + index).dataset.start;
     if (start == next) {
-      document.getElementById('start'+index).dataset.start = Number(start) - 1;
+      document.getElementById('start' + index).dataset.start = Number(start) - 1;
     }
   }
 }
 
 
-function addPackage(index){
-  var next = Number(document.getElementById('start'+index).dataset.start);
+function addPackage(index) {
+  var next = Number(document.getElementById('start' + index).dataset.start);
   console.log(next);
   var addTo = "#ing" + index + "_" + next;
   next = next + 1;
@@ -567,22 +565,22 @@ function addPackage(index){
   newHTML += '<div class="col-md-2"><p><br/><br/><br/><br/></p>';
   newHTML += '</div>';
   newHTML += '<div class="col-md-3"><div class="form-group"></div><label class="control-label">Ingredient</label>';
-  newHTML += '<select class="form-control" id="ingredient' + index + "_" + next + '" name="ingredient' + index + "_" + next + '" required=""><option disabled="" selected="" value="">Select from Order</option>';
+  newHTML += '<select class="form-control" id="ingredient' + index + "_" + next + '" name="ingredient' + index + "_" + next + '"><option disabled="" selected="" value="">Select from Order</option>';
   var i;
   for (i = 0; i < ingredients.length; i++) {
     console.log(ingredients);
     var ing = ingredients[i];
     //newHTML += '<option value=' + ing.ingId + '@' + ing.vendId + '@' + ing.ingSize + '>' + ing.ingredient + '</option>';
-    newHTML += '<option value=' + ing.ingId + '@' + ing.vendId +  '@' + ing.ingSize + '>' + ing.ingredient + ' from ' + ing.vendor[0].name + '</option>';
+    newHTML += '<option value=' + ing.ingId + '@' + ing.vendId + '@' + ing.ingSize + '>' + ing.ingredient + ' from ' + ing.vendor[0].name + '</option>';
   }
   newHTML += '</select></div>';
 
   //newHTML += '<div class="removeBtn" id="dataBtn">';
   //console.log($("#ingredientSelect" + next).val());
   newHTML += '<div class="col-md-1"><div class="form-group"></div><label class="control-label">Quantity</label>';
-  newHTML += '<input class="form-control" id="quantity' + index + "_" + next + '" type="number" name="quantity' + index + "_" + next + '" min="0" step="0.01" required=""/></div>';
+  newHTML += '<input class="form-control" id="quantity' + index + "_" + next + '" type="number" name="quantity' + index + "_" + next + '" min="0" step="0.01"/></div>';
   newHTML += '<div class="col-md-1"><p><br/><br/><br/><br/></p>';
-  newHTML += '<button class="btn btn-round btn-just-icon remove" type="button" value="remove" onclick=deletePackage(' + next + ","+ index + ') style="background-color:red;"><i class="material-icons">delete</i></button></div>';
+  newHTML += '<button class="btn btn-round btn-just-icon remove" type="button" value="remove" onclick=deletePackage(' + next + "," + index + ') style="background-color:red;"><i class="material-icons">delete</i></button></div>';
   newHTML += '</div></div>';
 
   next = next - 1;
@@ -592,7 +590,7 @@ function addPackage(index){
   $("#ing" + next).attr('data-source', $(addTo).attr('data-source'));
 
   //var start = document.getElementById('index').dataset.start;
-  document.getElementById('start'+index).dataset.start = Number(next) + 1;
+  document.getElementById('start' + index).dataset.start = Number(next) + 1;
 }
 
 
@@ -621,6 +619,39 @@ function selectVendor(orders) {
       }
     }
   }
+}
+
+// Formula 
+function getFormulaForID(id, callback) {
+  $.ajax({
+    type: 'GET',
+    url: '/formulas/id/' + id,
+    contentType: 'application/json; charset=utf-8',
+    dataType: 'json',
+    success: function(response) {
+      //console.log(response);
+      callback(response);
+    }
+  });
+}
+
+// Production Line
+
+
+
+function updateLineFormulaNames() {
+  $('.lineFormula').each(function() {
+    var element = $(this);
+    let formulaId = element.data("id");
+    console.log(formulaId);
+    getFormulaForID(formulaId, function(json) {
+      element.text(json["name"]);
+      var href = $(this).attr('href');
+      if (typeof href !== typeof undefined && href !== false) {
+        element.attr('href', '/formulas/' + json["name"]);
+      }
+    })
+  })
 }
 
 //'top','center
