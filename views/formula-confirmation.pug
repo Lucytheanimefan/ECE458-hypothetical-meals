@@ -26,6 +26,16 @@ block content
               td Enough
             else
               td Not enough
+      .row
+        form(action='/production_lines/#', method='post')
+          h5 Select production line
+          .form-group
+            label.control-label Production Lines
+            select.form-control(name='productionLines', placeholder = '')
+              each productionLine in productionLines
+                option(value=productionLine._id)= productionLine.name + ', ' + (productionLine.busy ? ('Busy producing' + productionLine.currentProduct) : 'Idle')
+          button.btn.btn-primary.pull-left(type='submit') Set production line
+      .row
       if orderAmounts.length > 0
         form(action='/ingredients/order/add/to/cart', method='post')
           each order in orderAmounts

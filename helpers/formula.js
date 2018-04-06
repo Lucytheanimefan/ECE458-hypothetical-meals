@@ -256,7 +256,9 @@ module.exports.createListOfTuples = function(formulaName, amount) {
         newTuple['amount'] = units*parseFloat(tuple['quantity']);
         total.push(newTuple);
       }
-      resolve(total);
+      console.log('Helper formula!');
+      console.log(formula);
+      resolve({'total':total, 'formula':formula});
     }).catch(function(error) {
       reject(error);
     })

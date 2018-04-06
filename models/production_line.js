@@ -30,6 +30,10 @@ var ProductionLineSchema = new mongoose.Schema({
     default: false,
     required: true
   },
+  currentProduct: {
+    type: mongoose.Schema.ObjectId,
+    ref: 'Formula'
+  },
   history: [{
     timestamp: {
       type: Date,
@@ -81,22 +85,75 @@ module.exports.createProductionLine = function(productionLineInfo) {
   return ProductionLine.create(productionLineInfo);
 }
 
+// Gets all production lines for a formula
 module.exports.productionLinesForFormula = function(formulaId) {
   return ProductionLine.find({ 'formulas': { $elemMatch: { formulaId: mongoose.Types.ObjectId(formulaId) } } } /*{ 'formulas.formuladId': formulaId }*/ ).exec();
-
 }
 
+// Gets all idle production lines for a formula
+module.exports.idleProductionLinesForFormula = function(formulaId) {
+  return ProductionLine.find({
+    'busy': false,
+    'formulas': {
+      $elemMatch: {
+        formulaId: mongoose.Types.ObjectId(formulaId)
+      }
+    }
+  }).exec();
+}
 
+/**
+ * Adds a formula to a production line
+ * @param {[type]} productionLineId [description]
+ * @param {[type]} formulaId        [description]
+ */
 module.exports.addFormulaFromProductionLines = function(productionLineId, formulaId) {
   return ProductionLine.findOneAndUpdate({ _id: productionLineId }, { $push: { formulas: { "formulaId": mongoose.Types.ObjectId(formulaId) } } }).exec();
 }
 
+/**
+ * Deletes a formula from a production line
+ * @param  {[type]} productionLineId [description]
+ * @param  {String} formulaId        [description]
+ * @return {[type]}                  [description]
+ */
 module.exports.deleteFormulaFromProductionLines = function(productionLineId, formulaId) {
   return ProductionLine.update({ _id: productionLineId }, { $pull: { formulas: { "formulaId": mongoose.Types.ObjectId(formulaId) } } }).exec();
 }
 
 /**
- * [updateProductionLine description]
+ * Adds a history entry specifying when a production line becomes busy or idle and what product was put on or taken off the line at the time
+ * @param  {String} status    "busy" or "idle"
+ * @param  {String} formulaId [description]
+ * @return {[type]}           [description]
+ */
+module.exports.updateHistory = function(productionLineId, status, formulaId) {
+  return ProductionLine.update({ _id: productionLineId }, {
+    $push: {
+      history: {
+        'status': status.toLowerCase(),
+        'product': mongoose.Types.ObjectId(formulaId)
+      }
+    }
+  }).exec();
+}
+
+/**
+ * Adds a product to the production line
+ * @param {[type]} productionLineId [description]
+ * @param {[type]} formulaId        [description]
+ */
+module.exports.addProductToProductionLine = function(productionLineId, formulaId) {
+  return ProductionLine.update({ _id: productionLineId }, {
+    $set: {
+      busy: true,
+      currentProduct: mongoose.Types.ObjectId(formulaId)
+    }
+  }).exec();
+}
+
+/**
+ * The general update of a production line
  * @param  {[type]} id         Production line mongodb unique id
  * @param  {[type]} updateInfo A dictionary with the following optional keys (as defined by the model) : name, description, busy
  * @return {[type]}            [description]

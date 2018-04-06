@@ -159,12 +159,19 @@ router.post('/:name/update', function(req, res, next) {
 router.post('/:name/order', function(req, res, next) {
   let formulaName = req.params.name;
   let amount = parseFloat(req.body.quantity);
-  FormulaHelper.createListOfTuples(formulaName, amount).then(function(total) {
+
+  var formulaObject;
+  var formulaObjects;
+  var tuples = [];
+  FormulaHelper.createListOfTuples(formulaName, amount).then(function(result) {
+    var total = result['total'];
+    formulaObject = result['formula'];
+    console.log('Formula object:');
+    console.log(formulaObject);
     return Promise.all(total.map(function(ingTuple) {
       return IngredientHelper.compareAmount(mongoose.Types.ObjectId(ingTuple['id']), ingTuple['amount']);
     }));
   }).then(function(results) {
-    var tuples = [];
     for (let object of results) {
       if (object.intermediate && !object.enough) {
         throw new Error('Need to produce more of intermediate product ' + object.ingredient);
@@ -177,8 +184,13 @@ router.post('/:name/order', function(req, res, next) {
         tuples.push(tuple);
       }
     }
-    res.render('formula-confirmation', { formula: formulaName, formulaObjects: results, orderAmounts: tuples, amount: amount });
+    formulaObjects = results;
+    var productionLineQuery = ProductionLine.productionLinesForFormula(formulaObject._id);
+    return productionLineQuery;
+  }).then(function(productionLines) {
+    res.render('formula-confirmation', { formula: formulaName, formulaObjects: formulaObjects, orderAmounts: tuples, amount: amount, productionLines: productionLines });
   }).catch(function(error) {
+    console.log(error);
     next(error);
   });
 })
@@ -196,7 +208,9 @@ router.post('/:name/order/:amount', function(req, res, next) {
     formulaLot = (Math.floor(Math.random() * (max - min)) + min).toString();
     return Promise.all([FormulaHelper.createListOfTuples(formulaName, amount), Production.updateReport(formulaId, formulaName, amount, 0), Recall.createLotEntry(formulaName, formulaLot, formula.intermediate)]);
   }).then(function(results) {
-    let total = results[0];
+    console.log(results);
+    let totals = results['total'];
+    let total = totals[0];
     return Promise.all(total.map(function(ingTuple) {
       return IngredientHelper.sendIngredientsToProduction(formulaId, mongoose.Types.ObjectId(ingTuple['id']), parseFloat(ingTuple['amount']), formulaLot);
     }));
@@ -273,5 +287,20 @@ router.post('/new', async function(req, res, next) {
     next(error);
   });
 })
+
+
+// Production line
+router.post('/add_product/:formulaId/to_production_line/:productionLineId', function(req, res, next) {
+  var addProductQuery = ProductionLine.addProductToProductionLine(productionLineId, formulaId);
+
+  var updateHistoryQuery = ProductionLine.updateHistory(productionLineId, 'busy', formulaId);
+
+  
+})
+
+
+
+
+
 
 module.exports = router;
