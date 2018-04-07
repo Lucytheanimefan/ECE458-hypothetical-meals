@@ -137,7 +137,7 @@ module.exports.decrementAmountForProduction = function(id, amount, formula, form
       }
       for (let lot of lotsConsumed) {
         var time = Date.now() - lot.timestamp;
-        await Freshness.updateReport(lot.ingID, lot.name, lot.amount, time);
+        await Freshness.updateFreshnessReport(lot.ingID, lot.name, lot.amount, time);
         await Completed.updateReport(formula.name, formulaLot, lot.ingID, lot.lotNumber, lot.vendorID);
         await Recall.updateReport(formula.id, formulaLot, formula.intermediate, lot.ingID, lot.lotNumber, lot.vendorID);
       }

@@ -22,6 +22,11 @@ var ProductionLineSchema = new mongoose.Schema({
   description: {
     type: String,
   },
+  createdAt: {
+    type: Date,
+    default: Date.now,
+    required: true,
+  },
   formulas: [
     { formulaId: { type: mongoose.Schema.ObjectId, ref: 'Formula' } }
   ],
@@ -29,6 +34,15 @@ var ProductionLineSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
     required: true
+  },
+  currentProduct: {
+    formulaId: {
+      type: mongoose.Schema.ObjectId,
+      ref: 'Formula'
+    },
+    name: {
+      type: String
+    }
   },
   history: [{
     timestamp: {
@@ -81,22 +95,83 @@ module.exports.createProductionLine = function(productionLineInfo) {
   return ProductionLine.create(productionLineInfo);
 }
 
+// Gets all production lines for a formula
 module.exports.productionLinesForFormula = function(formulaId) {
   return ProductionLine.find({ 'formulas': { $elemMatch: { formulaId: mongoose.Types.ObjectId(formulaId) } } } /*{ 'formulas.formuladId': formulaId }*/ ).exec();
-
 }
 
+// Gets all idle production lines for a formula
+module.exports.idleProductionLinesForFormula = function(formulaId) {
+  return ProductionLine.find({
+    'busy': false,
+    'formulas': {
+      $elemMatch: {
+        formulaId: mongoose.Types.ObjectId(formulaId)
+      }
+    }
+  }).exec();
+}
 
+/**
+ * Adds a formula to a production line
+ * @param {[type]} productionLineId [description]
+ * @param {[type]} formulaId        [description]
+ */
 module.exports.addFormulaFromProductionLines = function(productionLineId, formulaId) {
   return ProductionLine.findOneAndUpdate({ _id: productionLineId }, { $push: { formulas: { "formulaId": mongoose.Types.ObjectId(formulaId) } } }).exec();
 }
 
+/**
+ * Deletes a formula from a production line
+ * @param  {[type]} productionLineId [description]
+ * @param  {String} formulaId        [description]
+ * @return {[type]}                  [description]
+ */
 module.exports.deleteFormulaFromProductionLines = function(productionLineId, formulaId) {
   return ProductionLine.update({ _id: productionLineId }, { $pull: { formulas: { "formulaId": mongoose.Types.ObjectId(formulaId) } } }).exec();
 }
 
 /**
- * [updateProductionLine description]
+ * Adds a history entry specifying when a production line becomes busy or idle and what product was put on or taken off the line at the time
+ * @param  {String} status    "busy" or "idle"
+ * @param  {String} formulaId [description]
+ * @return {[type]}           [description]
+ */
+module.exports.updateHistory = function(productionLineId, status, formulaId = null) {
+  var history;
+  if (formulaId != null) {
+    history = {
+      'status': status.toLowerCase(),
+      'product': mongoose.Types.ObjectId(formulaId)
+    }
+  } else {
+    history = {
+      'status': status.toLowerCase(),
+    }
+  }
+  return ProductionLine.findOneAndUpdate({ _id: productionLineId }, {
+    $push: {
+      history: history
+    }
+  }, { new: true }).exec();
+}
+
+/**
+ * Adds a product to the production line
+ * @param {[type]} productionLineId [description]
+ * @param {[type]} formulaId        [description]
+ */
+module.exports.addProductToProductionLine = function(productionLineId, formulaId, formulaName) {
+  return ProductionLine.findOneAndUpdate({ _id: productionLineId }, {
+    $set: {
+      busy: true,
+      currentProduct: { formulaId: mongoose.Types.ObjectId(formulaId), name: formulaName }
+    }
+  }, { new: true }).exec();
+}
+
+/**
+ * The general update of a production line
  * @param  {[type]} id         Production line mongodb unique id
  * @param  {[type]} updateInfo A dictionary with the following optional keys (as defined by the model) : name, description, busy
  * @return {[type]}            [description]
@@ -106,3 +181,19 @@ module.exports.updateProductionLine = function(id, updateInfo) {
     '$set': updateInfo,
   }, { upsert: true }).exec();
 }
+
+// module.exports.getProductionLineHistory = function(productionLineObject, startDate, endDate) {
+//   return productionLineObject.find({
+//     'history': {
+//       'timestamp': {
+//         "$gte": startDate,
+//         "$lte": endDate
+//       }
+//     }
+//   })
+// }
+
+//startDate = new Date(req.query.start);
+// endDate = new Date(req.query.end);
+// query['time'] = { "$gte": startDate, "$lte": endDate }
+//
