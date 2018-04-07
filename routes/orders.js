@@ -29,7 +29,16 @@ router.get('/home/:page?', function(req, res, next) {
   var perPage = 10;
   Orders.getAllOrders().then(function(orders){
     res.render('orders',{orders:orders});
-    console.log(orders.products);
+  }).catch(function(err){
+    next(err);
+  })
+})
+
+router.get('/:code', function(req, res, next) {
+  let code = req.params.code;
+  Orders.getOrder(code).then(function(order){
+    let products = order.products;
+    res.render('order',{order:order,products:products})
   }).catch(function(err){
     next(err);
   })

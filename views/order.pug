@@ -1,0 +1,32 @@
+extends layout
+block link
+  -var selected = 'Orders';
+
+block content
+  .row
+    div.card
+      div.card-header(data-background-color='purple')
+        h4.title Orders
+      div.card-content.table-response
+        input.form-control#logInput(type='text',onkeyup='filterTable(\'log\')', placeholder='Search for order..', title='Type in some search text')
+        table.table#logTable
+          thead.text-primary
+            th(onclick='sortTable(0, \'log\')') Ingredient
+            th(onclick='sortTable(0, \'log\')') Vendor
+            th(onclick='sortTable(0, \'log\')') Quantity
+            th(onclick='sortTable(0, \'log\')') Pending
+            th(onclick='sortTable(0, \'log\')') Lot Number
+          tbody
+          each prod in products
+            tr(id=prod._id)
+              td
+                a(href='/ingredients/' + prod.ingID.name)= prod.ingID.name
+              td
+                a(href='/vendors/' + prod.vendID.code)= prod.vendID.name
+              td= prod.quantity
+              td= prod.arrived
+              td= prod.assigned
+              //- td= log.entities
+block scripts
+  script.
+    $('#datetimepicker1').datepicker();

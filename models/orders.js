@@ -8,9 +8,9 @@ var OrdersSchema = new mongoose.Schema({
   products:[{
     ingID : {type:mongoose.Schema.Types.ObjectId,ref:'Ingredient'},
     vendID: {type:mongoose.Schema.Types.ObjectId,ref:'Vendor'},
-    amount: Number,
+    quantity: Number,
     arrived: Boolean,
-    assigned: Boolean
+    assigned: String
   }],
   orderNumber: {
     type: String,
@@ -44,8 +44,8 @@ module.exports.addOrder = function(products) {
 }
 
 module.exports.getOrder = function(orderNumber){
-  return Orders.find({ 'orderNumber': {
-                     $regex : new RegExp(orderNumber, "i") }}).exec();
+  return Orders.findOne({ 'orderNumber': {
+                     $regex : new RegExp(orderNumber, "i") }}).populate('products.ingID').populate('products.vendID').exec();
 }
 
 module.exports.getAllCompleteOrders = function(){
@@ -57,7 +57,7 @@ module.exports.getAllIncompleteOrders = function(){
 }
 
 module.exports.getAllUnassignedIngredients = function(){
-  return Orders.find({'completed':false,'products.assigned':false}).exec();
+  return Orders.find({'completed':false,'products.assigned':"n/a"}).exec();
 }
 
 module.exports.markIngredientArrived = function(orderNumber,ingID,vendID){
@@ -72,14 +72,14 @@ module.exports.markIngredientArrived = function(orderNumber,ingID,vendID){
                      })
 }
 
-module.exports.markIngredientAssigned  = function(orderNumber,ingID,vendID){
+module.exports.markIngredientAssigned  = function(orderNumber,ingID,vendID,lotNumber){
   return Orders.findOneAndUpdate({'orderNumber':{
                      $regex : new RegExp(orderNumber, "i") },
                      'products.vendID':mongoose.Types.ObjectId(vendID),
                      'products.ingID':mongoose.Types.ObjectId(ingID)
                    },{
                        '$set':{
-                         'product.$.assigned' : true
+                         'product.$.assigned' : lotNumber
                        }
                      })
 }

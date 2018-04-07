@@ -25,7 +25,7 @@ module.exports.addOrder = function(products){
       entry['vendID'] = products[i]['vendor'];
       entry['quantity'] = products[i]['amount'];
       entry['arrived'] = false;
-      entry['assigned'] = false;
+      entry['assigned'] = "n/a";
       orderList.push(entry);
     }
     Orders.addOrder(orderList).then(function(res){

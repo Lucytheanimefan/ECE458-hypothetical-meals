@@ -15,16 +15,15 @@ block content
             th(onclick='sortTable(0, \'log\')') Order Time
             th(onclick='sortTable(0, \'log\')') Arrival Time
             th(onclick='sortTable(0, \'log\')') Status
-            th(onclick='sortTable(0, \'log\')') Products
             //- th(onclick='sortTable(0, \'log\')') Related entities
           tbody
           each order in orders
             tr(id=order._id)
-              td= order.orderNumber
+              td
+                a(href='/orders/' + order.orderNumber)= order.orderNumber
               td= order.orderTimeStamp
               td= order.arrivalTimeStamp
               td= order.completed ? "Delivered" : "Not Delivered"
-              td= order.products.vendID
               //- td= log.entities
 block scripts
   script.
