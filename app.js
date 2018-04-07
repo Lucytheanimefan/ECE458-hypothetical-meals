@@ -20,6 +20,7 @@ var inventory = require('./routes/inventory_routes');
 var formulas = require('./routes/formulas');
 var distributor = require('./routes/distributor');
 var reports = require('./routes/reports');
+var productionLines = require('./routes/production_lines');
 var logs = require('./routes/logs');
 var backups = require('./routes/backups');
 var MongoStore = require('connect-mongo')(session);
@@ -82,6 +83,7 @@ app.use('/vendors', users.requireLogin(), vendors);
 app.use('/formulas', formulas);
 app.use('/distributor', distributor);
 app.use('/reports', users.requireLogin(), reports);
+app.use('/production_lines', productionLines);
 
 app.use('/files', users.requireRole('admin'), files);
 app.use('/inventory', inventory);

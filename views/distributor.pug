@@ -51,16 +51,15 @@ block content
             th(onclick='sortTable(1, \'order\')') Quantity (Number of Product Units)
             th
           tbody
-          each order in orders
+          each sale in sales
             tr
-              td
-                a(href='/ingredients/' + order.ingredient)= order.ingredient
+              td= order.finalProductName
               td= order.quantity
-              td
-                form(action="/users/remove_ingredient" method="post")
-                  input(type="hidden" name="ingredient" value=order.ingredient)
-                  input(type="hidden" name="quantity" value=order.quantity)
-                  span(style="float:right;")
-                    a(href='/users/edit_order/' + order.ingredient + '/' + page)
-                      button(class="btn btn-secondary" type="button" style="margin-right: 20px; padding: 5px 20px; background-color:#66c2ff; color: white; display:inline;") Edit
-                    input.btn.btn-secondary(type="submit" value="Remove" style="padding: 5px 20px; background-color:#66c2ff; color: white; display:inline;")
+              //- td
+              //-   form(action="/users/remove_ingredient" method="post")
+              //-     input(type="hidden" name="ingredient" value=order.ingredient)
+              //-     input(type="hidden" name="quantity" value=order.quantity)
+              //-     span(style="float:right;")
+              //-       a(href='/users/edit_order/' + order.ingredient + '/' + page)
+              //-         button(class="btn btn-secondary" type="button" style="margin-right: 20px; padding: 5px 20px; background-color:#66c2ff; color: white; display:inline;") Edit
+              //-       input.btn.btn-secondary(type="submit" value="Remove" style="padding: 5px 20px; background-color:#66c2ff; color: white; display:inline;")
