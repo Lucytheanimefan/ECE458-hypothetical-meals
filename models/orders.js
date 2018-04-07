@@ -49,11 +49,11 @@ module.exports.getOrder = function(orderNumber){
 }
 
 module.exports.getAllCompleteOrders = function(){
-  return Orders.find({'completed':false}).exec();
+  return Orders.find({'completed':true}).populate('products.ingID').populate('products.vendID').exec();
 }
 
 module.exports.getAllIncompleteOrders = function(){
-  return Orders.find({'completed':true}).exec();
+  return Orders.find({'completed':false}).populate('products.ingID').populate('products.vendID').exec();
 }
 
 module.exports.getAllUnassignedIngredients = function(){

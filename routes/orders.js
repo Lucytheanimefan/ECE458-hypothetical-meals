@@ -27,7 +27,7 @@ router.get('/home/:page?', function(req, res, next) {
     page = 0;
   }
   var perPage = 10;
-  Orders.getAllOrders().then(function(orders){
+  Orders.getAllIncompleteOrders().then(function(orders){
     res.render('orders',{orders:orders});
   }).catch(function(err){
     next(err);
@@ -40,6 +40,20 @@ router.get('/:code', function(req, res, next) {
     let products = order.products;
     res.render('order',{order:order,products:products})
   }).catch(function(err){
+    next(err);
+  })
+})
+
+router.post('/:code/arrived/:ingID/:vendID', function(req, res, next) {
+  let code = req.params.code;
+  Orders.getOrder(code).then(function(order){
+    let ingID = req.params.ingID;
+    let vendID = req.params.vendID;
+    return OrderHelper.markIngredientArrived(code,ingID,vendID);
+  }).then(function(){
+    res.redirect('/orders/' + code);
+  })
+  .catch(function(err){
     next(err);
   })
 })
