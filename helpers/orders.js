@@ -48,6 +48,7 @@ module.exports.markIngredientArrived = function(orderNumber,ingID,vendID) {
         }
       }
       order.completed = pendingCheck;
+      order.arrivalTimeStamp = Date();
       return order.save();
     }).then(function(res){
       resolve(res);

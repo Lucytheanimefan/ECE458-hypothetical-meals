@@ -27,8 +27,9 @@ router.get('/home/:page?', function(req, res, next) {
     page = 0;
   }
   var perPage = 10;
-  Orders.model.getAllOrders().then(function(orders){
-    res.render('orders',orders);
+  Orders.getAllOrders().then(function(orders){
+    res.render('orders',{orders:orders});
+    console.log(orders.products);
   }).catch(function(err){
     next(err);
   })

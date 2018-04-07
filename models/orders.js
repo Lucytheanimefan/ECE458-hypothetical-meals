@@ -20,7 +20,11 @@ var OrdersSchema = new mongoose.Schema({
   completed: {
     type: Boolean
   },
-  timeStamp: {
+  orderTimeStamp: {
+    type: String,
+    required: true
+  },
+  arrivalTimeStamp: {
     type: String,
     required: true
   }
@@ -34,7 +38,8 @@ module.exports.addOrder = function(products) {
     'products': products,
     'orderNumber': uniqid(),
     'completed': false,
-    'timeStamp': Date()
+    'orderTimeStamp': Date(),
+    'arrivalTimeStamp': "n/a"
   });
 }
 
@@ -85,7 +90,7 @@ module.exports.removeOrder = function(orderNumber){
 }
 
 module.exports.getAllOrders = function(){
-  return Orders.find().exec();
+  return Orders.find().populate('products.ingID').populate('products.vendID').exec();
 }
 
 module.exports.model = Orders;

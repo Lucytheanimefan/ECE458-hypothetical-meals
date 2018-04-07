@@ -472,7 +472,7 @@ router.get('/checkout_cart/:page?', function(req, res, next) {
     var promises = [];
     for (let order of cart) {
       promises.push(Ingredient.getIngredientById(order.ingredient));
-      promises.push(UserHelper.removeOrder(req.session.userId, order.ingredient));
+      //promises.push(UserHelper.removeOrder(req.session.userId, order.ingredient));
     }
     return Promise.all(promises);
   }).then(function(ings) {
@@ -526,11 +526,8 @@ router.get('/checkout_cart/:page?', function(req, res, next) {
       lastPage = true;
     }
     console.log("here!!!");
-    return OrderHelper.addOrder(orders);
-  }).then(function(result){
-    res.redirect('/ingredients');
-  })
-  .catch(function(error) {
+    res.render('checkout', { orders: orders, page: page, lastPage: lastPage });
+  }).catch(function(error) {
     next(error);
   })
 });
@@ -575,7 +572,7 @@ router.post('/submit_page/:page?', function(req, res, next) {
   }).then(function(result) {
     if (placeOrder) {
       logs.makeLog('Check out cart', 'Checked out cart' /*'Checkout cart with ingredients: <ul>' + checkoutIngredientLog + '</ul>'*/ , req.session.username);
-      res.redirect('/users/lot_assignment');
+      res.redirect('/ingredients');
     } else {
       res.redirect('/users/checkout_cart/' + nextPage);
     }
