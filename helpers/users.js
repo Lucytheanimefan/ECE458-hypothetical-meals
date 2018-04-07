@@ -32,7 +32,7 @@ module.exports.getVendorID = function(vendorName) {
   })
 }
 
-module.exports.addToSaleList = function(id, fpId) {
+module.exports.addToSaleList = function(id, fpId, quantity, price) {
   return new Promise(function(resolve, reject) {
     var user;
     User.getUserById(id).then(function(userResult) {
@@ -44,10 +44,10 @@ module.exports.addToSaleList = function(id, fpId) {
       }
       for (let fp of user.saleList) {
         if (fpId.toString() === fp.finalProduct.toString()) {
-          throw(new Error('The final product is already in the cart'));
+          throw(new Error('That final product is already in the cart'));
         }
       }
-      return User.addToSaleList(id, fpId);
+      return User.addToSaleList(id, fpId, quantity, price);
     }).then(function(result) {
       resolve(result);
     }).catch(function(error) {

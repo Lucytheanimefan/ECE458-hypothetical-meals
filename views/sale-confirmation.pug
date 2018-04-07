@@ -1,0 +1,34 @@
+extends layout
+
+block link
+  -var selected = 'Distributor Network';
+
+block content
+  div.card
+    div.card-header(data-background-color='purple')
+      h4.title Sale Request Overview
+    div.card-content.table-response
+      input.form-control#ingredientInput(type='text',onkeyup='filterTable(\'ingredient\')', placeholder='Search for ingredients..', title='Type in some search text')
+      table.table#ingredientTable
+        thead.text-primary
+          th(onclick='sortTable(0, \'ingredient\')') Final Product
+          th(onclick='sortTable(1, \'ingredient\')') Quantity (Product Units)
+          th(onclick='sortTable(2, \'ingredient\')') Per Unit Price
+          th(onclick='sortTable(3, \'ingredient\')') Total Price
+        tbody
+        each sale in sales
+          tr
+            td= sale.finalProductName
+            td= sale.quantity
+            td= sale.price
+            td= sale.total
+        tbody
+          tr
+            td Total Revenue
+            td
+            td
+            td= total
+    form(action='/distributor/confirmed', method='post')
+      button.btn.btn-primary.pull-right(style='display: inline-block; margin-right: 20px;', type='submit', value='submit sale') Confirm
+    form(action='/distributor/', method='get')
+      button.btn.btn-primary.pull-right(style='display: inline-block; margin-right: 20px;', type='submit', value='submit sale') Cancel

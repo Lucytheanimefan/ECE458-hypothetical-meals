@@ -161,12 +161,19 @@ router.post('/:name/update', function(req, res, next) {
 router.post('/:name/order', function(req, res, next) {
   let formulaName = req.params.name;
   let amount = parseFloat(req.body.quantity);
-  FormulaHelper.createListOfTuples(formulaName, amount).then(function(total) {
+
+  var formulaObject;
+  var formulaObjects;
+  var tuples = [];
+  FormulaHelper.createListOfTuples(formulaName, amount).then(function(result) {
+    var total = result['total'];
+    formulaObject = result['formula'];
+    console.log('Formula object:');
+    console.log(formulaObject);
     return Promise.all(total.map(function(ingTuple) {
       return IngredientHelper.compareAmount(mongoose.Types.ObjectId(ingTuple['id']), ingTuple['amount']);
     }));
   }).then(function(results) {
-    var tuples = [];
     for (let object of results) {
       if (object.intermediate && !object.enough) {
         throw new Error('Need to produce more of intermediate product ' + object.ingredient);
@@ -179,27 +186,40 @@ router.post('/:name/order', function(req, res, next) {
         tuples.push(tuple);
       }
     }
-    res.render('formula-confirmation', { formula: formulaName, formulaObjects: results, orderAmounts: tuples, amount: amount });
+    formulaObjects = results;
+    var productionLineQuery = ProductionLine.productionLinesForFormula(formulaObject._id);
+    return productionLineQuery;
+  }).then(function(productionLines) {
+    res.render('formula-confirmation', { formulaName: formulaName, formula: formulaObject, formulaObjects: formulaObjects, orderAmounts: tuples, amount: amount, productionLines: productionLines });
   }).catch(function(error) {
+    console.log(error);
     next(error);
   });
 })
 
 //TODO: production logging
 router.post('/:name/order/:amount', function(req, res, next) {
-  let formulaName = req.params.name;
+  var productionLineId = req.body.productionLine;
+  var formulaName = req.params.name;
   let amount = parseFloat(req.params.amount);
   var formulaId;
   var globalFormula;
   var formulaLot;
+
+
   Formula.findFormulaByName(formulaName).then(function(formula) {
     globalFormula = formula;
     formulaId = mongoose.Types.ObjectId(formula['_id']);
     formulaLot = (Math.floor(Math.random() * (max - min)) + min).toString();
     return Promise.all([FormulaHelper.createListOfTuples(formulaName, amount), Production.updateReport(formulaId, formulaName, amount, 0), Completed.createLotEntry(formulaName, formulaLot, formula.intermediate)]);
-  }).then(function(results) {
-    let total = results[0];
-    return Promise.all(total.map(function(ingTuple) {
+  }).then(function(result) {
+    var results = result[0];
+    console.log('Results:');
+    console.log(results);
+    var totals = results['total'];
+    console.log('TOTALS');
+    console.log(totals);
+    return Promise.all(totals.map(function(ingTuple) {
       return IngredientHelper.sendIngredientsToProduction(formulaId, mongoose.Types.ObjectId(ingTuple['id']), parseFloat(ingTuple['amount']), formulaLot);
     }));
   }).then(function(results) {
@@ -212,6 +232,32 @@ router.post('/:name/order/:amount', function(req, res, next) {
       return FinalProductHelper.addFinalProduct(formulaName, amount);
     }
   }).then(function(result) {
+    var prodLineQuery = ProductionLine.getProductionLineById(productionLineId);
+    return prodLineQuery;
+  }).then(function(productionLine) {
+    console.log(productionLine);
+    if (productionLine == null) {
+      let err = new Error('No production line found');
+      return next(err);
+    }
+    //let productionLine = productionLines[0];
+    console.log(productionLine);
+    console.log('Busy?');
+    console.log(productionLine.busy);
+    console.log(typeof(productionLine.busy));
+    if (!productionLine.busy) {
+      console.log('Not busy, add product to production line');
+      var addProductQuery = ProductionLine.addProductToProductionLine(productionLineId, formulaId, formulaName);
+      return addProductQuery;
+    } else {
+      let err = new Error('That production line is busy. You cannot add a product.')
+      throw err;
+    }
+  }).then(function(productionLine) {
+    logs.makeLog('Production', 'Send formula to production line', req.session.username);// TODO: link
+    var historyQuery = ProductionLine.updateHistory(productionLineId, 'busy', formulaId);
+    return historyQuery;
+  }).then(function() {
     res.redirect('/formulas');
   }).catch(function(error) {
     console.log(error);
@@ -272,8 +318,46 @@ router.post('/new', async function(req, res, next) {
     logs.makeLog('Create formula', 'Created <a href="/formulas/' + encodeURIComponent(name) + '">' + name + '</a>' /*JSON.stringify({formula_name:name})*/ , req.session.username);
     res.redirect(req.baseUrl + '/' + name);
   }).catch(function(error) {
+    console.log(error);
     next(error);
   });
 })
+
+
+// Production line
+router.post('/add_product/:formulaId/:formulaName/to_production_line', function(req, res, next) {
+  console.log('Add production to production line!');
+  var productionLineId = req.body.productionLine;
+  var formulaId = req.params.formulaId;
+  var formulaName = req.params.formulaName;
+
+  var productionLineQuery = ProductionLine.getProductionLineById(productionLineId);
+  productionLineQuery.then(function(productionLine) {
+    console.log(productionLine);
+    if (productionLine.busy == false) {
+      var addProductQuery = ProductionLine.addProductToProductionLine(productionLineId, formulaId, formulaName);
+      return addProductQuery;
+    } else {
+      let err = new Error('That production line is busy. You cannot add a product.')
+      return next(err);
+    }
+  }).then(function(productionLine) {
+    console.log(productionLine);
+    var updateHistoryQuery = ProductionLine.updateHistory(productionLineId, 'busy', formulaId);
+    return updateHistoryQuery;
+  }).then(function(productionLine) {
+    console.log('-------UPDATE PRODUCTION LINE HISTORY:');
+    console.log(productionLine);
+    res.redirect('/formulas');
+  }).catch(function(error) {
+    console.log(error);
+    next(error);
+  })
+})
+
+
+
+
+
 
 module.exports = router;

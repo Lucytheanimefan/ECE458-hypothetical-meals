@@ -60,6 +60,14 @@ var UserSchema = new mongoose.Schema({
       type: mongoose.Schema.Types.ObjectId,
       ref:'FinalProduct',
       required: true
+    },
+    quantity: {
+      type: Number,
+      required: true
+    },
+    price: {
+      type: Number,
+      require: true
     }
   }],
   report: {
@@ -246,9 +254,11 @@ module.exports.updateCart = function(id, ingId, quantity, vendor) {
   })
 }
 
-module.exports.addToSaleList = function(id, fpId) {
+module.exports.addToSaleList = function(id, fpId, quantity, price) {
   fpId = mongoose.Types.ObjectId(fpId.toString());
-  let entry = {finalProduct:fpId};
+  console.log(quantity);
+  console.log(price);
+  let entry = {finalProduct:fpId, quantity: quantity, price: price};
   return User.findOneAndUpdate({'_id':id},{'$push':{'saleList':entry}}).exec();
 }
 

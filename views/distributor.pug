@@ -22,16 +22,27 @@ block content
           div.card-content.table-response
             //- input.form-control#ingredientInput(type='text',onkeyup='filterTable(\'ingredient\')', placeholder='Search for ingredients..', title='Type in some search text')
             table.table#ingredientTable
-              thead.text-primary
+              thead
                 th(onclick='sortTable(0, \'ingredient\')') Final Product
                 th(onclick='sortTable(1, \'ingredient\')') Product Units in Network
-                th(onclick='sortTable(2, \'ingredient\')') Add to Cart
+                th(onclick='sortTable(2, \'ingredient\')') Quantity
+                th(onclick='sortTable(3, \'ingredient\')') Price
+                th(onclick='sortTable(4, \'ingredient\')') Add to Sale Request
               tbody
               each fp in finalProducts
                 tr
-                  td= fp.name
-                  td= fp.amount
-                  td Empty for now
+                  form(action='/distributor/add/', method='post')
+                    input.hide(type='text' name='id' value=fp._id)
+                    td= fp.name
+                    td= fp.amount
+                    td
+                      .form-group
+                        input.form-control(type='number', name='quantity',step='any', min='0', max=fp.amount, required='')  
+                    td
+                      .form-group
+                        input.form-control(type='number', name='price', step='.01', min='0', required='') 
+                    td
+                      input.btn.btn-primary(type="submit" value="Submit" style='margin:0px; padding: 5px 10px;')
 
             div.previous
               form(action='/ingredients/search_results/' + (parseInt(page)-1).toString() + '/' + searchQuery, method='get')
@@ -49,12 +60,22 @@ block content
           thead.text-primary
             th(onclick='sortTable(0, \'order\')') Final Product
             th(onclick='sortTable(1, \'order\')') Quantity (Number of Product Units)
-            th
+            th(onclick='sortTable(2, \'order\')') Price per Product Unit
+            th(onclick='sortTable(3, \'order\')') Remove From Request
           tbody
           each sale in sales
             tr
-              td= order.finalProductName
-              td= order.quantity
+              td= sale.finalProductName
+              td= sale.quantity
+              td= sale.price
+              td
+                form(action='/distributor/remove', method='post')
+                  input.hide(type='text', name='id', value=sale.finalProduct)
+                  button.btn.btn-primary(type="submit" style='margin:0px; padding: 5px 10px;') Remove
+        form(action='/distributor/submit', method='post')
+          button.btn.btn-primary.pull-right(type='submit', value='submit sale') Submit Sale Request
+
+
               //- td
               //-   form(action="/users/remove_ingredient" method="post")
               //-     input(type="hidden" name="ingredient" value=order.ingredient)

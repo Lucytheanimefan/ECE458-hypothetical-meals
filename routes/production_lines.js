@@ -72,6 +72,25 @@ router.get('/production_line/:name', function(req, res, next) {
   })
 })
 
+// Get a single production line
+router.get('/production_line/id/:id', function(req, res, next) {
+  var prodLineQuery = ProductionLine.getProductionLineById(req.params.id);
+  var findAllFormulasQuery = Formula.model.find().exec();
+  var allFormulas = [];
+  findAllFormulasQuery.then(function(formulas) {
+    if (formulas != null) {
+      allFormulas = formulas;
+    }
+    return prodLineQuery;
+  }).then(function(productionLine) {
+    console.log(productionLine);
+    res.render('production_line', { productionLine: productionLine, formulas: allFormulas });
+  }).catch(function(error) {
+    console.log(error);
+    return next(error);
+  })
+})
+
 
 router.post('/add_lines_with_formula/:formulaName', function(req, res, next) {
   console.log('Call add_lines_with_formula');
@@ -168,12 +187,42 @@ router.post('/new', function(req, res, next) {
 router.post('/delete/:id', function(req, res, next) {
   var deleteQuery = ProductionLine.deleteProductionLine(req.params.id);
   deleteQuery.then(function(productionLine) {
-    logs.makeLog('Delete production line', 'Deleted production line' + productionLine.name, req.session.username);
+    logs.makeLog('Delete production line', 'Deleted production line ' + productionLine.name, req.session.username);
     return res.redirect(req.baseUrl);
   }).catch(function(error) {
     console.log(error);
     next(error);
   });
 })
+
+/**
+ * TODO
+ * Req 7.3.3
+ * Managers should be able to select a production and mark it completed, viewing the resulting lot number (req 7.2.7) and causing the product to enter the appropriate inventory (req 7.2.8 for intermediates and 7.2.9 for final products).
+ * @param  {[type]} req   [description]
+ * @param  {[type]} res   [description]
+ * @param  {[type]} next) {             } [description]
+ * @return {[type]}       [description]
+ */
+router.post('/mark_completed/:id', function(req, res, next) {
+  // TODO inventory stuff, etc.
+
+  let productionLineId = req.params.id;
+  var updateInfo = { 'busy': false, 'currentProduct': {} };
+  var productionLineUpdateQuery = ProductionLine.updateProductionLine(productionLineId, updateInfo);
+
+  productionLineUpdateQuery.then(function(prodLine) {
+    var prodLineUpdatHistoryQuery = ProductionLine.updateHistory(productionLineId, 'idle');
+    return prodLineUpdatHistoryQuery;
+  }).then(function(prodLine) {
+    res.redirect(req.baseUrl + '/production_line/id/' + productionLineId);
+  }).catch(function(error) {
+    console.log(error);
+    return next(error);
+  })
+})
+
+
+
 
 module.exports = router;
