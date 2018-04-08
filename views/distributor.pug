@@ -25,9 +25,9 @@ block content
               thead
                 th(onclick='sortTable(0, \'ingredient\')') Final Product
                 th(onclick='sortTable(1, \'ingredient\')') Product Units in Network
-                th(onclick='sortTable(2, \'ingredient\')') Quantity
-                th(onclick='sortTable(3, \'ingredient\')') Price
-                th(onclick='sortTable(4, \'ingredient\')') Add to Sale Request
+                th.hide.manager(onclick='sortTable(2, \'ingredient\')') Quantity
+                th.hide.manager(onclick='sortTable(3, \'ingredient\')') Price
+                th.hide.manager(onclick='sortTable(4, \'ingredient\')') Add to Sale Request
               tbody
               each fp in finalProducts
                 tr
@@ -35,27 +35,27 @@ block content
                     input.hide(type='text' name='id' value=fp._id)
                     td= fp.name
                     td= fp.amount
-                    td
+                    td.hide.manager
                       .form-group
-                        input.form-control(type='number', name='quantity',step='any', min='0', max=fp.amount, required='')  
-                    td
+                        input.hide.manager.form-control(type='number', name='quantity',step='any', min='0', max=fp.amount, required='')  
+                    td.hide.manager
                       .form-group
-                        input.form-control(type='number', name='price', step='.01', min='0', required='') 
-                    td
-                      input.btn.btn-primary(type="submit" value="Submit" style='margin:0px; padding: 5px 10px;')
+                        input.hide.manager.form-control(type='number', name='price', step='.01', min='0', required='') 
+                    td.hide.manager
+                      input.hide.manager.btn.btn-primary(type="submit" value="Submit" style='margin:0px; padding: 5px 10px;')
 
-            div.previous
-              form(action='/ingredients/search_results/' + (parseInt(page)-1).toString() + '/' + searchQuery, method='get')
-                button.btn.btn-white(type="submit" style="padding: 5px;") <
-                p(style="padding: 10px; display: inline-block;") Page #{parseInt(page)}
-            div.next
-              if maxPage
-                form(action='/ingredients/search_results/' + (parseInt(page)).toString() + '/' + searchQuery, method='get')
-                  button.btn.btn-white(type="submit" style="padding: 5px;") >
-              else
-                form(action='/ingredients/search_results/' + (parseInt(page)+1).toString() + '/' + searchQuery, method='get')
-                  button.btn.btn-white(type="submit" style="padding: 5px;") >
-      .card-content.tab-pane.fade#sales
+            //- div.previous
+            //-   form(action='/ingredients/search_results/' + (parseInt(page)-1).toString() + '/' + searchQuery, method='get')
+            //-     button.btn.btn-white(type="submit" style="padding: 5px;") <
+            //-     p(style="padding: 10px; display: inline-block;") Page #{parseInt(page)}
+            //- div.next
+            //-   if maxPage
+            //-     form(action='/ingredients/search_results/' + (parseInt(page)).toString() + '/' + searchQuery, method='get')
+            //-       button.btn.btn-white(type="submit" style="padding: 5px;") >
+            //-   else
+            //-     form(action='/ingredients/search_results/' + (parseInt(page)+1).toString() + '/' + searchQuery, method='get')
+            //-       button.btn.btn-white(type="submit" style="padding: 5px;") >
+      .card-content.tab-pane.fade#sales.manager.hide
         table.table#orderTable
           thead.text-primary
             th(onclick='sortTable(0, \'order\')') Final Product
