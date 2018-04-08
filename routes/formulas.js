@@ -205,13 +205,13 @@ router.post('/:name/order/:amount', function(req, res, next) {
   var formulaId;
   var globalFormula;
   var formulaLot;
+  var lotsConsumed;
 
 
   Formula.findFormulaByName(formulaName).then(function(formula) {
     globalFormula = formula;
     formulaId = mongoose.Types.ObjectId(formula['_id']);
-    formulaLot = (Math.floor(Math.random() * (max - min)) + min).toString();
-    return Promise.all([FormulaHelper.createListOfTuples(formulaName, amount), Production.updateReport(formulaId, formulaName, amount, 0), Completed.createLotEntry(formulaName, formulaLot, formula.intermediate)]);
+    return Promise.all([FormulaHelper.createListOfTuples(formulaName, amount), Production.updateReport(formulaId, formulaName, amount, 0)]);
   }).then(function(result) {
     var results = result[0];
     console.log('Results:');
@@ -220,18 +220,11 @@ router.post('/:name/order/:amount', function(req, res, next) {
     console.log('TOTALS');
     console.log(totals);
     return Promise.all(totals.map(function(ingTuple) {
-      return IngredientHelper.sendIngredientsToProduction(formulaId, mongoose.Types.ObjectId(ingTuple['id']), parseFloat(ingTuple['amount']), formulaLot);
+      return IngredientHelper.sendIngredientsToProduction(formulaId, mongoose.Types.ObjectId(ingTuple['id']), parseFloat(ingTuple['amount']));
     }));
   }).then(function(results) {
+    lotsConsumed = [].concat.apply([], results);
     logs.makeLog('Production', 'Send ingredients to production', req.session.username);
-    return Ingredient.getIngredient(formulaName);
-  }).then(function(ing) {
-    if (globalFormula.intermediate) {
-      return IngredientHelper.incrementAmount(ing._id, parseFloat(amount), 'admin', formulaLot)
-    } else {
-      return FinalProductHelper.addFinalProduct(formulaName, amount);
-    }
-  }).then(function(result) {
     var prodLineQuery = ProductionLine.getProductionLineById(productionLineId);
     return prodLineQuery;
   }).then(function(productionLine) {
@@ -247,10 +240,11 @@ router.post('/:name/order/:amount', function(req, res, next) {
     console.log(typeof(productionLine.busy));
     if (!productionLine.busy) {
       console.log('Not busy, add product to production line');
-      var addProductQuery = ProductionLine.addProductToProductionLine(productionLineId, formulaId, formulaName);
+      console.log(lotsConsumed);
+      var addProductQuery = ProductionLine.addProductToProductionLine(productionLineId, formulaId, formulaName, amount, lotsConsumed);
       return addProductQuery;
     } else {
-      let err = new Error('That production line is busy. You cannot add a product.')
+      let err = new Error('That production line is busy. You cannot add a product.');
       throw err;
     }
   }).then(function(productionLine) {

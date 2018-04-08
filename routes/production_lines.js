@@ -1,10 +1,18 @@
 var path = require('path');
 var logs = require(path.resolve(__dirname, './logs.js'));
 var ProductionLine = require('../models/production_line');
+var Ingredient = require('../models/ingredient');
+var IngredientHelper = require('../helpers/ingredients');
+var FinalProductHelper = require('../helpers/final_products');
 var Formula = require('../models/formula');
+var Completed = require('../models/completed_production');
+var Recall = require('../models/recall');
 var express = require('express');
 var router = express.Router();
 var mongoose = require('mongoose');
+
+var min = 10000000
+var max = 1000000000
 
 // Managers will be able to update the mapping between formulas and production
 // lines; this should be possible either from a view of the formula 
@@ -209,9 +217,39 @@ router.post('/mark_completed/:id', function(req, res, next) {
 
   let productionLineId = req.params.id;
   var updateInfo = { 'busy': false, 'currentProduct': {} };
-  var productionLineUpdateQuery = ProductionLine.updateProductionLine(productionLineId, updateInfo);
-
-  productionLineUpdateQuery.then(function(prodLine) {
+  var finishedFormula;
+  var currentProdLine;
+  var lotsConsumed;
+  var formulaLot = (Math.floor(Math.random() * (max - min)) + min).toString();
+  ProductionLine.getProductionLineById(productionLineId).then(function(prodLine) {
+    console.log("my prod line is");
+    console.log(prodLine);
+    currentProdLine = prodLine;
+    lotsConsumed = prodLine.currentProduct.ingredientLots;
+    return Formula.findFormulaById(prodLine.currentProduct.formulaId)
+  }).then(function(formula) {
+    finishedFormula = formula;
+    console.log("my formula is");
+    console.log(formula);
+    return Completed.createLotEntry(finishedFormula.name, formulaLot, finishedFormula.intermediate);
+  }).then(async function(result) {
+    for (let lot of lotsConsumed) {
+      await Recall.createLotEntry(lot.ingID, lot.ingName, lot.lotNumber, lot.vendorID);
+    }
+    for (let lot of lotsConsumed) {
+      await Completed.updateReport(finishedFormula.name, formulaLot, lot.ingID, lot.lotNumber, lot.vendorID);
+      await Recall.updateReport(finishedFormula._id, formulaLot, finishedFormula.intermediate, lot.ingID, lot.lotNumber, lot.vendorID);
+    }
+    return Ingredient.getIngredient(finishedFormula.name);
+  }).then(function(ing) {
+    if (finishedFormula.intermediate) {
+      return IngredientHelper.incrementAmount(ing._id, parseFloat(currentProdLine.currentProduct.amount), 'admin', formulaLot)
+    } else {
+      return FinalProductHelper.addFinalProduct(finishedFormula.name, parseFloat(currentProdLine.currentProduct.amount));
+    }
+  }).then(function(result) {
+    return ProductionLine.updateProductionLine(productionLineId, updateInfo);
+  }).then(function(prodLine) {
     var prodLineUpdatHistoryQuery = ProductionLine.updateHistory(productionLineId, 'idle');
     return prodLineUpdatHistoryQuery;
   }).then(function(prodLine) {
