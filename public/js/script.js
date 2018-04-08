@@ -677,3 +677,48 @@ function displayNotification(from, align, alertMessage) {
     }
   });
 }
+
+function makeProductionEfficiencyGraph(data) {
+  var chart = c3.generate({
+    bindto: divElement,
+    data: {
+      columns: arrayOfData,
+      type: 'line',
+      groups: [group]
+    },
+    axis: {
+      x: {
+        type: 'category',
+        categories: xcategories
+      },
+      y: {
+        label: {
+          text: "Number of respondents who said they plan to vote for a candidate",
+          position: 'outer-middle'
+        }
+      }
+    },
+    tooltip: {
+      format: {
+        name: function(name, ratio, id, index) {
+          return name;
+        },
+        value: function(value, ratio,
+          id, index) {
+          //console.log(value + "," + ratio + "," + id + "," + index);
+          if (!isMain) { //not main
+            //console.log(value+"/"+totals[index]);
+            return ((value / totals[index] * 100).toFixed(2).toString() + "%");
+          } else {
+            return value;
+          }
+        }
+      }
+    },
+    bar: {
+      width: {
+        ratio: 0.5 // this makes bar width 50% of length between ticks
+      }
+    }
+  });
+}

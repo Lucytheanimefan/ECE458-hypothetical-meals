@@ -16,8 +16,12 @@ block content
           th(onclick='sortTable(3, \'productionLine\')') Total Time elapsed
         tbody
         each value, productionLineName in data
-          tr
+          tr(data-chart= value.graphData)
             td= productionLineName
             td= value.percentBusy + ' ('+value.busyTime+')'
             td= value.percentIdle + ' ('+value.idleTime+')'
             td= value.totalTime
+
+block scripts
+  script.
+    
