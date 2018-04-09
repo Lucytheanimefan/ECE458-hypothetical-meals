@@ -186,9 +186,8 @@ module.exports.addProductToProductionLine = function(productionLineId, formulaId
  * @return {[type]}            [description]
  */
 module.exports.updateProductionLine = function(id, updateInfo) {
-  return ProductionLine.findOneAndUpdate({ '_id': id }, {
-    '$set': updateInfo,
-  }, { upsert: true }).exec();
+  return ProductionLine.findOneAndUpdate({ '_id': id },
+    updateInfo, { upsert: true }).exec();
 }
 
 // module.exports.getProductionLineHistory = function(productionLineObject, startDate, endDate) {
