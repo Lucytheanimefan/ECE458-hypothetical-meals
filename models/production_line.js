@@ -42,7 +42,16 @@ var ProductionLineSchema = new mongoose.Schema({
     },
     name: {
       type: String
-    }
+    },
+    amount: {
+      type: Number
+    },
+    ingredientLots: [{
+      ingID: String,
+      ingName: String,
+      lotNumber: String,
+      vendorID: String
+    }]
   },
   history: [{
     timestamp: {
@@ -161,11 +170,11 @@ module.exports.updateHistory = function(productionLineId, status, formulaId = nu
  * @param {[type]} productionLineId [description]
  * @param {[type]} formulaId        [description]
  */
-module.exports.addProductToProductionLine = function(productionLineId, formulaId, formulaName) {
+module.exports.addProductToProductionLine = function(productionLineId, formulaId, formulaName, amount, lotsConsumed) {
   return ProductionLine.findOneAndUpdate({ _id: productionLineId }, {
     $set: {
       busy: true,
-      currentProduct: { formulaId: mongoose.Types.ObjectId(formulaId), name: formulaName }
+      currentProduct: { formulaId: mongoose.Types.ObjectId(formulaId), name: formulaName, amount: amount, ingredientLots: lotsConsumed }
     }
   }, { new: true }).exec();
 }
