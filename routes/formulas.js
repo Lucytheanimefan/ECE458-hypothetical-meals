@@ -126,15 +126,24 @@ router.post('/:name/update', function(req, res, next) {
   let newName = req.body.name;
   let description = req.body.description;
   let units = req.body.units;
-  var promise = Formula.findFormulaByName(name);
+  let package = req.body.package;
+  let temperature = req.body.temperature;
+  let nativeUnit = req.body.nativeUnit;
+  let unitsPerPackage = req.body.unitsPerPackage;
   var body = req.body;
   delete body['name'];
   delete body['description'];
   delete body['units'];
+  delete body['package'];
+  delete body['temperature'];
+  delete body['nativeUnits'];
+  delete body['unitsPerPackage'];
+  var promise = Formula.findFormulaByName(name);
   var length = Object.keys(body).length;
   console.log(body);
   promise.then(function(formula) {
-    return FormulaHelper.updateFormula(name, newName, description, units);
+    return Promise.all([FormulaHelper.updateFormula(name, newName, description, units),
+      IngredientHelper.updateIngredient(name, newName, package, temperature, nativeUnit, unitsPerPackage)]);
   }).then(async function(result) {
     var index = 1;
     var count = 1;
