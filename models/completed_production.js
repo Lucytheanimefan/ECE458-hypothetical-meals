@@ -62,7 +62,7 @@ module.exports.updateReport = function(formulaName, formulaLot, ingID, ingLot, v
   return new Promise(function(resolve, reject) {
     Completed.find().exec().then(function(products) {
       if (vendorID == 'admin') {
-        return Promise.all([Ingredient.getIngredientById(ingID), {'name': 'admin'}]);
+        return Promise.all([Ingredient.getIngredientById(ingID), { 'name': 'admin' }]);
       } else {
         return Promise.all([Ingredient.getIngredientById(ingID), Vendor.findVendorById(vendorID)]);
       }
@@ -70,10 +70,15 @@ module.exports.updateReport = function(formulaName, formulaLot, ingID, ingLot, v
       var ing = result[0];
       var vendor = result[1];
       if (vendor == null) {
-        vendor = {'name': 'deleted vendor with ID ' + vendorID};
+        vendor = { 'name': 'deleted vendor with ID ' + vendorID };
       }
-      let newConstituent = {'ingredientID': ingID, 'ingredientName': ing.name, 'lotNumber': ingLot, 'vendorID': vendorID, 
-      'vendorName': vendor.name};
+      let newConstituent = {
+        'ingredientID': ingID,
+        'ingredientName': ing.name,
+        'lotNumber': ingLot,
+        'vendorID': vendorID,
+        'vendorName': vendor.name
+      };
       return Completed.update({'name': formulaName, 'lotNumber': formulaLot}, {'$push': {'constituents': newConstituent}}).exec();
     }).then(function(report) {
       resolve(report);
@@ -100,7 +105,7 @@ module.exports.getProducts = function() {
 
 module.exports.getCompleted = function() {
   return new Promise(function(resolve, reject) {
-    Completed.findOne({'name': 'recall'}).then(function(recall) {
+    Completed.findOne({ 'name': 'recall' }).then(function(recall) {
       resolve(recall);
     }).catch(function(error) {
       reject(error);
