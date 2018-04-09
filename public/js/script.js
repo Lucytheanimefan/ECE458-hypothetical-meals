@@ -678,11 +678,11 @@ function displayNotification(from, align, alertMessage) {
   });
 }
 
-function makeProductionEfficiencyGraph(data) {
+function makeProductionEfficiencyGraph(ivElement, data) {
   var chart = c3.generate({
     bindto: divElement,
     data: {
-      columns: arrayOfData,
+      columns: data,
       type: 'line',
       groups: [group]
     },
