@@ -108,6 +108,7 @@ router.post('/add_lines_with_formula/:formulaName', function(req, res, next) {
   prodLineQuery.then(function(productionLines) {
     console.log('Add lines to formula');
     console.log(productionLines);
+    logs.makeLog('Add production line to formula', 'Add <a href="/production_lines/production_line/id/' + productionLineId + '">production line</a> to <a href="/formulas/' + req.params.formulaName + '">' + req.params.formulaName + '</a>', req.session.username);
     res.redirect('/formulas/' + req.params.formulaName);
   }).catch(function(error) {
     console.log(error);
@@ -123,6 +124,7 @@ router.post('/delete_lines/:productionLineId/with_formula/:formulaName', functio
   prodLineQuery.then(function(productionLines) {
     console.log('Delete lines from formula');
     console.log(productionLines);
+    logs.makeLog('Remove production line from formula', 'Delete <a href="/production_lines/production_line/id/' + productionLineId + '">production line</a> from <a href="/formulas/' + req.params.formulaName + '">' + req.params.formulaName + '</a>', req.session.username);
     res.redirect('/formulas/' + req.params.formulaName);
   }).catch(function(error) {
     console.log(error);
@@ -148,7 +150,7 @@ router.post('/update/:id', function(req, res, next) {
   }
   console.log('----Formulas to update with!: ' + formulas);
   //console.log(formulas);
-  var info = { 'name': name, 'description': description/*, 'busy': busy*/ };
+  var info = { 'name': name, 'description': description /*, 'busy': busy*/ };
   console.log('Time to update production line');
 
   var prodLineQuery = ProductionLine.getProductionLineById(id);
@@ -159,6 +161,7 @@ router.post('/update/:id', function(req, res, next) {
     info['formulas'] = formulas;
     return ProductionLine.updateProductionLine(id, info);
   }).then(function(updatedProductionLine) {
+    logs.makeLog('Update production line', 'Updated production line <a href="/production_lines/production_line/' + updatedProductionLine.name + '">' + updatedProductionLine.name + '</a>', req.session.username);
     res.redirect(req.baseUrl + '/production_line/' + updatedProductionLine.name);
   }).catch(function(error) {
     console.log(error);
@@ -184,7 +187,7 @@ router.post('/new', function(req, res, next) {
   let info = { 'name': name, 'description': description, 'formulas': formulas };
   var create = ProductionLine.createProductionLine(info);
   create.then(function(productionLine) {
-    logs.makeLog('Create production line', 'Created production line <a href="/production_lines/' + productionLine.name + '">' + productionLine.name + '</a>', req.session.username);
+    logs.makeLog('Create production line', 'Created production line <a href="/production_lines/production_line/' + productionLine.name + '">' + productionLine.name + '</a>', req.session.username);
     return res.redirect(req.baseUrl + '/production_line/' + productionLine.name);
   }).catch(function(error) {
     console.log(error);
@@ -220,10 +223,12 @@ router.post('/mark_completed/:id', function(req, res, next) {
   var finishedFormula;
   var currentProdLine;
   var lotsConsumed;
+  var productionLineName;
   var formulaLot = (Math.floor(Math.random() * (max - min)) + min).toString();
   ProductionLine.getProductionLineById(productionLineId).then(function(prodLine) {
     console.log("my prod line is");
     console.log(prodLine);
+    productionLineName = prodLine.name;
     currentProdLine = prodLine;
     lotsConsumed = prodLine.currentProduct.ingredientLots;
     return Formula.findFormulaById(prodLine.currentProduct.formulaId)
@@ -253,6 +258,8 @@ router.post('/mark_completed/:id', function(req, res, next) {
     var prodLineUpdatHistoryQuery = ProductionLine.updateHistory(productionLineId, 'idle');
     return prodLineUpdatHistoryQuery;
   }).then(function(prodLine) {
+    logs.makeLog('Mark production line completed', 'Mark <a href="/production_lines/production_line/id/' + productionLineId + '">' + productionLineName + '</a> as completed', req.session.username);
+
     res.redirect(req.baseUrl + '/production_line/id/' + productionLineId);
   }).catch(function(error) {
     console.log(error);
