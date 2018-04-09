@@ -68,6 +68,7 @@ router.get('/home/:page?', function(req, res, next) {
         }
         res.render('formulas', { formulas: formulas, ingredients: ingredients, page: page, report: report, maxPage: maxPage });
       }).catch(function(error) {
+        console.log(error);
         next(error);
       })
     }
