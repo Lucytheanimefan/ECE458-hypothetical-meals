@@ -1,5 +1,6 @@
 var Formula = require('../models/formula');
 var Ingredient = require('../models/ingredient');
+var FinalProduct = require('../models/final_product');
 var mongoose = require('mongoose');
 mongoose.Promise = global.Promise;
 
@@ -11,7 +12,7 @@ module.exports.createFormula = function(name, description, units, intermediate, 
       if (intermediate) {
         return Ingredient.createIngredientIntermediate(name, ingInfo.package, ingInfo.temperature, ingInfo.nativeUnit, ingInfo.unitsPerPackage)
       } else {
-        return formula;
+        return FinalProduct.createFinalProduct(name);
       }
     }).then(function(result) {
       resolve(formula);

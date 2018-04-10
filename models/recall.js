@@ -156,23 +156,17 @@ module.exports.getRecallProducts = function(ingName, vendorCode, lotNumber) {
       for (let product of products) {
         if (product.intermediate) {
           intermediates.push({'name': product.productName, 'vendorCode': 'admin', 'lotNumber': product.lotNumber});
-        } else {
-          // if (!checkIfProductInArray(finalProducts, product)) {
-          finalProducts.push(product);
-          // }
         }
+        finalProducts.push(product);
       }
       if (intermediates.length == 0) {
         return [];
       } else {
-        console.log(intermediates);
         return Promise.all(intermediates.map(function(tuple) {
           return exports.getRecallProducts(tuple.name, tuple.vendorCode, tuple.lotNumber);
         }));
       }
     }).then(function(results) {
-      console.log('reeeeeeeeee');
-      console.log(finalProducts);
       results.forEach(function(arr) {
         for (let product of arr) {
           if (!checkIfProductInArray(finalProducts, product)) {

@@ -94,15 +94,11 @@ block content
           h4.title Recall Report
         div.card-content.table-response
           form(action='/reports/recall', method='post')
-            .form-group
-              label.control-label Ingredient Name
-              input.form-control(type='text', name='name', required='')
-            .form-group
-              label.control-label Vendor Code
-              input.form-control(type='text', name='code', required='')
-            .form-group
-              label.control-label Lot Number
-              input.form-control(type='text', name='lotNumber', required='')
+            label.control-label Select Lot
+            select.form-control(name='ingLot', placeholder = '', required='')
+              option(disabled='' selected='' value='') Select an option
+              each lot in recall
+                option(value=JSON.stringify(lot))= lot.ing + ' ordered from ' + lot.vendor + ', lot ' + lot.lot
             button.btn.btn-primary.pull-left(type='submit', value='recall report') Get Recall Report
 
     #ingredient-table.card-content.tab-pane.fade
