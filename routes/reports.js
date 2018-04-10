@@ -28,11 +28,12 @@ router.get('/:page', function(req, res, next) {
   var ingredient;
   var overallFreshness;
 
-  Promise.all([Spending.getSpending(), Spending.getProduction(), Production.getProduction(), Freshness.getIngredients()]).then(function(results) {
+  Promise.all([Spending.getSpending(), Spending.getProduction(), Production.getProduction(), Freshness.getIngredients(), Recall.getRecall()]).then(function(results) {
     spendingReport = results[0];
     productionReport = results[1];
     formulaReport = results[2];
     ingredientReport = results[3];
+    recallReport = results[4];
 
     spendingPromise = Promise.all(spendingReport.spending.map(function(tuple) {
       return getIngredientName(tuple);
@@ -46,19 +47,21 @@ router.get('/:page', function(req, res, next) {
     ingredientPromise = Promise.all(ingredientReport.freshness.map(function(tuple) {
       return getIngredientFreshnessName(tuple);
     }));
+    recallPromise = getVendorLots(recallReport);
     overallFreshness = getOverallFreshness(ingredientReport);
-    return Promise.all([spendingPromise, productionPromise, formulaPromise, ingredientPromise]);
+    return Promise.all([spendingPromise, productionPromise, formulaPromise, ingredientPromise, recallPromise]);
   }).then(function(results) {
-    res.render('report', { spending: results[0], production: results[1], formula: results[2], ingredient: results[3], freshness: overallFreshness });
+    res.render('report', { spending: results[0], production: results[1], formula: results[2], ingredient: results[3], freshness: overallFreshness, recall: results[4] });
   }).catch(function(error) {
     next(error);
   })
 })
 
 router.post('/recall', function(req, res, next) {
-  let vendorCode = req.body.code;
-  let lotNumber = req.body.lotNumber;
-  let ingName = req.body.name;
+  let ingLot = JSON.parse(req.body.ingLot);
+  let vendorCode = ingLot.vendorCode;
+  let lotNumber = ingLot.lot;
+  let ingName = ingLot.ing;
 
   Recall.getRecallProducts(ingName, vendorCode, lotNumber).then(function(products) {
     return Promise.all(products.map(function(tuple) {
@@ -260,6 +263,21 @@ getIngredientFreshnessName = function(tuple) {
       reject(error);
     });
   });
+}
+
+getVendorLots = function(report) {
+  return new Promise(function(resolve, reject) {
+    let lotList = [];
+    for (let lot of report.vendorLots) {
+      let entry = {};
+      entry['ing'] = lot['ingredientName'];
+      entry['vendor'] = lot['vendorName'];
+      entry['lot'] = lot['lotNumber'];
+      entry['vendorCode'] = lot['vendorCode'];
+      lotList.push(entry);
+    }
+    resolve(lotList);
+  })
 }
 
 convertTime = function(milliseconds) {
