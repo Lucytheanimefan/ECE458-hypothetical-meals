@@ -72,6 +72,7 @@ module.exports.createVendor = function(name, code, contact, location){
 }
 
 module.exports.updateVendor = function(code, name, newCode, contact, location){
+  var vendor;
   return new Promise(function(resolve,reject){
     var vendQuery = Vendor.findVendorByCode(code);
     vendQuery.then(function(vend){
@@ -80,11 +81,16 @@ module.exports.updateVendor = function(code, name, newCode, contact, location){
         error.status = 400;
         throw(error);
       }
-      else{
+    }).then(function(vend) {
+      vendor = vend;
+      return Vendor.findVendorByCode(newCode);
+    }).then(function(tempVend){
+      if(tempVend == null){
         var result = Vendor.updateVendor(code, name, newCode, contact, location);
+        resolve(result);
       }
-    }).then(function(result) {
-      resolve(result);
+      var err = new Error("Code already exists");
+      throw err;
     }).catch(function(error){
       reject(error);
     })

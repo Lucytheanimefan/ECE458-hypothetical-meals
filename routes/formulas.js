@@ -161,7 +161,7 @@ router.post('/:name/update', function(req, res, next) {
     }
     //return Promise.all(tuplePromises);
   }).then(function(result) {
-    logs.makeLog('Update formula', 'Updated ' + '<a href="/formulas/' + encodeURIComponent(newName) + '">' + newName + '</a>' /*JSON.stringify({formula_name:newName})*/ , req.session.userId);
+    logs.makeLog('Update formula', 'Updated ' + '<a href="/formulas/' + encodeURIComponent(newName) + '">' + newName + '</a>' /*JSON.stringify({formula_name:newName})*/ , req.session.username);
     res.redirect(req.baseUrl + '/' + newName);
   }).catch(function(error) {
     next(error);

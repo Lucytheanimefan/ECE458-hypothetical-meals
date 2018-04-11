@@ -23,6 +23,7 @@ var reports = require('./routes/reports');
 var productionLines = require('./routes/production_lines');
 var logs = require('./routes/logs');
 var backups = require('./routes/backups');
+var orders = require('./routes/orders')
 var MongoStore = require('connect-mongo')(session);
 
 var oauth = require('./routes/duke_oauth');
@@ -83,6 +84,7 @@ app.use('/vendors', users.requireLogin(), vendors);
 app.use('/formulas', formulas);
 app.use('/distributor', distributor);
 app.use('/reports', users.requireLogin(), reports);
+app.use('/orders', users.requireLogin(), orders);
 app.use('/production_lines', productionLines);
 
 app.use('/files', users.requireRole('admin'), files);
@@ -92,6 +94,7 @@ app.use('/inventory', inventory);
 app.use('/duke_oauth', oauth);
 app.use('/logs', logs);
 app.use('/backups', backups);
+
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
