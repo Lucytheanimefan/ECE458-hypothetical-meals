@@ -13,6 +13,7 @@ block content
         a(data-toggle='tab', href='#edit_form') Edit
 
     .tab-content
+      #alertData.hide(data-alert=alert)
       #productionLine.tab-pane.fade.in.active
         table.table
           tr
@@ -72,3 +73,4 @@ block content
 block scripts
   script.
     updateLineFormulaNames();
+    displayFileAlert();

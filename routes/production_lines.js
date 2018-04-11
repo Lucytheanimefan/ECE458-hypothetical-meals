@@ -260,7 +260,11 @@ router.post('/mark_completed/:id', function(req, res, next) {
   }).then(function(prodLine) {
     logs.makeLog('Mark production line completed', 'Mark <a href="/production_lines/production_line/id/' + productionLineId + '">' + productionLineName + '</a> as completed', req.session.username);
 
-    res.redirect(req.baseUrl + '/production_line/id/' + productionLineId);
+    var findAllFormulasQuery = Formula.model.find().exec();
+    return findAllFormulasQuery;
+  }).then(function(allFormulas) {
+    return res.render('production_line', { productionLine: currentProdLine, formulas: allFormulas, alert: 'The lot number for this product is <TODO LOT NUMBER HERE>' });
+    //res.redirect(req.baseUrl + '/production_line/id/' + productionLineId);
   }).catch(function(error) {
     console.log(error);
     return next(error);
