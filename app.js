@@ -112,14 +112,13 @@ app.use(function(err, req, res, next) {
   res.render('error');
 });
 
-
 var CronJob = require('cron').CronJob;
 
 // test the cron job
 // var testsJob = new CronJob('00 * * * * *', function() {
 //     /*
 //      * Runs every month on Monday
-//      * at 11:30:00 AM. 
+//      * at 11:30:00 AM.
 //      */
 //     console.log('Run this every minute');
 //     //backups.makeBackup();
@@ -152,7 +151,7 @@ var dailyJob = new CronJob('00 30 11 * * 0-6', function() {
 var weeklyJob = new CronJob('00 30 11 * * 1', function() {
     /*
      * Runs every week on Monday
-     * at 11:30:00 AM. 
+     * at 11:30:00 AM.
      */
     console.log('Make weekly backup');
     backups.makeBackup('weekly');
@@ -169,7 +168,7 @@ var weeklyJob = new CronJob('00 30 11 * * 1', function() {
 var monthlyJob = new CronJob('00 30 11 1 * 1', function() {
     /*
      * Runs every month on Monday
-     * at 11:30:00 AM. 
+     * at 11:30:00 AM.
      */
     console.log('Make monthly backup');
     backups.makeBackup('monthly');
