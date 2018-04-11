@@ -88,9 +88,9 @@ module.exports.updateReport = function(formulaName, formulaLot, ingID, ingLot, v
   })
 }
 
-module.exports.getProducts = function() {
+module.exports.getProducts = function(query) {
   return new Promise(function(resolve, reject) {
-    Completed.find().sort({'_id': -1}).exec().then(function(products) {
+    Completed.find(query).sort({'_id': -1}).exec().then(function(products) {
       let returnProducts = [];
       for (let record of products) {
         record['timestamp'] = mongoose.Types.ObjectId(record['_id']).getTimestamp().toString();
