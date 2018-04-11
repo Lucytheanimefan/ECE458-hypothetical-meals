@@ -229,7 +229,7 @@ function loadSideBar() {
         if (category == 'Backups' || category == 'Home' || category == 'Profile') {
           $(this).removeClass('hide');
         }
-      } else if (role == "admin") {
+      } else if (role == "admin" || role == 'manager') {
         //console.log('loadAdminOnlySideBar');
         if (category !== 'Backups') {
           $(this).removeClass('hide');
