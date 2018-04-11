@@ -727,12 +727,12 @@ router.post('/lot_assignment/assign', function(req, res, next){
       let currQuantity = lotInfo[i]['currQuantity'];
       let currSize = lotInfo[i]['currSize'];
       let currOrder = lotInfo[i]['currOrder'];
-      console.log(currLot);
-      console.log(currIng);
-      console.log(currVend);
-      console.log(currOrder);
+      //console.log(currLot);
+      //console.log(currIng);
+      //console.log(currVend);
+      //console.log(currOrder);
       promises.push(IngredientHelper.incrementAmount(currIng,parseFloat(currQuantity*currSize),currVend,currLot));
-      orderPromises.push(Orders.markIngredientAssigned(currOrder,currIng,currVend,currLot));
+      orderPromises.push(OrderHelper.markIngredientAssigned(currOrder,currIng,currVend,currLot));
     }
     return Promise.all(promises);
   }).then(function(){
