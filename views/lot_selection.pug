@@ -5,7 +5,7 @@ block css
 
 
 block link
-  -var selected = 'Orders';
+  -var selected = 'Lots';
 
 block content
   div.card
@@ -53,36 +53,36 @@ block content
                   .form-group
                     label.control-label Lot Number
                     input#ingredient1.form-control(type='text', name='lotnumber1',required='')
-                  .row#ing1_1
-                    .col-md-3
-                      .form-group
+                .row#ing1_1
+                  .col-md-3
+                    .form-group
                       label.control-label Ingredient
                       select#ingredient1.form-control(name='ingredient1_1', required='')
                         option(disabled="" selected="" value="") Select from Order
                         each order in orders
                           option(value=order['ingID']+'@'+order['vendID'] + '@' + order['ingSize'] + '@' + order['orderNumber'])= order['ingredient'] + " from  " + order['vendor'][0]['name']
-                    .col-md-1
-                      .form-group
+                  .col-md-1
+                    .form-group
                       label.control-label Quantity
                       input#quantity1.form-control(type='number', name='quantity1_1', min='0', step='0.01', required='')
-                    .col-md-1
-                      p
-                        br
-                        br
-                        br
-                        br
-                    .col-md-1
-                      p
-                        br
-                        br
-                        br
-                        br
-                      button.btn.btn-round.btn-just-icon.add-more(type='button', value='add', onclick='addPackage(1)')
-                        i.material-icons add
-              .col-md-1
-                p
-                  br
-                button#newlot.btn.btn-primary.add-more(type='button', value='add', style='padding: 10px; background-color: #999999;') New Lot
+                  .col-md-1
+                    p
+                      br
+                      br
+                      br
+                      br
+                  .col-md-1
+                    p
+                      br
+                      br
+                      br
+                      br
+                    button.btn.btn-round.btn-just-icon.add-more(type='button', value='add', onclick='addPackage(1)')
+                      i.material-icons add
+            .col-md-1
+              p
+                br
+              button#newlot.btn.btn-primary.add-more(type='button', value='add', style='padding: 10px; background-color: #999999;') New Lot
           button.btn.btn-primary.pull-right(type='submit', value='add vendor') Assign Lots
   div#index2(data-start=1)
 
