@@ -59,3 +59,22 @@ module.exports.markIngredientArrived = function(orderNumber,ingID,vendID) {
     })
   });
 }
+
+module.exports.markIngredientAssigned = function(orderNumber,ingID,vendID,lotNumber) {
+  return new Promise(function(resolve, reject) {
+    Orders.markIngredientArrived(orderNumber,ingID,vendID,lotNumber).then(function(res){
+      return Orders.getOrder(orderNumber);
+    }).then(function(order){
+      for(var i = 0; i < order.products.length; i++){
+        if(order.products[i].ingID._id == ingID && order.products[i].vendID._id == vendID){
+          order.products[i].assigned = lotNumber;
+        }
+      }
+      order.save();
+    }).then(function(res){
+      resolve(res);
+    }).catch(function(err){
+      reject(err);
+    })
+  });
+}
