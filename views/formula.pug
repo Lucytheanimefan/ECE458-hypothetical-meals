@@ -16,43 +16,64 @@ block content
         a(data-toggle='tab', href='#formula-info') Formula Information
       li.adminOnly.hide
         a(data-toggle='tab', href='#update-form') Update Formula
+      li.manager.hide
+        a(data-toggle='tab', href='#addProductionLine') Add Production Lines
     .tab-content
       .row.tab-pane.fade.in.active#formula-info
         .col-md-6
-          table.table
-            tr
-              th Description
-              td= formula.description
-            if formula.intermediate
-              tr
-                th Type
-                  td Intermediate Product
-              tr
-                th Package
-                  td= ing.package
-              tr
-                th Temperature
-                  td= ing.temperature
-              tr
-                th Native Unit
-                  td= ing.nativeUnit
-              tr
-                th Native Units Per Package
-                  td= ing.unitsPerPackage
-            else
-              tr
-                th Type
-                  td Final Product
-            tr
-              th Ingredients (Quantity)
-              td
-                each tuple in formula.tuples
-                  a(href='/ingredients/' + encodeURIComponent(tuple.ingredient))= tuple.ingredient
-                  |  (#{tuple.quantity})
-                  br
-            tr
-              th Number of Product Units Produced
-              td= formula.units
+          div.card
+            div.card-content.table-response
+              table.table
+                tr
+                  th Description
+                    td= formula.description
+                if formula.intermediate
+                  tr
+                    th Type
+                      td Intermediate Product
+                  tr
+                    th Package
+                      td= ing.package
+                  tr
+                    th Temperature
+                      td= ing.temperature
+                  tr
+                    th Native Unit
+                      td= ing.nativeUnit
+                  tr
+                    th Units Per Package
+                      td= ing.unitsPerPackage
+                else
+                  tr
+                    th Type
+                      td Final Product
+                tr
+                  th Ingredients (Quantity)
+                  td
+                    each tuple in formula.tuples
+                      a(href='/ingredients/' + encodeURIComponent(tuple.ingredient))= tuple.ingredient
+                      |  (#{tuple.quantity})
+                      br
+                tr
+                  th Number of Units Produced
+                  td= formula.units
+          div.card
+            div.card-content.table-response
+              table.table
+                thead
+                  th Production Line
+                  th Remove
+                each prodLine in productionLines
+                  tr
+                    td
+                      a(href='/production_lines/production_line/' + encodeURIComponent(prodLine.name))= prodLine.name
+                    td
+                      form(action='/production_lines/delete_lines/' + prodLine._id + '/with_formula/' + formula.name, method='post')
+                        .form-group.hide
+                          label.hide.control-label Formula id
+                          input.hide.form-control(type='text', name='formulaId', value = formula._id, required='')
+                        button.btn.btn-primary.pull-left(type='submit') Remove
+
           div.delete-form.adminOnly.hide
             form(action='/formulas/' + formula.name + '/delete', method='post')
               button.btn.btn-primary.pull-left(style="margin: 30px 15px;" type='submit') Delete Formula
@@ -61,17 +82,17 @@ block content
             input.form-control(type="hidden" name="ingredient" value=formula.name)
             input.form-control(type="hidden" name="amount" value=0)
             .row
-              .col-md-7
-              .col-md-5
+              .col-md-8
+              .col-md-4
                 if formula.intermediate
-                  label.control-label(style="color:black;") Quantity to Produce (Native Units)
+                  label.control-label(style="color:black;") Quantity (Native Units)
                 else
-                  label.control-label(style="color:black;") Quantity to Produce (Product Units)
+                  label.control-label(style="color:black;") Quantity (Product Units)
                 input.form-control(id='select_amount', type='number', name='quantity', value=formula.units, min=formula.units)
             .row
-              .col-md-7
-              .col-md-5
-                button.btn.btn-primary.pull-right(type="submit" name="submit") Proceed to Production
+              .col-md-8
+              .col-md-4
+                button.btn.btn-primary.pull-right(type="submit" name="submit") Proceed
 
       .adminOnly.hide.card-content.tab-pane.fade#update-form
         h1= 'Update Formula'
@@ -82,6 +103,32 @@ block content
           .form-group
             label.control-label Description
             textarea.form-control(name='description', rows='5', cols='100', required='', style='border:1px solid #cccccc;') #{formula.description}
+          if formula.intermediate
+            div#ingredient-info
+              .form-group
+                label.control-label Package Type
+                select.form-control.ing-attr(name='package', placeholder = '', required='')
+                  each package in ['sack', 'pail', 'drum', 'supersack', 'truckload', 'railcar']
+                    if package == ing.package
+                      option(selected='' value=package)= package
+                    else
+                      option(value=package)= package
+              .form-group
+                label.control-label Storage Temperature
+                select.form-control.ing-attr(name='temperature', placeholder = '', required='')
+                  option(disabled='' selected='' value='') Select an option
+                  each temp in ['frozen', 'refrigerated', 'room temperature']
+                    if temp == ing.temperature
+                      option(selected='' value=temp)= temp
+                    else
+                      option(value=temp)= temp
+              .form-group
+                label.control-label Native Unit
+                input.form-control.ing-attr(type='text', name='nativeUnit', placeholder = '', value = ing.nativeUnit, required='')
+              .form-group
+                label.control-label Units per Package
+                input.form-control.ing-attr(type='number', step='any', name='unitsPerPackage', value = ing.unitsPerPackage, required='')
+
           div.tupleRow#data(data-ingredients=ingredients, data-tuples=formula.tuples, data-formula=formula.name)
             .row
               .col-md-11
@@ -96,7 +143,7 @@ block content
                             option(value=ingredient._id)= ingredient['name']
                     .col-md-4
                       .form-group
-                        label.control-label Quantity (Number of Native Units)
+                        label.control-label Quantity
                         input.form-control(type='number', id='quantity'+tuple.index, name='quantity'+tuple.index, min='0', step='any', value=tuple.quantity, required='')
                     .col-md-2
                       p
@@ -109,10 +156,34 @@ block content
                 button#btn1.btn.btn-round.btn-just-icon.add-more(type='button', value='add')
                   i.material-icons add
           .form-group
-            label.control-label Number of Product Units Produced
+            label.control-label Number of Units Produced
             input.form-control(type='number', name='units', min='0', value = formula.units, required='')
 
           button.btn.btn-primary.pull-right(type='submit') Update Formula
+
+      .adminOnly.hide.card.tab-pane.fade#addProductionLine
+        form(action='/production_lines/add_lines_with_formula/' + formula.name, method='post')
+          .form-group.hide
+            label.hide.control-label Formula id
+            input.hide.form-control(type='text', name='formulaId', value = formula._id, required='')
+          .form-group
+            label.control-label Production Lines
+            select.form-control(name='productionLines', placeholder = '')
+              each productionLine in allProductionLines
+                if productionLine.formulas.length > 0
+                  - var added = false;
+                  for prodFormula,index in productionLine.formulas
+                    if index == 0
+                      - added = false;
+                    if formula._id.toString() == prodFormula.formulaId
+                      - added = true 
+                    else if !added
+                      option(value=productionLine._id)= productionLine.name
+                      - added = true
+                else
+                  option(value=productionLine._id)= productionLine.name
+          button.btn.btn-primary.pull-right(type='submit') Update Production Lines
+
   div#index(data-start=formula.tuples.length)
 
 block scripts

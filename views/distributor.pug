@@ -1,0 +1,86 @@
+extends layout
+
+block css
+  link(href='/stylesheets/ingredients.css', rel='stylesheet')
+
+block link
+  -var selected = 'Distributor';
+
+block content
+  div.card-tabs
+    ul.nav.nav-tabs
+      li.active
+        a(data-toggle='tab', href='#ing-table') Final Products
+      li.hide.manager
+        a(data-toggle='tab', href='#sales') Sale Request
+
+    .tab-content
+      #ing-table.tab-pane.fade.in.active
+        div.card
+          div.card-header(data-background-color='purple')
+            h4.title Final Products For Sale
+          div.card-content.table-response
+            //- input.form-control#ingredientInput(type='text',onkeyup='filterTable(\'ingredient\')', placeholder='Search for ingredients..', title='Type in some search text')
+            table.table#ingredientTable
+              thead
+                th(onclick='sortTable(0, \'ingredient\')') Final Product
+                th(onclick='sortTable(1, \'ingredient\')') Product Units in Network
+                th.hide.manager(onclick='sortTable(2, \'ingredient\')') Quantity
+                th.hide.manager(onclick='sortTable(3, \'ingredient\')') Price
+                th.hide.manager(onclick='sortTable(4, \'ingredient\')') Add to Sale Request
+              tbody
+              each fp in finalProducts
+                tr
+                  form(action='/distributor/add/', method='post')
+                    input.hide(type='text' name='id' value=fp._id)
+                    td= fp.name
+                    td= fp.amount
+                    td.hide.manager
+                      .form-group
+                        input.hide.manager.form-control(type='number', name='quantity',step='any', min='0', max=fp.amount, required='')  
+                    td.hide.manager
+                      .form-group
+                        input.hide.manager.form-control(type='number', name='price', step='.01', min='0', required='') 
+                    td.hide.manager
+                      input.hide.manager.btn.btn-primary(type="submit" value="Submit" style='margin:0px; padding: 5px 10px;')
+
+            //- div.previous
+            //-   form(action='/ingredients/search_results/' + (parseInt(page)-1).toString() + '/' + searchQuery, method='get')
+            //-     button.btn.btn-white(type="submit" style="padding: 5px;") <
+            //-     p(style="padding: 10px; display: inline-block;") Page #{parseInt(page)}
+            //- div.next
+            //-   if maxPage
+            //-     form(action='/ingredients/search_results/' + (parseInt(page)).toString() + '/' + searchQuery, method='get')
+            //-       button.btn.btn-white(type="submit" style="padding: 5px;") >
+            //-   else
+            //-     form(action='/ingredients/search_results/' + (parseInt(page)+1).toString() + '/' + searchQuery, method='get')
+            //-       button.btn.btn-white(type="submit" style="padding: 5px;") >
+      .card-content.tab-pane.fade#sales.manager.hide
+        table.table#orderTable
+          thead.text-primary
+            th(onclick='sortTable(0, \'order\')') Final Product
+            th(onclick='sortTable(1, \'order\')') Quantity (Number of Product Units)
+            th(onclick='sortTable(2, \'order\')') Price per Product Unit
+            th(onclick='sortTable(3, \'order\')') Remove From Request
+          tbody
+          each sale in sales
+            tr
+              td= sale.finalProductName
+              td= sale.quantity
+              td= sale.price
+              td
+                form(action='/distributor/remove', method='post')
+                  input.hide(type='text', name='id', value=sale.finalProduct)
+                  button.btn.btn-primary(type="submit" style='margin:0px; padding: 5px 10px;') Remove
+        form(action='/distributor/submit', method='post')
+          button.btn.btn-primary.pull-right(type='submit', value='submit sale') Submit Sale Request
+
+
+              //- td
+              //-   form(action="/users/remove_ingredient" method="post")
+              //-     input(type="hidden" name="ingredient" value=order.ingredient)
+              //-     input(type="hidden" name="quantity" value=order.quantity)
+              //-     span(style="float:right;")
+              //-       a(href='/users/edit_order/' + order.ingredient + '/' + page)
+              //-         button(class="btn btn-secondary" type="button" style="margin-right: 20px; padding: 5px 20px; background-color:#66c2ff; color: white; display:inline;") Edit
+              //-       input.btn.btn-secondary(type="submit" value="Remove" style="padding: 5px 20px; background-color:#66c2ff; color: white; display:inline;")

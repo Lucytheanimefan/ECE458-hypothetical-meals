@@ -18,7 +18,9 @@ var vendors = require('./routes/vendors');
 var files = require('./routes/files');
 var inventory = require('./routes/inventory_routes');
 var formulas = require('./routes/formulas');
+var distributor = require('./routes/distributor');
 var reports = require('./routes/reports');
+var productionLines = require('./routes/production_lines');
 var logs = require('./routes/logs');
 var backups = require('./routes/backups');
 var orders = require('./routes/orders')
@@ -80,8 +82,10 @@ app.use('/ingredients', users.requireLogin(), ingredients); //This is not ideal
 app.post('/ingredients/*', users.requireRole("admin"), ingredients);
 app.use('/vendors', users.requireLogin(), vendors);
 app.use('/formulas', formulas);
+app.use('/distributor', distributor);
 app.use('/reports', users.requireLogin(), reports);
 app.use('/orders', users.requireLogin(), orders);
+app.use('/production_lines', productionLines);
 
 app.use('/files', users.requireRole('admin'), files);
 app.use('/inventory', inventory);

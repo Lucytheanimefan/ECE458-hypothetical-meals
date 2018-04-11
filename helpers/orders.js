@@ -10,7 +10,6 @@ var Spending = require('../models/spending');
 var Production = require('../models/production');
 var Freshness = require('../models/freshness');
 var Recall = require('../models/recall');
-var RealRecall = require('../models/real_recall');
 var mongoose = require('mongoose');
 var Orders = require('../models/orders');
 

@@ -6,7 +6,7 @@ block link
 block content
   div.card
     div.card-header(data-background-color='purple')
-      h4.title Production of "#{formula}": Ingredients to be Consumed
+      h4.title Production of "#{formulaName}": Ingredients to be Consumed
     div.card-content.table-response
       input.form-control#ingredientInput(type='text',onkeyup='filterTable(\'ingredient\')', placeholder='Search for ingredients..', title='Type in some search text')
       table.table#ingredientTable
@@ -26,11 +26,17 @@ block content
               td Enough
             else
               td Not enough
+      .row
       if orderAmounts.length > 0
         form(action='/ingredients/order/add/to/cart', method='post')
           each order in orderAmounts
             input.hide(type='checkbox', name=order.ingredient, value=order.orderAmount, checked)
           button.btn.btn-primary.pull-right(type='submit') Order Remaining Ingredients
       else
-        form(action='/formulas/' + formula + '/order/' + amount, method='post')
+        form(action='/formulas/' + formulaName + '/order/' + amount, method='post')
+          .form-group
+            label.control-label Production Lines
+            select.form-control(name='productionLine', placeholder = '')
+              each productionLine in productionLines
+                option(value=productionLine._id)= productionLine.name + ', ' + (productionLine.busy ? ('Busy producing ' + productionLine.currentProduct.name) : 'Idle')
           button.btn.btn-primary.pull-right Send Ingredients to Production

@@ -1,0 +1,74 @@
+extends layout
+
+block link
+  -var selected = 'Production Line';
+
+
+block content
+  div.card-tabs
+    ul.nav.nav-tabs
+      li.active
+        a(data-toggle='tab', href='#productionLine') Production Line Information
+      li.adminOnly.hide
+        a(data-toggle='tab', href='#edit_form') Edit
+
+    .tab-content
+      #productionLine.tab-pane.fade.in.active
+        table.table
+          tr
+            th Name
+            td= productionLine.name
+          tr
+            th Description
+            td= productionLine.description
+          tr
+            th Busy
+            td= productionLine.busy + (productionLine.busy ? (', currently producing: ' + productionLine.currentProduct.name) : '')
+
+          tr
+            th Formulas
+            td
+              if productionLine.formulas != null
+                each formula in productionLine.formulas
+                  li
+                    a.lineFormula(href="/formulas/id/" + formula.formulaId, data-id=formula.formulaId)
+        if productionLine.busy
+          form(action='/production_lines/mark_completed/' + productionLine._id, method='post')
+            button.btn.btn-primary.pull-right(type='submit', value='complete productionline') Mark production completed
+
+      .card-content.tab-pane.fade#edit_form.adminOnly.hide
+        h1= 'Update production line'
+        form(action='/production_lines/update/' + productionLine._id, method='post')
+          .form-group
+            label.control-label Production Line Name
+            input.form-control(type='text', name='name', value=productionLine.name, required='')
+          .form-group
+            label.control-label Description
+            input.form-control(type='text', name='description', value=productionLine.description, required='') 
+          //- .form-group
+          //-   label.control-label Busy
+          //-   input.form-control(name='busy', id=id, type='checkbox' checked=productionLine.busy)
+          .form-group
+            label.control-label Formulas
+            select.form-control(name='formulas', placeholder = '', multiple)
+              //- option(disabled='' value='') Select an option
+              each formula in formulas
+                if productionLine.formulas != null
+                  if productionLine.formulas.length > 0
+                    - var added = false;
+                    for prodFormula,index in productionLine.formulas
+                      if index == 0
+                        - added = false;
+                      if formula._id.toString() == prodFormula.formulaId
+                        - added = true
+                        option(value=formula._id, selected)= formula.name
+                      else if !added
+                        option(value=formula._id)= formula.name
+                        - added = true
+                else
+                  option(value=formula._id)= formula.name
+          button.btn.btn-primary.pull-right(type='submit', value='create production line') Update
+
+block scripts
+  script.
+    updateLineFormulaNames();
