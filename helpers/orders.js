@@ -43,10 +43,7 @@ module.exports.markIngredientArrived = function(orderNumber,ingID,vendID) {
     }).then(function(order){
       var pendingCheck = true;
       for(var i = 0; i < order.products.length; i++){
-        console.log(ingID == order.products[i].ingID._id);
-        console.log(order.products[i].vendID._id == vendID);
         if(order.products[i].ingID._id == ingID && order.products[i].vendID._id == vendID){
-          console.log("here bb");
           order.products[i].arrived = true;
         }
         if(order.products[i].arrived == false){

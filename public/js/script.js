@@ -430,7 +430,7 @@ function createLotTuples(ingredients, start) {
     console.log(ingredients);
     for (i = 0; i < ingredients.length; i++) {
       var ing = ingredients[i];
-      newHTML += '<option value=' + ing.ingId + '@' + ing.vendId +  '@' + ing.ingSize + '>' + ing.ingredient + ' from ' + ing.vendor[0].name + '</option>';
+      newHTML += '<option value=' + ing.ingID + '@' + ing.vendID +  '@' + ing.ingSize + '@' + ing.orderNumber + '>' + ing.ingredient + ' from ' + ing.vendor[0].name + '</option>';
     }
     newHTML += '</select></div>';
 
@@ -573,7 +573,7 @@ function addPackage(index){
     console.log(ingredients);
     var ing = ingredients[i];
     //newHTML += '<option value=' + ing.ingId + '@' + ing.vendId + '@' + ing.ingSize + '>' + ing.ingredient + '</option>';
-    newHTML += '<option value=' + ing.ingId + '@' + ing.vendId +  '@' + ing.ingSize + '>' + ing.ingredient + ' from ' + ing.vendor[0].name + '</option>';
+    newHTML += '<option value=' + ing.ingID + '@' + ing.vendID +  '@' + ing.ingSize + '@' + ing.orderNumber + '>' + ing.ingredient + ' from ' + ing.vendor[0].name + '</option>';
   }
   newHTML += '</select></div>';
 

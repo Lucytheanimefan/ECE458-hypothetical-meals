@@ -585,6 +585,30 @@ router.get('/lot_assignment/:page?', function(req, res, next){
   var perPage = 10;
   var page = req.params.page || 1;
   page = (page < 1) ? 1 : page;
+  var unassigned = [];
+  Orders.getAllUnassignedIngredients().then(function(orders){
+    for(var i = 0; i < orders.length; i++){
+      let orderNumber = orders[i].orderNumber;
+      for(var j = 0; j < orders[i].products.length; j++){
+        entry = {};
+        entry['orderNumber'] = orderNumber;
+        entry['ingID'] = orders[i]['products'][j]['ingID']['_id'];
+        entry['ingredient'] = orders[i]['products'][j]['ingID']['name'];
+        entry['vendID'] = orders[i]['products'][j]['vendID']['_id'];
+        entry['vendor'] = [orders[i]['products'][j]['vendID']];
+        entry['quantity'] = orders[i]['products'][j]['quantity'];
+        entry['ingSize'] = orders[i]['products'][j]['ingID']['unitsPerPackage'];
+        if(orders[i]['products'][j]['assigned'] === "none"){
+          unassigned.push(entry);
+        }
+      }
+    }
+    res.render('lot_selection', { orders: unassigned, page: page });
+  })
+  /*
+  var perPage = 10;
+  var page = req.params.page || 1;
+  page = (page < 1) ? 1 : page;
   //console.log("skyrim belongs to the nords");
   var userQuery = User.getUserById(req.session.userId);
   var cart;
@@ -639,8 +663,7 @@ router.get('/lot_assignment/:page?', function(req, res, next){
     res.render('lot_selection', { orders: orders, page: page });
   }).catch(function(error) {
     next(error);
-  })
-
+  })*/
 });
 
 router.post('/lot_assignment/assign', function(req, res, next){
@@ -649,14 +672,16 @@ router.post('/lot_assignment/assign', function(req, res, next){
   var cart;
   var lotInfo = [];
   var promises= [];
+  var orderPromises = [];
   var currLot = "no lot :(";
   var currIng =  "default ing";
   var currVend = "default vend";
+  var currOrder = "default order";
   var currSize = 0;
 
   User.getUserById(req.session.userId).then(function(user){
     cart = user.cart;
-    console.log(cart);
+    //console.log(cart);
   }).then(function(){
     for(var key in req.body) {
       if(req.body.hasOwnProperty(key)){
@@ -665,9 +690,11 @@ router.post('/lot_assignment/assign', function(req, res, next){
         }
         if(key.indexOf("ingredient")>=0){
           let ingVend = req.body[key].split("@");
+          //console.log(ingVend);
           currIng = ingVend[0];
           currVend = ingVend[1];
           currSize = ingVend[2];
+          currOrder = ingVend[3];
         }
         if(key.indexOf("quantity")>=0){
           let currQuantity = req.body[key];
@@ -677,12 +704,15 @@ router.post('/lot_assignment/assign', function(req, res, next){
           entry['currIng'] = currIng;
           entry['currLot'] = currLot;
           entry['currSize'] = currSize;
+          entry['currOrder'] = currOrder;
+          //console.log(entry);
           lotInfo.push(entry);
         }
       }
     }
-    return orderLotCheck(cart,lotInfo);
+    return orderLotCheck(lotInfo);
   }).then(function(message){
+    console.log("past error check");
     console.log(message);
     if(message.length > 0){
       var error = new Error(message);
@@ -696,19 +726,19 @@ router.post('/lot_assignment/assign', function(req, res, next){
       let currLot = lotInfo[i]['currLot'];
       let currQuantity = lotInfo[i]['currQuantity'];
       let currSize = lotInfo[i]['currSize'];
+      let currOrder = lotInfo[i]['currOrder'];
+      console.log(currLot);
+      console.log(currIng);
+      console.log(currVend);
+      console.log(currOrder);
       promises.push(IngredientHelper.incrementAmount(currIng,parseFloat(currQuantity*currSize),currVend,currLot));
+      orderPromises.push(Orders.markIngredientAssigned(currOrder,currIng,currVend,currLot));
     }
     return Promise.all(promises);
   }).then(function(){
-    var orderPromises = [];
-    for (let order of cart) {
-      var tuple = {};
-      tuple['vendor'] = order.vendor;
-      tuple['quantity'] = order.quantity;
-      orderPromises.push(UserHelper.removeOrder(req.session.userId, order.ingredient));
-    }
-    res.redirect('/ingredients');
     return Promise.all(orderPromises);
+  }).then(function(){
+    res.redirect('/ingredients');
   }).catch(function(err){
       next(err);
   })
@@ -794,7 +824,54 @@ module.exports.requireLogin = function() {
   }
 }
 
-orderLotCheck = async function(orders,lots){
+orderLotCheck = async function(lots){
+  var unassigned = [];
+  var errorMessage = "";
+  return new Promise(function(resolve,reject){
+    Orders.getAllUnassignedIngredients().then(function(orders){
+      for(var i = 0; i < orders.length; i++){
+        let orderNumber = orders[i].orderNumber;
+        for(var j = 0; j < orders[i].products.length; j++){
+          entry = {};
+          entry['orderNumber'] = orderNumber;
+          entry['ingID'] = orders[i]['products'][j]['ingID'];
+          entry['ingredient'] = orders[i]['products'][j]['ingID']['name'];
+          entry['vendID'] = orders[i]['products'][j]['vendID'];
+          entry['vendor'] = [orders[i]['products'][j]['vendID']];
+          entry['quantity'] = orders[i]['products'][j]['quantity'];
+          entry['ingSize'] = orders[i]['products'][j]['ingID']['unitsPerPackage'];
+          if(orders[i]['products'][j]['assigned'] === "none"){
+            unassigned.push(entry);
+          }
+        }
+      }
+      for(var i = 0; i < unassigned.length; i++){
+        for(var j = 0; j < lots.length; j++){
+          if(unassigned[i]['ingID']['_id'].equals(mongoose.Types.ObjectId(lots[j]['currIng'])) && unassigned[i]['vendID']['_id'].equals(mongoose.Types.ObjectId(lots[j]['currVend']))){
+            unassigned[i]['quantity']-=parseFloat(lots[j]['currQuantity']);
+          }
+        }
+      }
+      for(var i = 0; i < unassigned.length; i++){
+        if(unassigned[i]['quantity']!=0){
+          if(unassigned[i]['quantity'] > 0){
+            errorMessage += unassigned[i]['quantity'] + " " + unassigned[i]['ingID']['name'] + " from " + unassigned[i]['vendID']['name'] + " were not assigned to lots.\n";
+          }
+          else{
+            errorMessage += -unassigned[i]['quantity'] + " too many "+ unassigned[i]['ingID']['name'] + " from " + unassigned[i]['vendID']['name'] + " were assigned to lots.\n";
+          }
+        }
+      }
+      console.log(errorMessage);
+      return errorMessage;
+    }).then(function(errorMessage){
+      resolve(errorMessage);
+    }).catch(function(err){
+    reject(err);
+    })
+  })
+
+  /*
   return new Promise(function(resolve,reject){
     var vendorIDs = [];
     var ingIDs = [];
@@ -807,7 +884,7 @@ orderLotCheck = async function(orders,lots){
       vendorIDs.push(Vendor.model.findById(orders[i]['vendor']));
       ingIDs.push(Ingredient.model.findById(orders[i]['ingredient']));
       for(var j = 0; j < lots.length; j++){
-        if(ordersCopy[i]['ingredient'].equals(mongoose.Types.ObjectId(lotsCopy[j]['currIng'])) && ordersCopy[i]['vendor'].equals(mongoose.Types.ObjectId(lotsCopy[j]['currVend']))){
+        if(ordersCopy[i]['ingID'].equals(mongoose.Types.ObjectId(lotsCopy[j]['currIng'])) && ordersCopy[i]['vendor'].equals(mongoose.Types.ObjectId(lotsCopy[j]['currVend']))){
           ordersCopy[i]['quantity']-=parseFloat(lotsCopy[j]['currQuantity']);
         }
       }
@@ -835,6 +912,6 @@ orderLotCheck = async function(orders,lots){
       reject(err);
     })
   })
-
+*/
 
 }
