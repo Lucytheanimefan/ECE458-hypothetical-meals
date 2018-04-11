@@ -229,7 +229,7 @@ function loadSideBar() {
         if (category == 'Backups' || category == 'Home' || category == 'Profile') {
           $(this).removeClass('hide');
         }
-      } else if (role == "admin") {
+      } else if (role == "admin" || role == 'manager') {
         //console.log('loadAdminOnlySideBar');
         if (category !== 'Backups') {
           $(this).removeClass('hide');
@@ -429,7 +429,7 @@ function createLotTuples(ingredients, start) {
     console.log(ingredients);
     for (i = 0; i < ingredients.length; i++) {
       var ing = ingredients[i];
-      newHTML += '<option value=' + ing.ingId + '@' + ing.vendId + '@' + ing.ingSize + '>' + ing.ingredient + ' from ' + ing.vendor[0].name + '</option>';
+      newHTML += '<option value=' + ing.ingID + '@' + ing.vendID +  '@' + ing.ingSize + '@' + ing.orderNumber + '>' + ing.ingredient + ' from ' + ing.vendor[0].name + '</option>';
     }
     newHTML += '</select></div>';
 
@@ -571,7 +571,7 @@ function addPackage(index) {
     console.log(ingredients);
     var ing = ingredients[i];
     //newHTML += '<option value=' + ing.ingId + '@' + ing.vendId + '@' + ing.ingSize + '>' + ing.ingredient + '</option>';
-    newHTML += '<option value=' + ing.ingId + '@' + ing.vendId + '@' + ing.ingSize + '>' + ing.ingredient + ' from ' + ing.vendor[0].name + '</option>';
+    newHTML += '<option value=' + ing.ingID + '@' + ing.vendID +  '@' + ing.ingSize + '@' + ing.orderNumber + '>' + ing.ingredient + ' from ' + ing.vendor[0].name + '</option>';
   }
   newHTML += '</select></div>';
 
@@ -621,7 +621,7 @@ function selectVendor(orders) {
   }
 }
 
-// Formula 
+// Formula
 function getFormulaForID(id, callback) {
   $.ajax({
     type: 'GET',
