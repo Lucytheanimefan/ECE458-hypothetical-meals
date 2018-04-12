@@ -143,7 +143,6 @@ block content
           th Lot Number
           th Timestamp
           th Native Units
-          th Edit Lot
           th Delete Lot
           for lot in lots
             tr
@@ -157,9 +156,8 @@ block content
                 td= lot.lotNumber
                 td= lot.stringTimestamp
                 td
-                  input(type='number', step='any', name='amount', value=lot.units, min='0')
-                td
-                  button.btn.btn-primary(type='submit', style='margin:0px; padding: 5px 10px;') Edit
+                  input(style='display:inline-block; width: 35%;' type='number', step='any', name='amount', value=lot.units, min='0')
+                  button.btn.btn-primary(type='submit', style='display:inline-block; width: 35%; margin:0px; padding: 5px 10px;') Update
               form.form-group(action='/ingredients/' + encodeURIComponent(ingredient.name) + '/delete-lot/' + lot.units + '/', method='post')
                 input.hide(type='checkbox', name='lotID', value=lot._id, checked)
                 td
