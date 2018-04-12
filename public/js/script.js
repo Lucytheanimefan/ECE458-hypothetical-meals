@@ -429,7 +429,7 @@ function createLotTuples(ingredients, start) {
     console.log(ingredients);
     for (i = 0; i < ingredients.length; i++) {
       var ing = ingredients[i];
-      newHTML += '<option value=' + ing.ingID + '@' + ing.vendID +  '@' + ing.ingSize + '@' + ing.orderNumber + '>' + ing.ingredient + ' from ' + ing.vendor[0].name + '</option>';
+      newHTML += '<option value=' + ing.ingID + '@' + ing.vendID + '@' + ing.ingSize + '@' + ing.orderNumber + '>' + ing.ingredient + ' from ' + ing.vendor[0].name + '</option>';
     }
     newHTML += '</select></div>';
 
@@ -571,7 +571,7 @@ function addPackage(index) {
     console.log(ingredients);
     var ing = ingredients[i];
     //newHTML += '<option value=' + ing.ingId + '@' + ing.vendId + '@' + ing.ingSize + '>' + ing.ingredient + '</option>';
-    newHTML += '<option value=' + ing.ingID + '@' + ing.vendID +  '@' + ing.ingSize + '@' + ing.orderNumber + '>' + ing.ingredient + ' from ' + ing.vendor[0].name + '</option>';
+    newHTML += '<option value=' + ing.ingID + '@' + ing.vendID + '@' + ing.ingSize + '@' + ing.orderNumber + '>' + ing.ingredient + ' from ' + ing.vendor[0].name + '</option>';
   }
   newHTML += '</select></div>';
 
@@ -638,7 +638,6 @@ function getFormulaForID(id, callback) {
 // Production Line
 
 
-
 function updateLineFormulaNames() {
   $('.lineFormula').each(function() {
     var element = $(this);
@@ -679,47 +678,55 @@ function displayNotification(from, align, alertMessage) {
   });
 }
 
-function makeProductionEfficiencyGraph(ivElement, data) {
+
+function makeGraphs() {
+  var allData = $("#allData").data("stuff");
+  console.log(allData);
+  for (var name in allData) {
+    let graphData = allData[name]['graphData'];
+    console.log(graphData);
+    let dates = graphData["dates"].map(function(value) {
+      return value.substring(0, 10);
+    });
+    let values = graphData["values"];
+    dates.unshift('x');
+    values.unshift('Busy (1) or Idle (0)');
+    if (dates.length > 0 && values.length > 0) {
+      let products = graphData["currentProduct"];
+      makeProductionEfficiencyGraph("#graph" + name, [dates, values], products);
+    }
+  }
+}
+
+/**
+ * [makeProductionEfficiencyGraph description]
+ * @param  {[type]} divElement [description]
+ * @param  {[type]} data       An array of data: [label, data, data, data...]
+ * @return {[type]}            [description]
+ */
+function makeProductionEfficiencyGraph(divElement, data, labels) {
+  console.log(data);
+  console.log(divElement);
   var chart = c3.generate({
     bindto: divElement,
     data: {
+      x: 'x',
       columns: data,
-      type: 'line',
-      groups: [group]
+      // type: 'scatter'
     },
     axis: {
-      x: {
-        type: 'category',
-        categories: xcategories
-      },
+      // x: {
+      //   type: 'timeseries',
+      //   tick: {
+      //     format: '%YYYY-%MM-%DDT%HH:%MM:%SSZ' //2018-04-09T22:41:41.403Z
+      //   }
+      // },
       y: {
         label: {
-          text: "Number of respondents who said they plan to vote for a candidate",
+          text: "In use or not",
           position: 'outer-middle'
         }
       }
     },
-    tooltip: {
-      format: {
-        name: function(name, ratio, id, index) {
-          return name;
-        },
-        value: function(value, ratio,
-          id, index) {
-          //console.log(value + "," + ratio + "," + id + "," + index);
-          if (!isMain) { //not main
-            //console.log(value+"/"+totals[index]);
-            return ((value / totals[index] * 100).toFixed(2).toString() + "%");
-          } else {
-            return value;
-          }
-        }
-      }
-    },
-    bar: {
-      width: {
-        ratio: 0.5 // this makes bar width 50% of length between ticks
-      }
-    }
   });
 }

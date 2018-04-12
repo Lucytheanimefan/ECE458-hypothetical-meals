@@ -4,6 +4,7 @@ block link
 
 block content
   div.card
+    #allData(data-stuff=data)
     div.card-header(data-background-color='purple')
       h4.title= 'Production Report'
     div.card-content.table-response
@@ -16,12 +17,13 @@ block content
           th(onclick='sortTable(3, \'productionLine\')') Total Time elapsed
         tbody
         each value, productionLineName in data
-          tr(data-chart= value.graphData)
+          tr(data-chart = value.graphData)
             td= productionLineName
             td= value.percentBusy + ' ('+value.busyTime+')'
             td= value.percentIdle + ' ('+value.idleTime+')'
             td= value.totalTime
+          tr(id='graph' + productionLineName)
 
 block scripts
   script.
-    
+    makeGraphs();

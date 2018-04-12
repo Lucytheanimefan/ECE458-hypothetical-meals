@@ -104,11 +104,11 @@ router.post('/production_line_efficiency', function(req, res, next) {
       previousTimeStamp = startDate;
       var totalTime = endDate - startDate;
       console.log('Total time: ' + totalTime);
-      var plotGraphData = { 'dates': [], 'values': [] }; // For plotting if we want to do that, currently not being used
+      var plotGraphData = { 'dates': [], 'values': [], 'currentProduct': [] }; // For plotting if we want to do that, currently not being used
 
       for (let j = 0; j < productionLine.history.length; j++) {
         let history = productionLine.history[j];
-
+        var currentProduct = history.product;
         var timestamp = new Date(history.timestamp);
         console.log('--------')
         console.log(timestamp);
@@ -119,6 +119,7 @@ router.post('/production_line_efficiency', function(req, res, next) {
         console.log('After start date? ' + (timestamp >= originalStartDate));
         console.log('Before end date? ' + (timestamp <= endDate));
         if (timestamp >= originalStartDate && timestamp <= endDate) {
+          plotGraphData['currentProduct'].push(currentProduct);
           plotGraphData['dates'].push(timestamp);
           // If busy, value = 1, else value = 0
           plotGraphData['values'].push((history.status == 'busy') ? 1 : 0);
