@@ -27,8 +27,8 @@ html(lang='en')
     -var selected = 'home'; // default
   block status
     -var user_status = 'Logout';
-  body
-    .wrapper
+  body(style='padding: 0px !important;')
+    div(style='padding: 50px !important;').wrapper
       .sidebar(data-color='purple', data-image='/img/sidebar-4.jpg')
         //
           Tip 1: You can change the color of the sidebar using: data-color="purple | blue | green | orange | red"
@@ -57,7 +57,7 @@ html(lang='en')
                     i.material-icons #{icon}
                     p #{key}
 
-      .main-panel
+      div.main-panel
         nav.navbar.navbar-transparent.navbar-absolute
           .container-fluid
             div Logged in as
