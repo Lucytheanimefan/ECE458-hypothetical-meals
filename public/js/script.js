@@ -654,6 +654,7 @@ function updateLineFormulaNames() {
   })
 }
 
+
 //'top','center
 function displayFileAlert() {
   var alertMessage = $("#alertData").data('alert');
