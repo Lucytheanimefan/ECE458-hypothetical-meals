@@ -97,3 +97,7 @@ div.panel.show {
   z-index: 100;
   min-height: 640px;
 }
+
+option:selected{
+  background-color: blue !important;
+}

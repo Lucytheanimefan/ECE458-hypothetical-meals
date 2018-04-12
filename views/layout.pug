@@ -22,11 +22,12 @@ html(lang='en')
     // Fonts and icons
     link(href='/stylesheets/font-awesome.min.css', rel='stylesheet')
     link(href='https://fonts.googleapis.com/css?family=Roboto:400,700,300|Material+Icons', rel='stylesheet', type='text/css')
+    link(href='/css/c3.min.css', rel='stylesheet')
   block link
     -var selected = 'home'; // default
   block status
     -var user_status = 'Logout';
-  body
+  body(style='padding: 0px !important;')
     .wrapper
       .sidebar(data-color='purple', data-image='/img/sidebar-4.jpg')
         //
@@ -36,9 +37,9 @@ html(lang='en')
           a.simple-text(href='/')
             | Hypothetical Meals
 
-        -var menu = { 'Home': '/', 'Profile': '/users/profile','Users':'/users/admin', 'Ingredients': '/ingredients', 'Vendors':'/vendors', 'Cart':'/users/cart', 'Uploads': '/files','Inventory':'/inventory', 'Formulas': '/formulas', 'Report':'/reports', 'Logs': '/logs', 'Backups':'/backups'};
+        -var menu = { 'Home': '/', 'Users':'/users/admin', 'Ingredients': '/ingredients', 'Vendors':'/vendors', 'Cart':'/users/cart', 'Uploads': '/files','Inventory':'/inventory', 'Formulas': '/formulas', 'Orders':'/orders', 'Lots':'/users/lot_assignment', 'Production Lines': '/production_lines', 'Distributor Network': '/distributor', 'Report':'/reports', 'Logs': '/logs', 'Backups':'/backups'};
 
-        -var icons = {'Home':'home', 'Profile': 'account_circle','Users': 'supervisor_account','Uploads': 'publish','Ingredients':'local_pizza','Vendors':'restaurant','Cart':'local_grocery_store','Inventory':'local_shipping', 'Formulas':'book', 'Report':'content_paste', 'Logs': 'library_books', 'Backups':'backup'}
+        -var icons = {'Home':'home', 'Profile': 'account_circle','Users': 'supervisor_account','Uploads': 'publish','Ingredients':'local_pizza','Vendors':'restaurant','Cart':'local_grocery_store','Inventory':'local_shipping', 'Formulas':'book', 'Orders':'markunread_mailbox','Report':'content_paste', 'Lots':'assignment', 'Logs': 'library_books', 'Backups':'backup', 'Production Lines': 'call_missed_outgoing', 'Distributor Network': 'send'}
 
 
         .sidebar-wrapper
@@ -56,10 +57,10 @@ html(lang='en')
                     i.material-icons #{icon}
                     p #{key}
 
-      .main-panel
+      div(style='padding: 50px !important;').main-panel
         nav.navbar.navbar-transparent.navbar-absolute
           .container-fluid
-            div Logged in as 
+            div Logged in as
               span#username
             .navbar-header
               button.navbar-toggle(type='button', data-toggle='collapse')
@@ -106,6 +107,8 @@ html(lang='en')
   script(src='/js/bootstrap-notify.js')
   // Material Dashboard javascript methods
   script(src='/js/material-dashboard.js?v=1.2.0')
+  // c3
+  script(src='/js/c3.min.js')
   // Custom js
   script(src='/js/script.js')
   script.
