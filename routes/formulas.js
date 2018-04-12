@@ -362,17 +362,41 @@ router.post('/add_product/:formulaId/:formulaName/to_production_line', function(
 })
 
 router.post('/completed_productions/view', function(req, res, next) {
-  var startDate = req.body.startDate;
-  var endDate = req.body.endDate;
+  var startDate = req.body.start;
+  var endDate = req.body.end;
   var product = req.body.product;
-  var type = req.body.type;
-  Completed.getProducts({}).then(function(products) {
-    res.render('completed_products', {products: products});
+  var status = req.body.status;
+  var query = {};
+  console.log(startDate);
+  console.log(endDate);
+  if (startDate != '' && endDate != '') {
+    query['_id'] = { "$gte": getObjectIdForTime(startDate), "$lte": getObjectIdForTime(endDate) };
+  } else if (startDate != '') {
+    query['_id'] = { "$gte": getObjectIdForTime(startDate) };
+  } else if (endDate != '') {
+    query['_id'] = { "$lte": getObjectIdForTime(endDate) };
+  }
+  if (product != null) {
+    var search = '.*' + product + '.*'
+    var expression = new RegExp(product, 'i')
+    query['name'] = expression;
+  }
+  if (status != null) {
+    query['inProgress'] = (status == 'inProgress');
+  }
+  Completed.getProducts(query).then(function(products) {
+    res.render('completed_products', {report: products});
   }).catch(function(error) {
     next(error);
   })
 })
 
+getObjectIdForTime = function(dateString) {
+  var date = new Date(dateString);
+  var seconds = Math.floor(date/1000).toString(16)
+  console.log(date.getTime());
+  return mongoose.Types.ObjectId(seconds + "0000000000000000");
+}
 
 
 

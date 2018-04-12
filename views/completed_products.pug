@@ -3,3 +3,52 @@ extends layout
 block link
   -var selected = 'Formulas';
 
+block content
+  form(action='/formulas/completed_productions/view/', method='post')
+    h4 Search Productions
+    .form-group
+      label.control-label Start date
+      input.form-control(type='date' name='start')
+    .form-group
+      label.control-label End date
+      input.form-control(type='date' name='end')
+    .form-group
+      label.control-label Status
+      select.form-control(name='status', placeholder = '', required='')
+        option(selected='') All Products
+        option(value='inProgress') In Progress
+        option(value='completed') Completed
+    .form-group
+      label.control-label Product name
+      input.form-control(type='text' name='product')
+    button.btn.btn-primary.pull-right(type='submit', value='Filter') Filter
+  div.card
+    div.card-header(data-background-color='purple')
+      h4.title Completed Productions
+    div.card-content.table-response
+      table.table#formulaTable
+        thead.text-primary
+          th(onclick='sortTable(0, \'formula\')') Product (Lot Number)
+          th(onclick='sortTable(1, \'formula\')') Ingredients (Vendor, Lot Number)
+          th(onclick='sortTable(1, \'formula\')') Status
+          th(onclick='sortTable(2, \'formula\')') Timestamp
+        tbody
+        each record in report
+          tr
+            td
+              a(href='/formulas/' + record.name)= record.name
+              |  (#{record.lotNumber})
+            td
+              each tuple in record.constituents
+                a(href='/ingredients/' + encodeURIComponent(tuple.ingredientName))= tuple.ingredientName
+                |  (#{tuple.vendorName}, #{tuple.lotNumber})
+                br
+            if record.inProgress
+              td 
+                div
+                  p In Progress
+                  form(action='/production_lines/mark_completed/' + record.productionLine, method='post')
+                    button.btn.btn-primary(type='submit', style='margin:0px; padding: 5px 10px;') Complete Production
+            else
+              td Completed
+            td= record.timestamp
