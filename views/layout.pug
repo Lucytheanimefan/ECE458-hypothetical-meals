@@ -27,7 +27,7 @@ html(lang='en')
     -var selected = 'home'; // default
   block status
     -var user_status = 'Logout';
-  body
+  body(style='padding: 0px !important;')
     .wrapper
       .sidebar(data-color='purple', data-image='/img/sidebar-4.jpg')
         //
@@ -57,7 +57,7 @@ html(lang='en')
                     i.material-icons #{icon}
                     p #{key}
 
-      .main-panel
+      div(style='padding: 50px !important;').main-panel
         nav.navbar.navbar-transparent.navbar-absolute
           .container-fluid
             div Logged in as

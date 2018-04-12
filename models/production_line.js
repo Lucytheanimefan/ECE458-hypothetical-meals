@@ -40,6 +40,9 @@ var ProductionLineSchema = new mongoose.Schema({
       type: mongoose.Schema.ObjectId,
       ref: 'Formula'
     },
+    lotNumber: {
+      type: String
+    },
     name: {
       type: String
     },
@@ -170,11 +173,11 @@ module.exports.updateHistory = function(productionLineId, status, formulaId = nu
  * @param {[type]} productionLineId [description]
  * @param {[type]} formulaId        [description]
  */
-module.exports.addProductToProductionLine = function(productionLineId, formulaId, formulaName, amount, lotsConsumed) {
+module.exports.addProductToProductionLine = function(productionLineId, formulaId, formulaName, amount, lotNumber, lotsConsumed) {
   return ProductionLine.findOneAndUpdate({ _id: productionLineId }, {
     $set: {
       busy: true,
-      currentProduct: { formulaId: mongoose.Types.ObjectId(formulaId), name: formulaName, amount: amount, ingredientLots: lotsConsumed }
+      currentProduct: { formulaId: mongoose.Types.ObjectId(formulaId), lotNumber: lotNumber, name: formulaName, amount: amount, ingredientLots: lotsConsumed }
     }
   }, { new: true }).exec();
 }
@@ -189,6 +192,10 @@ module.exports.updateProductionLine = function(id, updateInfo) {
   return ProductionLine.findOneAndUpdate({ '_id': id }, {
     '$set': updateInfo,
   }, { upsert: true }).exec();
+}
+
+module.exports.getProductionLineForLot = function(lotNumber) {
+  return ProductionLine.findOne({'currentProduct.lotNumber': lotNumber}).exec();
 }
 
 // module.exports.getProductionLineHistory = function(productionLineObject, startDate, endDate) {

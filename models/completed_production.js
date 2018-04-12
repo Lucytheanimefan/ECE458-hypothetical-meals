@@ -1,6 +1,7 @@
 var mongoose = require('mongoose');
 var Ingredient = require('./ingredient');
 var Vendor = require('./vendor');
+var ProductionLine = require('./production_line');
 mongoose.Promise = global.Promise;
 
 var CompletedSchema = new mongoose.Schema({
@@ -12,6 +13,7 @@ var CompletedSchema = new mongoose.Schema({
     type: String
   },
   intermediate: Boolean,
+  inProgress: Boolean,
   constituents: [
     {
       ingredientID: String,
@@ -42,6 +44,7 @@ module.exports.createLotEntry = function(formulaName, formulaLot, intermediate) 
       'name': formulaName,
       'lotNumber': formulaLot,
       'intermediate': intermediate,
+      'inProgress': true,
       'constituents': []
     };
     Completed.findOne({formulaLot: formulaLot}).then(function(result) {
@@ -56,6 +59,10 @@ module.exports.createLotEntry = function(formulaName, formulaLot, intermediate) 
       reject(error)
     })
   })
+}
+
+module.exports.completeProduct = function(formulaLot) {
+  Completed.findOneAndUpdate({'lotNumber': formulaLot}, {'$set': {'inProgress': false}}).exec();
 }
 
 module.exports.updateReport = function(formulaName, formulaLot, ingID, ingLot, vendorID) {
@@ -88,15 +95,28 @@ module.exports.updateReport = function(formulaName, formulaLot, ingID, ingLot, v
   })
 }
 
-module.exports.getProducts = function() {
+module.exports.getProducts = function(query) {
   return new Promise(function(resolve, reject) {
-    Completed.find().sort({'_id': -1}).exec().then(function(products) {
-      let returnProducts = [];
-      for (let record of products) {
-        record['timestamp'] = mongoose.Types.ObjectId(record['_id']).getTimestamp().toString();
-        returnProducts.push(record);
+    Completed.find(query).sort({'_id': -1}).exec().then(function(products) {
+      return Promise.all(products.map(function(record) {
+        return addInformation(record);
+      }))
+    }).then(function(products) {
+      resolve(products);
+    }).catch(function(error) {
+      reject(error);
+    })
+  })
+}
+
+addInformation = function(record) {
+  return new Promise(function(resolve, reject) {
+    ProductionLine.getProductionLineForLot(record.lotNumber).then(function(line) {
+      if (line != null) {
+        record['productionLine'] = line['_id'];
       }
-      resolve(returnProducts);
+      record['timestamp'] = mongoose.Types.ObjectId(record['_id']).getTimestamp().toString();
+      resolve(record);
     }).catch(function(error) {
       reject(error);
     })
