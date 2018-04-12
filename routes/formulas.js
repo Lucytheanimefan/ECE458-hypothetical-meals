@@ -381,7 +381,7 @@ router.post('/completed_productions/view', function(req, res, next) {
     var expression = new RegExp(product, 'i')
     query['name'] = expression;
   }
-  if (status != null) {
+  if (status != 'all') {
     query['inProgress'] = (status == 'inProgress');
   }
   Completed.getProducts(query).then(function(products) {
