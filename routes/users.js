@@ -731,6 +731,7 @@ router.post('/lot_assignment/assign', function(req, res, next){
       //console.log(currIng);
       //console.log(currVend);
       //console.log(currOrder);
+      //TODO add cost per native native unit to below
       promises.push(IngredientHelper.incrementAmount(currIng,parseFloat(currQuantity*currSize),currVend,currLot));
       orderPromises.push(OrderHelper.markIngredientAssigned(currOrder,currIng,currVend,currLot));
     }
