@@ -125,8 +125,9 @@ block content
           table.table#formulaTable
             thead.text-primary
               th(onclick='sortTable(0, \'formula\')') Product (Lot Number)
-              th(onclick='sortTable(2, \'formula\')') Ingredients (Vendor, Lot Number)
-              th(onclick='sortTable(3, \'formula\')') Timestamp
+              th(onclick='sortTable(1, \'formula\')') Ingredients (Vendor, Lot Number)
+              th(onclick='sortTable(1, \'formula\')') Status
+              th(onclick='sortTable(2, \'formula\')') Timestamp
             tbody
             each record in report
               tr
@@ -138,6 +139,14 @@ block content
                     a(href='/ingredients/' + encodeURIComponent(tuple.ingredientName))= tuple.ingredientName
                     |  (#{tuple.vendorName}, #{tuple.lotNumber})
                     br
+                if record.inProgress
+                  td 
+                    div
+                      p In Progress
+                      form(action='/production_lines/mark_completed/' + record.productionLine, method='post')
+                        button.btn.btn-primary(type='submit', style='margin:0px; padding: 5px 10px;') Complete Production
+                else
+                  td Completed
                 td= record.timestamp
   div#index2(data-start=1)
 

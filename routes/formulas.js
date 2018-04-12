@@ -11,6 +11,7 @@ var ProductionLine = require('../models/production_line');
 var Recall = require('../models/recall');
 var underscore = require('underscore');
 var mongoose = require('mongoose');
+var uniqid = require('uniqid');
 mongoose.Promise = global.Promise;
 
 var min = 10000000
@@ -51,7 +52,7 @@ router.get('/home/:page?', function(req, res, next) {
       var ingredients = [];
       var ingQuery = Ingredient.getAllIngredients();
       var report;
-      Completed.getProducts().then(function(result) {
+      Completed.getProducts({}).then(function(result) {
         report = result;
         return ingQuery;
       }).then(function(result) {
@@ -216,12 +217,13 @@ router.post('/:name/order/:amount', function(req, res, next) {
   var globalFormula;
   var formulaLot;
   var lotsConsumed;
+  var lotNumber = uniqid();
 
 
   Formula.findFormulaByName(formulaName).then(function(formula) {
     globalFormula = formula;
     formulaId = mongoose.Types.ObjectId(formula['_id']);
-    return Promise.all([FormulaHelper.createListOfTuples(formulaName, amount), Production.updateReport(formulaId, formulaName, amount, 0)]);
+    return Promise.all([FormulaHelper.createListOfTuples(formulaName, amount), Production.updateReport(formulaId, formulaName, amount, 0), Completed.createLotEntry(formula.name, lotNumber, formula.intermediate)]);
   }).then(function(result) {
     var results = result[0];
     console.log('Results:');
@@ -230,7 +232,7 @@ router.post('/:name/order/:amount', function(req, res, next) {
     console.log('TOTALS');
     console.log(totals);
     return Promise.all(totals.map(function(ingTuple) {
-      return IngredientHelper.sendIngredientsToProduction(formulaId, mongoose.Types.ObjectId(ingTuple['id']), parseFloat(ingTuple['amount']));
+      return IngredientHelper.sendIngredientsToProduction(formulaId, mongoose.Types.ObjectId(ingTuple['id']), parseFloat(ingTuple['amount']), lotNumber);
     }));
   }).then(function(results) {
     lotsConsumed = [].concat.apply([], results);
@@ -251,7 +253,7 @@ router.post('/:name/order/:amount', function(req, res, next) {
     if (!productionLine.busy) {
       console.log('Not busy, add product to production line');
       console.log(lotsConsumed);
-      var addProductQuery = ProductionLine.addProductToProductionLine(productionLineId, formulaId, formulaName, amount, lotsConsumed);
+      var addProductQuery = ProductionLine.addProductToProductionLine(productionLineId, formulaId, formulaName, amount, lotNumber, lotsConsumed);
       return addProductQuery;
     } else {
       let err = new Error('That production line is busy. You cannot add a product.');
@@ -355,6 +357,18 @@ router.post('/add_product/:formulaId/:formulaName/to_production_line', function(
     res.redirect('/formulas');
   }).catch(function(error) {
     console.log(error);
+    next(error);
+  })
+})
+
+router.post('/completed_productions/view', function(req, res, next) {
+  var startDate = req.body.startDate;
+  var endDate = req.body.endDate;
+  var product = req.body.product;
+  var type = req.body.type;
+  Completed.getProducts({}).then(function(products) {
+    res.render('completed_products', {products: products});
+  }).catch(function(error) {
     next(error);
   })
 })
