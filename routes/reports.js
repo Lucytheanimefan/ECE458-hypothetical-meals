@@ -8,6 +8,7 @@ var Freshness = require('../models/freshness');
 var Ingredient = require('../models/ingredient');
 var Recall = require('../models/recall');
 var ProductionLine = require('../models/production_line');
+var Profit = require('../models/profitability');
 
 var mongoose = require('mongoose')
 mongoose.Promise = global.Promise;
@@ -21,19 +22,23 @@ router.get('/:page', function(req, res, next) {
   var productionReport;
   var formulaReport;
   var ingredientReport;
+  var recallReport;
+  var profitReport;
 
   var spending;
   var production;
   var formula;
   var ingredient;
   var overallFreshness;
+  var overallProfit;
 
-  Promise.all([Spending.getSpending(), Spending.getProduction(), Production.getProduction(), Freshness.getIngredients(), Recall.getRecall()]).then(function(results) {
+  Promise.all([Spending.getSpending(), Spending.getProduction(), Production.getProduction(), Freshness.getIngredients(), Recall.getRecall(), Profit.getProducts()]).then(function(results) {
     spendingReport = results[0];
     productionReport = results[1];
     formulaReport = results[2];
     ingredientReport = results[3];
     recallReport = results[4];
+    profitReport = results[5];
 
     spendingPromise = Promise.all(spendingReport.spending.map(function(tuple) {
       return getIngredientName(tuple);
@@ -48,10 +53,12 @@ router.get('/:page', function(req, res, next) {
       return getIngredientFreshnessName(tuple);
     }));
     recallPromise = getVendorLots(recallReport);
+    profitPromise = getAllProfitInformation(profitReport);
     overallFreshness = getOverallFreshness(ingredientReport);
-    return Promise.all([spendingPromise, productionPromise, formulaPromise, ingredientPromise, recallPromise]);
+    overallProfit = getOverallProfit(profitReport);
+    return Promise.all([spendingPromise, productionPromise, formulaPromise, ingredientPromise, recallPromise, profitPromise]);
   }).then(function(results) {
-    res.render('report', { spending: results[0], production: results[1], formula: results[2], ingredient: results[3], freshness: overallFreshness, recall: results[4] });
+    res.render('report', { spending: results[0], production: results[1], formula: results[2], ingredient: results[3], freshness: overallFreshness, recall: results[4],  profit: results[5], overallProfit: overallProfit });
   }).catch(function(error) {
     next(error);
   })
@@ -278,6 +285,36 @@ getVendorLots = function(report) {
     }
     resolve(lotList);
   })
+}
+
+getAllProfitInformation = function(report) {
+  return new Promise(function(resolve, reject) {
+    let productList = [];
+    for (let product of report) {
+      let revenue = parseFloat(product.unitsSold) * parseFloat(product.unitCost);
+      let profit = revenue - parseFloat(product.ingCost);
+      product['revenue'] = revenue;
+      product['profit'] = profit;
+      product['perUnitProfit'] = profit / parseFloat(product.unitsSold);
+      product['profitMarginPercent'] = revenue/parseFloat(product.ingCost);
+      productList.push(product);
+    }
+    resolve(productList);
+  })
+}
+
+getOverallProfit = function(report) {
+  var revenue = 0;
+  var cost = 0;
+  for (let product of report) {
+    revenue += parseFloat(product.unitsSold) * parseFloat(product.unitCost);
+    cost += parseFloat(product.ingCost);
+  }
+  let overall = {};
+  overall['revenue'] = revenue;
+  overall['cost'] = cost;
+  overall['profit'] = revenue - cost;
+  return overall;
 }
 
 convertTime = function(milliseconds) {
