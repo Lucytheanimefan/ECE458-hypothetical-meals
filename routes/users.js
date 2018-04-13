@@ -904,6 +904,7 @@ orderLotCheck = async function(lots){
           }
         }
         console.log(errorMessage);
+
         return errorMessage;
       })
     }).then(function(errorMessage){

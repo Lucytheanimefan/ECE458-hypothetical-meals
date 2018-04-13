@@ -58,9 +58,9 @@ html(lang='en')
                     p #{key}
 
       div(style='padding: 50px !important;').main-panel
-        nav.navbar.navbar-transparent.navbar-absolute
+        nav.navbar.navbar-transparent
           .container-fluid
-            div Logged in as
+            div Logged in as 
               span#username
             .navbar-header
               button.navbar-toggle(type='button', data-toggle='collapse')
@@ -84,7 +84,7 @@ html(lang='en')
               //-   //- .form-group.is-empty
               //-   a#profile(href='/users/profile') Profile
               //-   a#logout(href='/users/logout') Logout
-        .content
+        .content(style='margin-top: 0px;')
           .container-fluid
             block content
 
