@@ -115,7 +115,6 @@ app.use(function(err, req, res, next) {
   res.render('error');
 });
 
-
 var CronJob = require('cron').CronJob;
 
 // test the cron job
