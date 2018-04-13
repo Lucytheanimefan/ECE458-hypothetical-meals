@@ -10,6 +10,7 @@ var Production = require('../models/production');
 var Completed = require('../models/completed_production');
 var ProductionLine = require('../models/production_line');
 var Recall = require('../models/recall');
+var Profit = require('../models/profitability');
 var underscore = require('underscore');
 var mongoose = require('mongoose');
 var uniqid = require('uniqid');
@@ -226,7 +227,7 @@ router.post('/:name/order/:amount', function(req, res, next) {
     return Ingredient.getIngredient(formulaName);
   }).then(function(ing) {
     if (!globalFormula.intermediate) {
-      return true;
+      return Profit.createEntry(formulaName);
     } else {
       return InventoryHelper.checkInventory(ing.name, ing.package, ing.temperature, ing.unitsPerPackage, parseFloat(ing.amount) + amount);
     }

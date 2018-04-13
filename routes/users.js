@@ -731,7 +731,7 @@ router.post('/lot_assignment/assign', function(req, res, next){
       //console.log(currIng);
       //console.log(currVend);
       //console.log(currOrder);
-      promises.push(IngredientHelper.incrementAmount(currIng,parseFloat(currQuantity*currSize),currVend,currLot));
+      promises.push(IngredientHelper.incrementAmount(currIng,parseFloat(currQuantity*currSize),currVend,currLot,0));
       orderPromises.push(OrderHelper.markIngredientAssigned(currOrder,currIng,currVend,currLot));
     }
     return Promise.all(promises);
