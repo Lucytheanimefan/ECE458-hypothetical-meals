@@ -13,6 +13,7 @@ block content
         a(data-toggle='tab', href='#edit_form') Edit
 
     .tab-content
+      #alertData.hide(data-alert=alert)
       #productionLine.tab-pane.fade.in.active
         table.table
           tr
@@ -28,9 +29,10 @@ block content
           tr
             th Formulas
             td
-              each formula in productionLine.formulas
-                li
-                  a.lineFormula(href="/formulas/id/" + formula.formulaId, data-id=formula.formulaId)
+              if productionLine.formulas != null
+                each formula in productionLine.formulas
+                  li
+                    a.lineFormula(href="/formulas/id/" + formula.formulaId, data-id=formula.formulaId)
         if productionLine.busy
           form(action='/production_lines/mark_completed/' + productionLine._id, method='post')
             button.btn.btn-primary.pull-right(type='submit', value='complete productionline') Mark production completed
@@ -52,17 +54,18 @@ block content
             select.form-control(name='formulas', placeholder = '', multiple)
               //- option(disabled='' value='') Select an option
               each formula in formulas
-                if productionLine.formulas.length > 0
-                  - var added = false;
-                  for prodFormula,index in productionLine.formulas
-                    if index == 0
-                      - added = false;
-                    if formula._id.toString() == prodFormula.formulaId
-                      - added = true
-                      option(value=formula._id, selected)= formula.name
-                    else if !added
-                      option(value=formula._id)= formula.name
-                      - added = true
+                if productionLine.formulas != null
+                  if productionLine.formulas.length > 0
+                    - var added = false;
+                    for prodFormula,index in productionLine.formulas
+                      if index == 0
+                        - added = false;
+                      if formula._id.toString() == prodFormula.formulaId
+                        - added = true
+                        option(value=formula._id, selected)= formula.name
+                      else if !added
+                        option(value=formula._id)= formula.name
+                        - added = true
                 else
                   option(value=formula._id)= formula.name
           button.btn.btn-primary.pull-right(type='submit', value='create production line') Update
@@ -70,3 +73,4 @@ block content
 block scripts
   script.
     updateLineFormulaNames();
+    displayFileAlert();

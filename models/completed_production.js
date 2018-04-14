@@ -1,28 +1,26 @@
 var mongoose = require('mongoose');
 var Ingredient = require('./ingredient');
 var Vendor = require('./vendor');
+var ProductionLine = require('./production_line');
 mongoose.Promise = global.Promise;
 
 var CompletedSchema = new mongoose.Schema({
-  name: {
+  lotNumber: {
     type: String,
-    required: true,
     unique: true
   },
-  products: [
+  name: {
+    type: String
+  },
+  intermediate: Boolean,
+  inProgress: Boolean,
+  constituents: [
     {
-      name: String,
+      ingredientID: String,
+      ingredientName: String,
       lotNumber: String,
-      intermediate: Boolean,
-      constituents: [
-        {
-          ingredientID: String,
-          ingredientName: String,
-          lotNumber: String,
-          vendorID: String,
-          vendorName: String
-        }
-      ]
+      vendorID: String,
+      vendorName: String
     }
   ]
 })
@@ -40,42 +38,38 @@ module.exports.model = Completed;
 //   return true;
 // }
 
-createReport = function() {
+module.exports.createLotEntry = function(formulaName, formulaLot, intermediate) {
   return new Promise(function(resolve, reject) {
-    exports.getCompleted().then(function(report) {
-      if (report == null) {
-        resolve(Completed.create({
-          'name': 'recall',
-          'products': []
-        }));
+    let newEntry = {
+      'name': formulaName,
+      'lotNumber': formulaLot,
+      'intermediate': intermediate,
+      'inProgress': true,
+      'constituents': []
+    };
+    Completed.findOne({formulaLot: formulaLot}).then(function(result) {
+      if (result == null) {
+        return Completed.create(newEntry);
       } else {
-        resolve(report);
+        return result;
       }
+    }).then(function(result) {
+      resolve(result);
     }).catch(function(error) {
-      reject(error);
+      reject(error)
     })
-  });
+  })
 }
 
-module.exports.createLotEntry = function(formulaName, formulaLot, intermediate) {
-  let newEntry = {
-    'name': formulaName,
-    'lotNumber': formulaLot,
-    'intermediate': intermediate,
-    'constituents': []
-  };
-  return Completed.findOneAndUpdate({'name': 'recall'}, {'$push': {'products': newEntry}}).exec();
+module.exports.completeProduct = function(formulaLot) {
+  Completed.findOneAndUpdate({'lotNumber': formulaLot}, {'$set': {'inProgress': false}}).exec();
 }
 
 module.exports.updateReport = function(formulaName, formulaLot, ingID, ingLot, vendorID) {
   return new Promise(function(resolve, reject) {
-    createReport().then(function(result) {
-      return Completed.findOne( {'name': 'recall'} ).exec();
-    }).then(function(report) {
-      console.log("hello");
-      console.log(vendorID);
+    Completed.find().exec().then(function(products) {
       if (vendorID == 'admin') {
-        return Promise.all([Ingredient.getIngredientById(ingID), {'name': 'admin'}]);
+        return Promise.all([Ingredient.getIngredientById(ingID), { 'name': 'admin' }]);
       } else {
         return Promise.all([Ingredient.getIngredientById(ingID), Vendor.findVendorById(vendorID)]);
       }
@@ -83,12 +77,16 @@ module.exports.updateReport = function(formulaName, formulaLot, ingID, ingLot, v
       var ing = result[0];
       var vendor = result[1];
       if (vendor == null) {
-        vendor = {'name': 'deleted vendor with ID ' + vendorID};
+        vendor = { 'name': 'deleted vendor with ID ' + vendorID };
       }
-      let newConstituent = {'ingredientID': ingID, 'ingredientName': ing.name, 'lotNumber': ingLot, 'vendorID': vendorID, 
-      'vendorName': vendor.name};
-      return Completed.update({'$and': [{'name': 'recall'}, {'products': {'$elemMatch': {'name': formulaName, 'lotNumber': formulaLot}}}]},
-        {'$push': {'products.$.constituents': newConstituent}}).exec();
+      let newConstituent = {
+        'ingredientID': ingID,
+        'ingredientName': ing.name,
+        'lotNumber': ingLot,
+        'vendorID': vendorID,
+        'vendorName': vendor.name
+      };
+      return Completed.update({'name': formulaName, 'lotNumber': formulaLot}, {'$push': {'constituents': newConstituent}}).exec();
     }).then(function(report) {
       resolve(report);
     }).catch(function(error) {
@@ -97,15 +95,28 @@ module.exports.updateReport = function(formulaName, formulaLot, ingID, ingLot, v
   })
 }
 
-module.exports.getProducts = function() {
+module.exports.getProducts = function(query) {
   return new Promise(function(resolve, reject) {
-    Completed.findOne({'name': 'recall'}).then(function(report) {
-      let returnProducts = [];
-      for (let record of report.products) {
-        record['timestamp'] = mongoose.Types.ObjectId(record['_id']).getTimestamp().toString();
-        returnProducts.push(record);
+    Completed.find(query).sort({'_id': -1}).exec().then(function(products) {
+      return Promise.all(products.map(function(record) {
+        return addInformation(record);
+      }))
+    }).then(function(products) {
+      resolve(products);
+    }).catch(function(error) {
+      reject(error);
+    })
+  })
+}
+
+addInformation = function(record) {
+  return new Promise(function(resolve, reject) {
+    ProductionLine.getProductionLineForLot(record.lotNumber).then(function(line) {
+      if (line != null) {
+        record['productionLine'] = line['_id'];
       }
-      resolve(returnProducts);
+      record['timestamp'] = mongoose.Types.ObjectId(record['_id']).getTimestamp().toString();
+      resolve(record);
     }).catch(function(error) {
       reject(error);
     })
@@ -114,7 +125,7 @@ module.exports.getProducts = function() {
 
 module.exports.getCompleted = function() {
   return new Promise(function(resolve, reject) {
-    Completed.findOne({'name': 'recall'}).then(function(recall) {
+    Completed.findOne({ 'name': 'recall' }).then(function(recall) {
       resolve(recall);
     }).catch(function(error) {
       reject(error);

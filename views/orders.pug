@@ -1,0 +1,31 @@
+extends layout
+block link
+  -var selected = 'Orders';
+
+block content
+  .row
+    div.card
+      div.card-header(data-background-color='purple')
+        h4.title Orders
+      div.card-content.table-response
+        input.form-control#logInput(type='text',onkeyup='filterTable(\'log\')', placeholder='Search for order..', title='Type in some search text')
+        table.table#logTable
+          thead.text-primary
+            th(onclick='sortTable(0, \'log\')') Order Number
+            th(onclick='sortTable(0, \'log\')') Order Time
+            th(onclick='sortTable(0, \'log\')') Arrival Time
+            th(onclick='sortTable(0, \'log\')') Status
+            //- th(onclick='sortTable(0, \'log\')') Related entities
+          tbody
+          each order in orders
+            tr(id=order._id)
+              td
+                a(href='/orders/' + order.orderNumber)= order.orderNumber
+              td= order.orderTimeStamp
+              td= order.arrivalTimeStamp
+              td= order.completed ? "Delivered" : "Not Delivered"
+              
+              //- td= log.entities
+block scripts
+  script.
+    $('#datetimepicker1').datepicker();

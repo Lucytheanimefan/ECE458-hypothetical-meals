@@ -51,7 +51,7 @@ module.exports.getAllFormulas = function() {
 }
 
 module.exports.findFormulaById = function(id){
-  return Formula.findOne({'_id':id}).exec();
+  return Formula.findById(id).exec();
 }
 
 module.exports.createFormula = function(name, description, units, intermediate) {

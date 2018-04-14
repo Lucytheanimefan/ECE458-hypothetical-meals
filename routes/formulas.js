@@ -2,6 +2,7 @@ var express = require('express');
 var router = express.Router();
 var Formula = require('../models/formula');
 var FormulaHelper = require('../helpers/formula');
+var FinalProductHelper = require('../helpers/final_products');
 var IngredientHelper = require('../helpers/ingredients');
 var Ingredient = require('../models/ingredient');
 var Production = require('../models/production');
@@ -10,6 +11,7 @@ var ProductionLine = require('../models/production_line');
 var Recall = require('../models/recall');
 var underscore = require('underscore');
 var mongoose = require('mongoose');
+var uniqid = require('uniqid');
 mongoose.Promise = global.Promise;
 
 var min = 10000000
@@ -50,7 +52,7 @@ router.get('/home/:page?', function(req, res, next) {
       var ingredients = [];
       var ingQuery = Ingredient.getAllIngredients();
       var report;
-      Completed.getProducts().then(function(result) {
+      Completed.getProducts({}).then(function(result) {
         report = result;
         return ingQuery;
       }).then(function(result) {
@@ -67,6 +69,7 @@ router.get('/home/:page?', function(req, res, next) {
         }
         res.render('formulas', { formulas: formulas, ingredients: ingredients, page: page, report: report, maxPage: maxPage });
       }).catch(function(error) {
+        console.log(error);
         next(error);
       })
     }
@@ -126,15 +129,24 @@ router.post('/:name/update', function(req, res, next) {
   let newName = req.body.name;
   let description = req.body.description;
   let units = req.body.units;
-  var promise = Formula.findFormulaByName(name);
+  let package = req.body.package;
+  let temperature = req.body.temperature;
+  let nativeUnit = req.body.nativeUnit;
+  let unitsPerPackage = req.body.unitsPerPackage;
   var body = req.body;
   delete body['name'];
   delete body['description'];
   delete body['units'];
+  delete body['package'];
+  delete body['temperature'];
+  delete body['nativeUnits'];
+  delete body['unitsPerPackage'];
+  var promise = Formula.findFormulaByName(name);
   var length = Object.keys(body).length;
   console.log(body);
   promise.then(function(formula) {
-    return FormulaHelper.updateFormula(name, newName, description, units);
+    return Promise.all([FormulaHelper.updateFormula(name, newName, description, units),
+      IngredientHelper.updateIngredient(name, newName, package, temperature, nativeUnit, unitsPerPackage)]);
   }).then(async function(result) {
     var index = 1;
     var count = 1;
@@ -150,7 +162,7 @@ router.post('/:name/update', function(req, res, next) {
     }
     //return Promise.all(tuplePromises);
   }).then(function(result) {
-    logs.makeLog('Update formula', 'Updated ' + '<a href="/formulas/' + encodeURIComponent(newName) + '">' + newName + '</a>' /*JSON.stringify({formula_name:newName})*/ , req.session.userId);
+    logs.makeLog('Update formula', 'Updated ' + '<a href="/formulas/' + encodeURIComponent(newName) + '">' + newName + '</a>' /*JSON.stringify({formula_name:newName})*/ , req.session.username);
     res.redirect(req.baseUrl + '/' + newName);
   }).catch(function(error) {
     next(error);
@@ -204,65 +216,59 @@ router.post('/:name/order/:amount', function(req, res, next) {
   var formulaId;
   var globalFormula;
   var formulaLot;
+  var lotsConsumed;
+  var lotNumber = uniqid();
 
 
   Formula.findFormulaByName(formulaName).then(function(formula) {
-      globalFormula = formula;
-      formulaId = mongoose.Types.ObjectId(formula['_id']);
-      formulaLot = (Math.floor(Math.random() * (max - min)) + min).toString();
-      return Promise.all([FormulaHelper.createListOfTuples(formulaName, amount), Production.updateReport(formulaId, formulaName, amount, 0), Completed.createLotEntry(formulaName, formulaLot, formula.intermediate)]);
-    }).then(function(result) {
-      var results = result[0];
-      console.log('Results:');
-      console.log(results);
-      var totals = results['total'];
-      console.log('TOTALS');
-      console.log(totals);
-      return Promise.all(totals.map(function(ingTuple) {
-        return IngredientHelper.sendIngredientsToProduction(formulaId, mongoose.Types.ObjectId(ingTuple['id']), parseFloat(ingTuple['amount']), formulaLot);
-      }));
-    }).then(function(results) {
-      logs.makeLog('Production', 'Send ingredients to production', req.session.username);
-      return Ingredient.getIngredient(formulaName);
-    }).then(function(ing) {
-      if (globalFormula.intermediate) {
-        return IngredientHelper.incrementAmount(ing._id, parseFloat(amount), 'admin', formulaLot)
-      } else {
-        return globalFormula;
-      }
-    }).then(function(result) {
-      var prodLineQuery = ProductionLine.getProductionLineById(productionLineId);
-      return prodLineQuery;
-    })
-    .then(function(productionLine) {
-      console.log(productionLine);
-      if (productionLine == null) {
-        let err = new Error('No production line found');
-        return next(err);
-      }
-      //let productionLine = productionLines[0];
-      console.log(productionLine);
-      console.log('Busy?');
-      console.log(productionLine.busy);
-      console.log(typeof(productionLine.busy));
-      if (!productionLine.busy) {
-        console.log('Not busy, add product to production line');
-        var addProductQuery = ProductionLine.addProductToProductionLine(productionLineId, formulaId, formulaName);
-        return addProductQuery;
-      } else {
-        let err = new Error('That production line is busy. You cannot add a product.')
-        return next(err);
-      }
-    }).then(function(productionLine) {
-      logs.makeLog('Production', 'Send formula to production line', req.session.username);// TODO: link
-      var historyQuery = ProductionLine.updateHistory(productionLineId, 'busy', formulaId);
-      return historyQuery;
-    }).then(function() {
-      res.redirect('/formulas');
-    }).catch(function(error) {
-      console.log(error);
-      next(error);
-    });
+    globalFormula = formula;
+    formulaId = mongoose.Types.ObjectId(formula['_id']);
+    return Promise.all([FormulaHelper.createListOfTuples(formulaName, amount), Production.updateReport(formulaId, formulaName, amount, 0), Completed.createLotEntry(formula.name, lotNumber, formula.intermediate)]);
+  }).then(function(result) {
+    var results = result[0];
+    console.log('Results:');
+    console.log(results);
+    var totals = results['total'];
+    console.log('TOTALS');
+    console.log(totals);
+    return Promise.all(totals.map(function(ingTuple) {
+      return IngredientHelper.sendIngredientsToProduction(formulaId, mongoose.Types.ObjectId(ingTuple['id']), parseFloat(ingTuple['amount']), lotNumber);
+    }));
+  }).then(function(results) {
+    lotsConsumed = [].concat.apply([], results);
+    logs.makeLog('Production', 'Send ingredients to production', req.session.username);
+    var prodLineQuery = ProductionLine.getProductionLineById(productionLineId);
+    return prodLineQuery;
+  }).then(function(productionLine) {
+    console.log(productionLine);
+    if (productionLine == null) {
+      let err = new Error('No production line found');
+      return next(err);
+    }
+    //let productionLine = productionLines[0];
+    console.log(productionLine);
+    console.log('Busy?');
+    console.log(productionLine.busy);
+    console.log(typeof(productionLine.busy));
+    if (!productionLine.busy) {
+      console.log('Not busy, add product to production line');
+      console.log(lotsConsumed);
+      var addProductQuery = ProductionLine.addProductToProductionLine(productionLineId, formulaId, formulaName, amount, lotNumber, lotsConsumed);
+      return addProductQuery;
+    } else {
+      let err = new Error('That production line is busy. You cannot add a product.');
+      throw err;
+    }
+  }).then(function(productionLine) {
+    logs.makeLog('Production', 'Send formula to production line', req.session.username);// TODO: link
+    var historyQuery = ProductionLine.updateHistory(productionLineId, 'busy', formulaId);
+    return historyQuery;
+  }).then(function() {
+    res.redirect('/formulas');
+  }).catch(function(error) {
+    console.log(error);
+    next(error);
+  });
 })
 
 router.post('/:name/delete_tuple', function(req, res, next) {
@@ -355,6 +361,42 @@ router.post('/add_product/:formulaId/:formulaName/to_production_line', function(
   })
 })
 
+router.post('/completed_productions/view', function(req, res, next) {
+  var startDate = req.body.start;
+  var endDate = req.body.end;
+  var product = req.body.product;
+  var status = req.body.status;
+  var query = {};
+  console.log(startDate);
+  console.log(endDate);
+  if (startDate != '' && endDate != '') {
+    query['_id'] = { "$gte": getObjectIdForTime(startDate), "$lte": getObjectIdForTime(endDate) };
+  } else if (startDate != '') {
+    query['_id'] = { "$gte": getObjectIdForTime(startDate) };
+  } else if (endDate != '') {
+    query['_id'] = { "$lte": getObjectIdForTime(endDate) };
+  }
+  if (product != null) {
+    var search = '.*' + product + '.*'
+    var expression = new RegExp(product, 'i')
+    query['name'] = expression;
+  }
+  if (status != null) {
+    query['inProgress'] = (status == 'inProgress');
+  }
+  Completed.getProducts(query).then(function(products) {
+    res.render('completed_products', {report: products});
+  }).catch(function(error) {
+    next(error);
+  })
+})
+
+getObjectIdForTime = function(dateString) {
+  var date = new Date(dateString);
+  var seconds = Math.floor(date/1000).toString(16)
+  console.log(date.getTime());
+  return mongoose.Types.ObjectId(seconds + "0000000000000000");
+}
 
 
 

@@ -18,10 +18,12 @@ var vendors = require('./routes/vendors');
 var files = require('./routes/files');
 var inventory = require('./routes/inventory_routes');
 var formulas = require('./routes/formulas');
+var distributor = require('./routes/distributor');
 var reports = require('./routes/reports');
 var productionLines = require('./routes/production_lines');
 var logs = require('./routes/logs');
 var backups = require('./routes/backups');
+var orders = require('./routes/orders')
 var MongoStore = require('connect-mongo')(session);
 
 var oauth = require('./routes/duke_oauth');
@@ -80,7 +82,9 @@ app.use('/ingredients', users.requireLogin(), ingredients); //This is not ideal
 app.post('/ingredients/*', users.requireRole("admin"), ingredients);
 app.use('/vendors', users.requireLogin(), vendors);
 app.use('/formulas', formulas);
+app.use('/distributor', distributor);
 app.use('/reports', users.requireLogin(), reports);
+app.use('/orders', users.requireLogin(), orders);
 app.use('/production_lines', productionLines);
 
 app.use('/files', users.requireRole('admin'), files);
@@ -90,6 +94,7 @@ app.use('/inventory', inventory);
 app.use('/duke_oauth', oauth);
 app.use('/logs', logs);
 app.use('/backups', backups);
+
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -110,14 +115,13 @@ app.use(function(err, req, res, next) {
   res.render('error');
 });
 
-
 var CronJob = require('cron').CronJob;
 
 // test the cron job
 // var testsJob = new CronJob('00 * * * * *', function() {
 //     /*
 //      * Runs every month on Monday
-//      * at 11:30:00 AM. 
+//      * at 11:30:00 AM.
 //      */
 //     console.log('Run this every minute');
 //     //backups.makeBackup();
@@ -150,7 +154,7 @@ var dailyJob = new CronJob('00 30 11 * * 0-6', function() {
 var weeklyJob = new CronJob('00 30 11 * * 1', function() {
     /*
      * Runs every week on Monday
-     * at 11:30:00 AM. 
+     * at 11:30:00 AM.
      */
     console.log('Make weekly backup');
     backups.makeBackup('weekly');
@@ -167,7 +171,7 @@ var weeklyJob = new CronJob('00 30 11 * * 1', function() {
 var monthlyJob = new CronJob('00 30 11 1 * 1', function() {
     /*
      * Runs every month on Monday
-     * at 11:30:00 AM. 
+     * at 11:30:00 AM.
      */
     console.log('Make monthly backup');
     backups.makeBackup('monthly');

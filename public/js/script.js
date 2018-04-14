@@ -229,7 +229,7 @@ function loadSideBar() {
         if (category == 'Backups' || category == 'Home' || category == 'Profile') {
           $(this).removeClass('hide');
         }
-      } else if (role == "admin") {
+      } else if (role == "admin" || role == 'manager') {
         //console.log('loadAdminOnlySideBar');
         if (category !== 'Backups') {
           $(this).removeClass('hide');
@@ -429,7 +429,7 @@ function createLotTuples(ingredients, start) {
     console.log(ingredients);
     for (i = 0; i < ingredients.length; i++) {
       var ing = ingredients[i];
-      newHTML += '<option value=' + ing.ingId + '@' + ing.vendId + '@' + ing.ingSize + '>' + ing.ingredient + ' from ' + ing.vendor[0].name + '</option>';
+      newHTML += '<option value=' + ing.ingID + '@' + ing.vendID +  '@' + ing.ingSize + '@' + ing.orderNumber + '>' + ing.ingredient + ' from ' + ing.vendor[0].name + '</option>';
     }
     newHTML += '</select></div>';
 
@@ -571,7 +571,7 @@ function addPackage(index) {
     console.log(ingredients);
     var ing = ingredients[i];
     //newHTML += '<option value=' + ing.ingId + '@' + ing.vendId + '@' + ing.ingSize + '>' + ing.ingredient + '</option>';
-    newHTML += '<option value=' + ing.ingId + '@' + ing.vendId + '@' + ing.ingSize + '>' + ing.ingredient + ' from ' + ing.vendor[0].name + '</option>';
+    newHTML += '<option value=' + ing.ingID + '@' + ing.vendID +  '@' + ing.ingSize + '@' + ing.orderNumber + '>' + ing.ingredient + ' from ' + ing.vendor[0].name + '</option>';
   }
   newHTML += '</select></div>';
 
@@ -621,7 +621,7 @@ function selectVendor(orders) {
   }
 }
 
-// Formula 
+// Formula
 function getFormulaForID(id, callback) {
   $.ajax({
     type: 'GET',
@@ -654,6 +654,7 @@ function updateLineFormulaNames() {
   })
 }
 
+
 //'top','center
 function displayFileAlert() {
   var alertMessage = $("#alertData").data('alert');
@@ -674,6 +675,51 @@ function displayNotification(from, align, alertMessage) {
     placement: {
       from: from,
       align: align
+    }
+  });
+}
+
+function makeProductionEfficiencyGraph(ivElement, data) {
+  var chart = c3.generate({
+    bindto: divElement,
+    data: {
+      columns: data,
+      type: 'line',
+      groups: [group]
+    },
+    axis: {
+      x: {
+        type: 'category',
+        categories: xcategories
+      },
+      y: {
+        label: {
+          text: "Number of respondents who said they plan to vote for a candidate",
+          position: 'outer-middle'
+        }
+      }
+    },
+    tooltip: {
+      format: {
+        name: function(name, ratio, id, index) {
+          return name;
+        },
+        value: function(value, ratio,
+          id, index) {
+          //console.log(value + "," + ratio + "," + id + "," + index);
+          if (!isMain) { //not main
+            //console.log(value+"/"+totals[index]);
+            return ((value / totals[index] * 100).toFixed(2).toString() + "%");
+          } else {
+            return value;
+          }
+        }
+      }
+    },
+    bar: {
+      width: {
+        ratio: 0.5 // this makes bar width 50% of length between ticks
+      }
     }
   });
 }

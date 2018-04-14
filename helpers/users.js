@@ -1,9 +1,11 @@
 var User = require('../models/user');
 var Ingredient = require('../models/ingredient');
+var FinalProduct = require('../models/final_product');
 var IngredientHelper = require('../helpers/ingredients');
 var InventoryHelper = require('../helpers/inventory');
 var Spending = require('../models/spending');
 var Vendor = require('../models/vendor');
+var OrderHelper = require('../helpers/orders');
 var Token = require('../models/token');
 var crypto = require('crypto');
 var nodemailer = require('nodemailer');
@@ -27,6 +29,41 @@ module.exports.getVendorID = function(vendorName) {
       resolve(result);
     }).catch(function(error) {
       next(error);
+    })
+  })
+}
+
+module.exports.addToSaleList = function(id, fpId, quantity, price) {
+  return new Promise(function(resolve, reject) {
+    var user;
+    User.getUserById(id).then(function(userResult) {
+      user = userResult;
+      if (user == null) {
+        var error = new Error('Specified user doesn\'t exist');
+        error.status = 400;
+        throw(error);
+      }
+      for (let fp of user.saleList) {
+        if (fpId.toString() === fp.finalProduct.toString()) {
+          throw(new Error('That final product is already in the cart'));
+        }
+      }
+      return User.addToSaleList(id, fpId, quantity, price);
+    }).then(function(result) {
+      resolve(result);
+    }).catch(function(error) {
+      reject(error);
+    })
+  })
+}
+
+module.exports.removeSale = function(id, fpId) {
+  return new Promise(function(resolve,reject){
+    var result = User.removeSale(id, fpId);
+    result.then(function(success){
+      resolve(success);
+    }).catch(function(error){
+      reject(error);
     })
   })
 }
@@ -116,14 +153,22 @@ module.exports.updateCart = function(id) {
 module.exports.placeOrder = function(userId) {
   return new Promise(function(resolve, reject) {
     var cart;
+    var orderPromises = [];
+    var removeOrderPromises = [];
     User.getUserById(userId).then(function(user) {
       cart = user.cart;
       var promises = [];
       for (let order of cart) {
         var tuple = {};
+        var orderInfo = {};
         tuple['vendor'] = order.vendor;
         tuple['quantity'] = order.quantity;
+        orderInfo['vendor'] = order.vendor;
+        orderInfo['ingID'] = order.ingredient;
+        orderInfo['amount'] = order.quantity;
+        orderPromises.push(orderInfo);
         promises.push(exports.updateIngredientOnCheckout(mongoose.Types.ObjectId(order.ingredient), [tuple]));
+        removeOrderPromises.push(exports.removeOrder(userId, order.ingredient));
       }
       return Promise.all(promises);
     }).then(function(ings) {
@@ -135,6 +180,10 @@ module.exports.placeOrder = function(userId) {
       }
       return "done";
     }).then(function(results) {
+      return OrderHelper.addOrder(orderPromises);
+    }).then(function(results){
+      return Promise.all(removeOrderPromises);
+    }).then(function(results){
       resolve(results);
     }).catch(function(error) {
       reject(error);

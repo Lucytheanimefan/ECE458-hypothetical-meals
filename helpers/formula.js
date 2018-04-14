@@ -1,5 +1,6 @@
 var Formula = require('../models/formula');
 var Ingredient = require('../models/ingredient');
+var FinalProduct = require('../models/final_product');
 var mongoose = require('mongoose');
 mongoose.Promise = global.Promise;
 
@@ -11,7 +12,7 @@ module.exports.createFormula = function(name, description, units, intermediate, 
       if (intermediate) {
         return Ingredient.createIngredientIntermediate(name, ingInfo.package, ingInfo.temperature, ingInfo.nativeUnit, ingInfo.unitsPerPackage)
       } else {
-        return formula;
+        return FinalProduct.createFinalProduct(name);
       }
     }).then(function(result) {
       resolve(formula);
@@ -221,7 +222,7 @@ module.exports.updateTuple = function(name, index, ingredientID, quantity){
       for (i = 0; i < tuples.length; i++) {
         let tuple = tuples[i];
         if (ingResult['_id'].toString() === tuple['ingredientID'].toString()) {
-          if (quantity != tuple.quantity) {
+          if (quantity != tuple.quantity && index != tuple.index) {
             quantity = Number(quantity) + tuple.quantity;
             index = tuple.index;
           }

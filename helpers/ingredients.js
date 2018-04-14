@@ -114,10 +114,11 @@ module.exports.incrementAmount = function(id, amount, vendorID='admin', lotNumbe
   })
 }
 
-module.exports.decrementAmountForProduction = function(id, amount, formula, formulaLot) {
+module.exports.decrementAmountForProduction = function(id, amount, formula, lotNumber) {
   return new Promise(function(resolve, reject) {
     var newAmount;
     var ing;
+    var lotsConsumed;
     Ingredient.getIngredientById(id).then(function(result) {
       ing = result;
       newAmount = parseFloat(ing.amount) + parseFloat(amount);
@@ -131,40 +132,38 @@ module.exports.decrementAmountForProduction = function(id, amount, formula, form
     }).then(function(result) {
       return Ingredient.decrementAmount(ing.name, amount);
     }).then(async function(results) {
-      let lotsConsumed = results[1];
-      for (let lot of lotsConsumed) {
-        await Recall.createLotEntry(ing._id, ing.name, lot.lotNumber, lot.vendorID);
-      }
+      lotsConsumed = results[1];
       for (let lot of lotsConsumed) {
         var time = Date.now() - lot.timestamp;
-        await Freshness.updateFreshnessReport(lot.ingID, lot.name, lot.amount, time);
-        await Completed.updateReport(formula.name, formulaLot, lot.ingID, lot.lotNumber, lot.vendorID);
-        await Recall.updateReport(formula.id, formulaLot, formula.intermediate, lot.ingID, lot.lotNumber, lot.vendorID);
+        await Freshness.updateFreshnessReport(lot.ingID, lot.ingName, lot.amount, time);
+        await Completed.updateReport(formula.name, lotNumber, lot.ingID, lot.lotNumber, lot.vendorID);
+        delete lot['timestamp'];
+        delete lot['amount'];
       }
       return "done";
     }).then(function(result) {
       return Ingredient.updateSpace(ing.name);
     }).then(function(result) {
-      resolve(result);
+      resolve(lotsConsumed);
     }).catch(function(error) {
       reject(error);
     })
   })
 }
 
-module.exports.sendIngredientsToProduction = function(formulaId, ingId, amount, formulaLot) {
+module.exports.sendIngredientsToProduction = function(formulaId, ingId, amount, lotNumber) {
   return new Promise(function(resolve, reject) {
     var ing;
     Promise.all([Ingredient.getIngredientById(ingId), Formula.model.findById(formulaId)]).then(function(results) {
       ing = results[0];
       let formula = results[1];
       let spent = parseFloat(ing.averageCost) * parseFloat(amount);
-      return Promise.all([exports.decrementAmountForProduction(ingId, amount, formula, formulaLot), Spending.updateReport(ingId, ing.name, spent, 'production'), Production.updateReport(formulaId, formula, 0, spent)]);
+      return Promise.all([exports.decrementAmountForProduction(ingId, amount, formula, lotNumber), Spending.updateReport(ingId, ing.name, spent, 'production'), Production.updateReport(formulaId, formula, 0, spent)]);
     }).then(function(results) {
       let productionObject = {}
       productionObject['ingredient'] = ing;
       productionObject['unitsProduced'] = amount;
-      resolve(productionObject);
+      resolve(results[0]);
     }).catch(function(error) {
       reject(error);
     });
