@@ -31,11 +31,9 @@ router.get('/home/:page?', function(req, res, next) {
   var perPage = 10;
   Orders.getAllIncompleteOrders().then(function(orders){
     pendingOrders = orders;
-    console.log("These are pending orders",pendingOrders);
     return Orders.getAllCompleteOrders();
   }).then(function(orders){
     completedOrders = orders;
-    console.log("These are completed orders", orders);
     res.render('orders',{pendingOrders:pendingOrders,completedOrders:completedOrders});
   }).catch(function(err){
     next(err);

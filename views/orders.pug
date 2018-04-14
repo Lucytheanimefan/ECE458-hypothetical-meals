@@ -16,16 +16,16 @@ block content
           div.card-header(data-background-color='purple')
             h4.title Pending Orders
           div.card-content.table-response
-            table.table#pendingOrderTable
+            input.form-control#orders1Input(type='text',onkeyup='filterOrderTable(\'orders1\')', placeholder='Search for order..', title='Type in some search text')
+            table.table#orders1Table
               thead.text-primary
-                th(onclick='sortTable(0, \'log\')') Order Number
-                th(onclick='sortTable(0, \'log\')') Order Time
-                th(onclick='sortTable(0, \'log\')') Arrival Time
-                th(onclick='sortTable(0, \'log\')') Status
-                //- th(onclick='sortTable(0, \'log\')') Related entities
+                th Order Number
+                th Order Time
+                th Arrival Time
+                th Status
               tbody
               each order in pendingOrders
-                tr(id=order._id)
+                tr(id=order)
                   td
                     a(href='/orders/' + order.orderNumber)= order.orderNumber
                   td= order.orderTimeStamp
@@ -37,21 +37,21 @@ block content
           div.card-header(data-background-color='purple')
             h4.title Completed Orders
           div.card-content.table-response
-            table.table#completedOrderTable
+            input.form-control#orders2Input(type='text',onkeyup='filterOrderTable(\'orders2\')', placeholder='Search for order..', title='Type in some search text')
+            table.table#orders2Table
               thead.text-primary
-                th(onclick='sortTable(0, \'log\')') Order Number
-                th(onclick='sortTable(0, \'log\')') Order Time
-                th(onclick='sortTable(0, \'log\')') Arrival Time
-                th(onclick='sortTable(0, \'log\')') Lot Status
-                //- th(onclick='sortTable(0, \'log\')') Related entities
+                th Order Number
+                th Order Time
+                th Arrival Time
+                th Lot Status
               tbody
               each order in completedOrders
-                tr(id=order._id)
+                tr(id=order)
                   td
                     a(href='/orders/' + order.orderNumber)= order.orderNumber
                   td= order.orderTimeStamp
                   td= order.arrivalTimeStamp
-                  td= order.assigned === "none" ? "Lots Not Assigned" : "Lots Assigned"
+                  td= order.assigned ? "Assigned" : "Unassigned"
 
 block scripts
   script.
