@@ -21,6 +21,8 @@ block content
             td= value.percentBusy + ' ('+value.busyTime+')'
             td= value.percentIdle + ' ('+value.idleTime+')'
             td= value.totalTime
+        tr
+          td= 'Usage over all production lines' + overallUsage.busy
 
 block scripts
   script.
