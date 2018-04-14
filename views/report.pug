@@ -111,30 +111,30 @@ block content
             thead.text-primary
               th(onclick='sortTable(0, \'profit\')') Product
               th(onclick='sortTable(1, \'profit\')') Units Sold
-              th(onclick='sortTable(2, \'profit\')') Per Unit Price
-              th(onclick='sortTable(3, \'profit\')') Revenue
-              th(onclick='sortTable(4, \'profit\')') Ingredient Cost
-              th(onclick='sortTable(5, \'profit\')') Profit
-              th(onclick='sortTable(6, \'profit\')') Per Unit Profit
+              th(onclick='sortTable(2, \'profit\')') Per Unit Price ($)
+              th(onclick='sortTable(3, \'profit\')') Revenue ($)
+              th(onclick='sortTable(4, \'profit\')') Ingredient Cost ($)
+              th(onclick='sortTable(5, \'profit\')') Profit ($)
+              th(onclick='sortTable(6, \'profit\')') Per Unit Profit ($)
               th(onclick='sortTable(7, \'profit\')') Profit Margin (%)
             tbody
             each product in profit
               tr
                 td= product.productName
                 td= product.unitsSold
-                td= product.unitCost
-                td= product.revenue
-                td= product.ingCost
-                td= product.profit
-                td= product.perUnitProfit
-                td= product.profitMargin
+                td= +product.unitCost.toFixed(2)
+                td= +product.revenue.toFixed(2)
+                td= +product.ingCost.toFixed(2)
+                td= +product.profit.toFixed(2)
+                td= +product.perUnitProfit.toFixed(2)
+                td= +product.profitMarginPercent.toFixed(2)
             tbody
               td= 'Overall Profit'
               td
               td
-              td= overallProfit.revenue
-              td= overallProfit.cost
-              td= overallProfit.profit
+              td= +overallProfit.revenue.toFixed(2)
+              td= +overallProfit.cost.toFixed(2)
+              td= +overallProfit.profit.toFixed(2)
               td
               td
     #ingredient-table.card-content.tab-pane.fade

@@ -14,7 +14,7 @@ module.exports.model = Profit;
 
 module.exports.createEntry = function(productName) {
   return new Promise(function(resolve, reject) {
-    Profit.find({ 'productName': productName }).then(function(product) {
+    Profit.findOne({ 'productName': productName }).exec().then(function(product) {
       if (product != null) {
         return product;
       } else {
@@ -38,7 +38,10 @@ module.exports.updateReport = function(productName, newUnits, totalCost, ingCost
     Profit.findOne({'productName': productName}).then(function(product) {
       var units = parseFloat(product.unitsSold);
       var avgCost = parseFloat(product.unitCost);
-      var newAvg = (units*avgCost + totalCost)/(units + newUnits);
+      var newAvg = avgCost;
+      if (newUnits != 0) {
+        newAvg = (units*avgCost + totalCost)/(units + newUnits);
+      }
       return Profit.findOneAndUpdate({'productName': productName}, {
         '$set': {
           'unitsSold': units+newUnits,
