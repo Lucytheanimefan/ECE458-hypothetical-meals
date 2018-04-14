@@ -27,7 +27,7 @@ html(lang='en')
     -var selected = 'home'; // default
   block status
     -var user_status = 'Logout';
-  body
+  body(style='padding: 0px !important;')
     .wrapper
       .sidebar(data-color='purple', data-image='/img/sidebar-4.jpg')
         //
@@ -57,10 +57,10 @@ html(lang='en')
                     i.material-icons #{icon}
                     p #{key}
 
-      .main-panel
-        nav.navbar.navbar-transparent.navbar-absolute
+      div(style='padding: 50px !important;').main-panel
+        nav.navbar.navbar-transparent
           .container-fluid
-            div Logged in as
+            div Logged in as 
               span#username
             .navbar-header
               button.navbar-toggle(type='button', data-toggle='collapse')
@@ -84,7 +84,7 @@ html(lang='en')
               //-   //- .form-group.is-empty
               //-   a#profile(href='/users/profile') Profile
               //-   a#logout(href='/users/logout') Logout
-        .content
+        .content(style='margin-top: 0px;')
           .container-fluid
             block content
 

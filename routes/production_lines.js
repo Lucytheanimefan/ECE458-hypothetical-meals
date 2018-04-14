@@ -224,25 +224,25 @@ router.post('/mark_completed/:id', function(req, res, next) {
   var currentProdLine;
   var lotsConsumed;
   var productionLineName;
-  var formulaLot = (Math.floor(Math.random() * (max - min)) + min).toString();
+  var formulaLot;
   ProductionLine.getProductionLineById(productionLineId).then(function(prodLine) {
     console.log("my prod line is");
     console.log(prodLine);
     productionLineName = prodLine.name;
     currentProdLine = prodLine;
+    formulaLot = prodLine.currentProduct.lotNumber;
     lotsConsumed = prodLine.currentProduct.ingredientLots;
     return Formula.findFormulaById(prodLine.currentProduct.formulaId)
   }).then(function(formula) {
     finishedFormula = formula;
     console.log("my formula is");
     console.log(formula);
-    return Completed.createLotEntry(finishedFormula.name, formulaLot, finishedFormula.intermediate);
+    return Completed.completeProduct(formulaLot);
   }).then(async function(result) {
     for (let lot of lotsConsumed) {
       await Recall.createLotEntry(lot.ingID, lot.ingName, lot.lotNumber, lot.vendorID);
     }
     for (let lot of lotsConsumed) {
-      await Completed.updateReport(finishedFormula.name, formulaLot, lot.ingID, lot.lotNumber, lot.vendorID);
       await Recall.updateReport(finishedFormula._id, formulaLot, finishedFormula.intermediate, lot.ingID, lot.lotNumber, lot.vendorID);
     }
     return Ingredient.getIngredient(finishedFormula.name);
@@ -263,7 +263,7 @@ router.post('/mark_completed/:id', function(req, res, next) {
     var findAllFormulasQuery = Formula.model.find().exec();
     return findAllFormulasQuery;
   }).then(function(allFormulas) {
-    return res.render('production_line', { productionLine: currentProdLine, formulas: allFormulas, alert: 'The lot number for this product is <TODO LOT NUMBER HERE>' });
+    return res.render('production_line', { productionLine: currentProdLine, formulas: allFormulas, alert: 'The lot number for this product is ' + formulaLot });
     //res.redirect(req.baseUrl + '/production_line/id/' + productionLineId);
   }).catch(function(error) {
     console.log(error);

@@ -222,7 +222,7 @@ module.exports.updateTuple = function(name, index, ingredientID, quantity){
       for (i = 0; i < tuples.length; i++) {
         let tuple = tuples[i];
         if (ingResult['_id'].toString() === tuple['ingredientID'].toString()) {
-          if (quantity != tuple.quantity) {
+          if (quantity != tuple.quantity && index != tuple.index) {
             quantity = Number(quantity) + tuple.quantity;
             index = tuple.index;
           }
