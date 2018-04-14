@@ -65,11 +65,16 @@ module.exports.markIngredientAssigned = function(orderNumber,ingID,vendID,lotNum
     Orders.markIngredientArrived(orderNumber,ingID,vendID,lotNumber).then(function(res){
       return Orders.getOrder(orderNumber);
     }).then(function(order){
+      var assignCheck = true;
       for(var i = 0; i < order.products.length; i++){
         if(order.products[i].ingID._id == ingID && order.products[i].vendID._id == vendID){
           order.products[i].assigned = lotNumber;
         }
+        if(order.products[i].assigned == "none"){
+          assignCheck = false;
+        }
       }
+      order.assigned = assignCheck;
       order.save();
     }).then(function(res){
       resolve(res);
