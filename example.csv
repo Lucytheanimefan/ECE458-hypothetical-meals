@@ -1,7 +1,7 @@
-INGREDIENT,PACKAGE,AMOUNT (NATIVE UNITS),NATIVE UNIT,UNITS PER PACKAGE,PRICE PER PACKAGE,VENDOR FREIGHT CODE,TEMPERATURE
-"Carrots, pail",pail,90,lbs,15,20.15,DF2CK21,room temperature
-"Carrots, pail",pail,500,lbs,15,16.89,JK878DC,room temperature
-Carrots - railcar,railcar,432,lbs,432,4000,DF2CK21,room temperature
-Grapes - supersack,supersack,100,bunches,25,69.32,JK878DC,frozen
-Potatoes - drum,drum,64,units,8,32.1,DF2CK21,refrigerated
-"Potatoes, sack",sack,32,units,4,6.01,KDC322D,refrigerated
+INGREDIENT,PACKAGE,NATIVE UNIT,UNITS PER PACKAGE,PRICE PER PACKAGE,VENDOR FREIGHT CODE,TEMPERATURE
+"Carrots, pail",pail,lbs,15,20.15,veggies,room temperature
+"Carrots, pail",pail,lbs,15,16.89,asde,room temperature
+Carrots - railcar,railcar,lbs,432,4000,veggies,room temperature
+Grapes - supersack,supersack,bunches,25,69.32,veggies,frozen
+Potatoes - drum,drum,units,8,32.1,asde,refrigerated
+"Potatoes, sack",sack,units,4,6.01,asde,refrigerated
