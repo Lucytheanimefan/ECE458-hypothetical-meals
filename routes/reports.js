@@ -65,10 +65,10 @@ router.get('/:page', function(req, res, next) {
     finalProductPromise = Promise.all(finalProductReport.freshness.map(function(tuple) {
       return getFinalProductFreshnessName(tuple);
     }));
-    overallProductFreshness = getOverallProductFreshness(finalProductReport);    
+    overallProductFreshness = getOverallProductFreshness(finalProductReport);
     return Promise.all([spendingPromise, productionPromise, formulaPromise, ingredientPromise, recallPromise, profitPromise, finalProductPromise]);
   }).then(function(results) {
-    res.render('report', { spending: results[0], production: results[1], formula: results[2], ingredient: results[3], freshness: overallFreshness, recall: results[4],  profit: results[5], overallProfit: overallProfit });
+    res.render('report', { spending: results[0], production: results[1], formula: results[2], ingredient: results[3], freshness: overallFreshness, recall: results[4],  profit: results[5], overallProfit: overallProfit, finalProduct: results[6], productFreshness: overallProductFreshness });
   }).catch(function(error) {
     next(error);
   })
