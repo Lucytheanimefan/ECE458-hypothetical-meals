@@ -8,6 +8,8 @@ var Freshness = require('../models/freshness');
 var Ingredient = require('../models/ingredient');
 var Recall = require('../models/recall');
 var ProductionLine = require('../models/production_line');
+var FinalProduct = require('../models/final_product');
+var FinalProductFreshness = require('../models/final_product_freshness');
 var Profit = require('../models/profitability');
 
 var mongoose = require('mongoose')
@@ -24,21 +26,25 @@ router.get('/:page', function(req, res, next) {
   var ingredientReport;
   var recallReport;
   var profitReport;
+  var finalProductReport;
 
   var spending;
   var production;
   var formula;
   var ingredient;
   var overallFreshness;
+  var finalProduct;
+  var overallProductFreshness;
   var overallProfit;
 
-  Promise.all([Spending.getSpending(), Spending.getProduction(), Production.getProduction(), Freshness.getIngredients(), Recall.getRecall(), Profit.getProducts()]).then(function(results) {
+  Promise.all([Spending.getSpending(), Spending.getProduction(), Production.getProduction(), Freshness.getIngredients(), Recall.getRecall(), Profit.getProducts(), FinalProductFreshness.getProducts()]).then(function(results) {
     spendingReport = results[0];
     productionReport = results[1];
     formulaReport = results[2];
     ingredientReport = results[3];
     recallReport = results[4];
     profitReport = results[5];
+    finalProductReport = results[6];
 
     spendingPromise = Promise.all(spendingReport.spending.map(function(tuple) {
       return getIngredientName(tuple);
@@ -56,9 +62,13 @@ router.get('/:page', function(req, res, next) {
     profitPromise = getAllProfitInformation(profitReport);
     overallFreshness = getOverallFreshness(ingredientReport);
     overallProfit = getOverallProfit(profitReport);
-    return Promise.all([spendingPromise, productionPromise, formulaPromise, ingredientPromise, recallPromise, profitPromise]);
+    finalProductPromise = Promise.all(finalProductReport.freshness.map(function(tuple) {
+      return getFinalProductFreshnessName(tuple);
+    }));
+    overallProductFreshness = getOverallProductFreshness(finalProductReport);
+    return Promise.all([spendingPromise, productionPromise, formulaPromise, ingredientPromise, recallPromise, profitPromise, finalProductPromise]);
   }).then(function(results) {
-    res.render('report', { spending: results[0], production: results[1], formula: results[2], ingredient: results[3], freshness: overallFreshness, recall: results[4],  profit: results[5], overallProfit: overallProfit });
+    res.render('report', { spending: results[0], production: results[1], formula: results[2], ingredient: results[3], freshness: overallFreshness, recall: results[4],  profit: results[5], overallProfit: overallProfit, finalProduct: results[6], productFreshness: overallProductFreshness });
   }).catch(function(error) {
     next(error);
   })
@@ -271,6 +281,39 @@ getIngredientFreshnessName = function(tuple) {
         entry['ingredients'] = tuple.ingredientName;
       } else {
         entry['ingredients'] = ing.name;
+      }
+      return entry;
+    }).then(function(entry) {
+      resolve(entry);
+    }).catch(function(error) {
+      reject(error);
+    });
+  });
+}
+
+getOverallProductFreshness = function(report) {
+  var entry = {};
+  var avgTime = convertTime(report.avgTime);
+  var worstTime = convertTime(report.worstTime);
+  entry['numProds'] = report.numProds;
+  entry['avgTime'] = avgTime;
+  entry['worstTime'] = worstTime;
+  return entry;
+}
+
+getFinalProductFreshnessName = function(tuple) {
+  return new Promise(function(resolve, reject) {
+    var entry = {};
+    var avgTime = convertTime(tuple.avgTime);
+    var worstTime = convertTime(tuple.worstTime);
+    entry['numProds'] = tuple.numProds;
+    entry['avgTime'] = avgTime;
+    entry['worstTime'] = worstTime;
+    FinalProduct.getFinalProductById(mongoose.Types.ObjectId(tuple.productId)).then(function(prod) {
+      if (prod == null) {
+        entry['products'] = tuple.finalProductName;
+      } else {
+        entry['products'] = prod.name;
       }
       return entry;
     }).then(function(entry) {
