@@ -234,7 +234,8 @@ router.post('/:name/updatelot', function(req, res, next) {
       ingredient._id,
       updateAmount,
       req.body.vendor,
-      req.body.lotNumber
+      req.body.lotNumber,
+      0
     );
     return updatePromise;
   }).then(function(ing) {

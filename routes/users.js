@@ -598,6 +598,10 @@ router.get('/lot_assignment/:page?', function(req, res, next){
         entry['vendor'] = [orders[i]['products'][j]['vendID']];
         entry['quantity'] = orders[i]['products'][j]['quantity'];
         entry['ingSize'] = orders[i]['products'][j]['ingID']['unitsPerPackage'];
+        let ingIndex = getCost(orders[i]['products'][j]['vendID']['catalogue'],entry['ingID']);
+        let cost = orders[i]['products'][j]['vendID']['catalogue'][ingIndex]['cost'];
+        let units = orders[i]['products'][j]['ingID']['unitsPerPackage'];
+        entry['unitCost'] = cost/units;
         if(orders[i]['products'][j]['assigned'] === "none"){
           unassigned.push(entry);
         }
@@ -677,11 +681,11 @@ router.post('/lot_assignment/assign', function(req, res, next){
   var currIng =  "default ing";
   var currVend = "default vend";
   var currOrder = "default order";
+  var unitCost = 0;
   var currSize = 0;
 
   User.getUserById(req.session.userId).then(function(user){
     cart = user.cart;
-    //console.log(cart);
   }).then(function(){
     for(var key in req.body) {
       if(req.body.hasOwnProperty(key)){
@@ -695,6 +699,7 @@ router.post('/lot_assignment/assign', function(req, res, next){
           currVend = ingVend[1];
           currSize = ingVend[2];
           currOrder = ingVend[3];
+          unitCost = ingVend[4];
         }
         if(key.indexOf("quantity")>=0){
           let currQuantity = req.body[key];
@@ -705,6 +710,7 @@ router.post('/lot_assignment/assign', function(req, res, next){
           entry['currLot'] = currLot;
           entry['currSize'] = currSize;
           entry['currOrder'] = currOrder;
+          entry['unitCost'] = unitCost;
           //console.log(entry);
           lotInfo.push(entry);
         }
@@ -712,8 +718,6 @@ router.post('/lot_assignment/assign', function(req, res, next){
     }
     return orderLotCheck(lotInfo);
   }).then(function(message){
-    console.log("past error check");
-    console.log(message);
     if(message.length > 0){
       var error = new Error(message);
       throw(error);
@@ -727,11 +731,14 @@ router.post('/lot_assignment/assign', function(req, res, next){
       let currQuantity = lotInfo[i]['currQuantity'];
       let currSize = lotInfo[i]['currSize'];
       let currOrder = lotInfo[i]['currOrder'];
+      let unitCost = lotInfo[i]['unitCost'];
+
       //console.log(currLot);
       //console.log(currIng);
       //console.log(currVend);
       //console.log(currOrder);
-      promises.push(IngredientHelper.incrementAmount(currIng,parseFloat(currQuantity*currSize),currVend,currLot));
+      //TODO add cost per native native unit to below
+      promises.push(IngredientHelper.incrementAmount(currIng,parseFloat(currQuantity*currSize),currVend,currLot,unitCost));
       orderPromises.push(OrderHelper.markIngredientAssigned(currOrder,currIng,currVend,currLot));
     }
     return Promise.all(promises);
@@ -870,49 +877,15 @@ orderLotCheck = async function(lots){
     reject(err);
     })
   })
-
-  /*
-  return new Promise(function(resolve,reject){
-    var vendorIDs = [];
-    var ingIDs = [];
-    var vendors = [];
-    var ings = [];
-    var ordersCopy = orders.slice();
-    var lotsCopy = lots.slice();
-    var errorMessage = "";
-    for(var i = 0; i < orders.length; i++){
-      vendorIDs.push(Vendor.model.findById(orders[i]['vendor']));
-      ingIDs.push(Ingredient.model.findById(orders[i]['ingredient']));
-      for(var j = 0; j < lots.length; j++){
-        if(ordersCopy[i]['ingID'].equals(mongoose.Types.ObjectId(lotsCopy[j]['currIng'])) && ordersCopy[i]['vendor'].equals(mongoose.Types.ObjectId(lotsCopy[j]['currVend']))){
-          ordersCopy[i]['quantity']-=parseFloat(lotsCopy[j]['currQuantity']);
-        }
-      }
+}
+getCost = function(list,id){
+  for(var i = 0; i < list.length; i++){
+    //console.log('id is ',typeof id);
+    //console.log('ing is ',typeof list[i]['ingredient']);
+    //console.log(list[i]['ingredient'] === id);
+    if(list[i]['ingredient'].toString() === id.toString()){
+      return i;
     }
-    Promise.all(vendorIDs).then(function(vends){
-      vendors = vends;
-      return Promise.all(ingIDs).then(function(ingredients){
-        ings = ingredients;
-        for(var i = 0; i < orders.length; i++){
-          if(ordersCopy[i]['quantity']!=0){
-            if(ordersCopy[i]['quantity'] > 0){
-              errorMessage += ordersCopy[i]['quantity'] + " " + ings[i]['name'] + " from " + vendors[i]['name'] + " were not assigned to lots.\n";
-            }
-            else{
-              errorMessage += -ordersCopy[i]['quantity'] + " too many "+ ings[i]['name'] + " from " + vendors[i]['name'] + " were assigned to lots.\n";
-            }
-          }
-        }
-        console.log(errorMessage);
-
-        return errorMessage;
-      })
-    }).then(function(errorMessage){
-      resolve(errorMessage);
-    }).catch(function(err){
-      reject(err);
-    })
-  })
-*/
-
+  }
+  return -1;
 }

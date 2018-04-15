@@ -7,7 +7,7 @@ var FormulaHelper = require('../helpers/formula');
 var mongoose = require('mongoose')
 mongoose.Promise = global.Promise;
 
-var ingredientHeaders = ['INGREDIENT', 'PACKAGE', 'TEMPERATURE', 'NATIVE UNIT', 'UNITS PER PACKAGE', 'VENDOR FREIGHT CODE', 'PRICE PER PACKAGE', 'AMOUNT (NATIVE UNITS)'];
+var ingredientHeaders = ['INGREDIENT', 'PACKAGE', 'TEMPERATURE', 'NATIVE UNIT', 'UNITS PER PACKAGE', 'VENDOR FREIGHT CODE', 'PRICE PER PACKAGE'];
 
 var formulaHeaders = ['NAME', 'PRODUCT UNITS', 'DESCRIPTION', 'INGREDIENT', 'INGREDIENT UNITS'];
 

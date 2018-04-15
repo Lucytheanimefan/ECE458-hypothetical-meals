@@ -57,8 +57,9 @@ var IngredientSchema = new mongoose.Schema({
   vendorLots: [{
     vendorID: String,
     lotNumber: String,
+    timestamp: Number,
     units: Number,
-    timestamp: Number
+    price: Number
   }]
 });
 
@@ -145,12 +146,12 @@ module.exports.updateIngredientAndAmount = function(name, newName, package, temp
   }).exec();
 }
 
-module.exports.incrementAmount = function(name, amount, vendorID, lotNumber) {
+module.exports.incrementAmount = function(name, amount, vendorID, lotNumber, price) {
   return Promise.all([Ingredient.findOneAndUpdate({ 'name': name }, {
     '$inc': {
       'amount': parseFloat(amount)
     }
-  }).exec(), exports.addLot(name, amount, vendorID, lotNumber)]);
+  }).exec(), exports.addLot(name, amount, vendorID, lotNumber, price)]);
 }
 
 module.exports.justIncrementAmount = function(name, amount) {
@@ -169,8 +170,8 @@ module.exports.decrementAmount = function(name, amount) {
   }).exec(), exports.consumeLots(name, amount)]);
 }
 
-module.exports.addLot = function(name, amount, vendorID, lotNumber) {
-  let entry = {'vendorID': vendorID, 'lotNumber': lotNumber, 'units': amount, 'timestamp': Date.now()};
+module.exports.addLot = function(name, amount, vendorID, lotNumber, price) {
+  let entry = {'vendorID': vendorID, 'lotNumber': lotNumber, 'timestamp': Date.now(), 'units': amount, 'price': price};
   return Ingredient.findOneAndUpdate({ 'name': name }, {
     '$push': {
       'vendorLots': entry
@@ -232,6 +233,7 @@ copyLotEntry = function(entry, remaining) {
   newEntry['lotNumber'] = entry['lotNumber'];
   newEntry['units'] = parseFloat(entry['units']) - parseFloat(remaining);
   newEntry['timestamp'] = entry['timestamp'];
+  newEntry['price'] = entry['price'];
   return newEntry;
 }
 
@@ -260,11 +262,11 @@ module.exports.consumeLots = function(name, amount) {
         pullIDs.push(mongoose.Types.ObjectId(lot['_id']));
         if (remaining >= parseFloat(lot['units'])) {
           remaining -= parseFloat(lot['units']);
-          consumedList.push({'ingID': ing._id, 'ingName': name, 'amount': lot['units'], 'timestamp': lot['timestamp'], 'lotNumber': lot['lotNumber'], 'vendorID': lot['vendorID']});
+          consumedList.push({'ingID': ing._id, 'ingName': name, 'amount': lot['units'], 'timestamp': lot['timestamp'], 'lotNumber': lot['lotNumber'], 'vendorID': lot['vendorID'], 'price': lot['price']});
         } else {
           newEntry = copyLotEntry(lot, remaining);
           update = true;
-          consumedList.push({'ingID': ing._id, 'ingName': name, 'amount': remaining, 'timestamp': lot['timestamp'], 'lotNumber': lot['lotNumber'], 'vendorID': lot['vendorID']});
+          consumedList.push({'ingID': ing._id, 'ingName': name, 'amount': remaining, 'timestamp': lot['timestamp'], 'lotNumber': lot['lotNumber'], 'vendorID': lot['vendorID'], 'price': lot['price']});
           break;
         }
       }

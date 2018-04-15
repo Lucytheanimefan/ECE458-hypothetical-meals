@@ -9,13 +9,13 @@ block content
         h4.title Orders
       div.card-content.table-response
         input.form-control#logInput(type='text',onkeyup='filterTable(\'log\')', placeholder='Search for order..', title='Type in some search text')
-        table.table#logTable
+        table.table#ordersTable
           thead.text-primary
-            th(onclick='sortTable(0, \'log\')') Ingredient
-            th(onclick='sortTable(0, \'log\')') Vendor
-            th(onclick='sortTable(0, \'log\')') Quantity
-            th(onclick='sortTable(0, \'log\')') Arrived
-            th(onclick='sortTable(0, \'log\')') Lot Number
+            th Ingredient
+            th Vendor
+            th Quantity
+            th Arrived
+            th Lot Number
           tbody
           each prod in products
             tr(id=prod._id)
