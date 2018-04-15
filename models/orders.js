@@ -20,6 +20,9 @@ var OrdersSchema = new mongoose.Schema({
   completed: {
     type: Boolean
   },
+  assigned: {
+    type: Boolean
+  },
   orderTimeStamp: {
     type: String,
     required: true
@@ -38,6 +41,7 @@ module.exports.addOrder = function(products) {
     'products': products,
     'orderNumber': uniqid(),
     'completed': false,
+    'assigned': false,
     'orderTimeStamp': Date(),
     'arrivalTimeStamp': "n/a"
   });

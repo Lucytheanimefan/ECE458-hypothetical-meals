@@ -3,29 +3,56 @@ block link
   -var selected = 'Orders';
 
 block content
-  .row
-    div.card
-      div.card-header(data-background-color='purple')
-        h4.title Orders
-      div.card-content.table-response
-        input.form-control#logInput(type='text',onkeyup='filterTable(\'log\')', placeholder='Search for order..', title='Type in some search text')
-        table.table#logTable
-          thead.text-primary
-            th(onclick='sortTable(0, \'log\')') Order Number
-            th(onclick='sortTable(0, \'log\')') Order Time
-            th(onclick='sortTable(0, \'log\')') Arrival Time
-            th(onclick='sortTable(0, \'log\')') Status
-            //- th(onclick='sortTable(0, \'log\')') Related entities
-          tbody
-          each order in orders
-            tr(id=order._id)
-              td
-                a(href='/orders/' + order.orderNumber)= order.orderNumber
-              td= order.orderTimeStamp
-              td= order.arrivalTimeStamp
-              td= order.completed ? "Delivered" : "Not Delivered"
-              
-              //- td= log.entities
+  div.card-tabs
+    ul.nav.nav-tabs
+      li.active
+        a(data-toggle='tab', href='#order-pending') Pending Orders
+      li.adminOnly.hide
+        a(data-toggle='tab', href='#order-completed') Completed Orders
+
+    .tab-content
+      #order-pending.tab-pane.fade.in.active
+        div.card
+          div.card-header(data-background-color='purple')
+            h4.title Pending Orders
+          div.card-content.table-response
+            input.form-control#orders1Input(type='text',onkeyup='filterOrderTable(\'orders1\')', placeholder='Search for order..', title='Type in some search text')
+            table.table#orders1Table
+              thead.text-primary
+                th Order Number
+                th Order Time
+                th Arrival Time
+                th Status
+              tbody
+              each order in pendingOrders
+                tr(id=order)
+                  td
+                    a(href='/orders/' + order.orderNumber)= order.orderNumber
+                  td= order.orderTimeStamp
+                  td= order.arrivalTimeStamp
+                  td= order.completed ? "Delivered" : "Not Delivered"
+
+      .card-content.tab-pane.fade#order-completed
+        div.card
+          div.card-header(data-background-color='purple')
+            h4.title Completed Orders
+          div.card-content.table-response
+            input.form-control#orders2Input(type='text',onkeyup='filterOrderTable(\'orders2\')', placeholder='Search for order..', title='Type in some search text')
+            table.table#orders2Table
+              thead.text-primary
+                th Order Number
+                th Order Time
+                th Arrival Time
+                th Lot Status
+              tbody
+              each order in completedOrders
+                tr(id=order)
+                  td
+                    a(href='/orders/' + order.orderNumber)= order.orderNumber
+                  td= order.orderTimeStamp
+                  td= order.arrivalTimeStamp
+                  td= order.assigned ? "Assigned" : "Unassigned"
+
 block scripts
   script.
     $('#datetimepicker1').datepicker();

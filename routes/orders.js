@@ -22,13 +22,19 @@ router.get('/', function(req, res, next) {
 
 //no need for refactoring
 router.get('/home/:page?', function(req, res, next) {
+  var completedOrders = [];
+  var pendingOrders = [];
   var page = parseInt(req.params.page);
   if (page == null || isNaN(page) || page < 0) {
     page = 0;
   }
   var perPage = 10;
   Orders.getAllIncompleteOrders().then(function(orders){
-    res.render('orders',{orders:orders});
+    pendingOrders = orders;
+    return Orders.getAllCompleteOrders();
+  }).then(function(orders){
+    completedOrders = orders;
+    res.render('orders',{pendingOrders:pendingOrders,completedOrders:completedOrders});
   }).catch(function(err){
     next(err);
   })
