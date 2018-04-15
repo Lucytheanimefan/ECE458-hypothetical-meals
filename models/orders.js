@@ -61,7 +61,7 @@ module.exports.getAllIncompleteOrders = function(){
 }
 
 module.exports.getAllUnassignedIngredients = function(){
-  return Orders.find({'products.assigned':"none"}).populate('products.ingID').populate('products.vendID').exec();
+  return Orders.find({'products.arrived':true,'products.assigned':"none"}).populate('products.ingID').populate('products.vendID').exec();
 }
 
 module.exports.markIngredientArrived = function(orderNumber,ingID,vendID){
