@@ -6,21 +6,22 @@ block link
 block content
   form(action='/formulas/completed_productions/view/', method='post')
     h4 Search Productions
-    .form-group
-      label.control-label Start date
-      input.form-control(type='date' name='start')
-    .form-group
-      label.control-label End date
-      input.form-control(type='date' name='end')
-    .form-group
-      label.control-label Status
-      select.form-control(name='status', placeholder = '', required='')
-        option(selected='') All Products
-        option(value='inProgress') In Progress
-        option(value='completed') Completed
-    .form-group
-      label.control-label Product name
-      input.form-control(type='text' name='product')
+    div(style='display:block;')
+      .form-group(style='width: 20%; display: inline-block;')
+        label.control-label Start date
+        input.form-control(type='date' name='start')
+      .form-group(style='width: 20%; display: inline-block; margin-left: 6%;')
+        label.control-label End date
+        input.form-control(type='date' name='end')
+      .form-group(style='width: 20%; display: inline-block; margin-left: 6%;')
+        label.control-label Status
+        select.form-control(name='status', placeholder = '', required='')
+          option(selected='', value='all') All Products
+          option(value='inProgress') In Progress
+          option(value='completed') Completed
+      .form-group(style='width: 20%; display: inline-block; margin-left: 6%;')
+        label.control-label Product name
+        input.form-control(type='text' name='product')
     button.btn.btn-primary.pull-right(type='submit', value='Filter') Filter
   div.card
     div.card-header(data-background-color='purple')

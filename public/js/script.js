@@ -25,16 +25,41 @@ function filterTable(type) {
   filter = input.value.toUpperCase();
   table = document.getElementById(type + "Table");
   tr = table.getElementsByTagName("tr");
+  //console.log(tr);
   for (i = 0; i < tr.length; i++) {
     let trElement = tr[i].getElementsByTagName("td");
     td0 = trElement[0];
     td1 = trElement[1];
     td2 = trElement[2];
     td3 = trElement[3];
-    console.log(trElement);
     if (td0 || td1 || td2 || td3) {
       if (tdContainsFilteredText(td0, filter) || tdContainsFilteredText(td1, filter) ||
         tdContainsFilteredText(td2, filter) || tdContainsFilteredText(td3, filter)) {
+        tr[i].style.display = "";
+      } else {
+        tr[i].style.display = "none";
+      }
+    }
+  }
+}
+
+function filterOrderTable(type) {
+  console.log('Filter users!');
+  var input, filter, table, tr, td, i;
+  input = document.getElementById(type + "Input");
+  filter = input.value.toUpperCase();
+  table = document.getElementById(type + "Table");
+  tr = table.getElementsByTagName("tr");
+  for (i = 0; i < tr.length; i++) {
+    let trElement = tr[i].getElementsByTagName("td");
+    td0 = trElement[0];
+    td1 = trElement[1];
+    td2 = trElement[2];
+    td3 = trElement[3];
+    if (td0 || td1 || td2 || td3) {
+      if (tdContainsFilteredText(td0, filter) || tdContainsFilteredText(td1, filter) ||
+        tdContainsFilteredText(td2, filter) || tdContainsFilteredText(td3, filter) ||
+      trOrderContainsFilteredText(tr[i]['id'],filter)) {
         tr[i].style.display = "";
       } else {
         tr[i].style.display = "none";
@@ -106,6 +131,25 @@ function sortTable(n, type) {
 
 function tdContainsFilteredText(td, filter) {
   return td.innerHTML.toUpperCase().indexOf(filter) > -1;
+}
+
+function trOrderContainsFilteredText(tr, filter){
+  let obj = JSON.parse(tr);
+  let products = obj['products'];
+  console.log(products);
+  for(var i = 0; i < products.length; i++){
+    let ing = products[i]['ingID']['name'];
+    let vend = products[i]['vendID']['name'];
+    console.log(ing);
+    console.log(vend);
+    if(ing.indexOf(filter)>=0){
+      return true;
+    }
+    if(vend.indexOf(filter)>=0){
+      return true;
+    }
+  }
+  return false;
 }
 
 function getUserRole(callback) {
@@ -429,7 +473,7 @@ function createLotTuples(ingredients, start) {
     console.log(ingredients);
     for (i = 0; i < ingredients.length; i++) {
       var ing = ingredients[i];
-      newHTML += '<option value=' + ing.ingID + '@' + ing.vendID +  '@' + ing.ingSize + '@' + ing.orderNumber + '>' + ing.ingredient + ' from ' + ing.vendor[0].name + '</option>';
+      newHTML += '<option value=' + ing.ingID + '@' + ing.vendID +  '@' + ing.ingSize + '@' + ing.orderNumber + '@' + ing.unitCost + '>' + ing.ingredient + ' from ' + ing.vendor[0].name + '</option>';
     }
     newHTML += '</select></div>';
 
@@ -571,7 +615,7 @@ function addPackage(index) {
     console.log(ingredients);
     var ing = ingredients[i];
     //newHTML += '<option value=' + ing.ingId + '@' + ing.vendId + '@' + ing.ingSize + '>' + ing.ingredient + '</option>';
-    newHTML += '<option value=' + ing.ingID + '@' + ing.vendID +  '@' + ing.ingSize + '@' + ing.orderNumber + '>' + ing.ingredient + ' from ' + ing.vendor[0].name + '</option>';
+    newHTML += '<option value=' + ing.ingID + '@' + ing.vendID +  '@' + ing.ingSize + '@' + ing.orderNumber + '@' + ing.unitCost + '>' + ing.ingredient + ' from ' + ing.vendor[0].name + '</option>';
   }
   newHTML += '</select></div>';
 

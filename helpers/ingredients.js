@@ -11,6 +11,7 @@ var Production = require('../models/production');
 var Freshness = require('../models/freshness');
 var Completed = require('../models/completed_production');
 var Recall = require('../models/recall');
+var Profit = require('../models/profitability');
 var mongoose = require('mongoose');
 mongoose.Promise = global.Promise;
 
@@ -82,7 +83,7 @@ module.exports.checkAndUpdateInventory = function(name, package, temperature, un
 }
 
 //TODO: remove inventory check/update
-module.exports.incrementAmount = function(id, amount, vendorID='admin', lotNumber=0) {
+module.exports.incrementAmount = function(id, amount, vendorID='admin', lotNumber=0, price) {
   return new Promise(function(resolve, reject) {
     var newAmount;
     var ing;
@@ -98,7 +99,7 @@ module.exports.incrementAmount = function(id, amount, vendorID='admin', lotNumbe
       }
     }).then(function(result) {
       if (amount > 0) {
-        return Ingredient.incrementAmount(ing.name, amount, vendorID, lotNumber);
+        return Ingredient.incrementAmount(ing.name, amount, vendorID, lotNumber, price);
       } else if (amount < 0) {
         return Ingredient.decrementAmount(ing.name, -amount);
       } else {
@@ -137,8 +138,10 @@ module.exports.decrementAmountForProduction = function(id, amount, formula, lotN
         var time = Date.now() - lot.timestamp;
         await Freshness.updateFreshnessReport(lot.ingID, lot.ingName, lot.amount, time);
         await Completed.updateReport(formula.name, lotNumber, lot.ingID, lot.lotNumber, lot.vendorID);
+        if (!formula.intermediate) {
+          await Profit.updateReport(formula.name, 0, 0, parseFloat(lot.price)*parseFloat(lot.amount))
+        }
         delete lot['timestamp'];
-        delete lot['amount'];
       }
       return "done";
     }).then(function(result) {

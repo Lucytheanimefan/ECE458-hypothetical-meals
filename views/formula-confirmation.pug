@@ -39,4 +39,4 @@ block content
             select.form-control(name='productionLine', placeholder = '')
               each productionLine in productionLines
                 option(value=productionLine._id)= productionLine.name + ', ' + (productionLine.busy ? ('Busy producing ' + productionLine.currentProduct.name) : 'Idle')
-          button.btn.btn-primary.pull-right Send Ingredients to Production
+          button.btn.btn-primary.pull-right Send to Production Line
