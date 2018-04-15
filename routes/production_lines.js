@@ -225,6 +225,7 @@ router.post('/mark_completed/:id', function(req, res, next) {
   var lotsConsumed;
   var productionLineName;
   var formulaLot;
+  var totalCost = 0;
   ProductionLine.getProductionLineById(productionLineId).then(function(prodLine) {
     console.log("my prod line is");
     console.log(prodLine);
@@ -244,11 +245,12 @@ router.post('/mark_completed/:id', function(req, res, next) {
     }
     for (let lot of lotsConsumed) {
       await Recall.updateReport(finishedFormula._id, formulaLot, finishedFormula.intermediate, lot.ingID, lot.lotNumber, lot.vendorID);
+      totalCost += parseFloat(lot.amount) * parseFloat(lot.price);
     }
     return Ingredient.getIngredient(finishedFormula.name);
   }).then(function(ing) {
     if (finishedFormula.intermediate) {
-      return IngredientHelper.incrementAmount(ing._id, parseFloat(currentProdLine.currentProduct.amount), 'admin', formulaLot)
+      return IngredientHelper.incrementAmount(ing._id, parseFloat(currentProdLine.currentProduct.amount), 'admin', formulaLot, totalCost/parseFloat(currentProdLine.currentProduct.amount));
     } else {
       return FinalProductHelper.addFinalProduct(finishedFormula.name, parseFloat(currentProdLine.currentProduct.amount));
     }

@@ -5,10 +5,12 @@ var FormulaHelper = require('../helpers/formula');
 var FinalProductHelper = require('../helpers/final_products');
 var IngredientHelper = require('../helpers/ingredients');
 var Ingredient = require('../models/ingredient');
+var InventoryHelper = require('../helpers/inventory');
 var Production = require('../models/production');
 var Completed = require('../models/completed_production');
 var ProductionLine = require('../models/production_line');
 var Recall = require('../models/recall');
+var Profit = require('../models/profitability');
 var underscore = require('underscore');
 var mongoose = require('mongoose');
 var uniqid = require('uniqid');
@@ -222,6 +224,20 @@ router.post('/:name/order/:amount', function(req, res, next) {
 
   Formula.findFormulaByName(formulaName).then(function(formula) {
     globalFormula = formula;
+    return Ingredient.getIngredient(formulaName);
+  }).then(function(ing) {
+    if (!globalFormula.intermediate) {
+      return Profit.createEntry(formulaName);
+    } else {
+      return InventoryHelper.checkInventory(ing.name, ing.package, ing.temperature, ing.unitsPerPackage, parseFloat(ing.amount) + amount);
+    }
+  }).then(function(update) {
+    if (update) {
+      return globalFormula;
+    } else {
+      throw new Error('Not enough room in inventory to produce ' + formulaName);
+    }
+  }).then(function(formula) {
     formulaId = mongoose.Types.ObjectId(formula['_id']);
     return Promise.all([FormulaHelper.createListOfTuples(formulaName, amount), Production.updateReport(formulaId, formulaName, amount, 0), Completed.createLotEntry(formula.name, lotNumber, formula.intermediate)]);
   }).then(function(result) {
@@ -381,7 +397,7 @@ router.post('/completed_productions/view', function(req, res, next) {
     var expression = new RegExp(product, 'i')
     query['name'] = expression;
   }
-  if (status != null) {
+  if (status != 'all') {
     query['inProgress'] = (status == 'inProgress');
   }
   Completed.getProducts(query).then(function(products) {
