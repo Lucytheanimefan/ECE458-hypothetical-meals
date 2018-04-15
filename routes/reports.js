@@ -89,9 +89,11 @@ router.post('/production_line_efficiency', function(req, res, next) {
   //{ "$gte": startDate, "$lte": endDate }
   var allLinesQuery = ProductionLine.getAllProductionLines();
 
+
+
   allLinesQuery.then(function(productionLines) {
     var overallEfficiencyReportData = {};
-
+    var cumulativeBusy = 0;
     for (let i = 0; i < productionLines.length; i++) {
       var productionLine = productionLines[i];
       var createdAtDate = new Date(productionLine.createdAt);
@@ -157,13 +159,20 @@ router.post('/production_line_efficiency', function(req, res, next) {
 
       overallEfficiencyReportData[productionLine.name] = productionLineEfficiencyData;
 
+      cumulativeBusy += (busyTime * 100 / totalTime);
+
       // Reset stuff for next production line
       idleTime = 0;
       busyTime = 0;
       plotGraphData = { 'dates': [], 'values': [] }
     }
+    console.log('cumulativeBusy: ' + cumulativeBusy);
+    console.log('Length: ' + productionLines.length);
+    var overallUsage = { 'busy': (cumulativeBusy / productionLines.length) };
+    console.log('Overall usage:');
+    console.log(overallUsage);
     console.log(overallEfficiencyReportData);
-    return res.render('production_efficiency_report', { data: overallEfficiencyReportData })
+    return res.render('production_efficiency_report', { data: overallEfficiencyReportData, overallUsage: overallUsage })
     //return res.send(overallEfficiencyReportData);
   }).catch(function(error) {
     console.log(error);
