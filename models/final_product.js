@@ -1,3 +1,4 @@
+var FinalProductFreshness = require('../models/final_product_freshness');
 var mongoose = require('mongoose');
 mongoose.Promise = global.Promise;
 
@@ -126,7 +127,12 @@ module.exports.consumeLots = function(name, amount) {
       } else {
         return finalProduct;
       }
-    }).then(function(ing) {
+    }).then(async function(ing) {
+      for (let entry of consumedList) {
+        var time = Date.now() - entry.timestamp;
+        await FinalProductFreshness.updateFreshnessReport(entry.finalProductID, entry.finalProductName, entry.amount, time);
+      }
+    }).then(function(list) {
       resolve(consumedList);
     }).catch(function(error) {
       reject(error);

@@ -17,6 +17,8 @@ block content
         a(data-toggle='tab', href='#recall-table') Recall
       li
         a(data-toggle='tab', href='#ingredient-table') Ingredient Freshness
+      li
+        a(data-toggle='tab', href='#product-table') Final Product Freshness
   .tab-content
     #spending-table.tab-pane.fade.in.active
       div.card
@@ -118,6 +120,30 @@ block content
                 tr
                   td
                     a(href='/ingredients/' + encodeURIComponent(tuple.ingredients))= tuple.ingredients
+                  td= tuple.avgTime
+                  td= tuple.worstTime
+            else
+            tbody
+              td= 'Overall'
+              td= freshness.avgTime
+              td= freshness.worstTime
+    #product-table.card-content.tab-pane.fade
+      div.card
+        div.card-header(data-background-color='purple')
+          h4.title Final Product Freshness Report
+        div.card-content.table-response
+          input.form-control#productInput(type='text',onkeyup='filterTable(\'product\')', placeholder='Search for final products...', title='Type in some search text')
+          table.table#productTable
+            thead.text-primary
+              th(onclick='sortTable(0, \'product\')') Final Product
+              th(onclick='sortTable(1, \'product\')') Average Time in Distribution Network
+              th(onclick='sortTable(2, \'product\')') Worst Case Time in Distribution Network
+            tbody
+            if finalProduct
+              each tuple in finalProduct
+                tr
+                  td
+                    a(href='/formulas/' + encodeURIComponent(tuple.products))= tuple.products
                   td= tuple.avgTime
                   td= tuple.worstTime
             else

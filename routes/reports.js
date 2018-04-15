@@ -8,6 +8,8 @@ var Freshness = require('../models/freshness');
 var Ingredient = require('../models/ingredient');
 var Recall = require('../models/recall');
 var ProductionLine = require('../models/production_line');
+var FinalProduct = require('../models/final_product');
+var FinalProductFreshness = require('../models/final_product_freshness');
 
 var mongoose = require('mongoose')
 mongoose.Promise = global.Promise;
@@ -21,19 +23,23 @@ router.get('/:page', function(req, res, next) {
   var productionReport;
   var formulaReport;
   var ingredientReport;
+  var finalProductReport;
 
   var spending;
   var production;
   var formula;
   var ingredient;
   var overallFreshness;
+  var finalProduct;
+  var overallProductFreshness;
 
-  Promise.all([Spending.getSpending(), Spending.getProduction(), Production.getProduction(), Freshness.getIngredients(), Recall.getRecall()]).then(function(results) {
+  Promise.all([Spending.getSpending(), Spending.getProduction(), Production.getProduction(), Freshness.getIngredients(), Recall.getRecall(), FinalProductFreshness.getProducts()]).then(function(results) {
     spendingReport = results[0];
     productionReport = results[1];
     formulaReport = results[2];
     ingredientReport = results[3];
     recallReport = results[4];
+    finalProductReport = results[5];
 
     spendingPromise = Promise.all(spendingReport.spending.map(function(tuple) {
       return getIngredientName(tuple);
@@ -49,9 +55,13 @@ router.get('/:page', function(req, res, next) {
     }));
     recallPromise = getVendorLots(recallReport);
     overallFreshness = getOverallFreshness(ingredientReport);
-    return Promise.all([spendingPromise, productionPromise, formulaPromise, ingredientPromise, recallPromise]);
+    finalProductPromise = Promise.all(finalProductReport.freshness.map(function(tuple) {
+      return getFinalProductFreshnessName(tuple);
+    }));
+    overallProductFreshness = getOverallProductFreshness(finalProductReport);
+    return Promise.all([spendingPromise, productionPromise, formulaPromise, ingredientPromise, recallPromise, finalProductPromise]);
   }).then(function(results) {
-    res.render('report', { spending: results[0], production: results[1], formula: results[2], ingredient: results[3], freshness: overallFreshness, recall: results[4] });
+    res.render('report', { spending: results[0], production: results[1], formula: results[2], ingredient: results[3], freshness: overallFreshness, recall: results[4], finalProduct: results[5], productFreshness: overallProductFreshness });
   }).catch(function(error) {
     next(error);
   })
@@ -82,9 +92,11 @@ router.post('/production_line_efficiency', function(req, res, next) {
   //{ "$gte": startDate, "$lte": endDate }
   var allLinesQuery = ProductionLine.getAllProductionLines();
 
+
+
   allLinesQuery.then(function(productionLines) {
     var overallEfficiencyReportData = {};
-
+    var cumulativeBusy = 0;
     for (let i = 0; i < productionLines.length; i++) {
       var productionLine = productionLines[i];
       var createdAtDate = new Date(productionLine.createdAt);
@@ -150,13 +162,20 @@ router.post('/production_line_efficiency', function(req, res, next) {
 
       overallEfficiencyReportData[productionLine.name] = productionLineEfficiencyData;
 
+      cumulativeBusy += (busyTime * 100 / totalTime);
+
       // Reset stuff for next production line
       idleTime = 0;
       busyTime = 0;
       plotGraphData = { 'dates': [], 'values': [] }
     }
+    console.log('cumulativeBusy: ' + cumulativeBusy);
+    console.log('Length: ' + productionLines.length);
+    var overallUsage = { 'busy': (cumulativeBusy / productionLines.length) };
+    console.log('Overall usage:');
+    console.log(overallUsage);
     console.log(overallEfficiencyReportData);
-    return res.render('production_efficiency_report', { data: overallEfficiencyReportData })
+    return res.render('production_efficiency_report', { data: overallEfficiencyReportData, overallUsage: overallUsage })
     //return res.send(overallEfficiencyReportData);
   }).catch(function(error) {
     console.log(error);
@@ -255,6 +274,39 @@ getIngredientFreshnessName = function(tuple) {
         entry['ingredients'] = tuple.ingredientName;
       } else {
         entry['ingredients'] = ing.name;
+      }
+      return entry;
+    }).then(function(entry) {
+      resolve(entry);
+    }).catch(function(error) {
+      reject(error);
+    });
+  });
+}
+
+getOverallProductFreshness = function(report) {
+  var entry = {};
+  var avgTime = convertTime(report.avgTime);
+  var worstTime = convertTime(report.worstTime);
+  entry['numProds'] = report.numProds;
+  entry['avgTime'] = avgTime;
+  entry['worstTime'] = worstTime;
+  return entry;
+}
+
+getFinalProductFreshnessName = function(tuple) {
+  return new Promise(function(resolve, reject) {
+    var entry = {};
+    var avgTime = convertTime(tuple.avgTime);
+    var worstTime = convertTime(tuple.worstTime);
+    entry['numProds'] = tuple.numProds;
+    entry['avgTime'] = avgTime;
+    entry['worstTime'] = worstTime;
+    FinalProduct.getFinalProductById(mongoose.Types.ObjectId(tuple.productId)).then(function(prod) {
+      if (prod == null) {
+        entry['products'] = tuple.finalProductName;
+      } else {
+        entry['products'] = prod.name;
       }
       return entry;
     }).then(function(entry) {
