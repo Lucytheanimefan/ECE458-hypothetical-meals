@@ -115,14 +115,14 @@ router.post('/production_line_efficiency', function(req, res, next) {
       var busyTime = 0; // Time production line was busy
 
       var previousTimeStamp;
-      // if (createdAtDate > startDate) {
-      //   console.log('Use created at date!' + createdAtDate);
-      //   startDate = createdAtDate;
-      // }
+      if (createdAtDate > startDate) {
+        console.log('****Use created at date!' + createdAtDate);
+        startDate = createdAtDate;
+      }
 
       previousTimeStamp = startDate;
       var totalTime = endDate - startDate;
-      console.log('Total time: ' + totalTime);
+      //console.log('Total time: ' + totalTime);
       var plotGraphData = { 'dates': [], 'values': [] }; // For plotting if we want to do that, currently not being used
 
       for (let j = 0; j < productionLine.history.length; j++) {
@@ -144,7 +144,7 @@ router.post('/production_line_efficiency', function(req, res, next) {
           // Within the time range!
           let timeElapsed = timestamp - previousTimeStamp;
           console.log('timeElapsed: ');
-          console.log(timeElapsed);
+          console.log(secondsToDaysHrsMinutes(timeElapsed/1000));
 
           console.log('Busy? ' + productionLine.busy);
           // Update the times elapsed
@@ -153,8 +153,8 @@ router.post('/production_line_efficiency', function(req, res, next) {
           } else {
             idleTime += timeElapsed;
           }
-          console.log('Busy time: ' + busyTime);
-          console.log('Idle time: ' + idleTime);
+          // console.log('Busy time: ' + busyTime);
+          // console.log('Idle time: ' + idleTime);
 
           previousTimeStamp = timestamp;
         }
@@ -176,9 +176,9 @@ router.post('/production_line_efficiency', function(req, res, next) {
       busyTime = 0;
       plotGraphData = { 'dates': [], 'values': [] }
     }
-    console.log('cumulativeBusy: ' + cumulativeBusy);
-    console.log('Length: ' + productionLines.length);
-    var overallUsage = { 'busy': (cumulativeBusy / productionLines.length) };
+    // console.log('cumulativeBusy: ' + cumulativeBusy);
+    // console.log('Length: ' + productionLines.length);
+    var overallUsage = { 'busy': (cumulativeBusy / productionLines.length).toFixed(2) };
     console.log('Overall usage:');
     console.log(overallUsage);
     console.log(overallEfficiencyReportData);
