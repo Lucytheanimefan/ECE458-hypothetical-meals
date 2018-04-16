@@ -189,7 +189,7 @@ router.post('/:name/order', function(req, res, next) {
   }).then(function(results) {
     for (let object of results) {
       if (object.intermediate && !object.enough) {
-        throw new Error('Need to produce more of intermediate product ' + object.ingredient);
+        throw new Error('Need to produce ' + (parseFloat(object.neededAmount) - parseFloat(object.currentAmount))+ ' more units of intermediate product ' + object.ingredient);
       }
       let orderAmount = parseFloat(object.neededAmount) - parseFloat(object.currentAmount);
       if (orderAmount > 0) {
