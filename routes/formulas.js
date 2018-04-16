@@ -175,6 +175,7 @@ router.post('/:name/order', function(req, res, next) {
   let formulaName = req.params.name;
   let amount = parseFloat(req.body.quantity);
 
+  var alertMessage;
   var formulaObject;
   var formulaObjects;
   var tuples = [];
@@ -203,7 +204,15 @@ router.post('/:name/order', function(req, res, next) {
     var productionLineQuery = ProductionLine.productionLinesForFormula(formulaObject._id);
     return productionLineQuery;
   }).then(function(productionLines) {
-    res.render('formula-confirmation', { formulaName: formulaName, formula: formulaObject, formulaObjects: formulaObjects, orderAmounts: tuples, amount: amount, productionLines: productionLines });
+    for (let i=0; i<productionLines.length; i++){
+      if (!productionLines[i].busy){
+        break
+      }
+      if (i==productionLines.length-1){
+        alertMessage = "No available production lines";
+      }
+    }
+    res.render('formula-confirmation', { formulaName: formulaName, formula: formulaObject, formulaObjects: formulaObjects, orderAmounts: tuples, amount: amount, productionLines: productionLines, alert:alertMessage });
   }).catch(function(error) {
     console.log(error);
     next(error);
