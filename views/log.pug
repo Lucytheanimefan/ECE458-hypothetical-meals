@@ -10,8 +10,7 @@ block content
       a(href='/users/user/'+user) #{user}
     h3 Entities: #{entities}
     h4 Description: 
-    ul#description
-    div#descriptionValues(data-description=description)
+    ul#description!= description
 
 block scripts
   script.
