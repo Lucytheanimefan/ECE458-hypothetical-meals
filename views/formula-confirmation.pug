@@ -4,6 +4,7 @@ block link
   -var selected = 'Formulas';
 
 block content
+  #alertData.hide(data-alert=alert)
   div.card
     div.card-header(data-background-color='purple')
       h4.title Production of "#{formulaName}": Ingredients to be Consumed
@@ -40,3 +41,7 @@ block content
               each productionLine in productionLines
                 option(value=productionLine._id)= productionLine.name + ', ' + (productionLine.busy ? ('Busy producing ' + productionLine.currentProduct.name) : 'Idle')
           button.btn.btn-primary.pull-right Send to Production Line
+
+block scripts
+  script.
+    displayFileAlert();
