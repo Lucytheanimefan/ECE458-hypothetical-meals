@@ -57,7 +57,7 @@ router.post('/:code/arrived/:ingID/:vendID', function(req, res, next) {
     let vendID = req.params.vendID;
     return OrderHelper.markIngredientArrived(code,ingID,vendID);
   }).then(function(){
-    res.redirect('/orders/' + code);
+    res.redirect('/users/lot_assignment');
   })
   .catch(function(err){
     next(err);

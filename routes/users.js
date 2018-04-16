@@ -602,11 +602,12 @@ router.get('/lot_assignment/:page?', function(req, res, next){
         let cost = orders[i]['products'][j]['vendID']['catalogue'][ingIndex]['cost'];
         let units = orders[i]['products'][j]['ingID']['unitsPerPackage'];
         entry['unitCost'] = cost/units;
-        if(orders[i]['products'][j]['assigned'] === "none"){
+        if(orders[i]['products'][j]['assigned'] === "none" && orders[i]['products'][j]['arrived'] === true){
           unassigned.push(entry);
         }
       }
     }
+    console.log(orders);
     res.render('lot_selection', { orders: unassigned, page: page });
   })
   /*
@@ -847,7 +848,7 @@ orderLotCheck = async function(lots){
           entry['vendor'] = [orders[i]['products'][j]['vendID']];
           entry['quantity'] = orders[i]['products'][j]['quantity'];
           entry['ingSize'] = orders[i]['products'][j]['ingID']['unitsPerPackage'];
-          if(orders[i]['products'][j]['assigned'] === "none"){
+          if(orders[i]['products'][j]['assigned'] === "none" && orders[i]['products'][j]['arrived'] === true){
             unassigned.push(entry);
           }
         }
