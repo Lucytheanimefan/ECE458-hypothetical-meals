@@ -45,6 +45,7 @@ module.exports.getAllFinalProducts = function() {
 }
 
 module.exports.addLot = function(name, units) {
+  console.log("add lot");
   let lotEntry = {'units': units, 'timestamp': Date.now()}
   return FinalProduct.findOneAndUpdate({'name': name}, {
     '$push': {
