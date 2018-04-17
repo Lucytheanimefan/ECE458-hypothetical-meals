@@ -57,7 +57,6 @@ router.get('/id/:ingredient_id', function(req, res, next) {
   }).catch(function(error) {
     res.send({ 'error': error });
   })
-
 })
 
 //TODO: Refactor once vendor is ready

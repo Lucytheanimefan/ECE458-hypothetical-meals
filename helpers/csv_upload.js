@@ -257,7 +257,7 @@ module.exports.checkIngredient = function(row) {
   return new Promise(function(resolve, reject) {
     let name = row['INGREDIENT'];
     checkIngredientExists(name).then(function(ing) {
-      if (ing.package !== row['PACKAGE'] || ing.temperature !== row['TEMPERATURE'] || ing.nativeUnit !== row['NATIVE UNIT'] || parseFloat(ing.unitsPerPackage) != parseFloat(row['UNITS PER PACKAGE'])) {
+      if (ing.package != row['PACKAGE'] || ing.temperature != row['TEMPERATURE'] || ing.nativeUnit != row['NATIVE UNIT'] || parseFloat(ing.unitsPerPackage) != parseFloat(row['UNITS PER PACKAGE'])) {
         reject(new Error('Ingredient ' + ing.name + ' doesn\'t match pre-existing ingredient'));
       } else {
         resolve();
@@ -281,7 +281,7 @@ module.exports.checkVendor = function(row) {
     } else if (vendorCode != "" && price == "" || vendorCode == "" && price != "") {
       reject(new Error('Vendor and price must both be empty or non-empty!'));
     } else {
-      Vendor.model.findOne( {code: vendorCode} ).exec().then(function(result) {
+      Vendor.findVendorByCode(vendorCode).then(function(result) {
         if (result == null) {
           reject(new Error('Vendor with freight code ' + vendorCode +' doesn\'t exist!'));
         } else {
