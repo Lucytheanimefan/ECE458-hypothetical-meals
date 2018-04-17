@@ -167,8 +167,8 @@ block content
                     td 
                       div
                         p In Progress
-                        form(action='/production_lines/mark_completed/' + record.productionLine, method='post')
-                          button.btn.btn-primary(type='submit', style='margin:0px; padding: 5px 10px;') Complete Production
+                        form.manager.hide(action='/production_lines/mark_completed/' + record.productionLine, method='post')
+                          button.manager.hide.btn.btn-primary(type='submit', style='margin:0px; padding: 5px 10px;') Complete Production
                   else
                     td Completed
                   td= record.timestamp
