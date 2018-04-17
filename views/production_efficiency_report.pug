@@ -3,6 +3,8 @@ block link
   -var selected = 'Report';
 
 block content
+  form(action='/reports')
+    button.btn.btn-primary.pull-right(type='submit', style='display: inline-block; float: right') Back to Reports
   div.card
     div.card-header(data-background-color='purple')
       h4.title= 'Production Report'
@@ -24,8 +26,7 @@ block content
         th= 'Usage over all production lines'
         th= overallUsage.busy
         th= 100-overallUsage.busy
-        
+
 
 block scripts
   script.
-    

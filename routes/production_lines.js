@@ -15,8 +15,8 @@ var min = 10000000
 var max = 1000000000
 
 // Managers will be able to update the mapping between formulas and production
-// lines; this should be possible either from a view of the formula 
-// (by indicating which production lines) or from a view of the production line 
+// lines; this should be possible either from a view of the formula
+// (by indicating which production lines) or from a view of the production line
 // (by indicating which formulas).
 
 router.get('/', function(req, res, next) {
@@ -233,6 +233,7 @@ router.post('/mark_completed/:id', function(req, res, next) {
     currentProdLine = prodLine;
     formulaLot = prodLine.currentProduct.lotNumber;
     lotsConsumed = prodLine.currentProduct.ingredientLots;
+    console.log(prodLine.currentProduct.formulaId);
     return Formula.findFormulaById(prodLine.currentProduct.formulaId)
   }).then(function(formula) {
     finishedFormula = formula;
