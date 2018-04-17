@@ -249,6 +249,7 @@ router.post('/mark_completed/:id', function(req, res, next) {
       console.log(lot)
       await Recall.updateReport(finishedFormula._id, formulaLot, finishedFormula.intermediate, lot.ingID, lot.lotNumber, lot.vendorID);
       console.log('Finished updating report');
+      let price = lot.price ? lot.price : 0;
       totalCost += parseFloat(lot.amount) * parseFloat(lot.price);
     }
     return Ingredient.getIngredient(finishedFormula.name);
