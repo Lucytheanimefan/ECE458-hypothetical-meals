@@ -3,6 +3,8 @@ block link
   -var selected = 'Orders';
 
 block content
+  form(action='/orders')
+    button.btn.btn-primary.pull-right(type='submit', style='display: inline-block; float: right') Back to Orders
   .row
     div.card
       div.card-header(data-background-color='purple')

@@ -4,8 +4,10 @@ block link
   -var roles = ['admin', 'user', 'manager'];
 
 block content
+  form(action='/users')
+    button.btn.btn-primary.pull-right(type='submit', style='display: inline-block; float: right') Back to Users
   .row
-    h3 Update the user
+    h1 Update User
       form(action='/users/update/'+user.username, method='post')
         .form-group
           label.control-label Email

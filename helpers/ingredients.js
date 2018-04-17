@@ -40,8 +40,11 @@ module.exports.updateIngredient = function(name, newName, package, temp, nativeU
       error.status = 400;
       reject(error);
     } else {
+      console.log(name);
       Ingredient.getIngredient(name).then(function(ing) {
         currentIng = ing;
+        console.log("CURRENT");
+        console.log(currentIng);
         return InventoryHelper.checkInventory(name, package, temp, unitsPerPackage, parseFloat(currentIng.amount))
       }).then(function(update) {
         if (update) {

@@ -572,7 +572,7 @@ router.post('/submit_page/:page?', function(req, res, next) {
   }).then(function(result) {
     if (placeOrder) {
       logs.makeLog('Check out cart', 'Checked out cart' /*'Checkout cart with ingredients: <ul>' + checkoutIngredientLog + '</ul>'*/ , req.session.username);
-      res.redirect('/ingredients');
+      res.redirect('/orders');
     } else {
       res.redirect('/users/checkout_cart/' + nextPage);
     }
@@ -586,6 +586,9 @@ router.get('/lot_assignment/:page?', function(req, res, next){
   var page = req.params.page || 1;
   page = (page < 1) ? 1 : page;
   var unassigned = [];
+  var alert = req.query.alert;
+  console.log("ALERT");
+  console.log(alert);
   Orders.getAllUnassignedIngredients().then(function(orders){
     for(var i = 0; i < orders.length; i++){
       let orderNumber = orders[i].orderNumber;
@@ -608,7 +611,7 @@ router.get('/lot_assignment/:page?', function(req, res, next){
       }
     }
     console.log(orders);
-    res.render('lot_selection', { orders: unassigned, page: page });
+    res.render('lot_selection', { orders: unassigned, page: page, alert: alert });
   })
   /*
   var perPage = 10;
@@ -684,6 +687,7 @@ router.post('/lot_assignment/assign', function(req, res, next){
   var currOrder = "default order";
   var unitCost = 0;
   var currSize = 0;
+  var alert = "";
 
   User.getUserById(req.session.userId).then(function(user){
     cart = user.cart;
@@ -720,33 +724,36 @@ router.post('/lot_assignment/assign', function(req, res, next){
     return orderLotCheck(lotInfo);
   }).then(function(message){
     if(message.length > 0){
-      var error = new Error(message);
-      throw(error);
-    }
-    return Promise.all(promises);
-  }).then(function(){
-    for(var i = 0; i < lotInfo.length; i++){
-      let currIng = lotInfo[i]['currIng'];
-      let currVend = lotInfo[i]['currVend'];
-      let currLot = lotInfo[i]['currLot'];
-      let currQuantity = lotInfo[i]['currQuantity'];
-      let currSize = lotInfo[i]['currSize'];
-      let currOrder = lotInfo[i]['currOrder'];
-      let unitCost = lotInfo[i]['unitCost'];
+      //var error = new Error(message);
+      //throw(error);
+      alert = message;
+      return "error";
+    } else {
+      for(var i = 0; i < lotInfo.length; i++){
+        let currIng = lotInfo[i]['currIng'];
+        let currVend = lotInfo[i]['currVend'];
+        let currLot = lotInfo[i]['currLot'];
+        let currQuantity = lotInfo[i]['currQuantity'];
+        let currSize = lotInfo[i]['currSize'];
+        let currOrder = lotInfo[i]['currOrder'];
+        let unitCost = lotInfo[i]['unitCost'];
 
-      //console.log(currLot);
-      //console.log(currIng);
-      //console.log(currVend);
-      //console.log(currOrder);
-      //TODO add cost per native native unit to below
-      promises.push(IngredientHelper.incrementAmount(currIng,parseFloat(currQuantity*currSize),currVend,currLot,unitCost));
-      orderPromises.push(OrderHelper.markIngredientAssigned(currOrder,currIng,currVend,currLot));
+        //console.log(currLot);
+        //console.log(currIng);
+        //console.log(currVend);
+        //console.log(currOrder);
+        //TODO add cost per native native unit to below
+        promises.push(IngredientHelper.incrementAmount(currIng,parseFloat(currQuantity*currSize),currVend,currLot,unitCost));
+        orderPromises.push(OrderHelper.markIngredientAssigned(currOrder,currIng,currVend,currLot));
+      }
+      return Promise.all([promises, orderPromises]);
     }
-    return Promise.all(promises);
-  }).then(function(){
-    return Promise.all(orderPromises);
-  }).then(function(){
-    res.redirect('/ingredients');
+  }).then(function(result){
+    if (alert.length > 0) {
+      res.redirect('/users/lot_assignment/?alert=' + alert);
+    } else {
+      res.redirect('/ingredients');
+    }
   }).catch(function(err){
       next(err);
   })

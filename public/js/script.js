@@ -690,9 +690,9 @@ function updateLineFormulaNames() {
     console.log(formulaId);
     getFormulaForID(formulaId, function(json) {
       element.text(json["name"]);
-      var href = $(this).attr('href');
+      var href = element.attr('href');
       if (typeof href !== typeof undefined && href !== false) {
-        element.attr('href', '/formulas/' + json["name"]);
+        element.attr('href', '/formulas/' + encodeURIComponent(json["name"]));
       }
     })
   })
@@ -715,7 +715,7 @@ function displayNotification(from, align, alertMessage) {
 
   }, {
     type: "success",
-    timer: 4000,
+    timer: 3500,
     placement: {
       from: from,
       align: align
