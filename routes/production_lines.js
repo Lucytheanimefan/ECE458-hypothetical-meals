@@ -250,13 +250,15 @@ router.post('/mark_completed/:id', function(req, res, next) {
       await Recall.updateReport(finishedFormula._id, formulaLot, finishedFormula.intermediate, lot.ingID, lot.lotNumber, lot.vendorID);
       console.log('Finished updating report');
       let price = lot.price ? lot.price : 0;
-      totalCost += parseFloat(lot.amount) * parseFloat(lot.price);
+      totalCost += parseFloat(lot.amount) * parseFloat(price);
     }
     return Ingredient.getIngredient(finishedFormula.name);
   }).then(function(ing) {
     if (finishedFormula.intermediate) {
-      console.log('FInished formula is an intermediate, increment amount');
-      return IngredientHelper.incrementAmount(ing._id, parseFloat(currentProdLine.currentProduct.amount), 'admin', formulaLot, totalCost/parseFloat(currentProdLine.currentProduct.amount));
+      console.log('Finished formula is an intermediate, increment amount');
+      console.log('Calculate price:')
+      console.log(totalCost + '/' + parseFloat(currentProdLine.currentProduct.amount));
+      return IngredientHelper.incrementAmount(ing._id, parseFloat(currentProdLine.currentProduct.amount), 'admin', formulaLot, totalCost / parseFloat(currentProdLine.currentProduct.amount));
     } else {
       console.log('Add final product');
       return FinalProductHelper.addFinalProduct(finishedFormula.name, parseFloat(currentProdLine.currentProduct.amount));
