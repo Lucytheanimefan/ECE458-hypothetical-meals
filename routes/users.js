@@ -606,7 +606,14 @@ router.get('/lot_assignment/:page?', function(req, res, next){
         let units = orders[i]['products'][j]['ingID']['unitsPerPackage'];
         entry['unitCost'] = cost/units;
         if(orders[i]['products'][j]['assigned'] === "none" && orders[i]['products'][j]['arrived'] === true){
-          unassigned.push(entry);
+          let index = getIndex(unassigned,entry['vendID'],entry['ingID']);
+          console.log(index);
+          if(index>-1){
+            unassigned[index]['quantity']+=entry['quantity'];
+          }
+          else{
+            unassigned.push(entry);
+          }
         }
       }
     }
@@ -856,7 +863,15 @@ orderLotCheck = async function(lots){
           entry['quantity'] = orders[i]['products'][j]['quantity'];
           entry['ingSize'] = orders[i]['products'][j]['ingID']['unitsPerPackage'];
           if(orders[i]['products'][j]['assigned'] === "none" && orders[i]['products'][j]['arrived'] === true){
-            unassigned.push(entry);
+            let index = getIndex(unassigned,entry['vendID'],entry['ingID']);
+            console.log(index);
+            if(index>-1){
+              unassigned[index]['quantity']+=entry['quantity'];
+            }
+            else{
+              unassigned.push(entry);
+            }
+
           }
         }
       }
@@ -892,6 +907,18 @@ getCost = function(list,id){
     //console.log('ing is ',typeof list[i]['ingredient']);
     //console.log(list[i]['ingredient'] === id);
     if(list[i]['ingredient'].toString() === id.toString()){
+      return i;
+    }
+  }
+  return -1;
+}
+
+getIndex = function(list,vend,ing){
+  console.log("buckle up buckaroo");
+  for(var i = 0; i < list.length; i++){
+    console.log(vend.toString(),list[i]['vendID'].toString());
+    console.log(ing.toString(),list[i]['ingID'].toString());
+    if(list[i]['vendID'].toString()===vend.toString() && list[i]['ingID'].toString()===ing.toString()){
       return i;
     }
   }
