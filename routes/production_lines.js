@@ -275,6 +275,7 @@ router.post('/mark_completed/:id', function(req, res, next) {
     var findAllFormulasQuery = Formula.model.find().exec();
     return findAllFormulasQuery;
   }).then(function(allFormulas) {
+    currentProdLine.busy = false;
     return res.render('production_line', { productionLine: currentProdLine, formulas: allFormulas, alert: 'The lot number for this product is ' + formulaLot });
     //res.redirect(req.baseUrl + '/production_line/id/' + productionLineId);
   }).catch(function(error) {
