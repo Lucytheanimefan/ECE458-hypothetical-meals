@@ -170,7 +170,6 @@ router.post('/:name/update', function(req, res, next) {
     logs.makeLog('Update formula', 'Updated ' + '<a href="/formulas/' + encodeURIComponent(newName) + '">' + newName + '</a>' /*JSON.stringify({formula_name:newName})*/ , req.session.username);
     res.redirect(req.baseUrl + '/' + newName);
   }).catch(function(error) {
-    console.log(error);
     next(error);
   });
 })

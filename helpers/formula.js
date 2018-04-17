@@ -240,7 +240,6 @@ module.exports.updateTuple = function(name, index, ingredientID, quantity){
     }).then(function(tuple) {
       resolve(tuple);
     }).catch(function(error){
-      console.log(error);
       reject(error);
     })
   })
