@@ -11,7 +11,7 @@ block content
       li.adminOnly.hide
         a(data-toggle='tab', href='#add_formula') Create
       li
-        a(data-toggle='tab', href='#completed-productions') Completed Productions
+        a(data-toggle='tab', href='#completed-productions') Productions
 
     .tab-content
       #formula-table.tab-pane.fade.in.active
@@ -152,8 +152,12 @@ block content
               each record in report
                 tr
                   td
-                    a(href='/formulas/' + record.name)= record.name
-                    |  (#{record.lotNumber})
+                    if record.inProgress
+                      a(href='/formulas/' + record.name)= record.name
+                      |  ()
+                    else
+                      a(href='/formulas/' + record.name)= record.name
+                      |  (#{record.lotNumber})
                   td
                     each tuple in record.constituents
                       a(href='/ingredients/' + encodeURIComponent(tuple.ingredientName))= tuple.ingredientName
