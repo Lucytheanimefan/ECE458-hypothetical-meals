@@ -41,6 +41,7 @@ block content
       a(data-toggle='tab', href='#assign-lots') Assign Lots
 
   .tab-content
+    #alertData.hide(data-alert=alert)
     .card-content#assign_lots.tab-pane.fade.in.adminOnly.hide.active
       h1= "Lot Assignment"
       form(action='/users/lot_assignment/assign', method='post')
@@ -91,3 +92,4 @@ block scripts
     var ingredients = document.getElementById('data2').dataset.ingredients;
     ingredients = JSON.parse(ingredients);
     createLotTuples(ingredients, 1);
+    displayFileAlert();

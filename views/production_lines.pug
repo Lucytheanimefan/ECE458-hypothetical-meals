@@ -35,7 +35,7 @@ block content
                   td.manager.hide
                     if line.busy == true
                       form(action='/production_lines/mark_completed/' + line._id, method='post')
-                        button.btn.btn-primary.pull-right(type='submit', value='complete productionline') Complete
+                        button.btn.btn-primary(type='submit', value='complete productionline', style='padding: 7px 21px;') Complete
                   td.adminOnly.hide
                     if line.busy == false
                       form(action='/production_lines/delete/' + line._id, method='post')
@@ -44,7 +44,7 @@ block content
             .col-md-12
               form(action="/production_lines/page/" + (parseInt(page)-1).toString(), method="get" style="display: inline-block;")
                 button.btn.btn-white(type="submit" style="padding: 5px;") <
-              p(style="padding: 10px; display: inline-block;") Page #{parseInt(page)}
+              p(style="padding: 10px; display: inline-block;") Page #{parseInt(page+1)}
               - var endpoint = "/production_lines/page/";
               - var pageCount = (parseInt(page + 1)).toString();
               if maxPage
