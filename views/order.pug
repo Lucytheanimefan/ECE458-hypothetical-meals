@@ -15,6 +15,7 @@ block content
             th Vendor
             th Quantity
             th Arrived
+            th Arrival Time
             th Lot Number
           tbody
           each prod in products
@@ -26,6 +27,7 @@ block content
               td= prod.quantity
               td= prod.arrived
               td= prod.assigned
+              td= prod.arrivalTimeStamp
               td.adminOnly.hide
                 form(action='/orders/' + order.orderNumber + '/arrived/' + prod.ingID.id + '/' + prod.vendID.id, method='post')
                   button.btn.btn-primary(type='submit', style='margin:0px; padding: 5px 10px;', onclick='this.disabled = #{prod.arrived};') Mark Arrived

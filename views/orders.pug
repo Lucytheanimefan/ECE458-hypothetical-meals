@@ -25,16 +25,12 @@ block content
               thead.text-primary
                 th Order Number
                 th Order Time
-                th Arrival Time
-                th Status
               tbody
               each order in pendingOrders
                 tr(id=order)
                   td
                     a(href='/orders/' + order.orderNumber)= order.orderNumber
                   td= order.orderTimeStamp
-                  td= order.arrivalTimeStamp
-                  td= order.completed ? "Delivered" : "Not Delivered"
 
         div.previous
           form(action='/orders/home/' + (parseInt(pageOne)-1).toString() + '/' + (parseInt(pageTwo)).toString(), method='get')
