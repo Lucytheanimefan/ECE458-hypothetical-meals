@@ -292,7 +292,7 @@ router.post('/:name/order/:amount', function(req, res, next) {
     var historyQuery = ProductionLine.updateHistory(productionLineId, 'busy', formulaId);
     return historyQuery;
   }).then(function() {
-    res.redirect('/formulas');
+    res.redirect('/production_lines');
   }).catch(function(error) {
     console.log(error);
     next(error);

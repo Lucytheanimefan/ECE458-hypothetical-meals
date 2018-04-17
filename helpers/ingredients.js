@@ -87,6 +87,7 @@ module.exports.checkAndUpdateInventory = function(name, package, temperature, un
 
 //TODO: remove inventory check/update
 module.exports.incrementAmount = function(id, amount, vendorID='admin', lotNumber=0, price) {
+  var price = price ? price : 0;
   return new Promise(function(resolve, reject) {
     var newAmount;
     var ing;
@@ -111,8 +112,10 @@ module.exports.incrementAmount = function(id, amount, vendorID='admin', lotNumbe
     }).then(function(result) {
       return Ingredient.updateSpace(ing.name);
     }).then(function(result) {
+      console.log('Finished IngredientHelper.incrementAmount');
       resolve(result);
     }).catch(function(error) {
+      console.log(error);
       reject(error);
     })
   })

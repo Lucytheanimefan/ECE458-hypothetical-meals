@@ -17,6 +17,7 @@ block content
             th Vendor
             th Quantity
             th Arrived
+            th Arrival Time
             th Lot Number
           tbody
           each prod in products
@@ -27,6 +28,7 @@ block content
                 a(href='/vendors/' + prod.vendID.code)= prod.vendID.name
               td= prod.quantity
               td= prod.arrived
+              td= prod.arrivalTimeStamp
               td= prod.assigned
               td.adminOnly.hide
                 if !prod.arrived

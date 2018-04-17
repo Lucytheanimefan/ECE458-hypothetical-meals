@@ -25,6 +25,7 @@ module.exports.addOrder = function(products){
       entry['quantity'] = products[i]['amount'];
       entry['arrived'] = false;
       entry['assigned'] = "none";
+      entry['arrivalTimeStamp'] = "n/a";
       orderList.push(entry);
     }
     Orders.addOrder(orderList).then(function(res){
@@ -44,13 +45,16 @@ module.exports.markIngredientArrived = function(orderNumber,ingID,vendID) {
       for(var i = 0; i < order.products.length; i++){
         if(order.products[i].ingID._id == ingID && order.products[i].vendID._id == vendID){
           order.products[i].arrived = true;
+          order.products[i].arrivalTimeStamp = Date();
         }
         if(order.products[i].arrived == false){
           pendingCheck = false;
         }
       }
       order.completed = pendingCheck;
-      order.arrivalTimeStamp = Date();
+      if(pendingCheck){
+        order.arrivalTimeStamp = Date();
+      }
       return order.save();
     }).then(function(res){
       resolve(res);

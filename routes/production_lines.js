@@ -243,18 +243,28 @@ router.post('/mark_completed/:id', function(req, res, next) {
     for (let lot of lotsConsumed) {
       await Recall.createLotEntry(lot.ingID, lot.ingName, lot.lotNumber, lot.vendorID);
     }
+    console.log('---Finished creating lot entry for recall report');
     for (let lot of lotsConsumed) {
+      console.log('--Lot consumed: ');
+      console.log(lot)
       await Recall.updateReport(finishedFormula._id, formulaLot, finishedFormula.intermediate, lot.ingID, lot.lotNumber, lot.vendorID);
-      totalCost += parseFloat(lot.amount) * parseFloat(lot.price);
+      console.log('Finished updating report');
+      let price = lot.price ? lot.price : 0;
+      totalCost += parseFloat(lot.amount) * parseFloat(price);
     }
     return Ingredient.getIngredient(finishedFormula.name);
   }).then(function(ing) {
     if (finishedFormula.intermediate) {
-      return IngredientHelper.incrementAmount(ing._id, parseFloat(currentProdLine.currentProduct.amount), 'admin', formulaLot, totalCost/parseFloat(currentProdLine.currentProduct.amount));
+      console.log('Finished formula is an intermediate, increment amount');
+      console.log('Calculate price:')
+      console.log(totalCost + '/' + parseFloat(currentProdLine.currentProduct.amount));
+      return IngredientHelper.incrementAmount(ing._id, parseFloat(currentProdLine.currentProduct.amount), 'admin', formulaLot, totalCost / parseFloat(currentProdLine.currentProduct.amount));
     } else {
+      console.log('Add final product');
       return FinalProductHelper.addFinalProduct(finishedFormula.name, parseFloat(currentProdLine.currentProduct.amount));
     }
   }).then(function(result) {
+    console.log('ProductionLine.updateProductionLine(productionLineId, updateInfo)');
     return ProductionLine.updateProductionLine(productionLineId, updateInfo);
   }).then(function(prodLine) {
     var prodLineUpdatHistoryQuery = ProductionLine.updateHistory(productionLineId, 'idle');
@@ -265,6 +275,7 @@ router.post('/mark_completed/:id', function(req, res, next) {
     var findAllFormulasQuery = Formula.model.find().exec();
     return findAllFormulasQuery;
   }).then(function(allFormulas) {
+    currentProdLine.busy = false;
     return res.render('production_line', { productionLine: currentProdLine, formulas: allFormulas, alert: 'The lot number for this product is ' + formulaLot });
     //res.redirect(req.baseUrl + '/production_line/id/' + productionLineId);
   }).catch(function(error) {

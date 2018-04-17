@@ -5,6 +5,9 @@ block link
 
 
 block content
+  form(action='/production_lines')
+    button.btn.btn-primary.pull-right(type='submit', style='display: inline-block; float: right') Back to Production Lines
+  .row
   div.card-tabs
     ul.nav.nav-tabs
       li.active
@@ -45,7 +48,7 @@ block content
             input.form-control.adminOnly(type='text', name='name', value=productionLine.name, required='')
           .form-group.adminOnly.hide
             label.control-label.adminOnly Description
-            input.form-control.adminOnly(type='text', name='description', value=productionLine.description, required='') 
+            input.form-control.adminOnly(type='text', name='description', value=productionLine.description, required='')
           //- .form-group
           //-   label.control-label Busy
           //-   input.form-control(name='busy', id=id, type='checkbox' checked=productionLine.busy)
