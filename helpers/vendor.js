@@ -85,7 +85,7 @@ module.exports.updateVendor = function(code, name, newCode, contact, location){
       vendor = vend;
       return Vendor.findVendorByCode(newCode);
     }).then(function(tempVend){
-      if(tempVend == null){
+      if(tempVend == null || code.toLowerCase() == newCode.toLowerCase()){
         var result = Vendor.updateVendor(code, name, newCode, contact, location);
         resolve(result);
       }

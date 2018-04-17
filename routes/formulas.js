@@ -286,7 +286,6 @@ router.post('/:name/order/:amount', function(req, res, next) {
       throw err;
     }
   }).then(function(productionLine) {
-
     logs.makeLog('Production', 'Send <a href="/formulas/' + formulaName + '">' + formulaName + '</a> to <a href="/production_lines/production_line/id/' + productionLineId + '">' + productionLineName + '</a>', req.session.username);
     var historyQuery = ProductionLine.updateHistory(productionLineId, 'busy', formulaId);
     return historyQuery;

@@ -9,7 +9,7 @@ block content
     ul.nav.nav-tabs
       li.active
         a(data-toggle='tab', href='#productionLine') Production Line Information
-      li.adminOnly.hide
+      li.manager.hide
         a(data-toggle='tab', href='#edit_form') Edit
 
     .tab-content
@@ -37,15 +37,15 @@ block content
           form(action='/production_lines/mark_completed/' + productionLine._id, method='post')
             button.btn.btn-primary.pull-right(type='submit', value='complete productionline') Mark production completed
 
-      .card-content.tab-pane.fade#edit_form.adminOnly.hide
+      .card-content.tab-pane.fade#edit_form.manager.hide
         h1= 'Update production line'
         form(action='/production_lines/update/' + productionLine._id, method='post')
-          .form-group
-            label.control-label Production Line Name
-            input.form-control(type='text', name='name', value=productionLine.name, required='')
-          .form-group
-            label.control-label Description
-            input.form-control(type='text', name='description', value=productionLine.description, required='') 
+          .form-group.adminOnly.hide
+            label.control-label.adminOnly Production Line Name
+            input.form-control.adminOnly(type='text', name='name', value=productionLine.name, required='')
+          .form-group.adminOnly.hide
+            label.control-label.adminOnly Description
+            input.form-control.adminOnly(type='text', name='description', value=productionLine.description, required='') 
           //- .form-group
           //-   label.control-label Busy
           //-   input.form-control(name='busy', id=id, type='checkbox' checked=productionLine.busy)
