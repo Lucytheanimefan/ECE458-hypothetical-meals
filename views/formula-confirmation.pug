@@ -4,6 +4,8 @@ block link
   -var selected = 'Formulas';
 
 block content
+  form(action='/formulas/' + formulaName)
+    button.btn.btn-primary.pull-right(type='submit', style='display: inline-block; float: right') Update "#{formulaName}"
   #alertData.hide(data-alert=alert)
   div.card
     div.card-header(data-background-color='purple')
