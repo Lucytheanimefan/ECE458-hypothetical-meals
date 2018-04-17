@@ -15,8 +15,8 @@ var min = 10000000
 var max = 1000000000
 
 // Managers will be able to update the mapping between formulas and production
-// lines; this should be possible either from a view of the formula
-// (by indicating which production lines) or from a view of the production line
+// lines; this should be possible either from a view of the formula 
+// (by indicating which production lines) or from a view of the production line 
 // (by indicating which formulas).
 
 router.get('/', function(req, res, next) {
@@ -233,7 +233,6 @@ router.post('/mark_completed/:id', function(req, res, next) {
     currentProdLine = prodLine;
     formulaLot = prodLine.currentProduct.lotNumber;
     lotsConsumed = prodLine.currentProduct.ingredientLots;
-    console.log(prodLine.currentProduct.formulaId);
     return Formula.findFormulaById(prodLine.currentProduct.formulaId)
   }).then(function(formula) {
     finishedFormula = formula;
@@ -244,24 +243,28 @@ router.post('/mark_completed/:id', function(req, res, next) {
     for (let lot of lotsConsumed) {
       await Recall.createLotEntry(lot.ingID, lot.ingName, lot.lotNumber, lot.vendorID);
     }
+    console.log('---Finished creating lot entry for recall report');
     for (let lot of lotsConsumed) {
+      console.log('--Lot consumed: ');
+      console.log(lot)
       await Recall.updateReport(finishedFormula._id, formulaLot, finishedFormula.intermediate, lot.ingID, lot.lotNumber, lot.vendorID);
-      console.log(lotsConsumed);
-      console.log(lot.price);
-      totalCost += parseFloat(lot.amount) * parseFloat(lot.price);
+      console.log('Finished updating report');
+      let price = lot.price ? lot.price : 0;
+      totalCost += parseFloat(lot.amount) * parseFloat(price);
     }
     return Ingredient.getIngredient(finishedFormula.name);
   }).then(function(ing) {
-    console.log("ing");
     if (finishedFormula.intermediate) {
-      console.log("intermediate");
-      console.log(totalCost);
-      return IngredientHelper.incrementAmount(ing._id, parseFloat(currentProdLine.currentProduct.amount), 'admin', formulaLot, totalCost/parseFloat(currentProdLine.currentProduct.amount));
+      console.log('Finished formula is an intermediate, increment amount');
+      console.log('Calculate price:')
+      console.log(totalCost + '/' + parseFloat(currentProdLine.currentProduct.amount));
+      return IngredientHelper.incrementAmount(ing._id, parseFloat(currentProdLine.currentProduct.amount), 'admin', formulaLot, totalCost / parseFloat(currentProdLine.currentProduct.amount));
     } else {
-      console.log("final");
+      console.log('Add final product');
       return FinalProductHelper.addFinalProduct(finishedFormula.name, parseFloat(currentProdLine.currentProduct.amount));
     }
   }).then(function(result) {
+    console.log('ProductionLine.updateProductionLine(productionLineId, updateInfo)');
     return ProductionLine.updateProductionLine(productionLineId, updateInfo);
   }).then(function(prodLine) {
     var prodLineUpdatHistoryQuery = ProductionLine.updateHistory(productionLineId, 'idle');
