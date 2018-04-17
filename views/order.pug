@@ -29,9 +29,10 @@ block content
               td= prod.arrived
               td= prod.assigned
               td.adminOnly.hide
-                form(action='/orders/' + order.orderNumber + '/arrived/' + prod.ingID.id + '/' + prod.vendID.id, method='post')
-                  button.btn.btn-primary(type='submit', style='margin:0px; padding: 5px 10px;', onclick='this.disabled = #{prod.arrived};') Mark Arrived
-                  //<button onclick="getElementById('hidden-div').style.display = 'block'; this.style.display = ">Check Availability</button>
+                if !prod.arrived
+                  form(action='/orders/' + order.orderNumber + '/arrived/' + prod.ingID.id + '/' + prod.vendID.id, method='post')
+                    button.btn.btn-primary(type='submit', style='margin:0px; padding: 5px 10px;', onclick='this.disabled = #{prod.arrived};') Mark Arrived
+                    //<button onclick="getElementById('hidden-div').style.display = 'block'; this.style.display = ">Check Availability</button>
 
               //- td= log.entities
 block scripts
