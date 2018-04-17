@@ -38,13 +38,13 @@ router.get('/home/:page1?/:page2?', function(req, res, next) {
   Orders.getAllIncompleteOrders().then(function(orders){
     allPendingOrders = orders;
     pageCapPending = Math.ceil(orders.length/perPage)>0 ? Math.ceil(orders.length/perPage) : 1;
-    console.log(orders);
-    console.log(pageCapPending);
+    //console.log(orders);
+    //console.log(pageCapPending);
     if(page1 >= pageCapPending){
       page1 = pageCapPending;
     }
     pendingOrders = allPendingOrders.slice((page1-1)*perPage,(page1-1)*perPage+perPage);
-    console.log(pendingOrders);
+    //console.log(pendingOrders);
     return Orders.getAllCompleteOrders();
   }).then(function(orders){
     allCompletedOrders = orders;
