@@ -37,8 +37,12 @@ block content
         each record in report
           tr
             td
-              a(href='/formulas/' + record.name)= record.name
-              |  (#{record.lotNumber})
+              if record.inProgress
+                a(href='/formulas/' + record.name)= record.name
+                |  ()
+              else
+                a(href='/formulas/' + record.name)= record.name
+                |  (#{record.lotNumber})
             td
               each tuple in record.constituents
                 a(href='/ingredients/' + encodeURIComponent(tuple.ingredientName))= tuple.ingredientName

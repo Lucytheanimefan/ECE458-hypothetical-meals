@@ -4,6 +4,7 @@ var User = require('../models/user');
 var UserHelper = require('../helpers/users');
 var FinalProductHelper = require('../helpers/final_products');
 var FinalProduct = require('../models/final_product');
+var logs = require('./logs');
 var mongoose = require('mongoose');
 mongoose.Promise = global.Promise;
 
@@ -54,6 +55,13 @@ router.post('/add', function(req, res, next) {
   console.log(req.body);
   var userId = req.session.userId;
   UserHelper.addToSaleList(userId, formulaId, quantity, price).then(function(success) {
+    return FinalProduct.getFinalProductById(formulaId);
+  }).then(function(fp) {
+    if (fp != null) {
+      logs.makeLog('Add to sale request', 'Added final product <a href="/formulas/' + fp.name + '">' + fp.name + '</a> to sale request', req.session.username);
+    } else {
+      logs.makeLog('Add to sale request', 'Added final product to sale request', req.session.username);
+    }
     res.redirect(req.baseUrl);
   }).catch(function(error) {
     next(error);
@@ -64,6 +72,13 @@ router.post('/remove', function(req, res, next) {
   var formulaId = mongoose.Types.ObjectId(req.body.id);
   var userId = req.session.userId;
   UserHelper.removeSale(userId, formulaId).then(function(success) {
+    return FinalProduct.getFinalProductById(formulaId);
+  }).then(function(fp) {
+    if (fp != null) {
+      logs.makeLog('Remove from sale request', 'Removed final product <a href="/formulas/' + fp.name + '">'+ fp.name +' </a> from sale request', req.session.username);
+    } else {
+      logs.makeLog('Remove from sale request', 'Removed final product from sale request', req.session.username);
+    }
     res.redirect(req.baseUrl);
   }).catch(function(error) {
     next(error);
@@ -101,6 +116,7 @@ router.post('/confirmed', function(req, res, next) {
       return Promise.all([FinalProductHelper.sellFinalProduct(sale.finalProductName, parseFloat(sale.quantity), parseFloat(sale.price)), UserHelper.removeSale(userId, sale.finalProduct)]);
     }));
   }).then(function(results) {
+    logs.makeLog('Submit sale request', 'Submitted sale request', req.session.username);
     res.redirect(req.baseUrl);
   }).catch(function(error) {
     next(error);

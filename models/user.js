@@ -256,8 +256,6 @@ module.exports.updateCart = function(id, ingId, quantity, vendor) {
 
 module.exports.addToSaleList = function(id, fpId, quantity, price) {
   fpId = mongoose.Types.ObjectId(fpId.toString());
-  console.log(quantity);
-  console.log(price);
   let entry = {finalProduct:fpId, quantity: quantity, price: price};
   return User.findOneAndUpdate({'_id':id},{'$push':{'saleList':entry}}).exec();
 }
