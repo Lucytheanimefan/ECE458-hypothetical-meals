@@ -148,7 +148,8 @@ router.post('/:name/update', function(req, res, next) {
   console.log(body);
   promise.then(function(formula) {
     return Promise.all([FormulaHelper.updateFormula(name, newName, description, units),
-      IngredientHelper.updateIngredient(name, newName, package, temperature, nativeUnit, unitsPerPackage)]);
+      IngredientHelper.updateIngredient(name, newName, package, temperature, nativeUnit, unitsPerPackage)
+    ]);
   }).then(async function(result) {
     var index = 1;
     var count = 1;
@@ -175,6 +176,7 @@ router.post('/:name/order', function(req, res, next) {
   let formulaName = req.params.name;
   let amount = parseFloat(req.body.quantity);
 
+  var alertMessage;
   var formulaObject;
   var formulaObjects;
   var tuples = [];
@@ -189,7 +191,7 @@ router.post('/:name/order', function(req, res, next) {
   }).then(function(results) {
     for (let object of results) {
       if (object.intermediate && !object.enough) {
-        throw new Error('Need to produce ' + (parseFloat(object.neededAmount) - parseFloat(object.currentAmount))+ ' more units of intermediate product ' + object.ingredient);
+        throw new Error('Need to produce ' + (parseFloat(object.neededAmount) - parseFloat(object.currentAmount)) + ' more units of intermediate product ' + object.ingredient);
       }
       let orderAmount = parseFloat(object.neededAmount) - parseFloat(object.currentAmount);
       if (orderAmount > 0) {
@@ -203,7 +205,15 @@ router.post('/:name/order', function(req, res, next) {
     var productionLineQuery = ProductionLine.productionLinesForFormula(formulaObject._id);
     return productionLineQuery;
   }).then(function(productionLines) {
-    res.render('formula-confirmation', { formulaName: formulaName, formula: formulaObject, formulaObjects: formulaObjects, orderAmounts: tuples, amount: amount, productionLines: productionLines });
+    for (let i=0; i<productionLines.length; i++){
+      if (!productionLines[i].busy){
+        break
+      }
+      if (i==productionLines.length-1){
+        alertMessage = "No available production lines";
+      }
+    }
+    res.render('formula-confirmation', { formulaName: formulaName, formula: formulaObject, formulaObjects: formulaObjects, orderAmounts: tuples, amount: amount, productionLines: productionLines, alert:alertMessage });
   }).catch(function(error) {
     console.log(error);
     next(error);
@@ -220,7 +230,7 @@ router.post('/:name/order/:amount', function(req, res, next) {
   var formulaLot;
   var lotsConsumed;
   var lotNumber = uniqid();
-
+  var productionLineName;
 
   Formula.findFormulaByName(formulaName).then(function(formula) {
     globalFormula = formula;
@@ -252,7 +262,6 @@ router.post('/:name/order/:amount', function(req, res, next) {
     }));
   }).then(function(results) {
     lotsConsumed = [].concat.apply([], results);
-    logs.makeLog('Production', 'Send ingredients to production', req.session.username);
     var prodLineQuery = ProductionLine.getProductionLineById(productionLineId);
     return prodLineQuery;
   }).then(function(productionLine) {
@@ -261,6 +270,7 @@ router.post('/:name/order/:amount', function(req, res, next) {
       let err = new Error('No production line found');
       return next(err);
     }
+    productionLineName = productionLine.name;
     //let productionLine = productionLines[0];
     console.log(productionLine);
     console.log('Busy?');
@@ -276,7 +286,7 @@ router.post('/:name/order/:amount', function(req, res, next) {
       throw err;
     }
   }).then(function(productionLine) {
-    logs.makeLog('Production', 'Send <a href="/formulas/' + formulaName + '">' + formulaName + '</a> to <a href="/production_lines/production_line/' + productionLine.name + '">' + productionLine.name + '</a>', req.session.username);// TODO: link
+    logs.makeLog('Production', 'Send <a href="/formulas/' + formulaName + '">' + formulaName + '</a> to <a href="/production_lines/production_line/id/' + productionLineId + '">' + productionLineName + '</a>', req.session.username);
     var historyQuery = ProductionLine.updateHistory(productionLineId, 'busy', formulaId);
     return historyQuery;
   }).then(function() {
@@ -401,7 +411,7 @@ router.post('/completed_productions/view', function(req, res, next) {
     query['inProgress'] = (status == 'inProgress');
   }
   Completed.getProducts(query).then(function(products) {
-    res.render('completed_products', {report: products});
+    res.render('completed_products', { report: products });
   }).catch(function(error) {
     next(error);
   })
@@ -409,7 +419,7 @@ router.post('/completed_productions/view', function(req, res, next) {
 
 getObjectIdForTime = function(dateString) {
   var date = new Date(dateString);
-  var seconds = Math.floor(date/1000).toString(16)
+  var seconds = Math.floor(date / 1000).toString(16)
   console.log(date.getTime());
   return mongoose.Types.ObjectId(seconds + "0000000000000000");
 }
