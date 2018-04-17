@@ -10,7 +10,8 @@ var OrdersSchema = new mongoose.Schema({
     vendID: {type:mongoose.Schema.Types.ObjectId,ref:'Vendor'},
     quantity: Number,
     arrived: Boolean,
-    assigned: String
+    assigned: String,
+    arrivalTimeStamp: String
   }],
   orderNumber: {
     type: String,

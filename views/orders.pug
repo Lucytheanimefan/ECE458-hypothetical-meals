@@ -1,4 +1,8 @@
 extends layout
+
+block css
+  link(href='/stylesheets/ingredients.css', rel='stylesheet')
+
 block link
   -var selected = 'Orders';
 
@@ -21,16 +25,20 @@ block content
               thead.text-primary
                 th Order Number
                 th Order Time
-                th Newest Ingredient Arrival Time
-                th Status
               tbody
               each order in pendingOrders
                 tr(id=order)
                   td
                     a(href='/orders/' + order.orderNumber)= order.orderNumber
                   td= order.orderTimeStamp
-                  td= order.arrivalTimeStamp
-                  td= order.completed ? "Delivered" : "Not Delivered"
+
+        div.previous
+          form(action='/orders/home/' + (parseInt(pageOne)-1).toString() + '/' + (parseInt(pageTwo)).toString(), method='get')
+            button.btn.btn-white(type="submit" style="padding: 5px;") <
+            p(style="padding: 10px; display: inline-block;") Page #{parseInt(pageOne)}
+        div.next
+          form(action='/orders/home/' + (parseInt(pageOne)+1).toString() + '/' + (parseInt(pageTwo)).toString(), method='get')
+            button.btn.btn-white(type="submit" style="padding: 5px;") >
 
       .card-content.tab-pane.fade#order-completed
         div.card
@@ -52,6 +60,13 @@ block content
                   td= order.orderTimeStamp
                   td= order.arrivalTimeStamp
                   td= order.assigned ? "Assigned" : "Unassigned"
+        div.previous
+          form(action='/orders/home/' + (parseInt(pageOne)).toString() + '/' + (parseInt(pageTwo)-1).toString(), method='get')
+            button.btn.btn-white(type="submit" style="padding: 5px;") <
+            p(style="padding: 10px; display: inline-block;") Page #{parseInt(pageTwo)}
+        div.next
+          form(action='/orders/home/' + (parseInt(pageOne)).toString() + '/' + (parseInt(pageTwo)+1).toString(), method='get')
+            button.btn.btn-white(type="submit" style="padding: 5px;") >
 
 block scripts
   script.
