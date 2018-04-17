@@ -147,9 +147,11 @@ router.post('/:name/update', function(req, res, next) {
   var length = Object.keys(body).length;
   console.log(body);
   promise.then(function(formula) {
-    return Promise.all([FormulaHelper.updateFormula(name, newName, description, units),
-      IngredientHelper.updateIngredient(name, newName, package, temperature, nativeUnit, unitsPerPackage)
-    ]);
+    let promises = [FormulaHelper.updateFormula(name, newName, description, units)];
+    if (formula.intermediate) {
+      promises.push(IngredientHelper.updateIngredient(name, newName, package, temperature, nativeUnit, unitsPerPackage));
+    }
+    return Promise.all(promises);
   }).then(async function(result) {
     var index = 1;
     var count = 1;
