@@ -58,7 +58,7 @@ router.post('/add', function(req, res, next) {
     return FinalProduct.getFinalProductById(formulaId);
   }).then(function(fp) {
     if (fp != null) {
-      logs.makeLog('Add to sale request', 'Added final product <a href="/formulas/' + fp.name + '">' + fp.name + '</a> to sale request', req.session.username);
+      logs.makeLog('Add to sale request', 'Added <a href="/formulas/' + fp.name + '">' + fp.name + '</a> to sale request', req.session.username);
     } else {
       logs.makeLog('Add to sale request', 'Added final product to sale request', req.session.username);
     }
@@ -75,7 +75,7 @@ router.post('/remove', function(req, res, next) {
     return FinalProduct.getFinalProductById(formulaId);
   }).then(function(fp) {
     if (fp != null) {
-      logs.makeLog('Remove from sale request', 'Removed final product <a href="/formulas/' + fp.name + '">'+ fp.name +' </a> from sale request', req.session.username);
+      logs.makeLog('Remove from sale request', 'Removed <a href="/formulas/' + fp.name + '">'+ fp.name +' </a> from sale request', req.session.username);
     } else {
       logs.makeLog('Remove from sale request', 'Removed final product from sale request', req.session.username);
     }
