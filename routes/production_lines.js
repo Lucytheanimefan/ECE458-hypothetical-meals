@@ -246,13 +246,19 @@ router.post('/mark_completed/:id', function(req, res, next) {
     }
     for (let lot of lotsConsumed) {
       await Recall.updateReport(finishedFormula._id, formulaLot, finishedFormula.intermediate, lot.ingID, lot.lotNumber, lot.vendorID);
+      console.log(lotsConsumed);
+      console.log(lot.price);
       totalCost += parseFloat(lot.amount) * parseFloat(lot.price);
     }
     return Ingredient.getIngredient(finishedFormula.name);
   }).then(function(ing) {
+    console.log("ing");
     if (finishedFormula.intermediate) {
+      console.log("intermediate");
+      console.log(totalCost);
       return IngredientHelper.incrementAmount(ing._id, parseFloat(currentProdLine.currentProduct.amount), 'admin', formulaLot, totalCost/parseFloat(currentProdLine.currentProduct.amount));
     } else {
+      console.log("final");
       return FinalProductHelper.addFinalProduct(finishedFormula.name, parseFloat(currentProdLine.currentProduct.amount));
     }
   }).then(function(result) {
