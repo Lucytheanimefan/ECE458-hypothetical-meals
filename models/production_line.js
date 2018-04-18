@@ -53,7 +53,9 @@ var ProductionLineSchema = new mongoose.Schema({
       ingID: String,
       ingName: String,
       lotNumber: String,
-      vendorID: String
+      vendorID: String,
+      amount: Number,
+      price: Number
     }]
   },
   history: [{
