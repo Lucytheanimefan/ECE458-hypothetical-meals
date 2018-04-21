@@ -348,7 +348,7 @@ getAllProfitInformation = function(report) {
       product['revenue'] = revenue;
       product['profit'] = profit;
       product['perUnitProfit'] = profit / parseFloat(product.unitsSold);
-      product['profitMarginPercent'] = revenue/parseFloat(product.ingCost);
+      product['profitMarginPercent'] = revenue*100/parseFloat(product.ingCost);
       productList.push(product);
     }
     resolve(productList);
