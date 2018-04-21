@@ -284,7 +284,7 @@ function loadSideBar() {
         }
       } else {
         // Users
-        if (category !== "Uploads" && category !== "Backups" && category !== "Orders" && category !== "Logs" && category !== "Orders" && category !== "Lots") {
+        if (category !== "Uploads" && category !== "Backups" && category !== "Orders" && category !== "Logs" && category !== "Cart" && category !== "Orders" && category !== "Lots") {
           $(this).removeClass('hide');
         }
       }
