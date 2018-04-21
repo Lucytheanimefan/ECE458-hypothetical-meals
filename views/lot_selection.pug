@@ -39,12 +39,12 @@ block content
               button.btn.btn-white(type="submit" style="padding: 5px;") >
 
   ul.nav.nav-tabs
-    li.active.adminOnly.hide
+    li.active.manager.hide
       a(data-toggle='tab', href='#assign-lots') Assign Lots
 
   .tab-content
     #alertData.hide(data-alert=alert)
-    .card-content#assign_lots.tab-pane.fade.in.adminOnly.hide.active
+    .card-content#assign_lots.tab-pane.fade.in.manager.hide.active
       h1= "Lot Assignment"
       form(action='/users/lot_assignment/assign', method='post')
         div.tupleRow#data2(data-ingredients=orders)

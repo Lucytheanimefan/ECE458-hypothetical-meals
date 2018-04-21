@@ -30,7 +30,7 @@ block content
               td= prod.arrived
               td= prod.arrivalTimeStamp
               td= prod.assigned
-              td.adminOnly.hide
+              td.manager.hide
                 if !prod.arrived
                   form(action='/orders/' + order.orderNumber + '/arrived/' + prod.ingID.id + '/' + prod.vendID.id, method='post')
                     button.btn.btn-primary(type='submit', style='margin:0px; padding: 5px 10px;', onclick='this.disabled = #{prod.arrived};') Mark Arrived

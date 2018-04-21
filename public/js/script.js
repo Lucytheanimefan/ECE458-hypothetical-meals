@@ -275,12 +275,16 @@ function loadSideBar() {
         }
       } else if (role == "admin" || role == 'manager') {
         //console.log('loadAdminOnlySideBar');
-        if (category !== 'Backups') {
+        if (category !== "Backups" && category !== "Users") {
+          $(this).removeClass('hide');
+        }
+
+        if (role == "admin" && category == "Users") {
           $(this).removeClass('hide');
         }
       } else {
         // Users
-        if (category !== 'Users' && category !== "Uploads" && category !== "Backups" && category !== 'Orders') {
+        if (category !== "Uploads" && category !== "Backups" && category !== "Orders" && category !== "Logs" && category !== "Cart" && category !== "Orders" && category !== "Lots") {
           $(this).removeClass('hide');
         }
       }
