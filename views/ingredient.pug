@@ -43,7 +43,7 @@ block content
             th Space in Storage (Sq ft)
             td= ingredient.space
         unless ingredient.isIntermediate
-          div#add-to-cart
+          div#add-to-cart.manager.hide
             form(action='/ingredients/order/add/to/cart', method='post')
               .form-group.pull-left(style='margin: 10px 15px;')
                 input.form-control(type="hidden" name="ingredient" value=ingredient.name)
