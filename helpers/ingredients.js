@@ -128,7 +128,7 @@ module.exports.decrementAmountForProduction = function(id, amount, formula, lotN
     var lotsConsumed;
     Ingredient.getIngredientById(id).then(function(result) {
       ing = result;
-      newAmount = parseFloat(ing.amount) + parseFloat(amount);
+      newAmount = parseFloat(ing.amount) - parseFloat(amount);
       if (newAmount < 0) {
         var error = new Error('Storage amount must be a non-negative number');
         error.status = 400;
