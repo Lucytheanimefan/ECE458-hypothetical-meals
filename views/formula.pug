@@ -170,16 +170,17 @@ block content
             label.control-label Production Lines
             select.form-control(name='productionLines', placeholder = '')
               each productionLine in allProductionLines
-                if productionLine.formulas.length > 0
-                  - var added = false;
-                  for prodFormula,index in productionLine.formulas
-                    if index == 0
-                      - added = false;
-                    if formula._id.toString() == prodFormula.formulaId
-                      - added = true
-                    else if !added
-                      option(value=productionLine._id)= productionLine.name
-                      - added = true
+                if productionLine.formulas != null
+                  if productionLine.formulas.length > 0
+                    - var added = false;
+                    for prodFormula,index in productionLine.formulas
+                      if index == 0
+                        - added = false;
+                      if formula._id.toString() == prodFormula.formulaId
+                        - added = true
+                      else if !added
+                        option(value=productionLine._id)= productionLine.name
+                        - added = true
                 else
                   option(value=productionLine._id)= productionLine.name
           button.btn.btn-primary.pull-right(type='submit') Update Production Lines
