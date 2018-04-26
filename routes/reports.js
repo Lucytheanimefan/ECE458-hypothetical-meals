@@ -279,8 +279,10 @@ getIngredientFreshnessName = function(tuple) {
     Ingredient.getIngredientById(mongoose.Types.ObjectId(tuple.ingredientId)).then(function(ing) {
       if (ing == null) {
         entry['ingredients'] = tuple.ingredientName;
+        entry['exists'] = false;
       } else {
         entry['ingredients'] = ing.name;
+        entry['exists'] = true;
       }
       return entry;
     }).then(function(entry) {
@@ -311,9 +313,11 @@ getFinalProductFreshnessName = function(tuple) {
     entry['worstTime'] = worstTime;
     FinalProduct.getFinalProductById(mongoose.Types.ObjectId(tuple.productId)).then(function(prod) {
       if (prod == null) {
-        entry['products'] = tuple.finalProductName;
+        entry['products'] = tuple.productName;
+        entry['exists'] = false;
       } else {
         entry['products'] = prod.name;
+        entry['exists'] = true;
       }
       return entry;
     }).then(function(entry) {

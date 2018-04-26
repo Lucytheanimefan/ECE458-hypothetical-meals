@@ -12,7 +12,7 @@ var FinalProductFreshnessSchema = new mongoose.Schema({
       productId: {
         type: mongoose.Schema.Types.ObjectId
       },
-      finalProductName: String,
+      productName: String,
       numProds: Number,
       avgTime: Number,
       worstTime: Number
