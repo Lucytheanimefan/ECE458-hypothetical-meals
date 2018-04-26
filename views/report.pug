@@ -178,11 +178,7 @@ block content
             if finalProduct
               each tuple in finalProduct
                 tr
-                  td
-                    if tuple.exists
-                      a(href='/formulas/' + encodeURIComponent(tuple.products))= tuple.products
-                    else
-                      =tuple.products
+                  td= tuple.products
                   td= tuple.avgTime
                   td= tuple.worstTime
             else
