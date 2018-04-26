@@ -39,7 +39,7 @@ block content
         if productionLine.busy
           form(action='/production_lines/mark_completed/' + productionLine._id, method='post')
             button.btn.btn-primary.pull-right(type='submit', value='complete productionline') Mark production completed
-
+      #stuff.hide(data=formulas)
       .card-content.tab-pane.fade#edit_form.manager.hide
         h1= 'Update production line'
         form(action='/production_lines/update/' + productionLine._id, method='post')
@@ -55,7 +55,6 @@ block content
           .form-group
             label.control-label Formulas
             select.form-control(name='formulas', placeholder = '', multiple)
-              //- option(disabled='' value='') Select an option
               each formula in formulas
                 if productionLine.formulas != null
                   if productionLine.formulas.length > 0
@@ -69,8 +68,8 @@ block content
                       else if !added
                         option(value=formula._id)= formula.name
                         - added = true
-                else
-                  option(value=formula._id)= formula.name
+                  else
+                    option(value=formula._id)= formula.name
           button.btn.btn-primary.pull-right(type='submit', value='create production line') Update
 
 block scripts
