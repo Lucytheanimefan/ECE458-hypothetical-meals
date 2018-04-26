@@ -181,6 +181,8 @@ block content
                       else if !added
                         option(value=productionLine._id)= productionLine.name
                         - added = true
+                  else
+                    option(value=productionLine._id)= productionLine.name
                 else
                   option(value=productionLine._id)= productionLine.name
           button.btn.btn-primary.pull-right(type='submit') Update Production Lines
