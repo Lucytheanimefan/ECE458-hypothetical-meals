@@ -179,7 +179,10 @@ block content
               each tuple in finalProduct
                 tr
                   td
-                    a(href='/formulas/' + encodeURIComponent(tuple.products))= tuple.products
+                    if tuple.exists
+                      a(href='/formulas/' + encodeURIComponent(tuple.products))= tuple.products
+                    else
+                      =tuple.products
                   td= tuple.avgTime
                   td= tuple.worstTime
             else
